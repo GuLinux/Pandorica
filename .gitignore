@@ -1,0 +1,7 @@
+build
+webroot/uploads
+*-swp
+*.kdev*
+*~
+*.db
+.directory

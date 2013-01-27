@@ -1,6 +1,15 @@
 #include <iostream>
 
+#include "streamingapp.h"
+#include <Wt/WServer>
+
+
+Wt::WApplication *createApplication(const Wt::WEnvironment& env)
+{
+    return new StreamingApp(env);
+}
+
+
 int main(int argc, char **argv) {
-    std::cout << "Hello, world!" << std::endl;
-    return 0;
+  return Wt::WRun(argc, argv, createApplication);
 }
