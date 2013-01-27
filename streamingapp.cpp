@@ -28,7 +28,6 @@
 #include <Wt/WStandardItemModel>
 #include <Wt/WFileResource>
 #include <Wt/WTimer>
-#include <magic.h>
 #include <boost/algorithm/string.hpp>
 
 using namespace Wt;
