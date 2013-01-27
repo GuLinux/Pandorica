@@ -1,0 +1,4 @@
+[Project]
+Name=VideoStreaming
+Manager=KDevCMakeManager
+VersionControl=kdevgit
