@@ -8,12 +8,16 @@ include_directories(${Wt_INCLUDE_DIR}  )
 
 set(Wt_CONNECTOR_LIBRARY "${Wt_HTTP_LIBRARY}")
 set(Wt_CONNECTOR_DEBUG_LIBRARY ${Wt_HTTP_DEBUG_LIBRARY})
+
 execute_process(COMMAND hostname OUTPUT_VARIABLE HOSTNAME)
-if(${HOSTNAME} STREQUAL "Zerogoki")
+#execute_process(COMMAND echo Shogoki OUTPUT_VARIABLE HOSTNAME)
+
+STRING(REGEX MATCH ".*Zerogoki.*" HOST_IS_ZEROGOKI "${HOSTNAME}")
+if(NOT ${HOST_IS_ZEROGOKI} STREQUAL "")
   set(Wt_CONNECTOR_LIBRARY ${Wt_FCGI_LIBRARY})
   set(Wt_CONNECTOR_DEBUG_LIBRARY ${Wt_FCGI_DEBUG_LIBRARY})
   message("Zerogoki hostname: using FCGI Connector (${Wt_CONNECTOR_LIBRARY} - ${Wt_CONNECTOR_DEBUG_LIBRARY}")
-endif(${HOSTNAME} STREQUAL "Zerogoki")
+endif(NOT ${HOST_IS_ZEROGOKI} STREQUAL "")
 
 SET(INSTALL_DIR "/var/www/videostreaming" CACHE STRING "Install directory for Wt Applications and files")
 
@@ -21,7 +25,7 @@ SET(INSTALL_DIR "/var/www/videostreaming" CACHE STRING "Install directory for Wt
 add_executable(videostreaming streamingapp.cpp main.cpp)
 
 
-string(TOLOWER ${CMAKE_BUILD_TYPE} build_type)
+string(TOLOWER ${CMAKE_BUILD_TYPE} VARIABLE build_type)
 if(${build_type} STREQUAL "debug")
   message("Linking to WT Debug Libraries")
   set(WT_LINK_LIBS ${Wt_DEBUG_LIBRARY} ${Wt_DBO_DEBUG_LIBRARY} ${Wt_CONNECTOR_DEBUG_LIBRARY} )
