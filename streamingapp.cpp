@@ -95,13 +95,14 @@ WMediaPlayer::Encoding StreamingAppPrivate::encodingFor ( filesystem::path p ) {
 }
 
 WLink StreamingAppPrivate::linkFor ( filesystem::path p ) {
-//   string videosDir;
-//   if(wApp->readConfigurationProperty("videos-deploy-dir", videosDir)) {
-//     string relpath = WString(p.string());
-//     return WLink(relpath);
-//   }
+  string videosDeployDir;
+  if(wApp->readConfigurationProperty("videos-deploy-dir", videosDeployDir )) {
+    string relpath = p.string();
+    boost::replace_all(relpath, videosDir(), videosDeployDir);
+    return WLink(relpath);
+  }
 
-    WLink link = WLink(new WFileResource(p.generic_string()));
+   WLink link = WLink(new WFileResource(p.generic_string()));
    wApp->log("notice") << "Generated url: " << link.url();
    return link;
 }
