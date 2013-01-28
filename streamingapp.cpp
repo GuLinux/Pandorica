@@ -73,11 +73,13 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
 
   for(pair<string, WMediaPlayer::Encoding> encodings : d->types)
     player->addSource(encodings.second, "");
-  tree->doubleClicked().connect([model,player,this](WModelIndex index, WMouseEvent, NoClass, NoClass, NoClass, NoClass) {
+  tree->clicked().connect([model,player,this](WModelIndex index, WMouseEvent, NoClass, NoClass, NoClass, NoClass) {
     fs::path p = any_cast<fs::path>(model->itemFromIndex(index)->data());
     if(!fs::is_regular_file(p) || ! d->isAllowed(p)) return;
+	player->stop();
+	player->clearSources();
     player->addSource(d->encodingFor(p), d->linkFor(p));
-    player->play();
+	WTimer::singleShot(1000, player, &WMediaPlayer::play);
   });
   
   for(fs::directory_iterator it(fs::path(".")); it != fs::directory_iterator(); ++it) {
@@ -92,9 +94,13 @@ WMediaPlayer::Encoding StreamingAppPrivate::encodingFor ( filesystem::path p ) {
 }
 
 WLink StreamingAppPrivate::linkFor ( filesystem::path p ) {
-  WLink link = WLink(new WFileResource(p.generic_string()));
-  wApp->log("notice") << "Generated url: " << link.url();
-  return link;
+	string videosDir;
+	if(wApp->readConfigurationProperty("videos-dir", videosDir))
+		return WLink(videosDir + p.string());
+
+    WLink link = WLink(new WFileResource(p.generic_string()));
+   wApp->log("notice") << "Generated url: " << link.url();
+   return link;
 }
 
 string StreamingAppPrivate::extensionFor ( filesystem::path p ) {
