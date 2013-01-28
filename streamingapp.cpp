@@ -40,6 +40,7 @@ public:
   WMediaPlayer::Encoding encodingFor ( filesystem::path p );
   WLink linkFor(filesystem::path p);
   bool isAllowed(filesystem::path p);
+  string videosDir();
   string extensionFor(filesystem::path p);
   map<string, WMediaPlayer::Encoding> types;
   StreamingAppPrivate();
@@ -82,7 +83,7 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
 	WTimer::singleShot(1000, player, &WMediaPlayer::play);
   });
   
-  for(fs::directory_iterator it(fs::path(".")); it != fs::directory_iterator(); ++it) {
+  for(fs::directory_iterator it(fs::path(d->videosDir())); it != fs::directory_iterator(); ++it) {
       filesystem::directory_entry& entry = *it;
       d->addTo(model, 0, entry.path());
     }
@@ -94,9 +95,11 @@ WMediaPlayer::Encoding StreamingAppPrivate::encodingFor ( filesystem::path p ) {
 }
 
 WLink StreamingAppPrivate::linkFor ( filesystem::path p ) {
-	string videosDir;
-	if(wApp->readConfigurationProperty("videos-dir", videosDir))
-		return WLink(videosDir + p.string());
+//   string videosDir;
+//   if(wApp->readConfigurationProperty("videos-deploy-dir", videosDir)) {
+//     string relpath = WString(p.string());
+//     return WLink(relpath);
+//   }
 
     WLink link = WLink(new WFileResource(p.generic_string()));
    wApp->log("notice") << "Generated url: " << link.url();
@@ -115,6 +118,12 @@ bool StreamingAppPrivate::isAllowed ( filesystem::path p ) {
   return types.count(extensionFor(p)) || fs::is_directory(p);
 }
 
+
+string StreamingAppPrivate::videosDir() {
+	string videosDir;
+	wApp->readConfigurationProperty("videos-dir", videosDir);
+	return videosDir;
+}
 
 
 void StreamingAppPrivate::addTo ( WStandardItemModel* model, WStandardItem* item, filesystem::path p ) {
