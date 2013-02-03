@@ -34,6 +34,8 @@
 #include <Wt/WMenu>
 #include <Wt/WSubMenuItem>
 #include <Wt/WImage>
+#include <Wt/WText>
+#include <Wt/Utils>
 #include <boost/algorithm/string.hpp>
 
 using namespace Wt;
@@ -56,6 +58,7 @@ public:
   void menuItemClicked(WMenuItem *item);
   void play(filesystem::path path);
   void setIconTo(WMenuItem *item, string url);
+  WContainerWidget *infoBox;
 };
 
 StreamingAppPrivate::StreamingAppPrivate() {
@@ -90,6 +93,8 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   
   WContainerWidget *playerContainer = new WContainerWidget();
   playerContainer->addWidget(d->player);
+  d->infoBox = new WContainerWidget();
+  playerContainer->addWidget(d->infoBox);
   layout->addWidget(playerContainer);
   layout->setResizable(0, true, 250);
   root()->setLayout(layout);
@@ -100,7 +105,28 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
       filesystem::directory_entry& entry = *it;
       d->addTo(d->menu, entry.path());
     }
+    
+  for( pair<string, Http::ParameterValues> param : environment.getParameterMap()) {
+    log("notice") << "Received parameter: " << param.first;
+  }
+  if(environment.getParameter("file")) {
+    log("notice") << "Got parameter file: " << *environment.getParameter("file");
+    WTimer::singleShot(1000, [this](WMouseEvent&) {
+      d->play(filesystem::path(* wApp->environment().getParameter("file") ));
+    });
+  }
 }
+
+void StreamingApp::refresh() {
+  Wt::WApplication::refresh();
+  if(environment().getParameter("file")) {
+    log("notice") << "Got parameter file: " << *environment().getParameter("file");
+    WTimer::singleShot(1000, [this](WMouseEvent&) {
+      d->play(filesystem::path(* wApp->environment().getParameter("file") ));
+    });
+  }    
+}
+
 
 
 WMediaPlayer::Encoding StreamingAppPrivate::encodingFor ( filesystem::path p ) {
@@ -210,6 +236,11 @@ void StreamingAppPrivate::play ( filesystem::path path ) {
       player->stop();
   player->clearSources();
   player->addSource(encodingFor( path ), linkFor( path ));
+  infoBox->clear();
+  infoBox->addWidget(new WText(string("File: ") + path.filename().string()));
+  WLink shareLink(wApp->bookmarkUrl() + string("?file=") + Utils::urlEncode(path.string()));
+  infoBox->addWidget(new WBreak() );
+  infoBox->addWidget(new WAnchor(shareLink, "Link per la condivisione"));
   wApp->setTitle( path.filename().string());
   log("notice") << "using url " << linkFor( path ).url();
   WTimer::singleShot(1000, player, &WMediaPlayer::play);  
