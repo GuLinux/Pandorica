@@ -21,6 +21,7 @@
 #include "streamingapp.h"
 #include <Wt/WGridLayout>
 #include <Wt/WHBoxLayout>
+#include <Wt/WVBoxLayout>
 #include <Wt/WMediaPlayer>
 #include <Wt/WContainerWidget>
 #include <Wt/WTreeView>
@@ -41,7 +42,6 @@ using namespace boost;
 namespace fs = boost::filesystem;
 class StreamingAppPrivate {
 public:
-  void addTo ( WStandardItemModel* model, WStandardItem* item, filesystem::path p );
   void addTo ( WMenu *menu, filesystem::path p );
   WMediaPlayer::Encoding encodingFor ( filesystem::path p );
   WLink linkFor(filesystem::path p);
@@ -72,17 +72,13 @@ StreamingAppPrivate::StreamingAppPrivate() {
 
 
 StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication(environment), d(new StreamingAppPrivate) {
-  WHBoxLayout *layout = new WHBoxLayout();
+  WBoxLayout *layout = new WVBoxLayout();
   d->player = new WMediaPlayer(WMediaPlayer::Video);
-  WStandardItemModel *model = new WStandardItemModel(this);
-  WTreeView *tree = new WTreeView();
   useStyleSheet("http://test.gulinux.net/videostreaming.css");
 //   requireJQuery("http://myrent.gulinux.net/css/jquery-latest.js");
   useStyleSheet("http://myrent.gulinux.net/css/bootstrap/css/bootstrap.css");
   useStyleSheet("http://myrent.gulinux.net/css/bootstrap/css/bootstrap-responsive.css");
   require("http://myrent.gulinux.net/css/bootstrap/js/bootstrap.js");
-  tree->setModel(model);
-//   layout->addWidget(tree);
   d->menu = new WMenu(Wt::Vertical);
   d->menu->itemSelected().connect(d, &StreamingAppPrivate::menuItemClicked);
   WContainerWidget *menuContainer = new WContainerWidget();
@@ -91,44 +87,17 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   d->menu->setRenderAsList(true);
   d->menu->setStyleClass("nav nav-list");
   layout->addWidget(menuContainer);
-  layout->addWidget(d->player);
+  
+  WContainerWidget *playerContainer = new WContainerWidget();
+  playerContainer->addWidget(d->player);
+  layout->addWidget(playerContainer);
   layout->setResizable(0, true, 250);
   root()->setLayout(layout);
-  WTimer::singleShot(200, [tree] (WMouseEvent) {
-    tree->setColumnWidth(0, 600);
-  });
-
 
   for(pair<string, WMediaPlayer::Encoding> encodings : d->types)
     d->player->addSource(encodings.second, "");
-//   tree->clicked().connect([model,player,this](WModelIndex index, WMouseEvent, NoClass, NoClass, NoClass, NoClass) {
-//     fs::path p = any_cast<fs::path>(model->itemFromIndex(index)->data());
-//     log("notice") << "Playing file " << p;
-//     if(!fs::is_regular_file(p) || ! d->isAllowed(p)) return;
-// 	player->stop();
-// 	player->clearSources();
-//     player->addSource(d->encodingFor(p), d->linkFor(p));
-//     setTitle(p.filename().string());
-//     log("notice") << "using url " << d->linkFor(p).url();
-//     WTimer::singleShot(1000, player, &WMediaPlayer::play);
-//   });
-  
-//   internalPathChanged().connect([player, this](string path, NoClass, NoClass, NoClass, NoClass, NoClass){
-//     boost::replace_all(path, "//", "/");
-//     fs::path p(path);
-//     log("notice") << "Playing file " << p;
-//     if(!fs::is_regular_file(p) || ! d->isAllowed(p)) return;
-// 	player->stop();
-// 	player->clearSources();
-//     player->addSource(d->encodingFor(p), d->linkFor(p));
-//     setTitle(p.filename().string());
-//     log("notice") << "using url " << d->linkFor(p).url();
-//     WTimer::singleShot(1000, player, &WMediaPlayer::play);    
-//   });
-  
   for(fs::directory_iterator it(fs::path(d->videosDir())); it != fs::directory_iterator(); ++it) {
       filesystem::directory_entry& entry = *it;
-      d->addTo(model, 0, entry.path());
       d->addTo(d->menu, entry.path());
     }
 }
@@ -170,24 +139,6 @@ string StreamingAppPrivate::videosDir() {
   return videosDir;
 }
 
-
-void StreamingAppPrivate::addTo ( WStandardItemModel* model, WStandardItem* item, filesystem::path p ) {
-  if(!isAllowed(p)) return;
-  WStandardItem *newItem = new WStandardItem(WString(p.filename().wstring()));
-  newItem->setData(p);
-  if(model!=0) {
-    model->appendRow(newItem);
-  } else if(item!=0) {
-    item->appendRow(newItem);
-  }
-  
-  if(fs::is_directory(p)) {
-    for(fs::directory_iterator it(p); it != fs::directory_iterator(); ++it) {
-      filesystem::directory_entry& entry = *it;
-      addTo(0, newItem, entry.path());
-    }
-  }
-}
 
 
 class IconMenuItem : public WSubMenuItem {
