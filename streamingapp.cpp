@@ -75,7 +75,7 @@ StreamingAppPrivate::StreamingAppPrivate() {
 
 
 StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication(environment), d(new StreamingAppPrivate) {
-  WBoxLayout *layout = new WVBoxLayout();
+  WBoxLayout *layout = new WHBoxLayout();
   d->player = new WMediaPlayer(WMediaPlayer::Video);
   useStyleSheet("http://test.gulinux.net/videostreaming.css");
 //   requireJQuery("http://myrent.gulinux.net/css/jquery-latest.js");
@@ -96,7 +96,7 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   d->infoBox = new WContainerWidget();
   playerContainer->addWidget(d->infoBox);
   layout->addWidget(playerContainer);
-  layout->setResizable(0, true, 250);
+  layout->setResizable(0, true, 400);
   root()->setLayout(layout);
 
   for(pair<string, WMediaPlayer::Encoding> encodings : d->types)
