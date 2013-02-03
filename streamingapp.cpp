@@ -26,8 +26,13 @@
 #include <Wt/WTreeView>
 #include <Wt/WStandardItem>
 #include <Wt/WStandardItemModel>
+#include <Wt/WAnchor>
 #include <Wt/WFileResource>
 #include <Wt/WTimer>
+#include <Wt/WEnvironment>
+#include <Wt/WMenu>
+#include <Wt/WSubMenuItem>
+#include <Wt/WImage>
 #include <boost/algorithm/string.hpp>
 
 using namespace Wt;
@@ -37,18 +42,26 @@ namespace fs = boost::filesystem;
 class StreamingAppPrivate {
 public:
   void addTo ( WStandardItemModel* model, WStandardItem* item, filesystem::path p );
+  void addTo ( WMenu *menu, filesystem::path p );
   WMediaPlayer::Encoding encodingFor ( filesystem::path p );
   WLink linkFor(filesystem::path p);
   bool isAllowed(filesystem::path p);
+  WMenu *menu;
   string videosDir();
+  WMediaPlayer *player;
   string extensionFor(filesystem::path p);
   map<string, WMediaPlayer::Encoding> types;
   StreamingAppPrivate();
+  map<WMenuItem*, boost::filesystem::path> menuItemsPaths;
+  void menuItemClicked(WMenuItem *item);
+  void play(filesystem::path path);
+  void setIconTo(WMenuItem *item, string url);
 };
 
 StreamingAppPrivate::StreamingAppPrivate() {
   types.insert(pair<string, WMediaPlayer::Encoding>(".mp3", WMediaPlayer::MP3));
   types.insert(pair<string, WMediaPlayer::Encoding>(".m4a", WMediaPlayer::M4A));
+  types.insert(pair<string, WMediaPlayer::Encoding>(".m4v", WMediaPlayer::M4V));
   types.insert(pair<string, WMediaPlayer::Encoding>(".oga", WMediaPlayer::OGA));
   types.insert(pair<string, WMediaPlayer::Encoding>(".ogg", WMediaPlayer::OGA));
   types.insert(pair<string, WMediaPlayer::Encoding>(".ogv", WMediaPlayer::OGV));
@@ -60,32 +73,63 @@ StreamingAppPrivate::StreamingAppPrivate() {
 
 StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication(environment), d(new StreamingAppPrivate) {
   WHBoxLayout *layout = new WHBoxLayout();
-  WMediaPlayer *player = new WMediaPlayer(WMediaPlayer::Video);
+  d->player = new WMediaPlayer(WMediaPlayer::Video);
   WStandardItemModel *model = new WStandardItemModel(this);
   WTreeView *tree = new WTreeView();
+  useStyleSheet("http://test.gulinux.net/videostreaming.css");
+//   requireJQuery("http://myrent.gulinux.net/css/jquery-latest.js");
+  useStyleSheet("http://myrent.gulinux.net/css/bootstrap/css/bootstrap.css");
+  useStyleSheet("http://myrent.gulinux.net/css/bootstrap/css/bootstrap-responsive.css");
+  require("http://myrent.gulinux.net/css/bootstrap/js/bootstrap.js");
   tree->setModel(model);
-  layout->addWidget(tree);
-  layout->addWidget(player);
+//   layout->addWidget(tree);
+  d->menu = new WMenu(Wt::Vertical);
+  d->menu->itemSelected().connect(d, &StreamingAppPrivate::menuItemClicked);
+  WContainerWidget *menuContainer = new WContainerWidget();
+  menuContainer->setOverflow(WContainerWidget::OverflowAuto);
+  menuContainer->addWidget(d->menu);
+  d->menu->setRenderAsList(true);
+  d->menu->setStyleClass("nav nav-list");
+  layout->addWidget(menuContainer);
+  layout->addWidget(d->player);
   layout->setResizable(0, true, 250);
   root()->setLayout(layout);
   WTimer::singleShot(200, [tree] (WMouseEvent) {
     tree->setColumnWidth(0, 600);
   });
 
+
   for(pair<string, WMediaPlayer::Encoding> encodings : d->types)
-    player->addSource(encodings.second, "");
-  tree->clicked().connect([model,player,this](WModelIndex index, WMouseEvent, NoClass, NoClass, NoClass, NoClass) {
-    fs::path p = any_cast<fs::path>(model->itemFromIndex(index)->data());
-    if(!fs::is_regular_file(p) || ! d->isAllowed(p)) return;
-	player->stop();
-	player->clearSources();
-    player->addSource(d->encodingFor(p), d->linkFor(p));
-	WTimer::singleShot(1000, player, &WMediaPlayer::play);
-  });
+    d->player->addSource(encodings.second, "");
+//   tree->clicked().connect([model,player,this](WModelIndex index, WMouseEvent, NoClass, NoClass, NoClass, NoClass) {
+//     fs::path p = any_cast<fs::path>(model->itemFromIndex(index)->data());
+//     log("notice") << "Playing file " << p;
+//     if(!fs::is_regular_file(p) || ! d->isAllowed(p)) return;
+// 	player->stop();
+// 	player->clearSources();
+//     player->addSource(d->encodingFor(p), d->linkFor(p));
+//     setTitle(p.filename().string());
+//     log("notice") << "using url " << d->linkFor(p).url();
+//     WTimer::singleShot(1000, player, &WMediaPlayer::play);
+//   });
+  
+//   internalPathChanged().connect([player, this](string path, NoClass, NoClass, NoClass, NoClass, NoClass){
+//     boost::replace_all(path, "//", "/");
+//     fs::path p(path);
+//     log("notice") << "Playing file " << p;
+//     if(!fs::is_regular_file(p) || ! d->isAllowed(p)) return;
+// 	player->stop();
+// 	player->clearSources();
+//     player->addSource(d->encodingFor(p), d->linkFor(p));
+//     setTitle(p.filename().string());
+//     log("notice") << "using url " << d->linkFor(p).url();
+//     WTimer::singleShot(1000, player, &WMediaPlayer::play);    
+//   });
   
   for(fs::directory_iterator it(fs::path(d->videosDir())); it != fs::directory_iterator(); ++it) {
       filesystem::directory_entry& entry = *it;
       d->addTo(model, 0, entry.path());
+      d->addTo(d->menu, entry.path());
     }
 }
 
@@ -102,7 +146,7 @@ WLink StreamingAppPrivate::linkFor ( filesystem::path p ) {
     return WLink(relpath);
   }
 
-   WLink link = WLink(new WFileResource(p.generic_string()));
+   WLink link = WLink(new WFileResource(p.string()));
    wApp->log("notice") << "Generated url: " << link.url();
    return link;
 }
@@ -121,9 +165,9 @@ bool StreamingAppPrivate::isAllowed ( filesystem::path p ) {
 
 
 string StreamingAppPrivate::videosDir() {
-	string videosDir;
-	wApp->readConfigurationProperty("videos-dir", videosDir);
-	return videosDir;
+  string videosDir = string(getenv("HOME")) + "/Video";
+  wApp->readConfigurationProperty("videos-dir", videosDir);
+  return videosDir;
 }
 
 
@@ -143,6 +187,81 @@ void StreamingAppPrivate::addTo ( WStandardItemModel* model, WStandardItem* item
       addTo(0, newItem, entry.path());
     }
   }
+}
+
+
+class IconMenuItem : public WSubMenuItem {
+public:
+  IconMenuItem(string text) : WSubMenuItem(text, 0) {
+    this->text = text;
+  }
+  virtual WWidget* createItemWidget();
+  string text;
+};
+
+WWidget* IconMenuItem::createItemWidget() {
+  WAnchor *anchor = new WAnchor();
+  anchor->setText(text);
+  return anchor;
+}
+
+
+void StreamingAppPrivate::addTo ( WMenu* menu, filesystem::path p ) {
+  if(!isAllowed(p)) return;
+  WSubMenuItem *menuItem = new WSubMenuItem(p.filename().string(), 0);
+  menuItem->setPathComponent(p.string());
+  WMenu *subMenu = new WMenu(Wt::Vertical);
+  subMenu->itemSelected().connect(this, &StreamingAppPrivate::menuItemClicked);
+  subMenu->setRenderAsList(true);
+  subMenu->setStyleClass("nav nav-list");
+  menuItem->setSubMenu(subMenu);
+  subMenu->hide();
+  menu->addItem(menuItem);
+  if(fs::is_directory(p)) {
+    setIconTo(menuItem, "http://aux4.iconpedia.net/uploads/938253392667763071.png");
+    menu->itemSelected().connect([menuItem, subMenu](WMenuItem* selItem, NoClass, NoClass, NoClass, NoClass, NoClass) {
+      if(selItem == menuItem) {
+	if(subMenu->isVisible())
+	  subMenu->animateHide(WAnimation(WAnimation::SlideInFromBottom));
+	else
+	  subMenu->animateShow(WAnimation(WAnimation::SlideInFromTop));
+      }
+    });
+    for(fs::directory_iterator it(p); it != fs::directory_iterator(); ++it) {
+      filesystem::directory_entry& entry = *it;
+      addTo(subMenu, entry.path());
+    }
+  } else {
+    setIconTo(menuItem, "http://a.dryicons.com/images/icon_sets/shine_icon_set/png/128x128/movie.png");
+    menuItemsPaths[menuItem] = p;
+  }
+}
+
+void StreamingAppPrivate::setIconTo ( WMenuItem* item, string url ) {
+    WContainerWidget *cont = dynamic_cast<WContainerWidget*>(item->itemWidget());
+    WImage *icon = new WImage(url);
+    icon->setStyleClass("menu_item_ico");
+    icon->resize(24,24);
+    cont->insertWidget(0, icon);
+}
+
+void StreamingAppPrivate::menuItemClicked ( WMenuItem* item ) {
+  filesystem::path path = menuItemsPaths[item];
+  item->itemWidget()->parent()->addStyleClass("active");
+  log("notice") << "item clicked: " << item << ", path found: " << path;
+  play(path);
+}
+
+
+void StreamingAppPrivate::play ( filesystem::path path ) {
+  log("notice") << "Playing file " << path;
+  if(!fs::is_regular_file( path ) || ! isAllowed( path )) return;
+      player->stop();
+  player->clearSources();
+  player->addSource(encodingFor( path ), linkFor( path ));
+  wApp->setTitle( path.filename().string());
+  log("notice") << "using url " << linkFor( path ).url();
+  WTimer::singleShot(1000, player, &WMediaPlayer::play);  
 }
 
 
