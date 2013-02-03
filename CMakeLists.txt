@@ -25,7 +25,7 @@ SET(INSTALL_DIR "/var/www/videostreaming" CACHE STRING "Install directory for Wt
 add_executable(videostreaming streamingapp.cpp main.cpp)
 
 
-string(TOLOWER ${CMAKE_BUILD_TYPE} VARIABLE build_type)
+string(TOLOWER ${CMAKE_BUILD_TYPE} build_type)
 if(${build_type} STREQUAL "debug")
   message("Linking to WT Debug Libraries")
   set(WT_LINK_LIBS ${Wt_DEBUG_LIBRARY} ${Wt_DBO_DEBUG_LIBRARY} ${Wt_CONNECTOR_DEBUG_LIBRARY} )
