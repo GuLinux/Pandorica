@@ -236,7 +236,7 @@ void StreamingAppPrivate::play ( filesystem::path path ) {
   player->addSource(encodingFor( path ), linkFor( path ));
   infoBox->clear();
   infoBox->addWidget(new WText(string("File: ") + path.filename().string()));
-  WLink shareLink(wApp->bookmarkUrl() + string("?file=") + Utils::hexEncode(Utils::md5(path.string())));
+  WLink shareLink(wApp->bookmarkUrl("/") + string("?file=") + Utils::hexEncode(Utils::md5(path.string())));
   infoBox->addWidget(new WBreak() );
   infoBox->addWidget(new WAnchor(shareLink, "Link per la condivisione"));
   wApp->setTitle( path.filename().string());
