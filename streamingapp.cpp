@@ -55,10 +55,12 @@ public:
   map<string, WMediaPlayer::Encoding> types;
   StreamingAppPrivate();
   map<WMenuItem*, boost::filesystem::path> menuItemsPaths;
+  map<string, boost::filesystem::path> filesHashes;
   void menuItemClicked(WMenuItem *item);
   void play(filesystem::path path);
   void setIconTo(WMenuItem *item, string url);
   WContainerWidget *infoBox;
+  void parseFileParameter();
 };
 
 StreamingAppPrivate::StreamingAppPrivate() {
@@ -77,7 +79,7 @@ StreamingAppPrivate::StreamingAppPrivate() {
 StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication(environment), d(new StreamingAppPrivate) {
   WBoxLayout *layout = new WHBoxLayout();
   d->player = new WMediaPlayer(WMediaPlayer::Video);
-  useStyleSheet("http://test.gulinux.net/videostreaming.css");
+  useStyleSheet("http://test.gulinux.net/videostreaming-styles/videostreaming.css");
 //   requireJQuery("http://myrent.gulinux.net/css/jquery-latest.js");
   useStyleSheet("http://myrent.gulinux.net/css/bootstrap/css/bootstrap.css");
   useStyleSheet("http://myrent.gulinux.net/css/bootstrap/css/bootstrap-responsive.css");
@@ -106,25 +108,23 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
       d->addTo(d->menu, entry.path());
     }
     
-  for( pair<string, Http::ParameterValues> param : environment.getParameterMap()) {
-    log("notice") << "Received parameter: " << param.first;
-  }
-  if(environment.getParameter("file")) {
-    log("notice") << "Got parameter file: " << *environment.getParameter("file");
-    WTimer::singleShot(1000, [this](WMouseEvent&) {
-      d->play(filesystem::path(* wApp->environment().getParameter("file") ));
-    });
-  }
+  d->parseFileParameter();
 }
+
+void StreamingAppPrivate::parseFileParameter() {
+  if(wApp->environment().getParameter("file")) {
+    log("notice") << "Got parameter file: " << *wApp->environment().getParameter("file");
+    WTimer::singleShot(1000, [this](WMouseEvent&) {
+      string fileHash = * wApp->environment().getParameter("file");
+      play(filesystem::path( filesHashes[fileHash]));
+    });
+  }    
+}
+
 
 void StreamingApp::refresh() {
   Wt::WApplication::refresh();
-  if(environment().getParameter("file")) {
-    log("notice") << "Got parameter file: " << *environment().getParameter("file");
-    WTimer::singleShot(1000, [this](WMouseEvent&) {
-      d->play(filesystem::path(* wApp->environment().getParameter("file") ));
-    });
-  }    
+  d->parseFileParameter();
 }
 
 
@@ -195,7 +195,7 @@ void StreamingAppPrivate::addTo ( WMenu* menu, filesystem::path p ) {
   subMenu->hide();
   menu->addItem(menuItem);
   if(fs::is_directory(p)) {
-    setIconTo(menuItem, "http://aux4.iconpedia.net/uploads/938253392667763071.png");
+    setIconTo(menuItem, "http://test.gulinux.net/videostreaming-styles/folder.png");
     menu->itemSelected().connect([menuItem, subMenu](WMenuItem* selItem, NoClass, NoClass, NoClass, NoClass, NoClass) {
       if(selItem == menuItem) {
 	if(subMenu->isVisible())
@@ -209,7 +209,8 @@ void StreamingAppPrivate::addTo ( WMenu* menu, filesystem::path p ) {
       addTo(subMenu, entry.path());
     }
   } else {
-    setIconTo(menuItem, "http://a.dryicons.com/images/icon_sets/shine_icon_set/png/128x128/movie.png");
+    filesHashes[Utils::hexEncode(Utils::md5(p.string()))] = p;
+    setIconTo(menuItem, "http://test.gulinux.net/videostreaming-styles/video.png");
     menuItemsPaths[menuItem] = p;
   }
 }
@@ -218,14 +219,11 @@ void StreamingAppPrivate::setIconTo ( WMenuItem* item, string url ) {
     WContainerWidget *cont = dynamic_cast<WContainerWidget*>(item->itemWidget());
     WImage *icon = new WImage(url);
     icon->setStyleClass("menu_item_ico");
-    icon->resize(24,24);
     cont->insertWidget(0, icon);
 }
 
 void StreamingAppPrivate::menuItemClicked ( WMenuItem* item ) {
   filesystem::path path = menuItemsPaths[item];
-  item->itemWidget()->parent()->addStyleClass("active");
-  log("notice") << "item clicked: " << item << ", path found: " << path;
   play(path);
 }
 
@@ -238,7 +236,7 @@ void StreamingAppPrivate::play ( filesystem::path path ) {
   player->addSource(encodingFor( path ), linkFor( path ));
   infoBox->clear();
   infoBox->addWidget(new WText(string("File: ") + path.filename().string()));
-  WLink shareLink(wApp->bookmarkUrl() + string("?file=") + Utils::urlEncode(path.string()));
+  WLink shareLink(wApp->bookmarkUrl() + string("?file=") + Utils::hexEncode(Utils::md5(path.string())));
   infoBox->addWidget(new WBreak() );
   infoBox->addWidget(new WAnchor(shareLink, "Link per la condivisione"));
   wApp->setTitle( path.filename().string());
