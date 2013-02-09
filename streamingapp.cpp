@@ -94,7 +94,7 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   WAnchor* reloadLink = new WAnchor("javascript:false", "Reload");
   reloadLink->clicked().connect([this](WMouseEvent&){
     wApp->changeSessionId();
-    wApp->redirect(wApp->bookmarkUrl("/"));
+    wApp->redirect(wApp->bookmarkUrl());
   });
   menuContainer->addWidget(reloadLink);
   menuContainer->setOverflow(WContainerWidget::OverflowAuto);
