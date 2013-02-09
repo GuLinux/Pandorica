@@ -51,6 +51,7 @@ public:
   void queue(filesystem::path path);
   void nextItem(WWidget* itemToPlay = 0);
   Signal<fs::path> &next();
+  fs::path first();
 private:
   list<QueueItem> internalQueue;
   Signal<fs::path> _next;
@@ -66,6 +67,10 @@ Signal< filesystem::path >& Playlist::next()
   return _next;
 }
 
+filesystem::path Playlist::first()
+{
+  return internalQueue.front().second;
+}
 
 void Playlist::nextItem(WWidget* itemToPlay)
 {
@@ -332,7 +337,7 @@ void StreamingAppPrivate::queue(filesystem::path path)
   if(path.empty()) return;
   playlist->queue(path);
   if(!player->playing())
-    play(path);
+    play(playlist->first());
 }
 
 
