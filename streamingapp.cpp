@@ -37,11 +37,14 @@
 #include <Wt/WText>
 #include <Wt/Utils>
 #include <boost/algorithm/string.hpp>
+#include <functional>
 
 using namespace Wt;
 using namespace std;
 using namespace boost;
 namespace fs = boost::filesystem;
+
+typedef std::function<void(boost::filesystem::path)> RunOnPath;
 class StreamingAppPrivate {
 public:
   void addTo ( WMenu *menu, filesystem::path p );
@@ -61,6 +64,7 @@ public:
   void setIconTo(WMenuItem *item, string url);
   WContainerWidget *infoBox;
   void parseFileParameter();
+  void listDirectoryAndRun(filesystem::path directoryPath, RunOnPath runAction);
 };
 
 StreamingAppPrivate::StreamingAppPrivate() {
@@ -103,13 +107,25 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
 
   for(pair<string, WMediaPlayer::Encoding> encodings : d->types)
     d->player->addSource(encodings.second, "");
-  for(fs::directory_iterator it(fs::path(d->videosDir())); it != fs::directory_iterator(); ++it) {
-      filesystem::directory_entry& entry = *it;
-      d->addTo(d->menu, entry.path());
-    }
-    
+  
+  
+  d->listDirectoryAndRun(fs::path(d->videosDir()), [this](fs::path path) {
+    d->addTo(d->menu, path);
+  });
   d->parseFileParameter();
 }
+
+
+void StreamingAppPrivate::listDirectoryAndRun(filesystem::path directoryPath, RunOnPath runAction)
+{
+  vector<filesystem::path> v;
+  copy(filesystem::directory_iterator(directoryPath), filesystem::directory_iterator(), back_inserter(v));
+  sort(v.begin(), v.end());
+  for(filesystem::path path: v) {
+    runAction(path);
+  }
+}
+
 
 void StreamingAppPrivate::parseFileParameter() {
   if(wApp->environment().getParameter("file")) {
@@ -204,10 +220,9 @@ void StreamingAppPrivate::addTo ( WMenu* menu, filesystem::path p ) {
 	  subMenu->animateShow(WAnimation(WAnimation::SlideInFromTop));
       }
     });
-    for(fs::directory_iterator it(p); it != fs::directory_iterator(); ++it) {
-      filesystem::directory_entry& entry = *it;
-      addTo(subMenu, entry.path());
-    }
+    listDirectoryAndRun(p, [subMenu,this](fs::path p){
+      addTo(subMenu, p);
+    });
   } else {
     filesHashes[Utils::hexEncode(Utils::md5(p.string()))] = p;
     setIconTo(menuItem, "http://test.gulinux.net/videostreaming-styles/video.png");
