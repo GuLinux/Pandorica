@@ -91,6 +91,12 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   d->menu = new WMenu(Wt::Vertical);
   d->menu->itemSelected().connect(d, &StreamingAppPrivate::menuItemClicked);
   WContainerWidget *menuContainer = new WContainerWidget();
+  WAnchor* reloadLink = new WAnchor("javascript:false", "Reload");
+  reloadLink->clicked().connect([this](WMouseEvent&){
+    wApp->changeSessionId();
+    wApp->redirect("/");
+  });
+  menuContainer->addWidget(reloadLink);
   menuContainer->setOverflow(WContainerWidget::OverflowAuto);
   menuContainer->addWidget(d->menu);
   d->menu->setRenderAsList(true);
