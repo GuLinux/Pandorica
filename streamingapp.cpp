@@ -44,43 +44,63 @@ using namespace std;
 using namespace boost;
 namespace fs = boost::filesystem;
 
-typedef pair<fs::path,WWidget*> QueueItem;
-class Queue {
+typedef pair<WWidget*,fs::path> QueueItem;
+class Playlist : public WContainerWidget {
 public:
-  void queue(filesystem::path path, WContainerWidget* addTo);
-  void nextItem();
+  Playlist(WContainerWidget* parent = 0);
+  void queue(filesystem::path path);
+  void nextItem(WWidget* itemToPlay = 0);
   Signal<fs::path> &next();
 private:
   list<QueueItem> internalQueue;
   Signal<fs::path> _next;
 };
 
-Signal< filesystem::path >& Queue::next()
+Playlist::Playlist(WContainerWidget* parent): WContainerWidget(parent)
+{
+}
+
+
+Signal< filesystem::path >& Playlist::next()
 {
   return _next;
 }
 
 
-void Queue::nextItem()
+void Playlist::nextItem(WWidget* itemToPlay)
 {
+  wApp->log("notice") << "itemToPlay==" << itemToPlay;
   if(internalQueue.empty()) return;
-  QueueItem currentPlaying = internalQueue.front();
-  delete currentPlaying.second;
-  internalQueue.erase(internalQueue.begin());
+
+  auto itemToSkip = internalQueue.begin();
+  while(itemToSkip->first != itemToPlay) {
+    wApp->log("notice") << "skippedItem==" << itemToSkip->first << " [" << itemToSkip->second << "]";
+    removeWidget(itemToSkip->first);
+    delete itemToSkip->first;
+    itemToSkip = internalQueue.erase(itemToSkip);
+    if(!itemToPlay) break;
+  }
+  
+  wApp->log("notice") << "outside the loop: internalQueue.size(): " << internalQueue.size();
+//   QueueItem currentPlaying = *internalQueue.begin();
+//   removeWidget(currentPlaying.first);
+//   delete currentPlaying.first;
+//   internalQueue.erase(internalQueue.begin());
   
   if(internalQueue.empty()) return;
-  QueueItem next = internalQueue.front();
-  _next.emit(next.first);
+  QueueItem next = *internalQueue.begin();
+  wApp->log("notice") << "Next item: " << next.first << " [" << next.second << "]";
+  _next.emit(next.second);
 }
 
 
-void Queue::queue(filesystem::path path, WContainerWidget *addTo)
+void Playlist::queue(filesystem::path path)
 {
   WAnchor* playlistEntry = new WAnchor("javascript:false", path.filename().string());
   playlistEntry->addWidget(new WBreak());
-  playlistEntry->clicked().connect([this,path](WMouseEvent&){ _next.emit(path); });
-  addTo->addWidget(playlistEntry);
-  internalQueue.push_back(pair<fs::path,WWidget*>(path, playlistEntry));
+  playlistEntry->clicked().connect([this,path, playlistEntry](WMouseEvent&){ nextItem(playlistEntry); });
+  addWidget(playlistEntry);
+  internalQueue.push_back(QueueItem(playlistEntry, path));
 }
 
 
@@ -105,8 +125,7 @@ public:
   void setIconTo(WMenuItem *item, string url);
   WContainerWidget *infoBox;
   void parseFileParameter();
-  WContainerWidget *playlist;
-  Queue _queue;
+  Playlist *playlist;
   void listDirectoryAndRun(filesystem::path directoryPath, RunOnPath runAction);
 private:
     void queue(filesystem::path path);
@@ -150,10 +169,13 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   
   WContainerWidget *playerContainer = new WContainerWidget();
   WBoxLayout *playerContainerLayout = new WVBoxLayout();
-  playerContainerLayout->addWidget(d->player);
-  d->playlist = new WContainerWidget();
+  WContainerWidget *player = new WContainerWidget();
+  player->setContentAlignment(AlignCenter);
+  player->addWidget(d->player);
+  playerContainerLayout->addWidget(player);
+  d->playlist = new Playlist();
   d->playlist->setList(true);
-  playerContainerLayout->addWidget(d->playlist);
+  playerContainerLayout->addWidget(d->playlist, 1);
   playerContainerLayout->setResizable(0, true);
   playerContainer->setLayout(playerContainerLayout);
   d->infoBox = new WContainerWidget();
@@ -172,10 +194,10 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   d->parseFileParameter();
   
   d->player->ended().connect([this](NoClass,NoClass,NoClass,NoClass,NoClass,NoClass){
-    d->_queue.nextItem();
+    d->playlist->nextItem();
   });
   
-  d->_queue.next().connect(d, &StreamingAppPrivate::play);
+  d->playlist->next().connect(d, &StreamingAppPrivate::play);
 }
 
 
@@ -307,7 +329,8 @@ void StreamingAppPrivate::menuItemClicked ( WMenuItem* item ) {
 
 void StreamingAppPrivate::queue(filesystem::path path)
 {
-  _queue.queue(path, playlist);
+  if(path.empty()) return;
+  playlist->queue(path);
   if(!player->playing())
     play(path);
 }
