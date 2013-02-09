@@ -179,7 +179,7 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   playerContainerLayout->setResizable(0, true);
   playerContainer->setLayout(playerContainerLayout);
   d->infoBox = new WContainerWidget();
-  playerContainer->addWidget(d->infoBox);
+  player->addWidget(d->infoBox);
   layout->addWidget(playerContainer);
   layout->setResizable(0, true, 400);
   root()->setLayout(layout);
