@@ -44,6 +44,47 @@ using namespace std;
 using namespace boost;
 namespace fs = boost::filesystem;
 
+typedef pair<fs::path,WWidget*> QueueItem;
+class Queue {
+public:
+  void queue(filesystem::path path, WContainerWidget* addTo);
+  void nextItem();
+  Signal<fs::path> &next();
+private:
+  list<QueueItem> internalQueue;
+  Signal<fs::path> _next;
+};
+
+Signal< filesystem::path >& Queue::next()
+{
+  return _next;
+}
+
+
+void Queue::nextItem()
+{
+  if(internalQueue.empty()) return;
+  QueueItem currentPlaying = internalQueue.front();
+  delete currentPlaying.second;
+  internalQueue.erase(internalQueue.begin());
+  
+  if(internalQueue.empty()) return;
+  QueueItem next = internalQueue.front();
+  _next.emit(next.first);
+}
+
+
+void Queue::queue(filesystem::path path, WContainerWidget *addTo)
+{
+  WAnchor* playlistEntry = new WAnchor("javascript:false", path.filename().string());
+  playlistEntry->addWidget(new WBreak());
+  playlistEntry->clicked().connect([this,path](WMouseEvent&){ _next.emit(path); });
+  addTo->addWidget(playlistEntry);
+  internalQueue.push_back(pair<fs::path,WWidget*>(path, playlistEntry));
+}
+
+
+
 typedef std::function<void(boost::filesystem::path)> RunOnPath;
 class StreamingAppPrivate {
 public:
@@ -64,7 +105,11 @@ public:
   void setIconTo(WMenuItem *item, string url);
   WContainerWidget *infoBox;
   void parseFileParameter();
+  WContainerWidget *playlist;
+  Queue _queue;
   void listDirectoryAndRun(filesystem::path directoryPath, RunOnPath runAction);
+private:
+    void queue(filesystem::path path);
 };
 
 StreamingAppPrivate::StreamingAppPrivate() {
@@ -104,7 +149,13 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   layout->addWidget(menuContainer);
   
   WContainerWidget *playerContainer = new WContainerWidget();
-  playerContainer->addWidget(d->player);
+  WBoxLayout *playerContainerLayout = new WVBoxLayout();
+  playerContainerLayout->addWidget(d->player);
+  d->playlist = new WContainerWidget();
+  d->playlist->setList(true);
+  playerContainerLayout->addWidget(d->playlist);
+  playerContainerLayout->setResizable(0, true);
+  playerContainer->setLayout(playerContainerLayout);
   d->infoBox = new WContainerWidget();
   playerContainer->addWidget(d->infoBox);
   layout->addWidget(playerContainer);
@@ -119,6 +170,12 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
     d->addTo(d->menu, path);
   });
   d->parseFileParameter();
+  
+  d->player->ended().connect([this](NoClass,NoClass,NoClass,NoClass,NoClass,NoClass){
+    d->_queue.nextItem();
+  });
+  
+  d->_queue.next().connect(d, &StreamingAppPrivate::play);
 }
 
 
@@ -138,7 +195,7 @@ void StreamingAppPrivate::parseFileParameter() {
     log("notice") << "Got parameter file: " << *wApp->environment().getParameter("file");
     WTimer::singleShot(1000, [this](WMouseEvent&) {
       string fileHash = * wApp->environment().getParameter("file");
-      play(filesystem::path( filesHashes[fileHash]));
+      queue(filesystem::path( filesHashes[fileHash]));
     });
   }    
 }
@@ -182,7 +239,7 @@ bool StreamingAppPrivate::isAllowed ( filesystem::path p ) {
 
 
 string StreamingAppPrivate::videosDir() {
-  string videosDir = string(getenv("HOME")) + "/Video";
+  string videosDir = string(getenv("HOME")) + "/Videos";
   wApp->readConfigurationProperty("videos-dir", videosDir);
   return videosDir;
 }
@@ -245,7 +302,14 @@ void StreamingAppPrivate::setIconTo ( WMenuItem* item, string url ) {
 
 void StreamingAppPrivate::menuItemClicked ( WMenuItem* item ) {
   filesystem::path path = menuItemsPaths[item];
-  play(path);
+  queue(path);
+}
+
+void StreamingAppPrivate::queue(filesystem::path path)
+{
+  _queue.queue(path, playlist);
+  if(!player->playing())
+    play(path);
 }
 
 
@@ -264,8 +328,6 @@ void StreamingAppPrivate::play ( filesystem::path path ) {
   log("notice") << "using url " << linkFor( path ).url();
   WTimer::singleShot(1000, player, &WMediaPlayer::play);  
 }
-
-
 
 StreamingApp::~StreamingApp() {
   delete d;
