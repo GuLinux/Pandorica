@@ -152,11 +152,11 @@ StreamingAppPrivate::StreamingAppPrivate() {
 StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication(environment), d(new StreamingAppPrivate) {
   WBoxLayout *layout = new WHBoxLayout();
   d->player = new WMediaPlayer(WMediaPlayer::Video);
-  useStyleSheet("http://test.gulinux.net/videostreaming-styles/videostreaming.css");
+  useStyleSheet("http://test.gulinux.net/css/videostreaming.css");
 //   requireJQuery("http://myrent.gulinux.net/css/jquery-latest.js");
-  useStyleSheet("http://myrent.gulinux.net/css/bootstrap/css/bootstrap.css");
-  useStyleSheet("http://myrent.gulinux.net/css/bootstrap/css/bootstrap-responsive.css");
-  require("http://myrent.gulinux.net/css/bootstrap/js/bootstrap.js");
+  useStyleSheet("http://test.gulinux.net/css/bootstrap/css/bootstrap.css");
+  useStyleSheet("http://test.gulinux.net/css/bootstrap/css/bootstrap-responsive.css");
+  require("http://test.gulinux.net/css/bootstrap/js/bootstrap.js");
   d->menu = new WMenu(Wt::Vertical);
   d->menu->itemSelected().connect(d, &StreamingAppPrivate::menuItemClicked);
   WContainerWidget *menuContainer = new WContainerWidget();
@@ -301,7 +301,7 @@ void StreamingAppPrivate::addTo ( WMenu* menu, filesystem::path p ) {
   subMenu->hide();
   menu->addItem(menuItem);
   if(fs::is_directory(p)) {
-    setIconTo(menuItem, "http://test.gulinux.net/videostreaming-styles/folder.png");
+    setIconTo(menuItem, "http://test.gulinux.net/css/folder.png");
     menu->itemSelected().connect([menuItem, subMenu](WMenuItem* selItem, NoClass, NoClass, NoClass, NoClass, NoClass) {
       if(selItem == menuItem) {
 	if(subMenu->isVisible())
@@ -315,7 +315,7 @@ void StreamingAppPrivate::addTo ( WMenu* menu, filesystem::path p ) {
     });
   } else {
     filesHashes[Utils::hexEncode(Utils::md5(p.string()))] = p;
-    setIconTo(menuItem, "http://test.gulinux.net/videostreaming-styles/video.png");
+    setIconTo(menuItem, "http://test.gulinux.net/css/video.png");
     menuItemsPaths[menuItem] = p;
   }
 }
