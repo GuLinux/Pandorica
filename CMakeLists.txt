@@ -19,7 +19,7 @@ if(NOT ${HOST_IS_ZEROGOKI} STREQUAL "")
   message("Zerogoki hostname: using FCGI Connector (${Wt_CONNECTOR_LIBRARY} - ${Wt_CONNECTOR_DEBUG_LIBRARY}")
 endif(NOT ${HOST_IS_ZEROGOKI} STREQUAL "")
 
-SET(INSTALL_DIR "/home/www/test/videostreaming" CACHE STRING "Install directory for Wt Applications and files")
+SET(INSTALL_DIR "/home/www-data/data/test/videostreaming" CACHE STRING "Install directory for Wt Applications and files")
 
 
 add_executable(videostreaming streamingapp.cpp main.cpp)
