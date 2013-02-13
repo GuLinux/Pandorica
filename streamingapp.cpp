@@ -140,6 +140,7 @@ StreamingAppPrivate::StreamingAppPrivate() {
   types.insert(pair<string, WMediaPlayer::Encoding>(".mp3", WMediaPlayer::MP3));
   types.insert(pair<string, WMediaPlayer::Encoding>(".m4a", WMediaPlayer::M4A));
   types.insert(pair<string, WMediaPlayer::Encoding>(".m4v", WMediaPlayer::M4V));
+  types.insert(pair<string, WMediaPlayer::Encoding>(".mp4", WMediaPlayer::M4V));
   types.insert(pair<string, WMediaPlayer::Encoding>(".oga", WMediaPlayer::OGA));
   types.insert(pair<string, WMediaPlayer::Encoding>(".ogg", WMediaPlayer::OGA));
   types.insert(pair<string, WMediaPlayer::Encoding>(".ogv", WMediaPlayer::OGV));
