@@ -131,6 +131,7 @@ public:
   WContainerWidget *infoBox;
   void parseFileParameter();
   Playlist *playlist;
+    WContainerWidget* playerContainerWidget;
   void listDirectoryAndRun(filesystem::path directoryPath, RunOnPath runAction);
 private:
     void queue(filesystem::path path);
@@ -176,17 +177,17 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   
   WContainerWidget *playerContainer = new WContainerWidget();
   WBoxLayout *playerContainerLayout = new WVBoxLayout();
-  WContainerWidget *player = new WContainerWidget();
-  player->setContentAlignment(AlignCenter);
-  player->addWidget(d->player);
-  playerContainerLayout->addWidget(player);
+  d->playerContainerWidget = new WContainerWidget();
+  d->playerContainerWidget->setContentAlignment(AlignCenter);
+  d->playerContainerWidget->addWidget(d->player);
+  playerContainerLayout->addWidget(d->playerContainerWidget);
   d->playlist = new Playlist();
   d->playlist->setList(true);
   playerContainerLayout->addWidget(d->playlist, 1);
   playerContainerLayout->setResizable(0, true);
   playerContainer->setLayout(playerContainerLayout);
   d->infoBox = new WContainerWidget();
-  player->addWidget(d->infoBox);
+  d->playerContainerWidget->addWidget(d->infoBox);
   layout->addWidget(playerContainer);
   layout->setResizable(0, true, 400);
   root()->setLayout(layout);
@@ -348,7 +349,11 @@ void StreamingAppPrivate::play ( filesystem::path path ) {
   if(!fs::is_regular_file( path ) || ! isAllowed( path )) return;
       player->stop();
   player->clearSources();
+  delete player;
+  player = new WMediaPlayer(WMediaPlayer::Video);
+
   player->addSource(encodingFor( path ), linkFor( path ));
+  playerContainerWidget->insertWidget(0, player);
   infoBox->clear();
   infoBox->addWidget(new WText(string("File: ") + path.filename().string()));
   WLink shareLink(wApp->bookmarkUrl("/") + string("?file=") + Utils::hexEncode(Utils::md5(path.string())));
