@@ -147,6 +147,7 @@ StreamingAppPrivate::StreamingAppPrivate() {
   types.insert(pair<string, WMediaPlayer::Encoding>(".wav", WMediaPlayer::WAV));
   types.insert(pair<string, WMediaPlayer::Encoding>(".webm", WMediaPlayer::WEBMV));
   types.insert(pair<string, WMediaPlayer::Encoding>(".flv", WMediaPlayer::FLV));
+  types.insert(pair<string, WMediaPlayer::Encoding>(".f4v", WMediaPlayer::FLV));
 }
 
 
