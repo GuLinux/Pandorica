@@ -86,7 +86,8 @@ void VideoJS::play()
   m_widget->setText(m_text.arg(""));
   WString js = "var myPlayer = _V_(\"gum_video_{1}\");\
   var playerEnded = function() { \
-    {1};\
+    console.log(\"player ended\");\
+    {2};\
   };\
   myPlayer.addEvent(\"ended\", playerEnded);\
   myPlayer.play();";
