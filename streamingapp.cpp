@@ -21,6 +21,7 @@
 #include "streamingapp.h"
 #include "player.h"
 #include "wmediaplayerwrapper.h"
+#include "videojs.h"
 #include <Wt/WGridLayout>
 #include <Wt/WHBoxLayout>
 #include <Wt/WVBoxLayout>
@@ -92,11 +93,6 @@ void Playlist::nextItem(WWidget* itemToPlay)
   }
   
   wApp->log("notice") << "outside the loop: internalQueue.size(): " << internalQueue.size();
-//   QueueItem currentPlaying = *internalQueue.begin();
-//   removeWidget(currentPlaying.first);
-//   delete currentPlaying.first;
-//   internalQueue.erase(internalQueue.begin());
-  
   if(internalQueue.empty()) return;
   QueueItem next = *internalQueue.begin();
   wApp->log("notice") << "Next item: " << next.first << " [" << next.second << "]";
@@ -140,6 +136,7 @@ public:
   void listDirectoryAndRun(filesystem::path directoryPath, RunOnPath runAction);
 private:
     void queue(filesystem::path path);
+    void addSubtitlesFor(filesystem::path path);
 };
 
 StreamingAppPrivate::StreamingAppPrivate() {
@@ -172,6 +169,8 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
     wApp->changeSessionId();
     wApp->redirect(wApp->bookmarkUrl());
   });
+  useStyleSheet("http://vjs.zencdn.net/c/video-js.css");
+  require("http://vjs.zencdn.net/c/video.js");
   menuContainer->addWidget(reloadLink);
   menuContainer->setOverflow(WContainerWidget::OverflowAuto);
   menuContainer->addWidget(d->menu);
@@ -348,8 +347,11 @@ void StreamingAppPrivate::queue(filesystem::path path)
 {
   if(path.empty()) return;
   playlist->queue(path);
-  if(!player || !player->playing())
-    play(playlist->first());
+  if(!player || !player->playing()) {
+    WTimer::singleShot(500, [this](WMouseEvent) {
+      play(playlist->first());
+    });
+  }
 }
 
 
@@ -361,11 +363,17 @@ void StreamingAppPrivate::play ( filesystem::path path ) {
     // player->clearSources();
     delete player;
   }
-  player = new WMediaPlayerWrapper();
+  WMediaPlayer::Encoding encoding = encodingFor( path );
+  if(encoding == WMediaPlayer::WEBMV || encoding == WMediaPlayer::OGV || encoding == WMediaPlayer::M4V) {
+    player = new VideoJS();
+  } else {
+    player = new WMediaPlayerWrapper();
+  }
   player->ended().connect([this](NoClass,NoClass,NoClass,NoClass,NoClass,NoClass){
     playlist->nextItem();                                                                                                                                                                                                                                                   
   });
-  player->addSource(encodingFor( path ), linkFor( path ));
+  player->addSource(encoding, linkFor( path ));
+  addSubtitlesFor(path);
   playerContainerWidget->insertWidget(0, player->widget());
   infoBox->clear();
   infoBox->addWidget(new WText(string("File: ") + path.filename().string()));
@@ -378,6 +386,35 @@ void StreamingAppPrivate::play ( filesystem::path path ) {
     player->play();
   });  
 }
+
+void StreamingAppPrivate::addSubtitlesFor(filesystem::path path)
+{
+  wApp->log("notice") << "Adding subtitles for " << path;
+  fs::path subsdir(path.parent_path().string() + "/.subs");
+  wApp->log("notice") << "subs path: " << subsdir;
+  if(!fs::exists(subsdir)) {
+    wApp->log("notice") << "subs path: " << subsdir << " not existing, exiting";
+    return;
+  }
+  vector<filesystem::path> v;
+  copy(filesystem::directory_iterator(subsdir), filesystem::directory_iterator(), back_inserter(v));
+  sort(v.begin(), v.end());
+  for(filesystem::path langPath: v) {
+    string lang = langPath.filename().string();
+    string name = "Subtitles (unknown language)";
+    if(lang == "it")
+      name = "Italiano";
+    if(lang == "en")
+      name = "English";
+    wApp->log("notice") << "subs lang path: " << langPath;
+    fs::path mySub = fs::path(langPath.string() + "/" + path.filename().string() + ".vtt");
+    if(fs::exists(mySub)) {
+      wApp->log("notice") << "sub found: lang= " << lang << ", path= " << mySub;
+      player->addSubtitles(linkFor(mySub), name, lang);
+    }
+  }
+}
+
 
 StreamingApp::~StreamingApp() {
   delete d;
