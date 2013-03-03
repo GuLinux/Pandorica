@@ -29,7 +29,15 @@ using namespace boost;
 VideoJS::VideoJS()
   : m_widget(new WText("", Wt::TextFormat::XHTMLUnsafeText)), m_ended(m_widget, "video_js_ended"), m_playing(false), has_subtitles(false)
 {
-  m_ended.connect([this](NoClass,NoClass,NoClass,NoClass,NoClass,NoClass){m_playing = false;});
+  m_ended.connect([this](NoClass,NoClass,NoClass,NoClass,NoClass,NoClass){
+    m_playing = false;
+      WString js("try {\
+  var myPlayer = _V_(\"gum_video_{1}\");\
+    myPlayer.cancelFullScreen();\
+} catch(err) {}");
+  js.arg(m_widget->id());
+  wApp->doJavaScript(js.toUTF8());
+  });
 }
 
 VideoJS::~VideoJS()
@@ -41,7 +49,11 @@ void VideoJS::addSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink& pa
 {
   m_text = WString("<video id=\"gum_video_{1}\" class=\"video-js vjs-default-skin\" controls width=\"640\" height=\"264\" poster=\"http://video-js.zencoder.com/oceans-clip.jpg\" preload=\"auto\">\
   <source type=\"video/{2}\" src=\"{3}\">{4}\
-</video>");
+  </video>\
+  <a onclick=\"_V_('gum_video_{1}').size(640,360);\" style=\"cursor: hand; cursor: pointer;\">Small</a>\
+  <a onclick=\"_V_('gum_video_{1}').size(800,450);\" style=\"cursor: hand; cursor: pointer;\">Medium</a>\
+  <a onclick=\"_V_('gum_video_{1}').size(1200,675);\" style=\"cursor: hand; cursor: pointer;\">Large</a>\
+");
   string type;
   if(encoding == WMediaPlayer::WEBMV)
     type = "webm";
@@ -74,7 +86,7 @@ void VideoJS::play()
   m_widget->setText(m_text.arg(""));
   WString js = "var myPlayer = _V_(\"gum_video_{1}\");\
   var playerEnded = function() { \
-    {1}\
+    {1};\
   };\
   myPlayer.addEvent(\"ended\", playerEnded);\
   myPlayer.play();";
@@ -89,7 +101,12 @@ bool VideoJS::playing()
 
 void VideoJS::stop()
 {
-  wApp->doJavaScript("try {myPlayer.pause(); } catch(err) {}");
+  WString js("try {\
+  var myPlayer = _V_(\"gum_video_{1}\");\
+    myPlayer.pause();\
+} catch(err) {}");
+  js.arg(m_widget->id());
+  wApp->doJavaScript(js.toUTF8());
   m_playing = false;
 }
 

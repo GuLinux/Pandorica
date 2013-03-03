@@ -164,7 +164,10 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   d->menu = new WMenu(Wt::Vertical);
   d->menu->itemSelected().connect(d, &StreamingAppPrivate::menuItemClicked);
   WContainerWidget *menuContainer = new WContainerWidget();
-  WAnchor* reloadLink = new WAnchor("javascript:false", "Reload");
+  WImage* reloadImg = new WImage("http://test.gulinux.net/css/reload.png");
+  reloadImg->resize(24, 24);
+  WAnchor* reloadLink = new WAnchor("javascript:false", reloadImg);
+  reloadLink->setText("Reload");
   reloadLink->clicked().connect([this](WMouseEvent&){
     wApp->changeSessionId();
     wApp->redirect(wApp->bookmarkUrl());
@@ -176,7 +179,13 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   menuContainer->addWidget(d->menu);
   d->menu->setRenderAsList(true);
   d->menu->setStyleClass("nav nav-list");
-  layout->addWidget(menuContainer);
+  
+  
+  WVBoxLayout* leftPanel = new WVBoxLayout();
+  leftPanel->addWidget(menuContainer);
+  layout->addLayout(leftPanel);
+//   layout->addWidget(menuContainer);
+  leftPanel->setResizable(0, true, 450);
   
   WContainerWidget *playerContainer = new WContainerWidget();
   WBoxLayout *playerContainerLayout = new WVBoxLayout();
@@ -185,7 +194,7 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   playerContainerLayout->addWidget(d->playerContainerWidget);
   d->playlist = new Playlist();
   d->playlist->setList(true);
-  playerContainerLayout->addWidget(d->playlist, 1);
+  leftPanel->addWidget(d->playlist, 1);
   playerContainerLayout->setResizable(0, true);
   playerContainer->setLayout(playerContainerLayout);
   d->infoBox = new WContainerWidget();
