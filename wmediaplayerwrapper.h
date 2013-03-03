@@ -38,6 +38,7 @@ public:
   virtual Wt::JSignal <Wt::NoClass >& ended();
   virtual void stop();
   virtual void play();
+  virtual void addSubtitles(const Wt::WLink &path, std::string name, std::string lang);
 
 private:
   Wt::WMediaPlayer *player;

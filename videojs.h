@@ -18,28 +18,32 @@
 */
 
 
-#ifndef PLAYER_H
-#define PLAYER_H
-#include <Wt/WJavaScript>
-#include <Wt/WMediaPlayer>
+#ifndef VIDEOJS_H
+#define VIDEOJS_H
+#include "player.h"
 
 namespace Wt {
-class WWidget;
+class WText;
 }
 
-class Player
+class VideoJS : public Player
 {
-
 public:
-    Player() {}
-    virtual ~Player() {};
-    virtual void addSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink &path) = 0;
-    virtual void addSubtitles(const Wt::WLink &path, std::string name, std::string lang) = 0;
-    virtual bool playing() = 0;
-    virtual Wt::WWidget *widget() = 0;
-    virtual Wt::JSignal <Wt::NoClass >& ended() = 0;
-    virtual void stop() = 0;
-    virtual void play() = 0;
+  VideoJS();
+  virtual ~VideoJS();
+  virtual void addSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink& path);
+  virtual void addSubtitles(const Wt::WLink &path, std::string name, std::string lang);
+  virtual Wt::JSignal< Wt::NoClass >& ended();
+  virtual void play();
+  virtual bool playing();
+  virtual void stop();
+  virtual Wt::WWidget* widget();
+private:
+  Wt::WText *m_widget;
+  Wt::JSignal<Wt::NoClass> m_ended;
+  bool m_playing;
+  bool has_subtitles;
+  Wt::WString m_text;
 };
 
-#endif // PLAYER_H
+#endif // VIDEOJS_H

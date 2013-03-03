@@ -64,3 +64,9 @@ void WMediaPlayerWrapper::play()
 {
   player->play();
 }
+
+void WMediaPlayerWrapper::addSubtitles(const WLink& path, string name, string lang)
+{
+
+}
+
