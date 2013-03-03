@@ -249,7 +249,7 @@ private:
 };
 
 WLink StreamingAppPrivate::linkFor ( filesystem::path p ) {
-  return WLink(new StreamFileResource(p.string(), wApp));
+//   return WLink(new StreamFileResource(p.string(), wApp));
   
   string videosDeployDir;
   if(wApp->readConfigurationProperty("videos-deploy-dir", videosDeployDir )) {
@@ -258,7 +258,7 @@ WLink StreamingAppPrivate::linkFor ( filesystem::path p ) {
     return WLink(relpath);
   }
 
-   WLink link = WLink(new WFileResource(p.string()));
+   WLink link = WLink(new StreamFileResource(p.string(), wApp));
    wApp->log("notice") << "Generated url: " << link.url();
    return link;
 }
