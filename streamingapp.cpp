@@ -19,6 +19,8 @@
 
 
 #include "streamingapp.h"
+#include "player.h"
+#include "wmediaplayerwrapper.h"
 #include <Wt/WGridLayout>
 #include <Wt/WHBoxLayout>
 #include <Wt/WVBoxLayout>
@@ -36,8 +38,11 @@
 #include <Wt/WImage>
 #include <Wt/WText>
 #include <Wt/Utils>
+#include <Wt/WStreamResource>
 #include <boost/algorithm/string.hpp>
 #include <functional>
+#include <iostream>
+#include <fstream>
 
 using namespace Wt;
 using namespace std;
@@ -119,7 +124,7 @@ public:
   bool isAllowed(filesystem::path p);
   WMenu *menu;
   string videosDir();
-  WMediaPlayer *player;
+  Player *player = 0;
   string extensionFor(filesystem::path p);
   map<string, WMediaPlayer::Encoding> types;
   StreamingAppPrivate();
@@ -154,7 +159,6 @@ StreamingAppPrivate::StreamingAppPrivate() {
 
 StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication(environment), d(new StreamingAppPrivate) {
   WBoxLayout *layout = new WHBoxLayout();
-  d->player = new WMediaPlayer(WMediaPlayer::Video);
   useStyleSheet("http://test.gulinux.net/css/videostreaming.css");
 //   requireJQuery("http://myrent.gulinux.net/css/jquery-latest.js");
   useStyleSheet("http://test.gulinux.net/css/bootstrap/css/bootstrap.css");
@@ -179,7 +183,6 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   WBoxLayout *playerContainerLayout = new WVBoxLayout();
   d->playerContainerWidget = new WContainerWidget();
   d->playerContainerWidget->setContentAlignment(AlignCenter);
-  d->playerContainerWidget->addWidget(d->player);
   playerContainerLayout->addWidget(d->playerContainerWidget);
   d->playlist = new Playlist();
   d->playlist->setList(true);
@@ -192,18 +195,11 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   layout->setResizable(0, true, 400);
   root()->setLayout(layout);
 
-  for(pair<string, WMediaPlayer::Encoding> encodings : d->types)
-    d->player->addSource(encodings.second, "");
-  
   
   d->listDirectoryAndRun(fs::path(d->videosDir()), [this](fs::path path) {
     d->addTo(d->menu, path);
   });
   d->parseFileParameter();
-  
-  d->player->ended().connect([this](NoClass,NoClass,NoClass,NoClass,NoClass,NoClass){
-    d->playlist->nextItem();
-  });
   
   d->playlist->next().connect(d, &StreamingAppPrivate::play);
 }
@@ -242,7 +238,20 @@ WMediaPlayer::Encoding StreamingAppPrivate::encodingFor ( filesystem::path p ) {
   return types[extensionFor(p)];
 }
 
+class StreamFileResource : public WStreamResource {
+public:
+  StreamFileResource(string fname, WObject *parent =0) : WStreamResource(parent), fileName_(fname) {}
+  void handleRequest(const Http::Request& request, Http::Response& response) {
+    ifstream r(fileName_.c_str(), ios::in | ios::binary);
+    handleRequestPiecewise(request, response, r);
+  }
+private:
+  string fileName_;
+};
+
 WLink StreamingAppPrivate::linkFor ( filesystem::path p ) {
+  return WLink(new StreamFileResource(p.string(), wApp));
+  
   string videosDeployDir;
   if(wApp->readConfigurationProperty("videos-deploy-dir", videosDeployDir )) {
     string relpath = p.string();
@@ -339,21 +348,25 @@ void StreamingAppPrivate::queue(filesystem::path path)
 {
   if(path.empty()) return;
   playlist->queue(path);
-  if(!player->playing())
+  if(!player || !player->playing())
     play(playlist->first());
 }
 
 
 void StreamingAppPrivate::play ( filesystem::path path ) {
   log("notice") << "Playing file " << path;
-  if(!fs::is_regular_file( path ) || ! isAllowed( path )) return;
-      player->stop();
-  player->clearSources();
-  delete player;
-  player = new WMediaPlayer(WMediaPlayer::Video);
-
+  if(player) {
+    if(!fs::is_regular_file( path ) || ! isAllowed( path )) return;
+    player->stop();
+    // player->clearSources();
+    delete player;
+  }
+  player = new WMediaPlayerWrapper();
+  player->ended().connect([this](NoClass,NoClass,NoClass,NoClass,NoClass,NoClass){
+    playlist->nextItem();                                                                                                                                                                                                                                                   
+  });
   player->addSource(encodingFor( path ), linkFor( path ));
-  playerContainerWidget->insertWidget(0, player);
+  playerContainerWidget->insertWidget(0, player->widget());
   infoBox->clear();
   infoBox->addWidget(new WText(string("File: ") + path.filename().string()));
   WLink shareLink(wApp->bookmarkUrl("/") + string("?file=") + Utils::hexEncode(Utils::md5(path.string())));
@@ -361,7 +374,9 @@ void StreamingAppPrivate::play ( filesystem::path path ) {
   infoBox->addWidget(new WAnchor(shareLink, "Link per la condivisione"));
   wApp->setTitle( path.filename().string());
   log("notice") << "using url " << linkFor( path ).url();
-  WTimer::singleShot(1000, player, &WMediaPlayer::play);  
+  WTimer::singleShot(1000, [this](WMouseEvent){
+    player->play();
+  });  
 }
 
 StreamingApp::~StreamingApp() {
