@@ -154,25 +154,42 @@ void StreamingApp::authEvent()
 void StreamingApp::setupAdminLinks()
 {
   wApp->log("notice") << "Setting up admin links";
+  WMenu *menu = new WMenu(Wt::Horizontal);
+  menu->setRenderAsList(true);
+  menu->setStyleClass("nav");
+  WMenuItem *addUserMenu = menu->addItem("Add User", 0);
+  WMenuItem *activeUsersItem = menu->addItem("Active Users", 0);
+  WMenuItem *allLog = menu->addItem("Users Log", 0);
   
-  WContainerWidget *links = new WContainerWidget();
-  links->setList(true);
-  links->setStyleClass("nav");
-  WAnchor *addUser = new WAnchor("javascript:false", "Add User");
-  addUser->clicked().connect([this](WMouseEvent) {
-    AddUserDialog *dialog = new AddUserDialog(&d->session);
-    dialog->show();
-  });
-  WAnchor *currentUsers = new WAnchor("javascript:false", "Logged Users");
-  currentUsers->clicked().connect([this](WMouseEvent) {
-    WDialog *dialog = new LoggedUsersDialog(&d->session);
-    dialog->show();
+  
+  menu->itemSelected().connect([addUserMenu,activeUsersItem,allLog, this](WMenuItem *selected, NoClass, NoClass, NoClass, NoClass, NoClass){
+    if(selected == addUserMenu) {
+      AddUserDialog *dialog = new AddUserDialog(&d->session);
+      dialog->show();
+    }
+    if(selected == activeUsersItem) {
+      WDialog *dialog = new LoggedUsersDialog(&d->session);
+      dialog->show();
+    }
+    if(selected == allLog) {
+      WDialog *dialog = new LoggedUsersDialog(&d->session, true);
+      dialog->show();
+    }
   });
   
-  auto setLoggedUsersTitle = [currentUsers,this](WMouseEvent){
+  WContainerWidget* navBar = new WContainerWidget();
+  WContainerWidget* navbarInner = new WContainerWidget();
+  navBar->addWidget(navbarInner);
+  navbarInner->addWidget(menu);
+  
+  navBar->setStyleClass("navbar");
+  navbarInner->setStyleClass("navbar-inner");
+  root()->addWidget(navBar);
+  
+  auto setLoggedUsersTitle = [activeUsersItem,this](WMouseEvent){
     Dbo::Transaction t(d->session);
     Dbo::collection<SessionInfoPtr> sessions = d->session.find<SessionInfo>().where("active <> 0");
-    currentUsers->setText(WString("Logged Users({1})").arg(sessions.size()));
+    activeUsersItem->setText(WString("Active Users ({1})").arg(sessions.size()));
   };
   
   WTimer *timer = new WTimer(wApp);
@@ -181,20 +198,7 @@ void StreamingApp::setupAdminLinks()
   setLoggedUsersTitle(WMouseEvent());
   timer->start();
   
-  WContainerWidget *a = new WContainerWidget();
-  a->addWidget(addUser);
-  links->addWidget(a);
-  a = new WContainerWidget();
-  a->addWidget(currentUsers);
-  links->addWidget(a);
-  WContainerWidget* navBar = new WContainerWidget();
-  WContainerWidget* navbarInner = new WContainerWidget();
-  navBar->addWidget(navbarInner);
-  navbarInner->addWidget(links);
-  
-  navBar->setStyleClass("navbar");
-  navbarInner->setStyleClass("navbar-inner");
-  root()->addWidget(navBar);
+
 }
 
 void StreamingApp::setupGui()
