@@ -18,32 +18,20 @@
 */
 
 
-#ifndef STREAMINGAPP_H
-#define STREAMINGAPP_H
+#ifndef LOGGEDUSERSDIALOG_H
+#define LOGGEDUSERSDIALOG_H
 
-#include <Wt/WApplication>
-#include <boost/filesystem.hpp>
+#include <Wt/WDialog>
 
-namespace Wt {
-  class WStandardItem;
-  class WStandardItemModel;
-}
-class StreamingAppPrivate;
-class StreamingApp : public Wt::WApplication {
+class Session;
+class LoggedUsersDialog : public Wt::WDialog
+{
 
-    public:
-    StreamingApp ( const Wt::WEnvironment& environment );
-    virtual ~StreamingApp();
-    void setupGui();
-    virtual void refresh();
-    void authEvent();
-    void setupAdminLinks();
-    
-    private:
-      StreamingAppPrivate *const d;
-    void isd(std::string email);
-    void oldSessionInfod(std::string email);
-    private:
+public:
+    LoggedUsersDialog(Session *session, bool showAll = false);
+    virtual ~LoggedUsersDialog();
+private:
+  Session *session;
 };
 
-#endif // STREAMINGAPP_H
+#endif // LOGGEDUSERSDIALOG_H

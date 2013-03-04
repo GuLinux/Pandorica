@@ -51,13 +51,15 @@
 #include "playlist.h"
 #include "session.h"
 #include "adduserdialog.h"
+#include "sessioninfo.h"
+#include "loggedusersdialog.h"
 
 using namespace Wt;
 using namespace std;
 using namespace boost;
 namespace fs = boost::filesystem;
 
-typedef std::function<void(boost::filesystem::path)> RunOnPath;
+typedef std::function<void(filesystem::path)> RunOnPath;
 class StreamingAppPrivate {
 public:
   void addTo ( WMenu *menu, filesystem::path p );
@@ -81,9 +83,10 @@ public:
     WContainerWidget* playerContainerWidget;
   void listDirectoryAndRun(filesystem::path directoryPath, RunOnPath runAction);
   Session session;
+  SessionInfoPtr sessionInfo;
 private:
-    void queue(filesystem::path path);
-    void addSubtitlesFor(filesystem::path path);
+  void queue(filesystem::path path);
+  void addSubtitlesFor(filesystem::path path);
 };
 
 StreamingAppPrivate::StreamingAppPrivate() {
@@ -119,6 +122,7 @@ void StreamingApp::authEvent()
   if(!d->session.login().loggedIn()) {
     return;
   }
+  changeSessionId();
   Auth::User user = d->session.login().user();
   WAnimation messageBoxAnimation(WAnimation::Fade, WAnimation::Linear, 1000);
   if(user.email().empty()) {
@@ -135,20 +139,62 @@ void StreamingApp::authEvent()
   root()->clear();
   if(authUser->role() == AuthorizedUser::Admin)
     setupAdminLinks();
+  SessionInfo* sessionInfo = new SessionInfo(sessionId(), user.email(), user.identity(Auth::Identity::LoginName).toUTF8(), authUser->role() == AuthorizedUser::Admin ? "Admin" : "Normal User");
+  Dbo::Transaction t(d->session);
+  Dbo::collection< SessionInfoPtr > oldSessions = d->session.find<SessionInfo>().where("email = ? and active <> 0").bind(user.email());
+  for(SessionInfoPtr oldSessionInfo: oldSessions) {
+    oldSessionInfo.modify()->setActive(false);
+    oldSessionInfo.flush();
+  }
+  d->sessionInfo = d->session.add(sessionInfo);
+  t.commit();
   setupGui();
 }
 
 void StreamingApp::setupAdminLinks()
 {
   wApp->log("notice") << "Setting up admin links";
+  
   WContainerWidget *links = new WContainerWidget();
+  links->setList(true);
+  links->setStyleClass("nav");
   WAnchor *addUser = new WAnchor("javascript:false", "Add User");
   addUser->clicked().connect([this](WMouseEvent) {
     AddUserDialog *dialog = new AddUserDialog(&d->session);
     dialog->show();
   });
-  links->addWidget(addUser);
-  root()->addWidget(links);
+  WAnchor *currentUsers = new WAnchor("javascript:false", "Logged Users");
+  currentUsers->clicked().connect([this](WMouseEvent) {
+    WDialog *dialog = new LoggedUsersDialog(&d->session);
+    dialog->show();
+  });
+  
+  auto setLoggedUsersTitle = [currentUsers,this](WMouseEvent){
+    Dbo::Transaction t(d->session);
+    Dbo::collection<SessionInfoPtr> sessions = d->session.find<SessionInfo>().where("active <> 0");
+    currentUsers->setText(WString("Logged Users({1})").arg(sessions.size()));
+  };
+  
+  WTimer *timer = new WTimer(wApp);
+  timer->setInterval(30000);
+  timer->timeout().connect(setLoggedUsersTitle);
+  setLoggedUsersTitle(WMouseEvent());
+  timer->start();
+  
+  WContainerWidget *a = new WContainerWidget();
+  a->addWidget(addUser);
+  links->addWidget(a);
+  a = new WContainerWidget();
+  a->addWidget(currentUsers);
+  links->addWidget(a);
+  WContainerWidget* navBar = new WContainerWidget();
+  WContainerWidget* navbarInner = new WContainerWidget();
+  navBar->addWidget(navbarInner);
+  navbarInner->addWidget(links);
+  
+  navBar->setStyleClass("navbar");
+  navbarInner->setStyleClass("navbar-inner");
+  root()->addWidget(navBar);
 }
 
 void StreamingApp::setupGui()
@@ -380,6 +426,10 @@ void StreamingAppPrivate::play ( filesystem::path path ) {
     player = new WMediaPlayerWrapper();
   }
   player->ended().connect([this](NoClass,NoClass,NoClass,NoClass,NoClass,NoClass){
+    Dbo::Transaction t(session);
+    sessionInfo.modify()->setWatching("");
+    sessionInfo.flush();
+    t.commit();
     playlist->nextItem();                                                                                                                                                                                                                                                   
   });
   player->addSource(encoding, linkFor( path ));
@@ -394,7 +444,11 @@ void StreamingAppPrivate::play ( filesystem::path path ) {
   log("notice") << "using url " << linkFor( path ).url();
   WTimer::singleShot(1000, [this](WMouseEvent){
     player->play();
-  });  
+  });
+  Dbo::Transaction t(session);
+  sessionInfo.modify()->setWatching(path.filename().string());
+  sessionInfo.flush();
+  t.commit();
 }
 
 void StreamingAppPrivate::addSubtitlesFor(filesystem::path path)
@@ -427,6 +481,11 @@ void StreamingAppPrivate::addSubtitlesFor(filesystem::path path)
 
 
 StreamingApp::~StreamingApp() {
+  if(d->sessionInfo) {
+    Dbo::Transaction t(d->session);
+    d->sessionInfo.modify()->setActive(false);
+    t.commit();
+  }
   delete d;
 }
 
