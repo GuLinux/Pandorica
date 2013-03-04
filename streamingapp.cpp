@@ -96,6 +96,12 @@ StreamingAppPrivate::StreamingAppPrivate() {
 
 
 StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication(environment), d(new StreamingAppPrivate) {
+  setupGui();
+}
+
+
+void StreamingApp::setupGui()
+{
   WBoxLayout *layout = new WHBoxLayout();
   useStyleSheet("http://test.gulinux.net/css/videostreaming.css");
 //   requireJQuery("http://myrent.gulinux.net/css/jquery-latest.js");

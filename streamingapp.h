@@ -34,7 +34,7 @@ class StreamingApp : public Wt::WApplication {
     public:
     StreamingApp ( const Wt::WEnvironment& environment );
     virtual ~StreamingApp();
-    
+    void setupGui();
     virtual void refresh();
     
     private:
