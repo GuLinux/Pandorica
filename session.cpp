@@ -6,6 +6,7 @@
 
 #include "session.h"
 #include "authorizeduser.h"
+#include "sessioninfo.h"
 #include "Wt/Auth/AuthService"
 #include "Wt/Auth/HashFunction"
 #include "Wt/Auth/PasswordService"
@@ -17,6 +18,7 @@
 #include "Wt/Auth/Dbo/UserDatabase"
 #include <Wt/Dbo/backend/Postgres>
 #include <Wt/Dbo/backend/Sqlite3>
+#include <Wt/WApplication>
 
 namespace {
 
@@ -36,6 +38,8 @@ namespace {
 
 }
 
+using namespace std;
+using namespace Wt;
 void Session::configureAuth()
 {
   myAuthService.setAuthTokensEnabled(true, "logincookie");
@@ -64,6 +68,7 @@ Session::Session()
 
   mapClass<User>("user");
   mapClass<AuthInfo>("auth_info");
+  mapClass<SessionInfo>("session_info");
   mapClass<AuthorizedUser>("authorized_users");
   mapClass<AuthInfo::AuthIdentityType>("auth_identity");
   mapClass<AuthInfo::AuthTokenType>("auth_token");
@@ -81,6 +86,12 @@ Session::Session()
 
 void Session::createConnection()
 {
+  string psqlConnParameters;
+  wApp->readConfigurationProperty("psql-connection", psqlConnParameters);
+  if(!psqlConnParameters.empty()) {
+    connection_ = new dbo::backend::Postgres(psqlConnParameters);
+    return;
+  }
   connection_ = new dbo::backend::Sqlite3("videostreaming.sqlite");
 }
 
