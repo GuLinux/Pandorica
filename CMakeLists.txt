@@ -22,7 +22,7 @@ endif(NOT ${HOST_IS_ZEROGOKI} STREQUAL "")
 SET(INSTALL_DIR "/home/www-data/data/test/videostreaming" CACHE STRING "Install directory for Wt Applications and files")
 
 
-add_executable(videostreaming playlist.cpp session.cpp videojs.cpp wmediaplayerwrapper.cpp streamingapp.cpp main.cpp)
+add_executable(videostreaming adduserdialog.cpp playlist.cpp session.cpp videojs.cpp wmediaplayerwrapper.cpp streamingapp.cpp main.cpp)
 
 
 string(TOLOWER ${CMAKE_BUILD_TYPE} build_type)

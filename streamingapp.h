@@ -37,6 +37,7 @@ class StreamingApp : public Wt::WApplication {
     void setupGui();
     virtual void refresh();
     void authEvent();
+    void setupAdminLinks();
     
     private:
       StreamingAppPrivate *const d;
