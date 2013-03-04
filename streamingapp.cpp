@@ -45,71 +45,12 @@
 #include <iostream>
 #include <fstream>
 
+#include "playlist.h"
+
 using namespace Wt;
 using namespace std;
 using namespace boost;
 namespace fs = boost::filesystem;
-
-typedef pair<WWidget*,fs::path> QueueItem;
-class Playlist : public WContainerWidget {
-public:
-  Playlist(WContainerWidget* parent = 0);
-  void queue(filesystem::path path);
-  void nextItem(WWidget* itemToPlay = 0);
-  Signal<fs::path> &next();
-  fs::path first();
-private:
-  list<QueueItem> internalQueue;
-  Signal<fs::path> _next;
-};
-
-Playlist::Playlist(WContainerWidget* parent): WContainerWidget(parent)
-{
-}
-
-
-Signal< filesystem::path >& Playlist::next()
-{
-  return _next;
-}
-
-filesystem::path Playlist::first()
-{
-  return internalQueue.front().second;
-}
-
-void Playlist::nextItem(WWidget* itemToPlay)
-{
-  wApp->log("notice") << "itemToPlay==" << itemToPlay;
-  if(internalQueue.empty()) return;
-
-  auto itemToSkip = internalQueue.begin();
-  while(itemToSkip->first != itemToPlay) {
-    wApp->log("notice") << "skippedItem==" << itemToSkip->first << " [" << itemToSkip->second << "]";
-    removeWidget(itemToSkip->first);
-    delete itemToSkip->first;
-    itemToSkip = internalQueue.erase(itemToSkip);
-    if(!itemToPlay) break;
-  }
-  
-  wApp->log("notice") << "outside the loop: internalQueue.size(): " << internalQueue.size();
-  if(internalQueue.empty()) return;
-  QueueItem next = *internalQueue.begin();
-  wApp->log("notice") << "Next item: " << next.first << " [" << next.second << "]";
-  _next.emit(next.second);
-}
-
-
-void Playlist::queue(filesystem::path path)
-{
-  WAnchor* playlistEntry = new WAnchor("javascript:false", path.filename().string());
-  playlistEntry->addWidget(new WBreak());
-  playlistEntry->clicked().connect([this,path, playlistEntry](WMouseEvent&){ nextItem(playlistEntry); });
-  addWidget(playlistEntry);
-  internalQueue.push_back(QueueItem(playlistEntry, path));
-}
-
-
 
 typedef std::function<void(boost::filesystem::path)> RunOnPath;
 class StreamingAppPrivate {
