@@ -30,32 +30,57 @@
 #include <Wt/WText>
 #include <Wt/WTemplate>
 #include <Wt/WTimer>
+#include <Wt/WItemDelegate>
+#include <Wt/WAnchor>
 
 using namespace Wt;
 using namespace std;
 using namespace boost;
 
 
-class LoggedUsersModel : public Dbo::QueryModel<SessionInfoPtr> {
+class DateTimeDelegate : public WItemDelegate {
 public:
-    LoggedUsersModel(WObject* parent = 0) : Dbo::QueryModel<SessionInfoPtr>(parent) {}
-    virtual any data(const WModelIndex& index, int role = Wt::DisplayRole) const;
+    DateTimeDelegate(WAbstractItemModel *model, WObject* parent = 0) : WItemDelegate(parent), model(model) {}
+    virtual WWidget* update(WWidget* widget, const WModelIndex& index, WFlags< ViewItemRenderFlag > flags);
+private:
+  WAbstractItemModel *model;
 };
 
 
-any LoggedUsersModel::data(const WModelIndex& index, int role) const
+class DetailsButtonDelegate : public WItemDelegate {
+public:
+    DetailsButtonDelegate(WAbstractItemModel *model, WObject* parent = 0) : WItemDelegate(parent), model(model) {}
+    virtual WWidget* update(WWidget* widget, const WModelIndex& index, WFlags< ViewItemRenderFlag > flags);
+private:
+  WAbstractItemModel *model;
+};
+
+WWidget* DetailsButtonDelegate::update(WWidget* widget, const WModelIndex& index, WFlags< ViewItemRenderFlag > flags)
 {
-    any realData = Dbo::QueryModel< SessionInfoPtr >::data(index, role);
-    if(index.column()==4 && realData.type() == typeid(long)) {
-      return WDateTime::fromTime_t(any_cast<long>(realData));
-    }
-    if(index.column()==5 && realData.type() == typeid(long)) {
-      if(any_cast<long>(realData) == 0)
-	return "Active Session";
-      return WDateTime::fromTime_t(any_cast<long>(realData));
-    }
-    return realData;
+  if(!widget) {
+    WPushButton* button = new WPushButton("Details");
+    button->setStyleClass("btn btn-link");
+    return button;
+  }
+  return widget;
 }
+
+
+WWidget* DateTimeDelegate::update(WWidget* widget, const WModelIndex& index, WFlags< ViewItemRenderFlag > flags)
+{
+  long timeT = any_cast<long>(model->data(index));
+  string label = timeT ? WDateTime::fromTime_t(timeT).toString("dd/M/yyyy HH:mm").toUTF8() : "Active Session";
+  if(!widget) {
+    WText* labelWidget = new WText(label);
+    labelWidget->setStyleClass("small-text");
+    return labelWidget;
+  }
+  ((WText*) widget)->setText(label);
+  return widget;
+}
+
+
+
 
 
 LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
@@ -63,30 +88,35 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
 {
   setTitleBarEnabled(true);
   setCaption("Logged Users");
-  resize(900, 480);
+  resize(910, 480);
   setClosable(true);
   setResizable(true);
-  Dbo::QueryModel< SessionInfoPtr >* model = new LoggedUsersModel();
+  Dbo::QueryModel< SessionInfoPtr >* model = new Dbo::QueryModel<SessionInfoPtr>();
   auto query = session->find<SessionInfo>().orderBy("sessionStarted desc");
   if(!showAll)
     query.where("active <> 0");
   model->setQuery(query);
+  model->addColumn("sessionId", "");
   model->addColumn("username", "UserName");
   model->addColumn("email", "Email");
   model->addColumn("role", "Role");
-  model->addColumn("watching", "File Played");
-  model->addColumn("sessionStarted", "Session Started");
+  model->addColumn("watching", "Last File Played");
+  model->addColumn("sessionStarted", "Started");
   WTableView *table = new WTableView();
+  table->setItemDelegateForColumn(0, new DetailsButtonDelegate(model));
   table->setColumn1Fixed(false);
-  table->setColumnWidth(0, 120);
-  table->setColumnWidth(1, 200);
-  table->setColumnWidth(2, 70);
-  table->setColumnWidth(3, 300);
-  table->setColumnWidth(4, 150);
+  table->setColumnWidth(0, 50);
+  table->setColumnWidth(1, 120);
+  table->setColumnWidth(2, 200);
+  table->setColumnWidth(3, 70);
+  table->setColumnWidth(4, 300);
+  table->setColumnWidth(5, 110);
+  table->setItemDelegateForColumn(5, new DateTimeDelegate(model));
   if(showAll) {
-    model->addColumn("sessionEnded", "Session Ended");
-    table->setColumnWidth(5, 150);
-    setWidth(1050);
+    model->addColumn("sessionEnded", "Ended");
+    table->setItemDelegateForColumn(6, new DateTimeDelegate(model));
+    table->setColumnWidth(6, 110);
+    setWidth(1020);
   }
   table->setModel(model);
   contents()->addWidget(table);
