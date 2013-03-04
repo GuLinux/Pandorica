@@ -40,12 +40,16 @@
 #include <Wt/WText>
 #include <Wt/Utils>
 #include <Wt/WStreamResource>
+#include <Wt/WMessageBox>
+#include <Wt/Auth/AuthWidget>
 #include <boost/algorithm/string.hpp>
 #include <functional>
 #include <iostream>
 #include <fstream>
+#include "authorizeduser.h"
 
 #include "playlist.h"
+#include "session.h"
 
 using namespace Wt;
 using namespace std;
@@ -75,6 +79,7 @@ public:
   Playlist *playlist;
     WContainerWidget* playerContainerWidget;
   void listDirectoryAndRun(filesystem::path directoryPath, RunOnPath runAction);
+  Session session;
 private:
     void queue(filesystem::path path);
     void addSubtitlesFor(filesystem::path path);
@@ -96,6 +101,37 @@ StreamingAppPrivate::StreamingAppPrivate() {
 
 
 StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication(environment), d(new StreamingAppPrivate) {
+  d->session.login().changed().connect(this, &StreamingApp::authEvent);
+     Wt::Auth::AuthWidget *authWidget
+      = new Wt::Auth::AuthWidget(Session::auth(), d->session.users(),
+                 d->session.login());
+    authWidget->model()->addPasswordAuth(&Session::passwordAuth());
+    authWidget->model()->addOAuth(Session::oAuth());
+    authWidget->setRegistrationEnabled(true);
+    authWidget->processEnvironment();
+    root()->addWidget(authWidget);
+//   setupGui();
+}
+
+void StreamingApp::authEvent()
+{
+  if(!d->session.login().loggedIn()) {
+    return;
+  }
+  Auth::User user = d->session.login().user();
+  WAnimation messageBoxAnimation(WAnimation::Fade, WAnimation::Linear, 1000);
+  if(user.email().empty()) {
+    WMessageBox::show("Login", "You need to verify your email address before logging in.\nPlease check your inbox.", Ok, messageBoxAnimation);
+    return;
+  }
+  AuthorizedUserPtr authUser = d->session.find<AuthorizedUser>().where("email = ?").bind(user.email());
+  if(!authUser) {
+    WMessageBox::show("Login", "Your user is not authorized for this server.\nIf you think this is an error, contact me at marco.gulino (at) gmail.com", Ok, messageBoxAnimation);
+    return;
+  }
+  wApp->log("notice") << "User logged in: role normalUser=" << (authUser->role() == AuthorizedUser::NormalUser)
+    << ", admin user=" << (authUser->role() == AuthorizedUser::Admin);
+  root()->clear();
   setupGui();
 }
 

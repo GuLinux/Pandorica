@@ -36,9 +36,11 @@ class StreamingApp : public Wt::WApplication {
     virtual ~StreamingApp();
     void setupGui();
     virtual void refresh();
+    void authEvent();
     
     private:
       StreamingAppPrivate *const d;
+    void isd(std::string email);
     private:
 };
 
