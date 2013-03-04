@@ -50,6 +50,7 @@
 
 #include "playlist.h"
 #include "session.h"
+#include "adduserdialog.h"
 
 using namespace Wt;
 using namespace std;
@@ -129,12 +130,24 @@ void StreamingApp::authEvent()
     WMessageBox::show("Login", "Your user is not authorized for this server.\nIf you think this is an error, contact me at marco.gulino (at) gmail.com", Ok, messageBoxAnimation);
     return;
   }
-  wApp->log("notice") << "User logged in: role normalUser=" << (authUser->role() == AuthorizedUser::NormalUser)
-    << ", admin user=" << (authUser->role() == AuthorizedUser::Admin);
   root()->clear();
+  if(authUser->role() == AuthorizedUser::Admin)
+    setupAdminLinks();
   setupGui();
 }
 
+void StreamingApp::setupAdminLinks()
+{
+  wApp->log("notice") << "Setting up admin links";
+  WContainerWidget *links = new WContainerWidget();
+  WAnchor *addUser = new WAnchor("javascript:false", "Add User");
+  addUser->clicked().connect([this](WMouseEvent) {
+    AddUserDialog *dialog = new AddUserDialog(&d->session);
+    dialog->show();
+  });
+  links->addWidget(addUser);
+  root()->addWidget(links);
+}
 
 void StreamingApp::setupGui()
 {
@@ -184,7 +197,10 @@ void StreamingApp::setupGui()
   d->playerContainerWidget->addWidget(d->infoBox);
   layout->addWidget(playerContainer);
   layout->setResizable(0, true, 400);
-  root()->setLayout(layout);
+  
+  WContainerWidget* rootWidget = new WContainerWidget();
+  rootWidget->setLayout(layout);
+  root()->addWidget(rootWidget);
 
   
   d->listDirectoryAndRun(fs::path(d->videosDir()), [this](fs::path path) {
