@@ -21,6 +21,7 @@
 #include "loggedusersdialog.h"
 #include "session.h"
 #include "sessioninfo.h"
+#include "roleitemdelegate.h"
 #include <Wt/Dbo/QueryModel>
 #include <Wt/WTableView>
 #include <Wt/WLineEdit>
@@ -104,6 +105,7 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   model->addColumn("sessionStarted", "Started");
   WTableView *table = new WTableView();
   table->setItemDelegateForColumn(0, new DetailsButtonDelegate(model));
+  table->setItemDelegateForColumn(3, new RoleItemDelegate(model));
   table->setColumn1Fixed(false);
   table->setColumnWidth(0, 50);
   table->setColumnWidth(1, 120);

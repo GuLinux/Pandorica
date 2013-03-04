@@ -1,6 +1,7 @@
 #include "adduserdialog.h"
 #include "session.h"
 #include "authorizeduser.h"
+#include "roleitemdelegate.h"
 #include <Wt/Dbo/QueryModel>
 #include <Wt/WTableView>
 #include <Wt/WLineEdit>
@@ -14,37 +15,22 @@ using namespace Wt;
 using namespace std;
 using namespace boost;
 
-class AuthorizedUserModel : public Dbo::QueryModel<AuthorizedUserPtr> {
-public:
-    AuthorizedUserModel(WObject* parent = 0) : Dbo::QueryModel<AuthorizedUserPtr>(parent) {}
-    virtual any data(const WModelIndex& index, int role = Wt::DisplayRole) const;
-};
-
-
-any AuthorizedUserModel::data(const WModelIndex& index, int role) const
-{
-    any realData = Dbo::QueryModel< AuthorizedUserPtr >::data(index, role);
-    if(index.column()==1 && realData.type() == typeid(int)) {
-      return (any_cast<int>(realData) == AuthorizedUser::Admin) ? "Admin" : "Normal User";
-    }
-    return realData;
-}
-
-
 AddUserDialog::AddUserDialog(Session* session): WDialog(), _session(session)
 {
   setTitleBarEnabled(true);
   setCaption("Add User");
-  resize(640, 480);
+  resize(400, 300);
   setClosable(true);
   setResizable(true);
-  Dbo::QueryModel< AuthorizedUserPtr >* model = new AuthorizedUserModel();
+  Dbo::QueryModel< AuthorizedUserPtr >* model = new Dbo::QueryModel< AuthorizedUserPtr >();
   model->setQuery(session->find<AuthorizedUser>());
   model->addColumn("email");
   model->addColumn("role");
   WTableView *table = new WTableView();
   table->setColumn1Fixed(false);
-  table->setColumnWidth(0, 200);
+  table->setColumnWidth(0, 270);
+  table->setColumnWidth(1, 100);
+  table->setItemDelegateForColumn(1, new RoleItemDelegate(model));
   table->setModel(model);
   WLineEdit *newUser = new WLineEdit();
   newUser->setStyleClass("input-medium");

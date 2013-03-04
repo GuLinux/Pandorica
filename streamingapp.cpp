@@ -139,7 +139,7 @@ void StreamingApp::authEvent()
   root()->clear();
   if(authUser->role() == AuthorizedUser::Admin)
     setupAdminLinks();
-  SessionInfo* sessionInfo = new SessionInfo(sessionId(), user.email(), user.identity(Auth::Identity::LoginName).toUTF8(), authUser->role() == AuthorizedUser::Admin ? "Admin" : "Normal User");
+  SessionInfo* sessionInfo = new SessionInfo(sessionId(), user.email(), user.identity(Auth::Identity::LoginName).toUTF8(), authUser->role());
   Dbo::Transaction t(d->session);
   Dbo::collection< SessionInfoPtr > oldSessions = d->session.find<SessionInfo>().where("email = ? and active <> 0").bind(user.email());
   for(SessionInfoPtr oldSessionInfo: oldSessions) {
