@@ -6,10 +6,30 @@
 #include <Wt/WLineEdit>
 #include <Wt/WPushButton>
 #include <Wt/WRegExpValidator>
+#include <Wt/WApplication>
+#include <Wt/WText>
+#include <Wt/WTemplate>
 
 using namespace Wt;
 using namespace std;
 using namespace boost;
+
+class AuthorizedUserModel : public Dbo::QueryModel<AuthorizedUserPtr> {
+public:
+    AuthorizedUserModel(WObject* parent = 0) : Dbo::QueryModel<AuthorizedUserPtr>(parent) {}
+    virtual any data(const WModelIndex& index, int role = Wt::DisplayRole) const;
+};
+
+
+any AuthorizedUserModel::data(const WModelIndex& index, int role) const
+{
+    any realData = Dbo::QueryModel< AuthorizedUserPtr >::data(index, role);
+    if(index.column()==1 && realData.type() == typeid(int)) {
+      return (any_cast<int>(realData) == AuthorizedUser::Admin) ? "Admin" : "Normal User";
+    }
+    return realData;
+}
+
 
 AddUserDialog::AddUserDialog(Session* session): WDialog(), _session(session)
 {
@@ -18,7 +38,7 @@ AddUserDialog::AddUserDialog(Session* session): WDialog(), _session(session)
   resize(640, 480);
   setClosable(true);
   setResizable(true);
-  Dbo::QueryModel< AuthorizedUserPtr >* model = new Dbo::QueryModel<AuthorizedUserPtr>();
+  Dbo::QueryModel< AuthorizedUserPtr >* model = new AuthorizedUserModel();
   model->setQuery(session->find<AuthorizedUser>());
   model->addColumn("email");
   model->addColumn("role");
@@ -27,18 +47,18 @@ AddUserDialog::AddUserDialog(Session* session): WDialog(), _session(session)
   table->setColumnWidth(0, 200);
   table->setModel(model);
   WLineEdit *newUser = new WLineEdit();
+  newUser->setStyleClass("input-medium");
   
-  WRegExpValidator* validator = new WRegExpValidator("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}$");
+  WRegExpValidator* validator = new WRegExpValidator("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}");
   validator->setMandatory(true);
   
   WPushButton *add = new WPushButton("Add");
+  add->setStyleClass("btn");
   add->setEnabled(false);
   newUser->setValidator(validator);
   newUser->keyWentUp().connect([newUser,add](WKeyEvent){
-    newUser->validate();
-  });
-  newUser->validated().connect([add](WValidator::Result r, NoClass, NoClass, NoClass, NoClass, NoClass){
-    add->setEnabled(r.state() == WValidator::Valid);
+    WValidator::State s = newUser->validate();
+    add->setEnabled(s == WValidator::Valid);
   });
   add->clicked().connect([newUser,session, model](WMouseEvent) {
     Dbo::Transaction t(*session);
@@ -46,8 +66,11 @@ AddUserDialog::AddUserDialog(Session* session): WDialog(), _session(session)
     t.commit();
     model->reload();
   });
-  contents()->addWidget(newUser);
-  contents()->addWidget(add);
+  
+  WTemplate *form = new WTemplate("<form class=\"form-inline\" style=\"text-align: center\"><label>Email</label> ${emailEdit} ${addButton}</form>");
+  form->bindWidget("emailEdit", newUser);
+  form->bindWidget("addButton", add);
+  contents()->addWidget(form);
   contents()->addWidget(table);
 }
 

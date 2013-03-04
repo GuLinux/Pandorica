@@ -122,12 +122,14 @@ void StreamingApp::authEvent()
   Auth::User user = d->session.login().user();
   WAnimation messageBoxAnimation(WAnimation::Fade, WAnimation::Linear, 1000);
   if(user.email().empty()) {
-    WMessageBox::show("Login", "You need to verify your email address before logging in.\nPlease check your inbox.", Ok, messageBoxAnimation);
+    WMessageBox::show("Login", "You need to verify your email address before logging in.<br />\
+    Please check your inbox.", Ok, messageBoxAnimation);
     return;
   }
   AuthorizedUserPtr authUser = d->session.find<AuthorizedUser>().where("email = ?").bind(user.email());
   if(!authUser) {
-    WMessageBox::show("Login", "Your user is not authorized for this server.\nIf you think this is an error, contact me at marco.gulino (at) gmail.com", Ok, messageBoxAnimation);
+    WMessageBox::show("Login", "Your user is not authorized for this server.<br />\
+    If you think this is an error, contact me at marco.gulino (at) gmail.com", Ok, messageBoxAnimation);
     return;
   }
   root()->clear();
