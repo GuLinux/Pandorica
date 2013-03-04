@@ -46,7 +46,12 @@ public:
 any LoggedUsersModel::data(const WModelIndex& index, int role) const
 {
     any realData = Dbo::QueryModel< SessionInfoPtr >::data(index, role);
-    if(index.column()>=4 && realData.type() == typeid(long)) {
+    if(index.column()==4 && realData.type() == typeid(long)) {
+      return WDateTime::fromTime_t(any_cast<long>(realData));
+    }
+    if(index.column()==5 && realData.type() == typeid(long)) {
+      if(any_cast<long>(realData) == 0)
+	return "Active Session";
       return WDateTime::fromTime_t(any_cast<long>(realData));
     }
     return realData;
@@ -66,11 +71,11 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   if(!showAll)
     query.where("active <> 0");
   model->setQuery(query);
-  model->addColumn("username");
-  model->addColumn("email");
-  model->addColumn("role");
-  model->addColumn("watching");
-  model->addColumn("sessionStarted");
+  model->addColumn("username", "UserName");
+  model->addColumn("email", "Email");
+  model->addColumn("role", "Role");
+  model->addColumn("watching", "File Played");
+  model->addColumn("sessionStarted", "Session Started");
   WTableView *table = new WTableView();
   table->setColumn1Fixed(false);
   table->setColumnWidth(0, 120);
@@ -79,7 +84,7 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   table->setColumnWidth(3, 300);
   table->setColumnWidth(4, 150);
   if(showAll) {
-    model->addColumn("sessionEnded");
+    model->addColumn("sessionEnded", "Session Ended");
     table->setColumnWidth(5, 150);
     setWidth(1050);
   }
