@@ -5,6 +5,7 @@
 #include <Wt/WTableView>
 #include <Wt/WLineEdit>
 #include <Wt/WPushButton>
+#include <Wt/WRegExpValidator>
 
 using namespace Wt;
 using namespace std;
@@ -26,7 +27,19 @@ AddUserDialog::AddUserDialog(Session* session): WDialog(), _session(session)
   table->setColumnWidth(0, 200);
   table->setModel(model);
   WLineEdit *newUser = new WLineEdit();
+  
+  WRegExpValidator* validator = new WRegExpValidator("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}$");
+  validator->setMandatory(true);
+  
   WPushButton *add = new WPushButton("Add");
+  add->setEnabled(false);
+  newUser->setValidator(validator);
+  newUser->keyWentUp().connect([newUser,add](WKeyEvent){
+    newUser->validate();
+  });
+  newUser->validated().connect([add](WValidator::Result r, NoClass, NoClass, NoClass, NoClass, NoClass){
+    add->setEnabled(r.state() == WValidator::Valid);
+  });
   add->clicked().connect([newUser,session, model](WMouseEvent) {
     Dbo::Transaction t(*session);
     session->add<AuthorizedUser>(new AuthorizedUser(newUser->text().toUTF8()));
