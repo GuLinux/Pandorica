@@ -23,6 +23,7 @@
 #include "sessioninfo.h"
 #include "sessiondetails.h"
 #include "customitemdelegates.h"
+#include "sessiondetailsdialog.h"
 #include <Wt/Dbo/QueryModel>
 #include <Wt/WTableView>
 #include <Wt/WLineEdit>
@@ -42,17 +43,24 @@ using namespace boost;
 
 class DetailsButtonDelegate : public WItemDelegate {
 public:
-    DetailsButtonDelegate(WAbstractItemModel *model, WObject* parent = 0) : WItemDelegate(parent), model(model) {}
+    DetailsButtonDelegate(WAbstractItemModel *model, Session *session, WObject* parent = 0)
+      : WItemDelegate(parent), model(model), session(session) {}
     virtual WWidget* update(WWidget* widget, const WModelIndex& index, WFlags< ViewItemRenderFlag > flags);
 private:
   WAbstractItemModel *model;
+  Session *session;
 };
 
 WWidget* DetailsButtonDelegate::update(WWidget* widget, const WModelIndex& index, WFlags< ViewItemRenderFlag > flags)
 {
   if(!widget) {
     WPushButton* button = new WPushButton("Details");
+    string id = any_cast<string>(model->data(index.row(), 0));
     button->setStyleClass("btn btn-link");
+    button->clicked().connect([id,this](WMouseEvent){
+      WDialog *dialog = new SessionDetailsDialog(id, session);
+      dialog->show();
+    });
     return button;
   }
   return widget;
@@ -79,7 +87,7 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   model->addColumn("watching", "Last File Played");
   model->addColumn("sessionStarted", "Started");
   WTableView *table = new WTableView();
-  table->setItemDelegateForColumn(0, new DetailsButtonDelegate(model));
+  table->setItemDelegateForColumn(0, new DetailsButtonDelegate(model, session));
   table->setItemDelegateForColumn(4, new RoleItemDelegate(model));
   table->setColumn1Fixed(false);
   table->setColumnWidth(0, 50);
@@ -89,6 +97,7 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   table->setColumnWidth(4, 70);
   table->setColumnWidth(5, 300);
   table->setColumnWidth(6, 110);
+  table->setHeight(470);
   table->setItemDelegateForColumn(6, new DateTimeDelegate(model));
   if(showAll) {
     model->addColumn("sessionEnded", "Ended");
@@ -101,7 +110,9 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   
   WTimer *timer = new WTimer(this);
   timer->setInterval(10000);
-  timer->timeout().connect([model](WMouseEvent) { model->reload(); });
+  timer->timeout().connect([model](WMouseEvent) {
+    model->reload();
+  });
   timer->start();
 }
 
