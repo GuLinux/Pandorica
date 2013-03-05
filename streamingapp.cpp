@@ -139,7 +139,7 @@ void StreamingApp::authEvent()
     log("notice") << "User email empty, unconfirmed?";
     WMessageBox messageBox("Login", "You need to verify your email address before logging in.<br />\
     Please check your inbox.", Information, Ok);
-    messageBox.animateShow(messageBoxAnimation);
+    WTimer::singleShot(1000, [&messageBox,&messageBoxAnimation](WMouseEvent){ messageBox.animateShow(messageBoxAnimation); });
     return;
   }
   log("notice") << "User email confirmed";
@@ -148,7 +148,7 @@ void StreamingApp::authEvent()
   if(!authUser) {
     WMessageBox messageBox("Login", "Your user is not authorized for this server.<br />\
     If you think this is an error, contact me at marco.gulino (at) gmail.com", Information, Ok);
-    messageBox.animateShow(messageBoxAnimation);
+    WTimer::singleShot(1000, [&messageBox,&messageBoxAnimation](WMouseEvent){ messageBox.animateShow(messageBoxAnimation); });
     return;
   }
   root()->clear();
