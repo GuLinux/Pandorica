@@ -42,10 +42,14 @@
 #include <Wt/WStreamResource>
 #include <Wt/WMessageBox>
 #include <Wt/Auth/AuthWidget>
+#include <Wt/WPushButton>
 #include <boost/algorithm/string.hpp>
 #include <functional>
 #include <iostream>
 #include <fstream>
+#include <Wt/Mail/Client>
+#include <Wt/Mail/Mailbox>
+#include <Wt/Mail/Message>
 #include "authorizeduser.h"
 
 #include "playlist.h"
@@ -53,6 +57,7 @@
 #include "adduserdialog.h"
 #include "sessioninfo.h"
 #include "loggedusersdialog.h"
+#include "wt_helpers.h"
 #include "sessiondetails.h"
 
 using namespace Wt;
@@ -83,12 +88,27 @@ public:
   Playlist *playlist;
     WContainerWidget* playerContainerWidget;
   void listDirectoryAndRun(filesystem::path directoryPath, RunOnPath runAction);
+    void mailForUnauthorizedUser(string email, WString identity);
   Session session;
   SessionInfoPtr sessionInfo;
 private:
   void queue(filesystem::path path);
   void addSubtitlesFor(filesystem::path path);
 };
+
+class Message : public WTemplate {
+public:
+  Message(WString text, WContainerWidget* parent = 0);
+};
+
+Message::Message(WString text, WContainerWidget* parent): WTemplate(parent)
+{
+  addStyleClass("alert");
+  setTemplateText("<button type=\"button\" class=\"close\" data-dismiss=\"alert\">&times;</button>${message}", Wt::XHTMLUnsafeText);
+  bindString("message", text);
+}
+
+
 
 StreamingAppPrivate::StreamingAppPrivate() {
   types.insert(pair<string, WMediaPlayer::Encoding>(".mp3", WMediaPlayer::MP3));
@@ -115,9 +135,7 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   require("http://vjs.zencdn.net/c/video.js");
   d->session.login().changed().connect(this, &StreamingApp::authEvent);
   messageResourceBundle().use("templates");
-     Wt::Auth::AuthWidget *authWidget
-      = new Wt::Auth::AuthWidget(Session::auth(), d->session.users(),
-                 d->session.login());
+  Wt::Auth::AuthWidget *authWidget = new Wt::Auth::AuthWidget(Session::auth(), d->session.users(), d->session.login());
     authWidget->model()->addPasswordAuth(&Session::passwordAuth());
     authWidget->model()->addOAuth(Session::oAuth());
     authWidget->setRegistrationEnabled(true);
@@ -136,16 +154,17 @@ void StreamingApp::authEvent()
   Auth::User user = d->session.login().user();
   if(user.email().empty()) {
     log("notice") << "User email empty, unconfirmed?";
-    root()->addWidget(new WText("You need to verify your email address before logging in.<br />\
-    Please check your inbox."));
+    root()->addWidget(WW(Message, "You need to verify your email address before logging in.<br />\
+    Please check your inbox.").addCss("alert-block"));
     return;
   }
   log("notice") << "User email confirmed";
   Dbo::Transaction t(d->session);
   AuthorizedUserPtr authUser = d->session.find<AuthorizedUser>().where("email = ?").bind(user.email());
   if(!authUser) {
-    root()->addWidget(new WText("Your user is not authorized for this server.<br />\
-    If you think this is an error, contact me at marco.gulino (at) gmail.com"));
+    root()->addWidget(WW(Message, "Your user is not yet authorized for viewing videos.<br />\
+    If you think this is an error, contact me at marco.gulino (at) gmail.com").addCss("alert-block"));
+    d->mailForUnauthorizedUser(user.email(), user.identity(Auth::Identity::LoginName));
     return;
   }
   root()->clear();
@@ -162,6 +181,21 @@ void StreamingApp::authEvent()
   setupGui();
 }
 
+void StreamingAppPrivate::mailForUnauthorizedUser(string email, WString identity)
+{
+  Mail::Client client;
+  Mail::Message message;
+  message.setFrom(Mail::Mailbox("noreply@gulinux.net", "Videostreaming Gulinux"));
+  message.setSubject("VideoStreaming: unauthorized user login");
+  message.setBody(WString("The user {1} ({2}) just tried to login.\
+Since it doesn't appear to be in the authorized users list, it needs to be moderated.\
+Visit {3} to do it.").arg(identity).arg(email).arg(wApp->bookmarkUrl("/")));
+  message.addRecipient(Mail::To, Mail::Mailbox("Marco Gulino", "marco.gulino@gmail.com"));
+  client.connect();
+  client.send(message);
+}
+
+
 void StreamingApp::setupAdminLinks()
 {
   wApp->log("notice") << "Setting up admin links";
@@ -173,7 +207,7 @@ void StreamingApp::setupAdminLinks()
   WMenuItem *allLog = menu->addItem("Users Log", 0);
   
   
-  menu->itemSelected().connect([addUserMenu,activeUsersItem,allLog, this](WMenuItem *selected, NoClass, NoClass, NoClass, NoClass, NoClass){
+  menu->itemSelected().connect([addUserMenu,activeUsersItem,allLog, this](WMenuItem *selected, _n5){
     if(selected == addUserMenu) {
       AddUserDialog *dialog = new AddUserDialog(&d->session);
       dialog->show();
