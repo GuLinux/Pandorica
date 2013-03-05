@@ -66,7 +66,7 @@ void Session::configureAuth()
 Session::Session()
 {
   createConnection();
-  connection_->setProperty("show-queries", "true");
+  connection_->setProperty("show-queries", "false");
 
   setConnection(*connection_);
 
