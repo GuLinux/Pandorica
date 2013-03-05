@@ -22,7 +22,7 @@
 #include "session.h"
 #include "sessioninfo.h"
 #include "sessiondetails.h"
-#include "roleitemdelegate.h"
+#include "customitemdelegates.h"
 #include <Wt/Dbo/QueryModel>
 #include <Wt/WTableView>
 #include <Wt/WLineEdit>
@@ -38,15 +38,6 @@
 using namespace Wt;
 using namespace std;
 using namespace boost;
-
-
-class DateTimeDelegate : public WItemDelegate {
-public:
-    DateTimeDelegate(WAbstractItemModel *model, WObject* parent = 0) : WItemDelegate(parent), model(model) {}
-    virtual WWidget* update(WWidget* widget, const WModelIndex& index, WFlags< ViewItemRenderFlag > flags);
-private:
-  WAbstractItemModel *model;
-};
 
 
 class DetailsButtonDelegate : public WItemDelegate {
@@ -66,24 +57,6 @@ WWidget* DetailsButtonDelegate::update(WWidget* widget, const WModelIndex& index
   }
   return widget;
 }
-
-
-WWidget* DateTimeDelegate::update(WWidget* widget, const WModelIndex& index, WFlags< ViewItemRenderFlag > flags)
-{
-  long timeT = any_cast<long>(model->data(index));
-  string label = timeT ? WDateTime::fromTime_t(timeT).toString("dd/M/yyyy HH:mm").toUTF8() : "Active Session";
-  if(!widget) {
-    WText* labelWidget = new WText(label);
-    labelWidget->setStyleClass("small-text");
-    return labelWidget;
-  }
-  ((WText*) widget)->setText(label);
-  return widget;
-}
-
-
-
-
 
 LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   : WDialog(), session(session)
@@ -121,7 +94,7 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
     model->addColumn("sessionEnded", "Ended");
     table->setItemDelegateForColumn(7, new DateTimeDelegate(model));
     table->setColumnWidth(7, 110);
-    setWidth(1110);
+    setWidth(1120);
   }
   table->setModel(model);
   contents()->addWidget(table);
