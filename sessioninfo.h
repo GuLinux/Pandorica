@@ -24,6 +24,7 @@ public:
   std::string watching() const { return _watching; }
   Wt::WDateTime sessionStarted() const { return Wt::WDateTime::fromTime_t(_sessionStarted); }
   Wt::WDateTime sessionEnded() const { return Wt::WDateTime::fromTime_t(_sessionEnded); }
+  Wt::Dbo::collection<Wt::Dbo::ptr<SessionDetails>> sessionDetails() { return _sessionDetails; }
   bool active() const { return _active; }
   void setWatching(std::string watching) { this->_watching = watching; }
   void setActive(bool active) { this->_active = active;
