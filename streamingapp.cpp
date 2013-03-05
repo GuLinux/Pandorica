@@ -131,14 +131,17 @@ void StreamingApp::authEvent()
   if(!d->session.login().loggedIn()) {
     return;
   }
+  log("notice") << "User logged in";
 //   changeSessionId();
   Auth::User user = d->session.login().user();
   WAnimation messageBoxAnimation(WAnimation::Fade, WAnimation::Linear, 1000);
   if(user.email().empty()) {
+    log("notice") << "User email empty, unconfirmed?";
     WMessageBox::show("Login", "You need to verify your email address before logging in.<br />\
     Please check your inbox.", Ok, messageBoxAnimation);
     return;
   }
+  log("notice") << "User email confirmed";
   Dbo::Transaction t(d->session);
   AuthorizedUserPtr authUser = d->session.find<AuthorizedUser>().where("email = ?").bind(user.email());
   if(!authUser) {
