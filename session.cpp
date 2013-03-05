@@ -91,7 +91,7 @@ Session::Session()
 
 void Session::createConnection()
 {
-  string psqlConnParameters;
+  string psqlConnParameters = "";
   wApp->readConfigurationProperty("psql-connection", psqlConnParameters);
   if(!psqlConnParameters.empty()) {
     connection_ = new dbo::backend::Postgres(psqlConnParameters);
