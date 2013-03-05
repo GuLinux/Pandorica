@@ -24,6 +24,7 @@ SessionDetailsDialog::SessionDetailsDialog(string id, Session* session)
   model->addColumn("filename", "File");
   model->addColumn("playStarted", "Started");
   model->addColumn("playEnded", "Ended");
+  model->addColumn("filepath", "Full File Path");
   WTableView *table = new WTableView();
   table->setItemDelegateForColumn(1, new DateTimeDelegate(model));
   table->setItemDelegateForColumn(2, new DateTimeDelegate(model));
@@ -31,6 +32,7 @@ SessionDetailsDialog::SessionDetailsDialog(string id, Session* session)
   table->setColumnWidth(0, 300);
   table->setColumnWidth(1, 110);
   table->setColumnWidth(2, 110);
+  table->setColumnWidth(3, 440);
   table->setModel(model);
   contents()->addWidget(table);
   
