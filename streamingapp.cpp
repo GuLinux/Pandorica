@@ -136,8 +136,8 @@ void StreamingApp::authEvent()
   Auth::User user = d->session.login().user();
   if(user.email().empty()) {
     log("notice") << "User email empty, unconfirmed?";
-    root()->addWidget("You need to verify your email address before logging in.<br />\
-    Please check your inbox.");
+    root()->addWidget(new WText("You need to verify your email address before logging in.<br />\
+    Please check your inbox."));
     return;
   }
   log("notice") << "User email confirmed";
