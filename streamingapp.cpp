@@ -189,7 +189,7 @@ void StreamingApp::setupAdminLinks()
   
   auto setLoggedUsersTitle = [activeUsersItem,this](WMouseEvent){
     Dbo::Transaction t(d->session);
-    Dbo::collection<SessionInfoPtr> sessions = d->session.find<SessionInfo>().where("session_ended <> 0");
+    Dbo::collection<SessionInfoPtr> sessions = d->session.find<SessionInfo>().where("session_ended = 0");
     activeUsersItem->setText(WString("Active Users ({1})").arg(sessions.size()));
   };
   
