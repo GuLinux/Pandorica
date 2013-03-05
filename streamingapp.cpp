@@ -187,9 +187,9 @@ void StreamingAppPrivate::mailForUnauthorizedUser(string email, WString identity
   Mail::Message message;
   message.setFrom(Mail::Mailbox("noreply@gulinux.net", "Videostreaming Gulinux"));
   message.setSubject("VideoStreaming: unauthorized user login");
-  message.setBody(WString("The user {1} ({2}) just tried to login.\
-Since it doesn't appear to be in the authorized users list, it needs to be moderated.\
-Visit {3} to do it.").arg(identity).arg(email).arg(wApp->bookmarkUrl("/")));
+  message.setBody(WString("The user {1} ({2}) just tried to login.\n\
+Since it doesn't appear to be in the authorized users list, it needs to be moderated.\n\
+Visit {3} to do it.").arg(identity).arg(email).arg(wApp->makeAbsoluteUrl("")));
   message.addRecipient(Mail::To, Mail::Mailbox("marco.gulino@gmail.com", "Marco Gulino"));
   client.connect();
   client.send(message);
