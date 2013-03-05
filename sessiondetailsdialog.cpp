@@ -19,11 +19,11 @@ SessionDetailsDialog::SessionDetailsDialog(string id, Session* session)
   setClosable(true);
   setResizable(true);
   Dbo::QueryModel< SessionDetailsPtr >* model = new Dbo::QueryModel<SessionDetailsPtr>();
-  auto query = session->find<SessionDetails>().where("sessionInfo_sessionId = ?").bind(id).orderBy("playStarted desc");
+  auto query = session->find<SessionDetails>().where("session_info_session_id = ?").bind(id).orderBy("play_started desc");
   model->setQuery(query);
   model->addColumn("filename", "File");
-  model->addColumn("playStarted", "Started");
-  model->addColumn("playEnded", "Ended");
+  model->addColumn("play_started", "Started");
+  model->addColumn("play_ended", "Ended");
   model->addColumn("filepath", "Full File Path");
   WTableView *table = new WTableView();
   table->setItemDelegateForColumn(1, new DateTimeDelegate(model));

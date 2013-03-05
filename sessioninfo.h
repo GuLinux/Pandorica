@@ -47,16 +47,16 @@ public:
     template<class Action>
   void persist(Action& a)
   {
-    Wt::Dbo::id(a, _sessionId, "sessionId");
+    Wt::Dbo::id(a, _sessionId, "session_d");
     Wt::Dbo::field(a, _username, "username");
     Wt::Dbo::field(a, _ip, "ip");
     Wt::Dbo::field(a, _email, "email");
     Wt::Dbo::field(a, _role, "role");
     Wt::Dbo::field(a, _watching, "watching");
     Wt::Dbo::field(a, _active, "active");
-    Wt::Dbo::field(a, _sessionStarted, "sessionStarted");
-    Wt::Dbo::field(a, _sessionEnded, "sessionEnded");
-    Wt::Dbo::hasMany(a, _sessionDetails, Wt::Dbo::ManyToOne, "sessionInfo");
+    Wt::Dbo::field(a, _sessionStarted, "session_started");
+    Wt::Dbo::field(a, _sessionEnded, "session_ended");
+    Wt::Dbo::hasMany(a, _sessionDetails, Wt::Dbo::ManyToOne, "session_info");
   }
 };
 

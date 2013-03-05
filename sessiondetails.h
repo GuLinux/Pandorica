@@ -35,9 +35,9 @@ public:
   {
     Wt::Dbo::field(a, _filename, "filename");
     Wt::Dbo::field(a, _filepath, "filepath");
-    Wt::Dbo::field(a, _playStarted, "playStarted");
-    Wt::Dbo::field(a, _playEnded, "playEnded");
-    Wt::Dbo::belongsTo(a, _sessionInfo, "sessionInfo");
+    Wt::Dbo::field(a, _playStarted, "play_started");
+    Wt::Dbo::field(a, _playEnded, "play_ended");
+    Wt::Dbo::belongsTo(a, _sessionInfo, "session_info");
   }
 };
 

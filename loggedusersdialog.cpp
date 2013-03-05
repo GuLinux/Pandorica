@@ -75,17 +75,17 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   setClosable(true);
   setResizable(true);
   Dbo::QueryModel< SessionInfoPtr >* model = new Dbo::QueryModel<SessionInfoPtr>();
-  auto query = session->find<SessionInfo>().orderBy("sessionStarted desc");
+  auto query = session->find<SessionInfo>().orderBy("session_started desc");
   if(!showAll)
-    query.where("sessionEnded <> 0");
+    query.where("session_ended <> 0");
   model->setQuery(query);
-  model->addColumn("sessionId", "");
+  model->addColumn("session_id", "");
   model->addColumn("username", "UserName");
   model->addColumn("ip", "IP");
   model->addColumn("email", "Email");
   model->addColumn("role", "Role");
   model->addColumn("watching", "Last File Played");
-  model->addColumn("sessionStarted", "Started");
+  model->addColumn("session_started", "Started");
   WTableView *table = new WTableView();
   table->setItemDelegateForColumn(0, new DetailsButtonDelegate(model, session));
   table->setItemDelegateForColumn(4, new RoleItemDelegate(model));
@@ -100,7 +100,7 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   table->setHeight(470);
   table->setItemDelegateForColumn(6, new DateTimeDelegate(model));
   if(showAll) {
-    model->addColumn("sessionEnded", "Ended");
+    model->addColumn("session_ended", "Ended");
     table->setItemDelegateForColumn(7, new DateTimeDelegate(model));
     table->setColumnWidth(7, 110);
     setWidth(1120);
