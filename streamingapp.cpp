@@ -106,7 +106,15 @@ StreamingAppPrivate::StreamingAppPrivate() {
 
 
 StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication(environment), d(new StreamingAppPrivate) {
+  useStyleSheet("http://gulinux.net/css/videostreaming.css");
+  requireJQuery("http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js");
+  useStyleSheet("http://gulinux.net/css/bootstrap/css/bootstrap.css");
+  useStyleSheet("http://gulinux.net/css/bootstrap/css/bootstrap-responsive.css");
+  require("http://gulinux.net/css/bootstrap/js/bootstrap.js");
+  useStyleSheet("http://vjs.zencdn.net/c/video-js.css");
+  require("http://vjs.zencdn.net/c/video.js");
   d->session.login().changed().connect(this, &StreamingApp::authEvent);
+  messageResourceBundle().use("templates");
      Wt::Auth::AuthWidget *authWidget
       = new Wt::Auth::AuthWidget(Session::auth(), d->session.users(),
                  d->session.login());
@@ -205,11 +213,6 @@ void StreamingApp::setupAdminLinks()
 void StreamingApp::setupGui()
 {
   WBoxLayout *layout = new WHBoxLayout();
-  useStyleSheet("http://gulinux.net/css/videostreaming.css");
-//   requireJQuery("http://myrent.gulinux.net/css/jquery-latest.js");
-  useStyleSheet("http://gulinux.net/css/bootstrap/css/bootstrap.css");
-  useStyleSheet("http://gulinux.net/css/bootstrap/css/bootstrap-responsive.css");
-  require("http://gulinux.net/css/bootstrap/js/bootstrap.js");
   d->menu = new WMenu(Wt::Vertical);
   d->menu->itemSelected().connect(d, &StreamingAppPrivate::menuItemClicked);
   WContainerWidget *menuContainer = new WContainerWidget();
@@ -221,8 +224,6 @@ void StreamingApp::setupGui()
     wApp->changeSessionId();
     wApp->redirect(wApp->bookmarkUrl());
   });
-  useStyleSheet("http://vjs.zencdn.net/c/video-js.css");
-  require("http://vjs.zencdn.net/c/video.js");
   menuContainer->addWidget(reloadLink);
   menuContainer->setOverflow(WContainerWidget::OverflowAuto);
   menuContainer->addWidget(d->menu);
