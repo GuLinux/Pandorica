@@ -21,6 +21,7 @@
 #include "loggedusersdialog.h"
 #include "session.h"
 #include "sessioninfo.h"
+#include "sessiondetails.h"
 #include "roleitemdelegate.h"
 #include <Wt/Dbo/QueryModel>
 #include <Wt/WTableView>
@@ -89,7 +90,7 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
 {
   setTitleBarEnabled(true);
   setCaption("Logged Users");
-  resize(910, 480);
+  resize(1000, 480);
   setClosable(true);
   setResizable(true);
   Dbo::QueryModel< SessionInfoPtr >* model = new Dbo::QueryModel<SessionInfoPtr>();
@@ -99,26 +100,28 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   model->setQuery(query);
   model->addColumn("sessionId", "");
   model->addColumn("username", "UserName");
+  model->addColumn("ip", "IP");
   model->addColumn("email", "Email");
   model->addColumn("role", "Role");
   model->addColumn("watching", "Last File Played");
   model->addColumn("sessionStarted", "Started");
   WTableView *table = new WTableView();
   table->setItemDelegateForColumn(0, new DetailsButtonDelegate(model));
-  table->setItemDelegateForColumn(3, new RoleItemDelegate(model));
+  table->setItemDelegateForColumn(4, new RoleItemDelegate(model));
   table->setColumn1Fixed(false);
   table->setColumnWidth(0, 50);
   table->setColumnWidth(1, 120);
-  table->setColumnWidth(2, 200);
-  table->setColumnWidth(3, 70);
-  table->setColumnWidth(4, 300);
-  table->setColumnWidth(5, 110);
-  table->setItemDelegateForColumn(5, new DateTimeDelegate(model));
+  table->setColumnWidth(2, 90);
+  table->setColumnWidth(3, 200);
+  table->setColumnWidth(4, 70);
+  table->setColumnWidth(5, 300);
+  table->setColumnWidth(6, 110);
+  table->setItemDelegateForColumn(6, new DateTimeDelegate(model));
   if(showAll) {
     model->addColumn("sessionEnded", "Ended");
-    table->setItemDelegateForColumn(6, new DateTimeDelegate(model));
-    table->setColumnWidth(6, 110);
-    setWidth(1020);
+    table->setItemDelegateForColumn(7, new DateTimeDelegate(model));
+    table->setColumnWidth(7, 110);
+    setWidth(1110);
   }
   table->setModel(model);
   contents()->addWidget(table);

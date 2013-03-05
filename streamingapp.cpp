@@ -53,6 +53,7 @@
 #include "adduserdialog.h"
 #include "sessioninfo.h"
 #include "loggedusersdialog.h"
+#include "sessiondetails.h"
 
 using namespace Wt;
 using namespace std;
@@ -139,7 +140,7 @@ void StreamingApp::authEvent()
   root()->clear();
   if(authUser->role() == AuthorizedUser::Admin)
     setupAdminLinks();
-  SessionInfo* sessionInfo = new SessionInfo(sessionId(), user.email(), user.identity(Auth::Identity::LoginName).toUTF8(), authUser->role());
+  SessionInfo* sessionInfo = new SessionInfo(sessionId(), wApp->environment().clientAddress(), user.email(), user.identity(Auth::Identity::LoginName).toUTF8(), authUser->role());
   Dbo::Transaction t(d->session);
   Dbo::collection< SessionInfoPtr > oldSessions = d->session.find<SessionInfo>().where("email = ? and active <> 0").bind(user.email());
   for(SessionInfoPtr oldSessionInfo: oldSessions) {

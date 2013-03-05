@@ -7,6 +7,7 @@
 #include "session.h"
 #include "authorizeduser.h"
 #include "sessioninfo.h"
+#include "sessiondetails.h"
 #include "Wt/Auth/AuthService"
 #include "Wt/Auth/HashFunction"
 #include "Wt/Auth/PasswordService"
@@ -69,6 +70,7 @@ Session::Session()
   mapClass<User>("user");
   mapClass<AuthInfo>("auth_info");
   mapClass<SessionInfo>("session_info");
+  mapClass<SessionDetails>("session_details");
   mapClass<AuthorizedUser>("authorized_users");
   mapClass<AuthInfo::AuthIdentityType>("auth_identity");
   mapClass<AuthInfo::AuthTokenType>("auth_token");

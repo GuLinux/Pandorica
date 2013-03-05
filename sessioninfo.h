@@ -7,14 +7,17 @@
 #include <Wt/WGlobal>
 #include <Wt/WDateTime>
 #include "authorizeduser.h"
+
+class SessionDetails;
 class SessionInfo {
 public:
   SessionInfo() {}
-  SessionInfo(std::string sessionId, std::string email, std::string username, AuthorizedUser::Role role)
-    : _sessionId(sessionId), _email(email), _username(username), _role(role), _active(true), _sessionStarted(Wt::WDateTime::currentDateTime().toTime_t()) {}
+  SessionInfo(std::string sessionId, std::string ip, std::string email, std::string username, AuthorizedUser::Role role)
+    : _sessionId(sessionId), _ip(ip), _email(email), _username(username), _role(role), _active(true), _sessionStarted(Wt::WDateTime::currentDateTime().toTime_t()) {}
   ~SessionInfo() {}
   
   std::string sessionId() const { return _sessionId; }
+  std::string ip() const { return _ip; }
   std::string email() const { return _email; }
   std::string username() const { return _username; }
   AuthorizedUser::Role role() const { return _role; }
@@ -30,6 +33,7 @@ public:
   
 private:
   std::string _sessionId;
+  std::string _ip;
   std::string _email;
   std::string _username;
   AuthorizedUser::Role _role;
@@ -37,18 +41,21 @@ private:
   long _sessionStarted = 0;
   long _sessionEnded = 0;
   bool _active = false;
+  Wt::Dbo::collection<Wt::Dbo::ptr<SessionDetails>> _sessionDetails;
 public:
     template<class Action>
   void persist(Action& a)
   {
     Wt::Dbo::id(a, _sessionId, "sessionId");
     Wt::Dbo::field(a, _username, "username");
+    Wt::Dbo::field(a, _ip, "ip");
     Wt::Dbo::field(a, _email, "email");
     Wt::Dbo::field(a, _role, "role");
     Wt::Dbo::field(a, _watching, "watching");
     Wt::Dbo::field(a, _active, "active");
     Wt::Dbo::field(a, _sessionStarted, "sessionStarted");
     Wt::Dbo::field(a, _sessionEnded, "sessionEnded");
+    Wt::Dbo::hasMany(a, _sessionDetails, Wt::Dbo::ManyToOne, "sessionInfo");
   }
 };
 
