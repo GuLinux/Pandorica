@@ -47,7 +47,7 @@ public:
     template<class Action>
   void persist(Action& a)
   {
-    Wt::Dbo::id(a, _sessionId, "session_d");
+    Wt::Dbo::id(a, _sessionId, "session_id");
     Wt::Dbo::field(a, _username, "username");
     Wt::Dbo::field(a, _ip, "ip");
     Wt::Dbo::field(a, _email, "email");
