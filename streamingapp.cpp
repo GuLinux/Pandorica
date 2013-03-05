@@ -142,7 +142,7 @@ void StreamingApp::authEvent()
   if(authUser->role() == AuthorizedUser::Admin)
     setupAdminLinks();
   SessionInfo* sessionInfo = new SessionInfo(sessionId(), wApp->environment().clientAddress(), user.email(), user.identity(Auth::Identity::LoginName).toUTF8(), authUser->role());
-  Dbo::collection< SessionInfoPtr > oldSessions = d->session.find<SessionInfo>().where("email = ? and active <> 0").bind(user.email());
+  Dbo::collection< SessionInfoPtr > oldSessions = d->session.find<SessionInfo>().where("email = ? and sessionEnded <> 0").bind(user.email());
   for(SessionInfoPtr oldSessionInfo: oldSessions) {
     oldSessionInfo.modify()->setActive(false);
     oldSessionInfo.flush();
@@ -189,7 +189,7 @@ void StreamingApp::setupAdminLinks()
   
   auto setLoggedUsersTitle = [activeUsersItem,this](WMouseEvent){
     Dbo::Transaction t(d->session);
-    Dbo::collection<SessionInfoPtr> sessions = d->session.find<SessionInfo>().where("active <> 0");
+    Dbo::collection<SessionInfoPtr> sessions = d->session.find<SessionInfo>().where("sessionEnded <> 0");
     activeUsersItem->setText(WString("Active Users ({1})").arg(sessions.size()));
   };
   

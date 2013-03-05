@@ -77,7 +77,7 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   Dbo::QueryModel< SessionInfoPtr >* model = new Dbo::QueryModel<SessionInfoPtr>();
   auto query = session->find<SessionInfo>().orderBy("sessionStarted desc");
   if(!showAll)
-    query.where("active <> 0");
+    query.where("sessionEnded <> 0");
   model->setQuery(query);
   model->addColumn("sessionId", "");
   model->addColumn("username", "UserName");
