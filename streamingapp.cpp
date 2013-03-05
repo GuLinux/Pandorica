@@ -137,16 +137,18 @@ void StreamingApp::authEvent()
   WAnimation messageBoxAnimation(WAnimation::Fade, WAnimation::Linear, 1000);
   if(user.email().empty()) {
     log("notice") << "User email empty, unconfirmed?";
-    WMessageBox::show("Login", "You need to verify your email address before logging in.<br />\
-    Please check your inbox.", Ok, messageBoxAnimation);
+    WMessageBox messageBox("Login", "You need to verify your email address before logging in.<br />\
+    Please check your inbox.", Information, Ok);
+    messageBox.animateShow(messageBoxAnimation);
     return;
   }
   log("notice") << "User email confirmed";
   Dbo::Transaction t(d->session);
   AuthorizedUserPtr authUser = d->session.find<AuthorizedUser>().where("email = ?").bind(user.email());
   if(!authUser) {
-    WMessageBox::show("Login", "Your user is not authorized for this server.<br />\
-    If you think this is an error, contact me at marco.gulino (at) gmail.com", Ok, messageBoxAnimation);
+    WMessageBox messageBox("Login", "Your user is not authorized for this server.<br />\
+    If you think this is an error, contact me at marco.gulino (at) gmail.com", Information, Ok);
+    messageBox.animateShow(messageBoxAnimation);
     return;
   }
   root()->clear();
