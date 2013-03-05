@@ -131,6 +131,7 @@ void StreamingApp::authEvent()
     Please check your inbox.", Ok, messageBoxAnimation);
     return;
   }
+  Dbo::Transaction t(d->session);
   AuthorizedUserPtr authUser = d->session.find<AuthorizedUser>().where("email = ?").bind(user.email());
   if(!authUser) {
     WMessageBox::show("Login", "Your user is not authorized for this server.<br />\
@@ -141,7 +142,6 @@ void StreamingApp::authEvent()
   if(authUser->role() == AuthorizedUser::Admin)
     setupAdminLinks();
   SessionInfo* sessionInfo = new SessionInfo(sessionId(), wApp->environment().clientAddress(), user.email(), user.identity(Auth::Identity::LoginName).toUTF8(), authUser->role());
-  Dbo::Transaction t(d->session);
   Dbo::collection< SessionInfoPtr > oldSessions = d->session.find<SessionInfo>().where("email = ? and active <> 0").bind(user.email());
   for(SessionInfoPtr oldSessionInfo: oldSessions) {
     oldSessionInfo.modify()->setActive(false);
