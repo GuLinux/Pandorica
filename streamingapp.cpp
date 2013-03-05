@@ -144,7 +144,7 @@ void StreamingApp::authEvent()
   SessionInfo* sessionInfo = new SessionInfo(sessionId(), wApp->environment().clientAddress(), user.email(), user.identity(Auth::Identity::LoginName).toUTF8(), authUser->role());
   Dbo::collection< SessionInfoPtr > oldSessions = d->session.find<SessionInfo>().where("email = ? and session_ended <> 0").bind(user.email());
   for(SessionInfoPtr oldSessionInfo: oldSessions) {
-    oldSessionInfo.modify()->setActive(false);
+    oldSessionInfo.modify()->end();
     oldSessionInfo.flush();
   }
   d->sessionInfo = d->session.add(sessionInfo);
@@ -493,7 +493,7 @@ void StreamingAppPrivate::addSubtitlesFor(filesystem::path path)
 StreamingApp::~StreamingApp() {
   if(d->sessionInfo) {
     Dbo::Transaction t(d->session);
-    d->sessionInfo.modify()->setActive(false);
+    d->sessionInfo.modify()->end();
     for(auto detail : d->sessionInfo.modify()->sessionDetails())
       detail.modify()->ended();
     t.commit();
