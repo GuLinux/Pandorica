@@ -1,8 +1,20 @@
+<messages>
 <message id="Wt.Auth.template.login">
     <div class="Wt-form Wt-auth-login">
       <h2>${tr:Wt.Auth.login-form-title}</h2>
       <p>${tr:Wt.Auth.login-form-info}</p>
-
+      ${<if:oauth>}
+	<div style="text-align: center">
+	Login with:
+	<div class="btn-group">
+	${icons}
+	</div>
+      </div>
+      ${</if:oauth>}
+      <div style="padding: 10px; text-align: center;">
+	<button type="button" class="btn btn-link" data-toggle="collapse" data-target="#login-form-collapsible">Regular Login</button>
+      </div>
+      <div id="login-form-collapsible" class="collapse">
       <div class="Wt-fields">
     ${<if:passwords>}
       
@@ -27,12 +39,7 @@
 
      ${</if:passwords>}
       </div>
-      ${<if:oauth>}
-        <div class="Wt-col-right">
-      <h3>Or use:</h3>
-      ${icons}
-    </div>
-      ${</if:oauth>}
+      
       <div class="Wt-buttons">
     ${login}
       </div>
@@ -40,4 +47,6 @@
     ${lost-password} ${sep} ${register}
       </div>
     </div>
+  </div>
   </message>
+</messages>
