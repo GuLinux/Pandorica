@@ -205,15 +205,15 @@ void StreamingApp::setupAdminLinks()
 void StreamingApp::setupGui()
 {
   WBoxLayout *layout = new WHBoxLayout();
-  useStyleSheet("http://test.gulinux.net/css/videostreaming.css");
+  useStyleSheet("http://gulinux.net/css/videostreaming.css");
 //   requireJQuery("http://myrent.gulinux.net/css/jquery-latest.js");
-  useStyleSheet("http://test.gulinux.net/css/bootstrap/css/bootstrap.css");
-  useStyleSheet("http://test.gulinux.net/css/bootstrap/css/bootstrap-responsive.css");
-  require("http://test.gulinux.net/css/bootstrap/js/bootstrap.js");
+  useStyleSheet("http://gulinux.net/css/bootstrap/css/bootstrap.css");
+  useStyleSheet("http://gulinux.net/css/bootstrap/css/bootstrap-responsive.css");
+  require("http://gulinux.net/css/bootstrap/js/bootstrap.js");
   d->menu = new WMenu(Wt::Vertical);
   d->menu->itemSelected().connect(d, &StreamingAppPrivate::menuItemClicked);
   WContainerWidget *menuContainer = new WContainerWidget();
-  WImage* reloadImg = new WImage("http://test.gulinux.net/css/reload.png");
+  WImage* reloadImg = new WImage("http://gulinux.net/css/reload.png");
   reloadImg->resize(24, 24);
   WAnchor* reloadLink = new WAnchor("javascript:false", reloadImg);
   reloadLink->setText("Reload");
@@ -373,7 +373,7 @@ void StreamingAppPrivate::addTo ( WMenu* menu, filesystem::path p ) {
   subMenu->hide();
   menu->addItem(menuItem);
   if(fs::is_directory(p)) {
-    setIconTo(menuItem, "http://test.gulinux.net/css/folder.png");
+    setIconTo(menuItem, "http://gulinux.net/css/folder.png");
     menu->itemSelected().connect([menuItem, subMenu](WMenuItem* selItem, NoClass, NoClass, NoClass, NoClass, NoClass) {
       if(selItem == menuItem) {
 	if(subMenu->isVisible())
@@ -387,7 +387,7 @@ void StreamingAppPrivate::addTo ( WMenu* menu, filesystem::path p ) {
     });
   } else {
     filesHashes[Utils::hexEncode(Utils::md5(p.string()))] = p;
-    setIconTo(menuItem, "http://test.gulinux.net/css/video.png");
+    setIconTo(menuItem, "http://gulinux.net/css/video.png");
     menuItemsPaths[menuItem] = p;
   }
 }
