@@ -433,6 +433,8 @@ void StreamingAppPrivate::play ( filesystem::path path ) {
   player->ended().connect([this](NoClass,NoClass,NoClass,NoClass,NoClass,NoClass){
     Dbo::Transaction t(session);
     sessionInfo.modify()->setWatching("");
+    for(auto detail : sessionInfo.modify()->sessionDetails())
+      detail.modify()->ended();
     sessionInfo.flush();
     t.commit();
     playlist->nextItem();                                                                                                                                                                                                                                                   
@@ -452,6 +454,9 @@ void StreamingAppPrivate::play ( filesystem::path path ) {
   });
   Dbo::Transaction t(session);
   sessionInfo.modify()->setWatching(path.filename().string());
+  for(auto detail : sessionInfo.modify()->sessionDetails())
+    detail.modify()->ended();
+  sessionInfo.modify()->sessionDetails().insert(new SessionDetails(path));
   sessionInfo.flush();
   t.commit();
 }
@@ -489,6 +494,8 @@ StreamingApp::~StreamingApp() {
   if(d->sessionInfo) {
     Dbo::Transaction t(d->session);
     d->sessionInfo.modify()->setActive(false);
+    for(auto detail : d->sessionInfo.modify()->sessionDetails())
+      detail.modify()->ended();
     t.commit();
   }
   delete d;
