@@ -147,16 +147,16 @@ void StreamingApp::authEvent()
     return;
   }
   root()->clear();
-  if(authUser->role() == AuthorizedUser::Admin)
-    setupAdminLinks();
   SessionInfo* sessionInfo = new SessionInfo(sessionId(), wApp->environment().clientAddress(), user.email(), user.identity(Auth::Identity::LoginName).toUTF8(), authUser->role());
-  Dbo::collection< SessionInfoPtr > oldSessions = d->session.find<SessionInfo>().where("email = ? and session_ended <> 0").bind(user.email());
+  Dbo::collection< SessionInfoPtr > oldSessions = d->session.find<SessionInfo>().where("email = ? and session_ended = 0").bind(user.email());
   for(SessionInfoPtr oldSessionInfo: oldSessions) {
     oldSessionInfo.modify()->end();
     oldSessionInfo.flush();
   }
   d->sessionInfo = d->session.add(sessionInfo);
   t.commit();
+  if(authUser->role() == AuthorizedUser::Admin)
+    setupAdminLinks();
   setupGui();
 }
 
