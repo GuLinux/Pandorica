@@ -18,10 +18,11 @@
 */
 
 
-#include "roleitemdelegate.h"
+#include "customitemdelegates.h"
 #include "authorizeduser.h"
 #include <Wt/WAbstractItemModel>
 #include <Wt/WText>
+#include <Wt/WDateTime>
 
 using namespace Wt;
 using namespace boost;
@@ -45,4 +46,21 @@ Wt::WWidget* RoleItemDelegate::update(Wt::WWidget* widget, const Wt::WModelIndex
   ((WText*)widget)->setText(roleLabel);
   return widget;
 }
+
+
+
+WWidget* DateTimeDelegate::update(WWidget* widget, const WModelIndex& index, WFlags< ViewItemRenderFlag > flags)
+{
+  long timeT = any_cast<long>(model->data(index));
+  string label = timeT ? WDateTime::fromTime_t(timeT).toString("dd/M/yyyy HH:mm").toUTF8() : "Active Session";
+  if(!widget) {
+    WText* labelWidget = new WText(label);
+    labelWidget->setStyleClass("small-text");
+    return labelWidget;
+  }
+  ((WText*) widget)->setText(label);
+  return widget;
+}
+
+
 

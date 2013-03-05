@@ -35,4 +35,13 @@ private:
   Wt::WAbstractItemModel *model;
 };
 
+class DateTimeDelegate : public Wt::WItemDelegate {
+public:
+    DateTimeDelegate(Wt::WAbstractItemModel *model, WObject* parent = 0) : Wt::WItemDelegate(parent), model(model) {}
+    virtual Wt::WWidget* update(Wt::WWidget* widget, const Wt::WModelIndex& index, Wt::WFlags< Wt::ViewItemRenderFlag > flags);
+private:
+  Wt::WAbstractItemModel *model;
+};
+
+
 #endif // ROLEITEMDELEGATE_H
