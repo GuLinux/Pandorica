@@ -131,7 +131,7 @@ void StreamingApp::authEvent()
   if(!d->session.login().loggedIn()) {
     return;
   }
-  changeSessionId();
+//   changeSessionId();
   Auth::User user = d->session.login().user();
   WAnimation messageBoxAnimation(WAnimation::Fade, WAnimation::Linear, 1000);
   if(user.email().empty()) {
