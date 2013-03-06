@@ -25,6 +25,7 @@
 #include <boost/filesystem.hpp>
 
 namespace Wt {
+
   class WStandardItem;
   class WStandardItemModel;
 }
@@ -41,8 +42,6 @@ class StreamingApp : public Wt::WApplication {
     
     private:
       StreamingAppPrivate *const d;
-    void isd(std::string email);
-    void oldSessionInfod(std::string email);
     private:
 };
 

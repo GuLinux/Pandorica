@@ -97,6 +97,7 @@ public:
     void mailForUnauthorizedUser(string email, WString identity);
   Session session;
   SessionInfoPtr sessionInfo;
+  Auth::AuthWidget* authWidget = 0;
 private:
   void queue(filesystem::path path);
   void addSubtitlesFor(filesystem::path path);
@@ -141,12 +142,12 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   require("http://vjs.zencdn.net/c/video.js");
   d->session.login().changed().connect(this, &StreamingApp::authEvent);
   messageResourceBundle().use("templates");
-  Wt::Auth::AuthWidget *authWidget = new Wt::Auth::AuthWidget(Session::auth(), d->session.users(), d->session.login());
-    authWidget->model()->addPasswordAuth(&Session::passwordAuth());
-    authWidget->model()->addOAuth(Session::oAuth());
-    authWidget->setRegistrationEnabled(true);
-    authWidget->processEnvironment();
-    root()->addWidget(authWidget);
+  d->authWidget = new Wt::Auth::AuthWidget(Session::auth(), d->session.users(), d->session.login());
+  d->authWidget->model()->addPasswordAuth(&Session::passwordAuth());
+  d->authWidget->model()->addOAuth(Session::oAuth());
+  d->authWidget->setRegistrationEnabled(true);
+  d->authWidget->processEnvironment();
+  root()->addWidget(d->authWidget);
 //   setupGui();
 }
 
@@ -177,6 +178,8 @@ void StreamingApp::authEvent()
   
   root()->clear();
   root()->refresh();
+  if(d->authWidget)
+    d->authWidget->hide();
   SessionInfo* sessionInfo = new SessionInfo(sessionId(), wApp->environment().clientAddress(), user.email(), user.identity(Auth::Identity::LoginName).toUTF8(), authUser->role());
   Dbo::collection< SessionInfoPtr > oldSessions = d->session.find<SessionInfo>().where("email = ? and session_ended = 0").bind(user.email());
   for(SessionInfoPtr oldSessionInfo: oldSessions) {
