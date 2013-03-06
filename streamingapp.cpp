@@ -480,7 +480,6 @@ void StreamingAppPrivate::play ( filesystem::path path ) {
   }
   player->ended().connect([this](_n6){
     Dbo::Transaction t(session);
-    sessionInfo.modify()->setWatching("");
     for(auto detail : sessionInfo.modify()->sessionDetails())
       detail.modify()->ended();
     sessionInfo.flush();
@@ -505,7 +504,6 @@ void StreamingAppPrivate::play ( filesystem::path path ) {
     player->play();
   });
   Dbo::Transaction t(session);
-  sessionInfo.modify()->setWatching(path.filename().string());
   for(auto detail : sessionInfo.modify()->sessionDetails())
     detail.modify()->ended();
   sessionInfo.modify()->sessionDetails().insert(new SessionDetails(path));

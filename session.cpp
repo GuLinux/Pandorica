@@ -20,6 +20,8 @@
 #include <Wt/Dbo/backend/Postgres>
 #include <Wt/Dbo/backend/Sqlite3>
 #include <Wt/WApplication>
+#include <iostream>
+#include <fstream>
 
 namespace {
 
@@ -77,7 +79,10 @@ Session::Session()
   mapClass<AuthorizedUser>("authorized_users");
   mapClass<AuthInfo::AuthIdentityType>("auth_identity");
   mapClass<AuthInfo::AuthTokenType>("auth_token");
-
+  ofstream schema;
+  schema.open("schema.sql");
+  schema << tableCreationSql();
+  schema.close();
   try {
     createTables();
     std::cerr << "Created database." << std::endl;

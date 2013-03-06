@@ -76,7 +76,9 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   Dbo::QueryModel< LoggedUserEntry >* model = new Dbo::QueryModel<LoggedUserEntry>();
   auto query = session->query<LoggedUserEntry>("select session_id,username,ip,email,role,session_details.filename as filewatching,session_started,session_ended\
 	from session_info left join session_details\
-	on session_info.session_id = session_details.session_info_session_id");
+	on session_info.session_id = session_details.session_info_session_id\
+	\
+	");
   if(!showAll)
     query.where("session_ended = 0");
   query.where("session_details.play_ended = 0 OR session_details.play_ended is null");
