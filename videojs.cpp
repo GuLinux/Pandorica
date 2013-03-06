@@ -21,6 +21,7 @@
 #include "videojs.h"
 #include <Wt/WText>
 #include <Wt/WApplication>
+#include "wt_helpers.h"
 
 using namespace Wt;
 using namespace std;
@@ -29,7 +30,7 @@ using namespace boost;
 VideoJS::VideoJS()
   : m_widget(new WText("", Wt::TextFormat::XHTMLUnsafeText)), m_ended(m_widget, "video_js_ended"), m_playing(false), has_subtitles(false)
 {
-  m_ended.connect([this](NoClass,NoClass,NoClass,NoClass,NoClass,NoClass){
+  m_ended.connect([this](_n6){
     m_playing = false;
       WString js("try {\
   var myPlayer = _V_(\"gum_video_{1}\");\
