@@ -23,11 +23,9 @@ public:
   std::string email() const { return _email; }
   std::string username() const { return _username; }
   AuthorizedUser::Role role() const { return _role; }
-  std::string watching() const { return _watching; }
   Wt::WDateTime sessionStarted() const { return Wt::WDateTime::fromTime_t(_sessionStarted); }
   Wt::WDateTime sessionEnded() const { return Wt::WDateTime::fromTime_t(_sessionEnded); }
   Wt::Dbo::collection<Wt::Dbo::ptr<SessionDetails>> sessionDetails() { return _sessionDetails; }
-  void setWatching(std::string watching) { this->_watching = watching; }
   void end() { _sessionEnded = Wt::WDateTime::currentDateTime().toTime_t(); }
   
 private:
@@ -51,7 +49,6 @@ public:
     Wt::Dbo::field(a, _ip, "ip");
     Wt::Dbo::field(a, _email, "email");
     Wt::Dbo::field(a, _role, "role");
-    Wt::Dbo::field(a, _watching, "watching");
     Wt::Dbo::field(a, _sessionStarted, "session_started");
     Wt::Dbo::field(a, _sessionEnded, "session_ended");
     Wt::Dbo::hasMany(a, _sessionDetails, Wt::Dbo::ManyToOne, "session_info");
