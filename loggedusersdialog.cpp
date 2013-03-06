@@ -71,7 +71,7 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
 {
   setTitleBarEnabled(true);
   setCaption("Logged Users");
-  resize(1010, 480);
+  resize(1020, 510);
   setClosable(true);
   setResizable(true);
   Dbo::QueryModel< SessionInfoPtr >* model = new Dbo::QueryModel<SessionInfoPtr>();
@@ -103,7 +103,7 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
     model->addColumn("session_ended", "Ended");
     table->setItemDelegateForColumn(7, new DateTimeDelegate(model));
     table->setColumnWidth(7, 110);
-    setWidth(1130);
+    setWidth(1140);
   }
   table->setModel(model);
   contents()->addWidget(table);
