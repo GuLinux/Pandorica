@@ -7,9 +7,11 @@
 #ifndef USER_H_
 #define USER_H_
 
+#include <Wt/Auth/User>
 #include <Wt/Dbo/Types>
 #include <Wt/WGlobal>
 
+class SessionInfo;
 namespace dbo = Wt::Dbo;
 
 class User;
@@ -22,7 +24,10 @@ public:
   template<class Action>
   void persist(Action& a)
   {
+    dbo::hasMany(a, _sessionInfos, dbo::ManyToOne, "user");
   }
+private:
+  dbo::collection<dbo::ptr<SessionInfo>> _sessionInfos;
 };
 
 

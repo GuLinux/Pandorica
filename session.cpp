@@ -111,10 +111,16 @@ Wt::Auth::AbstractUserDatabase& Session::users()
   return *users_;
 }
 
-dbo::ptr<User> Session::user() const
+dbo::ptr<User> Session::user()
 {
   if (login_.loggedIn()) {
     dbo::ptr<AuthInfo> authInfo = users_->find(login_.user());
+    dbo::ptr<User> user = authInfo->user();
+    if(!user) {
+      user = add(new User());
+      authInfo.modify()->setUser(user);
+      authInfo.flush();
+    }
     return authInfo->user();
   } else
     return dbo::ptr<User>();
