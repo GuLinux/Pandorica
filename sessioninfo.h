@@ -13,16 +13,12 @@ class SessionDetails;
 class SessionInfo {
 public:
   SessionInfo() {}
-  SessionInfo(Wt::Dbo::ptr<User> user, std::string sessionId, std::string ip, std::string email, std::string username, AuthorizedUser::Role role)
-    : _sessionId(sessionId), _ip(ip), _email(email), _username(username), _role(role),
-    _sessionStarted(Wt::WDateTime::currentDateTime().toTime_t()), _user(user) {}
+  SessionInfo(Wt::Dbo::ptr<User> user, std::string sessionId, std::string ip)
+    : _sessionId(sessionId), _ip(ip), _sessionStarted(Wt::WDateTime::currentDateTime().toTime_t()), _user(user) {}
   ~SessionInfo() {}
   
   std::string sessionId() const { return _sessionId; }
   std::string ip() const { return _ip; }
-  std::string email() const { return _email; }
-  std::string username() const { return _username; }
-  AuthorizedUser::Role role() const { return _role; }
   Wt::WDateTime sessionStarted() const { return Wt::WDateTime::fromTime_t(_sessionStarted); }
   Wt::WDateTime sessionEnded() const { return Wt::WDateTime::fromTime_t(_sessionEnded); }
   Wt::Dbo::collection<Wt::Dbo::ptr<SessionDetails>> sessionDetails() { return _sessionDetails; }
@@ -31,10 +27,6 @@ public:
 private:
   std::string _sessionId;
   std::string _ip;
-  std::string _email;
-  std::string _username;
-  AuthorizedUser::Role _role;
-  std::string _watching;
   long _sessionStarted = 0;
   long _sessionEnded = 0;
   Wt::Dbo::ptr<User> _user;
@@ -45,10 +37,7 @@ public:
   {
     // TODO togliere username, email,forse anche Role usando AuthorizedUser e User
     Wt::Dbo::id(a, _sessionId, "session_id");
-    Wt::Dbo::field(a, _username, "username");
     Wt::Dbo::field(a, _ip, "ip");
-    Wt::Dbo::field(a, _email, "email");
-    Wt::Dbo::field(a, _role, "role");
     Wt::Dbo::field(a, _sessionStarted, "session_started");
     Wt::Dbo::field(a, _sessionEnded, "session_ended");
     Wt::Dbo::hasMany(a, _sessionDetails, Wt::Dbo::ManyToOne, "session_info");

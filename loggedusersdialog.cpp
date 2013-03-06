@@ -64,7 +64,7 @@ WWidget* DetailsButtonDelegate::update(WWidget* widget, const WModelIndex& index
   return widget;
 }
 
-typedef boost::tuple<string,string,string,string,int,string,long,long> LoggedUserEntry;
+typedef boost::tuple<string,string,long,long,string,string,string,int> LoggedUserEntry;
 LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   : WDialog(), session(session)
 {
@@ -74,18 +74,24 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   setClosable(true);
   setResizable(true);
   Dbo::QueryModel< LoggedUserEntry >* model = new Dbo::QueryModel<LoggedUserEntry>();
-  auto query = session->query<LoggedUserEntry>("select session_id,username,ip,email,role,session_details.filename as filewatching,session_started,session_ended\
-	from session_info left join session_details\
-	on session_info.session_id = session_details.session_info_session_id\
-	\
-	");
+  auto query = session->query<LoggedUserEntry>("select session_id,ip,session_started,session_ended,\
+    session_details.filename as filewatching,\
+    auth_info.email as email,\
+    auth_identity.identity as identity,\
+    authorized_users.role as role\
+    from session_info left join session_details\
+    on session_info.session_id = session_details.session_info_session_id\
+    inner join auth_info on session_info.user_id = auth_info.user_id\
+    inner join auth_identity on auth_info.id = auth_identity.auth_info_id\
+    inner join authorized_users on authorized_users.email = auth_info.email");
   if(!showAll)
     query.where("session_ended = 0");
   query.where("session_details.play_ended = 0 OR session_details.play_ended is null");
+  query.where("auth_identity.provider = 'loginname'");
   query.orderBy("session_started desc");
   model->setQuery(query);
   model->addColumn("session_id", "");
-  model->addColumn("username", "UserName");
+  model->addColumn("identity", "UserName");
   model->addColumn("ip", "IP");
   model->addColumn("email", "Email");
   model->addColumn("role", "Role");
