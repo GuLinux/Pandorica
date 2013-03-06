@@ -411,7 +411,7 @@ void StreamingAppPrivate::addTo ( WMenu* menu, filesystem::path p ) {
   menu->addItem(menuItem);
   if(fs::is_directory(p)) {
     setIconTo(menuItem, "http://gulinux.net/css/folder.png");
-    menu->itemSelected().connect([menuItem, subMenu](WMenuItem* selItem, NoClass, NoClass, NoClass, NoClass, NoClass) {
+    menu->itemSelected().connect([menuItem, subMenu](WMenuItem* selItem, _n5) {
       if(selItem == menuItem) {
 	if(subMenu->isVisible())
 	  subMenu->animateHide(WAnimation(WAnimation::SlideInFromBottom));
@@ -467,7 +467,7 @@ void StreamingAppPrivate::play ( filesystem::path path ) {
   } else {
     player = new WMediaPlayerWrapper();
   }
-  player->ended().connect([this](NoClass,NoClass,NoClass,NoClass,NoClass,NoClass){
+  player->ended().connect([this](_n6){
     Dbo::Transaction t(session);
     sessionInfo.modify()->setWatching("");
     for(auto detail : sessionInfo.modify()->sessionDetails())
