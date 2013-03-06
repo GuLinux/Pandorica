@@ -15,6 +15,9 @@ using namespace Wt;
 using namespace std;
 using namespace boost;
 
+
+// TODO: parametri su url per apertura diretta con prepopolamento
+
 AddUserDialog::AddUserDialog(Session* session): WDialog(), _session(session)
 {
   setTitleBarEnabled(true);
@@ -50,6 +53,7 @@ AddUserDialog::AddUserDialog(Session* session): WDialog(), _session(session)
     Dbo::Transaction t(*session);
     session->add<AuthorizedUser>(new AuthorizedUser(newUser->text().toUTF8()));
     t.commit();
+    newUser->setText("");
     model->reload();
   });
   
