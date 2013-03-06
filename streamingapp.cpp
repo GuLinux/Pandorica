@@ -176,10 +176,9 @@ void StreamingApp::authEvent()
   }
   log("notice") << "Clearing root and creating widgets";
   
-  root()->clear();
-  root()->refresh();
   if(d->authWidget)
     d->authWidget->hide();
+  root()->clear();
   SessionInfo* sessionInfo = new SessionInfo(sessionId(), wApp->environment().clientAddress(), user.email(), user.identity(Auth::Identity::LoginName).toUTF8(), authUser->role());
   Dbo::collection< SessionInfoPtr > oldSessions = d->session.find<SessionInfo>().where("email = ? and session_ended = 0").bind(user.email());
   for(SessionInfoPtr oldSessionInfo: oldSessions) {
