@@ -60,12 +60,18 @@
 #include "wt_helpers.h"
 #include "sessiondetails.h"
 
+#include <Wt/WStringListModel>
+#include <Wt/WViewWidget>
+#include <Wt/WAbstractItemView>
+
 using namespace Wt;
 using namespace std;
 using namespace boost;
 namespace fs = boost::filesystem;
 
 typedef std::function<void(filesystem::path)> RunOnPath;
+
+
 class StreamingAppPrivate {
 public:
   void addTo ( WMenu *menu, filesystem::path p );
@@ -83,7 +89,6 @@ public:
   void menuItemClicked(WMenuItem *item);
   void play(filesystem::path path);
   void setIconTo(WMenuItem *item, string url);
-  WContainerWidget *infoBox;
   void parseFileParameter();
   Playlist *playlist;
     WContainerWidget* playerContainerWidget;
@@ -167,7 +172,10 @@ void StreamingApp::authEvent()
     d->mailForUnauthorizedUser(user.email(), user.identity(Auth::Identity::LoginName));
     return;
   }
+  log("notice") << "Clearing root and creating widgets";
+  
   root()->clear();
+  root()->refresh();
   SessionInfo* sessionInfo = new SessionInfo(sessionId(), wApp->environment().clientAddress(), user.email(), user.identity(Auth::Identity::LoginName).toUTF8(), authUser->role());
   Dbo::collection< SessionInfoPtr > oldSessions = d->session.find<SessionInfo>().where("email = ? and session_ended = 0").bind(user.email());
   for(SessionInfoPtr oldSessionInfo: oldSessions) {
@@ -283,8 +291,6 @@ void StreamingApp::setupGui()
   leftPanel->addWidget(d->playlist, 1);
   playerContainerLayout->setResizable(0, true);
   playerContainer->setLayout(playerContainerLayout);
-  d->infoBox = new WContainerWidget();
-  d->playerContainerWidget->addWidget(d->infoBox);
   layout->addWidget(playerContainer);
   layout->setResizable(0, true, 400);
   
@@ -454,6 +460,7 @@ void StreamingAppPrivate::queue(filesystem::path path)
 
 
 void StreamingAppPrivate::play ( filesystem::path path ) {
+
   log("notice") << "Playing file " << path;
   if(player) {
     if(!fs::is_regular_file( path ) || ! isAllowed( path )) return;
@@ -478,8 +485,10 @@ void StreamingAppPrivate::play ( filesystem::path path ) {
   });
   player->addSource(encoding, linkFor( path ));
   addSubtitlesFor(path);
+  playerContainerWidget->clear();
   playerContainerWidget->insertWidget(0, player->widget());
-  infoBox->clear();
+  WContainerWidget* infoBox = new WContainerWidget();
+  playerContainerWidget->addWidget(infoBox);
   infoBox->addWidget(new WText(string("File: ") + path.filename().string()));
   WLink shareLink(wApp->bookmarkUrl("/") + string("?file=") + Utils::hexEncode(Utils::md5(path.string())));
   infoBox->addWidget(new WBreak() );
