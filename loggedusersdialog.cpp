@@ -20,8 +20,6 @@
 
 #include "loggedusersdialog.h"
 #include "session.h"
-#include "sessioninfo.h"
-#include "sessiondetails.h"
 #include "customitemdelegates.h"
 #include "sessiondetailsdialog.h"
 #include <Wt/Dbo/QueryModel>
@@ -66,6 +64,7 @@ WWidget* DetailsButtonDelegate::update(WWidget* widget, const WModelIndex& index
   return widget;
 }
 
+typedef boost::tuple<string,string,string,string,int,string,long,long> LoggedUserEntry;
 LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   : WDialog(), session(session)
 {
@@ -74,17 +73,21 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   resize(1020, 510);
   setClosable(true);
   setResizable(true);
-  Dbo::QueryModel< SessionInfoPtr >* model = new Dbo::QueryModel<SessionInfoPtr>();
-  auto query = session->find<SessionInfo>().orderBy("session_started desc");
+  Dbo::QueryModel< LoggedUserEntry >* model = new Dbo::QueryModel<LoggedUserEntry>();
+  auto query = session->query<LoggedUserEntry>("select session_id,username,ip,email,role,session_details.filename as filewatching,session_started,session_ended\
+	from session_info left join session_details\
+	on session_info.session_id = session_details.session_info_session_id");
   if(!showAll)
     query.where("session_ended = 0");
+  query.where("session_details.play_ended = 0 OR session_details.play_ended is null");
+  query.orderBy("session_started desc");
   model->setQuery(query);
   model->addColumn("session_id", "");
   model->addColumn("username", "UserName");
   model->addColumn("ip", "IP");
   model->addColumn("email", "Email");
   model->addColumn("role", "Role");
-  model->addColumn("watching", "Last File Played");
+  model->addColumn("filewatching", "Last File Played");
   model->addColumn("session_started", "Started");
   WTableView *table = new WTableView();
   table->setItemDelegateForColumn(0, new DetailsButtonDelegate(model, session));
