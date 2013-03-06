@@ -30,7 +30,7 @@ public:
   Session();
   ~Session();
 
-  dbo::ptr<User> user() const;
+  dbo::ptr<User> user();
 
   Wt::Auth::AbstractUserDatabase& users();
   Wt::Auth::Login& login() { return login_; }

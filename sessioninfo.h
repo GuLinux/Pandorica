@@ -8,12 +8,14 @@
 #include <Wt/WDateTime>
 #include "authorizeduser.h"
 
+class User;
 class SessionDetails;
 class SessionInfo {
 public:
   SessionInfo() {}
-  SessionInfo(std::string sessionId, std::string ip, std::string email, std::string username, AuthorizedUser::Role role)
-    : _sessionId(sessionId), _ip(ip), _email(email), _username(username), _role(role), _sessionStarted(Wt::WDateTime::currentDateTime().toTime_t()) {}
+  SessionInfo(Wt::Dbo::ptr<User> user, std::string sessionId, std::string ip, std::string email, std::string username, AuthorizedUser::Role role)
+    : _sessionId(sessionId), _ip(ip), _email(email), _username(username), _role(role),
+    _sessionStarted(Wt::WDateTime::currentDateTime().toTime_t()), _user(user) {}
   ~SessionInfo() {}
   
   std::string sessionId() const { return _sessionId; }
@@ -37,11 +39,13 @@ private:
   std::string _watching;
   long _sessionStarted = 0;
   long _sessionEnded = 0;
+  Wt::Dbo::ptr<User> _user;
   Wt::Dbo::collection<Wt::Dbo::ptr<SessionDetails>> _sessionDetails;
 public:
     template<class Action>
   void persist(Action& a)
   {
+    // TODO togliere username, email,forse anche Role usando AuthorizedUser e User
     Wt::Dbo::id(a, _sessionId, "session_id");
     Wt::Dbo::field(a, _username, "username");
     Wt::Dbo::field(a, _ip, "ip");
@@ -51,6 +55,7 @@ public:
     Wt::Dbo::field(a, _sessionStarted, "session_started");
     Wt::Dbo::field(a, _sessionEnded, "session_ended");
     Wt::Dbo::hasMany(a, _sessionDetails, Wt::Dbo::ManyToOne, "session_info");
+    Wt::Dbo::belongsTo(a, _user, "user");
   }
 };
 
