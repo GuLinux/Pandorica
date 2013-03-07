@@ -99,6 +99,7 @@ CommentsContainerWidget::CommentsContainerWidget(string videoId, Session* sessio
     Dbo::Transaction t(*d->session);
     Dbo::ptr< Comment > newComment = d->session->add(comment);
     t.commit();
+    newCommentContent->setText("");
     commentViewers.commentAdded(videoId, newComment.id());
   });
   

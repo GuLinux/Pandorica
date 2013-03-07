@@ -161,7 +161,7 @@ void StreamingApp::authEvent()
   log("notice") << "User logged in";
 //   changeSessionId();
   Auth::User user = d->session.login().user();
-  WPushButton *refreshButton = WW(WPushButton, "Aggiorna").css("btn btn-link").onClick([this](WMouseEvent){
+  WPushButton *refreshButton = WW(WPushButton, "Retry").css("btn btn-link").onClick([this](WMouseEvent){
     wApp->redirect(wApp->bookmarkUrl("/"));
     wApp->quit();
   });
