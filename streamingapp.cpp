@@ -113,8 +113,7 @@ public:
 Message::Message(WString text, WContainerWidget* parent): WTemplate(parent)
 {
   addStyleClass("alert");
-  setTemplateText("<button type=\"button\" class=\"close\" data-dismiss=\"alert\">&times;</button>${message}", Wt::XHTMLUnsafeText);
-  bindString("message", text);
+  setTemplateText(WString("<button type=\"button\" class=\"close\" data-dismiss=\"alert\">&times;</button>{1}").arg(text), Wt::XHTMLUnsafeText);
 }
 
 
@@ -162,19 +161,27 @@ void StreamingApp::authEvent()
   log("notice") << "User logged in";
 //   changeSessionId();
   Auth::User user = d->session.login().user();
+  WPushButton *refreshButton = WW(WPushButton, "Aggiorna").css("btn btn-link").onClick([this](WMouseEvent){
+    wApp->redirect(wApp->bookmarkUrl("/"));
+    wApp->quit();
+  });
   if(user.email().empty()) {
     log("notice") << "User email empty, unconfirmed?";
-    root()->addWidget(WW(Message, "You need to verify your email address before logging in.<br />\
-    Please check your inbox.").addCss("alert-block"));
+    Message *message = WW(Message, "You need to verify your email address before logging in.<br />\
+    Please check your inbox.<br />${refresh}").addCss("alert-block");
+    message->bindWidget("refresh", refreshButton);
+    root()->addWidget(message);
     return;
   }
   log("notice") << "User email confirmed";
   Dbo::Transaction t(d->session);
   AuthorizedUserPtr authUser = d->session.find<AuthorizedUser>().where("email = ?").bind(user.email());
   if(!authUser) {
-    root()->addWidget(WW(Message, "Your user is not yet authorized for viewing videos.<br />\
-    If you think this is an error, contact me at marco.gulino (at) gmail.com").addCss("alert-block"));
+    Message *message = WW(Message, "Your user is not yet authorized for viewing videos.<br />\
+    If you think this is an error, contact me at marco.gulino (at) gmail.com<br />${refresh}").addCss("alert-block");
     d->mailForUnauthorizedUser(user.email(), user.identity(Auth::Identity::LoginName));
+    root()->addWidget(message);
+    message->bindWidget("refresh", refreshButton);
     return;
   }
   log("notice") << "Clearing root and creating widgets";
