@@ -91,8 +91,8 @@ CommentsContainerWidget::CommentsContainerWidget(string videoId, Session* sessio
   addWidget(WW(WText, "Comments").setInline(false));
   
   WTextArea* newCommentContent = new WTextArea();
-  newCommentContent->setRows(4);
-  newCommentContent->setColumns(300);
+  newCommentContent->setRows(3);
+  newCommentContent->setWidth(500);
   newCommentContent->setInline(false);
   WPushButton* insertComment = WW(WPushButton, "Add Comment").css("btn btn-primary btn-small").onClick([this,videoId,newCommentContent](WMouseEvent){
     Comment *comment = new Comment(videoId, d->session->user(), newCommentContent->text().toUTF8());
