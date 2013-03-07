@@ -2,6 +2,7 @@
 #include "session.h"
 #include "sessioninfo.h"
 #include "sessiondetails.h"
+#include "comment.h"
 #include "customitemdelegates.h"
 #include <Wt/Dbo/QueryModel>
 #include <Wt/WTableView>

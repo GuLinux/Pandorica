@@ -22,6 +22,7 @@
 #include <Wt/WApplication>
 #include <iostream>
 #include <fstream>
+#include "comment.h"
 
 namespace {
 
@@ -76,6 +77,7 @@ Session::Session()
   mapClass<AuthInfo>("auth_info");
   mapClass<SessionInfo>("session_info");
   mapClass<SessionDetails>("session_details");
+  mapClass<Comment>("comment");
   mapClass<AuthorizedUser>("authorized_users");
   mapClass<AuthInfo::AuthIdentityType>("auth_identity");
   mapClass<AuthInfo::AuthTokenType>("auth_token");
