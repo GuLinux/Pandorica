@@ -93,7 +93,7 @@ CommentsContainerWidget::CommentsContainerWidget(string videoId, Session* sessio
   newCommentContent->setRows(4);
   newCommentContent->setColumns(300);
   newCommentContent->setInline(false);
-  WPushButton* insertComment = WW(WPushButton, "Add Comment").css("btn btn-primary").onClick([this,videoId,newCommentContent](WMouseEvent){
+  WPushButton* insertComment = WW(WPushButton, "Add Comment").css("btn btn-primary btn-small").onClick([this,videoId,newCommentContent](WMouseEvent){
     Comment *comment = new Comment(videoId, d->session->user(), newCommentContent->text().toUTF8());
     Dbo::Transaction t(*d->session);
     Dbo::ptr< Comment > newComment = d->session->add(comment);
