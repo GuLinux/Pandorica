@@ -51,6 +51,7 @@
 #include <Wt/Mail/Mailbox>
 #include <Wt/Mail/Message>
 #include "authorizeduser.h"
+#include "comment.h"
 
 #include "playlist.h"
 #include "session.h"
@@ -98,6 +99,7 @@ public:
   Session session;
   SessionInfoPtr sessionInfo;
   Auth::AuthWidget* authWidget = 0;
+
 private:
   void queue(filesystem::path path);
   void addSubtitlesFor(filesystem::path path);
@@ -140,6 +142,7 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   require("http://gulinux.net/css/bootstrap/js/bootstrap.js");
   useStyleSheet("http://vjs.zencdn.net/c/video-js.css");
   require("http://vjs.zencdn.net/c/video.js");
+  enableUpdates(true);
   d->session.login().changed().connect(this, &StreamingApp::authEvent);
   messageResourceBundle().use("templates");
   d->authWidget = new Wt::Auth::AuthWidget(Session::auth(), d->session.users(), d->session.login());
@@ -538,6 +541,7 @@ void StreamingAppPrivate::addSubtitlesFor(filesystem::path path)
     }
   }
 }
+
 
 
 StreamingApp::~StreamingApp() {

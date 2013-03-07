@@ -12,6 +12,7 @@
 #include <Wt/WGlobal>
 
 class SessionInfo;
+class Comment;
 namespace dbo = Wt::Dbo;
 
 class User;
@@ -25,9 +26,11 @@ public:
   void persist(Action& a)
   {
     dbo::hasMany(a, _sessionInfos, dbo::ManyToOne, "user");
+    dbo::hasMany(a, _comments, dbo::ManyToOne, "user");
   }
 private:
   dbo::collection<dbo::ptr<SessionInfo>> _sessionInfos;
+  dbo::collection<dbo::ptr<Comment>> _comments;
 };
 
 

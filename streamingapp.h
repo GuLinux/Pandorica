@@ -39,6 +39,7 @@ class StreamingApp : public Wt::WApplication {
     virtual void refresh();
     void authEvent();
     void setupAdminLinks();
+    Wt::Signal<std::string,int> &commentPosted();
     
     private:
       StreamingAppPrivate *const d;

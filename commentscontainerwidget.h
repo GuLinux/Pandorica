@@ -4,6 +4,7 @@
 #include <Wt/WContainerWidget>
 
 class Session;
+class CommentsContainerWidgetPrivate;
 
 class CommentsContainerWidget : public Wt::WContainerWidget
 {
@@ -12,8 +13,7 @@ public:
     CommentsContainerWidget(std::string videoId, Session *session, Wt::WContainerWidget* parent = 0);
     virtual ~CommentsContainerWidget();
 private:
-  std::string videoId;
-  Session *session;
+  CommentsContainerWidgetPrivate *const d;
 };
 
 #endif // COMMENTSCONTAINERWIDGET_H
