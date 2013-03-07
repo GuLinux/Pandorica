@@ -19,17 +19,37 @@ using namespace std;
 //                          content, last_updated, username, email
 typedef boost::tuple<string, long,         string,    string> CommentTuple;
 
+typedef boost::function<void(string, long)> CommentAddedCallback;
+
+class CommentViewers {
+public:
+  void addClient(string sessionId, CommentAddedCallback commentAddedCallback) { _viewers[sessionId] = commentAddedCallback; }
+  void removeClient(string sessionId) { _viewers.erase(sessionId); }
+  void commentAdded(string videoId, long commentId);
+  
+private:
+  map<string,CommentAddedCallback> _viewers;
+};
+
+void CommentViewers::commentAdded(string videoId, long int commentId)
+{
+  for(pair<string,CommentAddedCallback> sessions: _viewers) {
+    WServer::instance()->post(sessions.first, boost::bind(sessions.second, videoId, commentId));
+  }
+}
+
+
+
+CommentViewers commentViewers;
+
 class CommentsContainerWidgetPrivate {
 public:
   string videoId;
   Session *session;
   WContainerWidget *commentsContainer;
-    WTextArea* newCommentContent;
 public:
   CommentsContainerWidgetPrivate(string videoId, Session *session)
     : videoId(videoId), session(session) {}
-    void notifyCommentAdded(Dbo::ptr< Comment > newComment);
-    void emitCommentAddedSignal(string, int);
 };
 
 
@@ -40,17 +60,16 @@ public:
 
 CommentView::CommentView(CommentTuple data, WContainerWidget* parent): WContainerWidget(parent)
 {
-  setStyleClass("row-fluid");
+  setStyleClass("row-fluid comment-box");
   string username = data.get<3>();
   string email = data.get<2>();
   WDateTime commentTime = WDateTime::fromTime_t(data.get<1>());
   setContentAlignment(AlignLeft);
-  addWidget(WW(WContainerWidget).css("span5")
+  addWidget(WW(WContainerWidget).css("span4 label label-success")
     .add(WW(WText, username).setInline(false))
     .add(WW(WText, email).setInline(false))
     .add(WW(WText, commentTime.toString()).setInline(false)));
-  
-  addWidget(WW(WText,data.get<0>()).css("span7") );
+  addWidget(WW(WText,data.get<0>()).css("span8 label") );
 }
 
 
@@ -68,37 +87,44 @@ CommentsContainerWidget::CommentsContainerWidget(string videoId, Session* sessio
   auto query = d->session->query<CommentTuple>(querysql);
   query.where("video_id = ?").bind(videoId);
   query.orderBy("last_updated DESC");
+  addWidget(WW(WText, "Comments").setInline(false));
   
-  addWidget(d->newCommentContent = new WTextArea());
-  WPushButton* insertComment = WW(WPushButton, "AddComment").onClick([this,videoId](WMouseEvent){
-    Comment *comment = new Comment(videoId, d->session->user(), d->newCommentContent->text().toUTF8());
+  WTextArea* newCommentContent = new WTextArea();
+  newCommentContent->setRows(4);
+  newCommentContent->setColumns(300);
+  newCommentContent->setInline(false);
+  WPushButton* insertComment = WW(WPushButton, "Add Comment").css("btn btn-primary").onClick([this,videoId,newCommentContent](WMouseEvent){
+    Comment *comment = new Comment(videoId, d->session->user(), newCommentContent->text().toUTF8());
     Dbo::Transaction t(*d->session);
     Dbo::ptr< Comment > newComment = d->session->add(comment);
     t.commit();
-    d->notifyCommentAdded(newComment);
+    commentViewers.commentAdded(videoId, newComment.id());
   });
-  addWidget(insertComment);
+  
+  addWidget(WW(WContainerWidget).css("add-comment-box").add(newCommentContent).add(insertComment).setContentAlignment(AlignCenter));
+  
   addWidget(d->commentsContainer = WW(WContainerWidget).css("container-fluid") );
 
   Dbo::Transaction t(*d->session);
   for(CommentTuple comment : query.resultList())
     d->commentsContainer->addWidget(new CommentView(comment) );
+  
+  auto commentAdded = [this,videoId,querysql] (string commentVideoId, long commentId) {
+    if(commentVideoId != videoId) return;
+    Dbo::Transaction t(*d->session);
+    auto query = d->session->query<CommentTuple>(querysql).where("comment.id = ?").bind(commentId);
+    d->commentsContainer->insertWidget(0, new CommentView(query.resultValue()));
+    d->commentsContainer->refresh();
+    wApp->triggerUpdate();
+  };
+  
+  commentViewers.addClient(wApp->sessionId(), commentAdded);
 }
 
-
-typedef boost::function<void (const string&, int)> CommentEventCallback;
-
-
-void CommentsContainerWidgetPrivate::notifyCommentAdded(Dbo::ptr< Comment > newComment)
-{
-  Dbo::Transaction t(*session);
-  Dbo::Query<string> sessionsQuery = session->query<string>("SELECT session_id FROM session_info WHERE session_ended = 0");
-  for(string sessionId : sessionsQuery.resultList()) {
-  }
-}
 
 CommentsContainerWidget::~CommentsContainerWidget()
 {
+  commentViewers.removeClient(wApp->sessionId());
   delete d;
 }
 
