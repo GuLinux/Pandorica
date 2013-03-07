@@ -1,4 +1,6 @@
 <messages>
+  <message id="auth-mail-sender-name">Gulinux's Videostreaming</message>
+  <message id="auth-mail-sender-address">marco@gulinux.net</message>
 <message id="Wt.Auth.template.login">
     <div class="Wt-form Wt-auth-login">
       <h2>${tr:Wt.Auth.login-form-title}</h2>
