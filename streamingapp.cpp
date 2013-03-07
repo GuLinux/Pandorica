@@ -355,17 +355,6 @@ WMediaPlayer::Encoding StreamingAppPrivate::encodingFor ( filesystem::path p ) {
   return types[extensionFor(p)];
 }
 
-class StreamFileResource : public WStreamResource {
-public:
-  StreamFileResource(string fname, WObject *parent =0) : WStreamResource(parent), fileName_(fname) {}
-  void handleRequest(const Http::Request& request, Http::Response& response) {
-    ifstream r(fileName_.c_str(), ios::in | ios::binary);
-    handleRequestPiecewise(request, response, r);
-  }
-private:
-  string fileName_;
-};
-
 WLink StreamingAppPrivate::linkFor ( filesystem::path p ) {
 //   return WLink(new StreamFileResource(p.string(), wApp));
   
@@ -376,7 +365,7 @@ WLink StreamingAppPrivate::linkFor ( filesystem::path p ) {
     return WLink(relpath);
   }
 
-   WLink link = WLink(new StreamFileResource(p.string(), wApp));
+   WLink link = WLink(new WFileResource(p.string(), wApp));
    wApp->log("notice") << "Generated url: " << link.url();
    return link;
 }
