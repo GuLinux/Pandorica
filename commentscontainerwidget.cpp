@@ -86,6 +86,7 @@ CommentsContainerWidget::CommentsContainerWidget(string videoId, Session* sessio
   wApp->log("notice") << "comments query: " << querysql;
   auto query = d->session->query<CommentTuple>(querysql);
   query.where("video_id = ?").bind(videoId);
+  query.where("auth_identity.provider = 'loginname'");
   query.orderBy("last_updated DESC");
   addWidget(WW(WText, "Comments").setInline(false));
   
@@ -113,6 +114,7 @@ CommentsContainerWidget::CommentsContainerWidget(string videoId, Session* sessio
     if(commentVideoId != videoId) return;
     Dbo::Transaction t(*d->session);
     auto query = d->session->query<CommentTuple>(querysql).where("comment.id = ?").bind(commentId);
+    query.where("auth_identity.provider = 'loginname'");
     d->commentsContainer->insertWidget(0, new CommentView(query.resultValue()));
     d->commentsContainer->refresh();
     wApp->triggerUpdate();
