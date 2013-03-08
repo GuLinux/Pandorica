@@ -384,6 +384,8 @@ WLink StreamingAppPrivate::linkFor ( filesystem::path p ) {
     string hexTime = (boost::format("%1$x") %WDateTime::currentDateTime().toTime_t()) .str();
     string token = Utils::hexEncode(Utils::md5(secDownloadSecret + filePath + hexTime));
     string secDownloadUrl = secDownloadPrefix + token + "/" + hexTime + filePath;
+    wApp->log("notice") << "****** secDownload: filename= " << filePath;
+    wApp->log("notice") << "****** secDownload: url= " << secDownloadUrl;
     return WLink(secDownloadUrl);
   }
   
