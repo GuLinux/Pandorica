@@ -64,7 +64,9 @@
 
 #include <Wt/WStringListModel>
 #include <Wt/WViewWidget>
+#include <Wt/Utils>
 #include <Wt/WAbstractItemView>
+#include <boost/format.hpp>
 
 using namespace Wt;
 using namespace std;
@@ -355,10 +357,24 @@ WMediaPlayer::Encoding StreamingAppPrivate::encodingFor ( filesystem::path p ) {
   return types[extensionFor(p)];
 }
 
+
+
 WLink StreamingAppPrivate::linkFor ( filesystem::path p ) {
 //   return WLink(new StreamFileResource(p.string(), wApp));
   
   string videosDeployDir;
+  string secDownloadPrefix;
+  string secDownloadSecret;
+  
+  if(wApp->readConfigurationProperty("secdownload-prefix", secDownloadPrefix) && wApp->readConfigurationProperty("secdownload-secret", secDownloadSecret)) {
+    string filePath = p.string();
+    boost::replace_all(filePath, videosDir(), "");
+    string hexTime = (boost::format("%1$x") %WDateTime::currentDateTime().toTime_t()) .str();
+    string token = Utils::hexEncode(Utils::md5(secDownloadSecret + filePath + hexTime));
+    string secDownloadUrl = secDownloadPrefix + token + "/" + hexTime + filePath;
+    return WLink(secDownloadUrl);
+  }
+  
   if(wApp->readConfigurationProperty("videos-deploy-dir", videosDeployDir )) {
     string relpath = p.string();
     boost::replace_all(relpath, videosDir(), videosDeployDir);
