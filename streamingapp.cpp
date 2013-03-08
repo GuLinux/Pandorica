@@ -88,7 +88,7 @@ public:
   Player *player = 0;
   string extensionFor(filesystem::path p);
   map<string, WMediaPlayer::Encoding> types;
-  StreamingAppPrivate();
+  StreamingAppPrivate(StreamingApp* q);
   map<WMenuItem*, boost::filesystem::path> menuItemsPaths;
   map<string, boost::filesystem::path> filesHashes;
   void menuItemClicked(WMenuItem *item);
@@ -96,17 +96,20 @@ public:
   void setIconTo(WMenuItem *item, string url);
   void parseFileParameter();
   Playlist *playlist;
-    WContainerWidget* playerContainerWidget;
+  WContainerWidget* playerContainerWidget;
   void listDirectoryAndRun(filesystem::path directoryPath, RunOnPath runAction);
-    void mailForUnauthorizedUser(string email, WString identity);
+  void mailForUnauthorizedUser(string email, WString identity);
+  void setupMenus(AuthorizedUser::Role role);
+  void setupAdminMenus();
   Session session;
   SessionInfoPtr sessionInfo;
   Auth::AuthWidget* authWidget = 0;
-    bool mailSent;
-
+  bool mailSent;
+  StreamingApp *q;
 private:
   void queue(filesystem::path path);
   void addSubtitlesFor(filesystem::path path);
+    WMenu* topMenu;
 };
 
 class Message : public WTemplate {
@@ -122,7 +125,7 @@ Message::Message(WString text, WContainerWidget* parent): WTemplate(parent)
 
 
 
-StreamingAppPrivate::StreamingAppPrivate() {
+StreamingAppPrivate::StreamingAppPrivate(StreamingApp *q) : q(q) {
   types.insert(pair<string, WMediaPlayer::Encoding>(".mp3", WMediaPlayer::MP3));
   types.insert(pair<string, WMediaPlayer::Encoding>(".m4a", WMediaPlayer::M4A));
   types.insert(pair<string, WMediaPlayer::Encoding>(".m4v", WMediaPlayer::M4V));
@@ -150,7 +153,7 @@ protected:
 };
 
 
-StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication(environment), d(new StreamingAppPrivate) {
+StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication(environment), d(new StreamingAppPrivate(this)) {
   useStyleSheet("http://gulinux.net/css/videostreaming.css");
   requireJQuery("http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js");
   useStyleSheet("http://gulinux.net/css/bootstrap/css/bootstrap.css");
@@ -217,10 +220,77 @@ void StreamingApp::authEvent()
   }
   d->sessionInfo = d->session.add(sessionInfo);
   t.commit();
-  if(authUser->role() == AuthorizedUser::Admin)
-    setupAdminLinks();
+  d->setupMenus(authUser->role());
   setupGui();
 }
+
+
+void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
+{
+  wApp->log("notice") << "Setting up topbar links";
+  topMenu = new WMenu(Wt::Horizontal);
+  topMenu->setRenderAsList(true);
+  topMenu->setStyleClass("nav");
+  
+  if(role == AuthorizedUser::Admin)
+    setupAdminMenus();
+  else {
+    
+  }
+  
+  WContainerWidget* navBar = new WContainerWidget();
+  WContainerWidget* navbarInner = new WContainerWidget();
+  navBar->addWidget(navbarInner);
+  navbarInner->addWidget(topMenu);
+  
+  navBar->setStyleClass("navbar navbar-static-top navbar-inverse");
+  navbarInner->setStyleClass("navbar-inner");
+  q->root()->addWidget(navBar);
+}
+
+void StreamingAppPrivate::setupAdminMenus()
+{
+  WMenuItem *addUserMenu = topMenu->addItem("Add User", 0);
+  WMenuItem *activeUsersItem = topMenu->addItem("Active Users", 0);
+  WMenuItem *allLog = topMenu->addItem("Users Log", 0);
+  const string *addUserParameter = wApp->environment().getParameter("add_user_email");
+  
+  auto displayAddUserDialog = [addUserParameter,this](WMouseEvent){
+    string addUserEmail =  addUserParameter? *addUserParameter: string();
+    AddUserDialog *dialog = new AddUserDialog(&session, addUserEmail);
+    dialog->show();
+  };
+  
+  if(addUserParameter)
+    WTimer::singleShot(1000, displayAddUserDialog);
+  
+    topMenu->itemSelected().connect([addUserMenu,activeUsersItem,allLog,displayAddUserDialog,this](WMenuItem *selected, _n5){
+    if(selected == addUserMenu) {
+      displayAddUserDialog(WMouseEvent());
+    }
+    if(selected == activeUsersItem) {
+      WDialog *dialog = new LoggedUsersDialog(&session);
+      dialog->show();
+    }
+    if(selected == allLog) {
+      WDialog *dialog = new LoggedUsersDialog(&session, true);
+      dialog->show();
+    }
+  });
+  
+  auto setLoggedUsersTitle = [activeUsersItem,this](WMouseEvent){
+    Dbo::Transaction t(session);
+    Dbo::collection<SessionInfoPtr> sessions = session.find<SessionInfo>().where("session_ended = 0");
+    activeUsersItem->setText(WString("Active Users ({1})").arg(sessions.size()));
+  };
+  
+  WTimer *timer = new WTimer(wApp);
+  timer->setInterval(30000);
+  timer->timeout().connect(setLoggedUsersTitle);
+  setLoggedUsersTitle(WMouseEvent());
+  timer->start();
+}
+
 
 void StreamingAppPrivate::mailForUnauthorizedUser(string email, WString identity)
 {
@@ -234,66 +304,6 @@ Visit {3} to do it.").arg(identity).arg(email).arg(wApp->makeAbsoluteUrl(wApp->b
   message.addRecipient(Mail::To, Mail::Mailbox("marco.gulino@gmail.com", "Marco Gulino"));
   client.connect();
   client.send(message);
-}
-
-
-void StreamingApp::setupAdminLinks()
-{
-  wApp->log("notice") << "Setting up admin links";
-  WMenu *menu = new WMenu(Wt::Horizontal);
-  menu->setRenderAsList(true);
-  menu->setStyleClass("nav");
-  WMenuItem *addUserMenu = menu->addItem("Add User", 0);
-  WMenuItem *activeUsersItem = menu->addItem("Active Users", 0);
-  WMenuItem *allLog = menu->addItem("Users Log", 0);
-  
-  const string *addUserParameter = wApp->environment().getParameter("add_user_email");
-  
-  auto displayAddUserDialog = [addUserParameter,this](WMouseEvent){
-    string addUserEmail =  addUserParameter? *addUserParameter: string();
-    AddUserDialog *dialog = new AddUserDialog(&d->session, addUserEmail);
-    dialog->show();
-  };
-  
-  if(addUserParameter)
-    WTimer::singleShot(1000, displayAddUserDialog);
-  
-  menu->itemSelected().connect([addUserMenu,activeUsersItem,allLog,displayAddUserDialog,this](WMenuItem *selected, _n5){
-    if(selected == addUserMenu) {
-      displayAddUserDialog(WMouseEvent());
-    }
-    if(selected == activeUsersItem) {
-      WDialog *dialog = new LoggedUsersDialog(&d->session);
-      dialog->show();
-    }
-    if(selected == allLog) {
-      WDialog *dialog = new LoggedUsersDialog(&d->session, true);
-      dialog->show();
-    }
-  });
-  
-  WContainerWidget* navBar = new WContainerWidget();
-  WContainerWidget* navbarInner = new WContainerWidget();
-  navBar->addWidget(navbarInner);
-  navbarInner->addWidget(menu);
-  
-  navBar->setStyleClass("navbar navbar-static-top navbar-inverse");
-  navbarInner->setStyleClass("navbar-inner");
-  root()->addWidget(navBar);
-  
-  auto setLoggedUsersTitle = [activeUsersItem,this](WMouseEvent){
-    Dbo::Transaction t(d->session);
-    Dbo::collection<SessionInfoPtr> sessions = d->session.find<SessionInfo>().where("session_ended = 0");
-    activeUsersItem->setText(WString("Active Users ({1})").arg(sessions.size()));
-  };
-  
-  WTimer *timer = new WTimer(wApp);
-  timer->setInterval(30000);
-  timer->timeout().connect(setLoggedUsersTitle);
-  setLoggedUsersTitle(WMouseEvent());
-  timer->start();
-  
-
 }
 
 void StreamingApp::setupGui()
