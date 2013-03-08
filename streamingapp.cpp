@@ -164,14 +164,14 @@ void StreamingApp::authEvent()
   log("notice") << "User logged in";
 //   changeSessionId();
   Auth::User user = d->session.login().user();
+  WPushButton *refreshButton = WW(WPushButton, "Retry").css("btn btn-link").onClick([this](WMouseEvent) {
+    authEvent();
+  }).setAttribute("data-dismiss", "alert");
   if(user.email().empty()) {
     log("notice") << "User email empty, unconfirmed?";
     Message *message = WW(Message, "You need to verify your email address before logging in.<br />\
     Please check your inbox.<br />${refresh}").addCss("alert-block");
-    message->bindWidget("refresh", WW(WPushButton, "Retry").css("btn btn-link").onClick([this,message](WMouseEvent) {
-      authEvent();
-      delete message;
-    }));
+    message->bindWidget("refresh", refreshButton);
     root()->addWidget(message);
     return;
   }
@@ -186,10 +186,7 @@ void StreamingApp::authEvent()
       d->mailSent = true;
     }
     root()->addWidget(message);
-    message->bindWidget("refresh", WW(WPushButton, "Retry").css("btn btn-link").onClick([this, message](WMouseEvent) {
-      authEvent();
-      delete message;
-    }));
+    message->bindWidget("refresh", refreshButton);
     return;
   }
   log("notice") << "Clearing root and creating widgets";
