@@ -64,12 +64,13 @@ CommentView::CommentView(CommentTuple data, WContainerWidget* parent): WContaine
   string username = data.get<3>();
   string email = data.get<2>();
   WDateTime commentTime = WDateTime::fromTime_t(data.get<1>());
+  string commentText = data.get<0>();
   setContentAlignment(AlignLeft);
-  addWidget(WW(WContainerWidget).css("span4 label label-success")
+  addWidget(WW(WContainerWidget).css("span4 label label-success comment-header")
     .add(WW(WText, username).setInline(false))
     .add(WW(WText, email).setInline(false))
     .add(WW(WText, commentTime.toString()).setInline(false)));
-  addWidget(WW(WText,data.get<0>()).css("span8 label") );
+  addWidget(WW(WText,WString::fromUTF8(commentText)).css("span8 well comment-text") );
 }
 
 
