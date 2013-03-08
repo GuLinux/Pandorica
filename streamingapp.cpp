@@ -163,9 +163,8 @@ void StreamingApp::authEvent()
   log("notice") << "User logged in";
 //   changeSessionId();
   Auth::User user = d->session.login().user();
-  WPushButton *refreshButton = WW(WPushButton, "Retry").css("btn btn-link").onClick([this](WMouseEvent){
-    wApp->redirect(wApp->bookmarkUrl("/"));
-    wApp->quit();
+  WPushButton *refreshButton = WW(WPushButton, "Retry").css("btn btn-link").onClick([this](WMouseEvent) {
+    authEvent();
   });
   if(user.email().empty()) {
     log("notice") << "User email empty, unconfirmed?";
