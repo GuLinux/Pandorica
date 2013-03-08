@@ -45,19 +45,26 @@ AddUserDialog::AddUserDialog(Session* session): WDialog(), _session(session)
   add->setStyleClass("btn");
   add->setEnabled(false);
   newUser->setValidator(validator);
-  newUser->keyWentUp().connect([newUser,add](WKeyEvent){
-    WValidator::State s = newUser->validate();
-    add->setEnabled(s == WValidator::Valid);
-  });
-  add->clicked().connect([newUser,session, model](WMouseEvent) {
+  
+  auto submitUser = [newUser,session, model,add](WMouseEvent) {
     Dbo::Transaction t(*session);
     session->add<AuthorizedUser>(new AuthorizedUser(newUser->text().toUTF8()));
     t.commit();
     newUser->setText("");
+    add->disable();
     model->reload();
-  });
+  };
   
-  WTemplate *form = new WTemplate("<form class=\"form-inline\" style=\"text-align: center\"><label>Email</label> ${emailEdit} ${addButton}</form>");
+  newUser->keyWentUp().connect([newUser,add,submitUser](WKeyEvent k){
+    if(k.key() == Wt::Key_Enter) {
+      submitUser(WMouseEvent());
+    }
+    WValidator::State s = newUser->validate();
+    add->setEnabled(s == WValidator::Valid);
+  });
+  add->clicked().connect(submitUser);
+  
+  WTemplate *form = new WTemplate("<div class=\"form-inline\" style=\"text-align: center\"><label>Email</label> ${emailEdit} ${addButton}</div>");
   form->bindWidget("emailEdit", newUser);
   form->bindWidget("addButton", add);
   contents()->addWidget(form);
