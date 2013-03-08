@@ -101,6 +101,7 @@ public:
   Session session;
   SessionInfoPtr sessionInfo;
   Auth::AuthWidget* authWidget = 0;
+    bool mailSent;
 
 private:
   void queue(filesystem::path path);
@@ -163,14 +164,14 @@ void StreamingApp::authEvent()
   log("notice") << "User logged in";
 //   changeSessionId();
   Auth::User user = d->session.login().user();
-  WPushButton *refreshButton = WW(WPushButton, "Retry").css("btn btn-link").onClick([this](WMouseEvent) {
-    authEvent();
-  });
   if(user.email().empty()) {
     log("notice") << "User email empty, unconfirmed?";
     Message *message = WW(Message, "You need to verify your email address before logging in.<br />\
     Please check your inbox.<br />${refresh}").addCss("alert-block");
-    message->bindWidget("refresh", refreshButton);
+    message->bindWidget("refresh", WW(WPushButton, "Retry").css("btn btn-link").onClick([this,message](WMouseEvent) {
+      authEvent();
+      delete message;
+    }));
     root()->addWidget(message);
     return;
   }
@@ -180,9 +181,15 @@ void StreamingApp::authEvent()
   if(!authUser) {
     Message *message = WW(Message, "Your user is not yet authorized for viewing videos.<br />\
     If you think this is an error, contact me at marco.gulino (at) gmail.com<br />${refresh}").addCss("alert-block");
-    d->mailForUnauthorizedUser(user.email(), user.identity(Auth::Identity::LoginName));
+    if(!d->mailSent) {
+      d->mailForUnauthorizedUser(user.email(), user.identity(Auth::Identity::LoginName));
+      d->mailSent = true;
+    }
     root()->addWidget(message);
-    message->bindWidget("refresh", refreshButton);
+    message->bindWidget("refresh", WW(WPushButton, "Retry").css("btn btn-link").onClick([this, message](WMouseEvent) {
+      authEvent();
+      delete message;
+    }));
     return;
   }
   log("notice") << "Clearing root and creating widgets";
