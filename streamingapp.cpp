@@ -372,8 +372,6 @@ WMediaPlayer::Encoding StreamingAppPrivate::encodingFor ( filesystem::path p ) {
 
 
 WLink StreamingAppPrivate::linkFor ( filesystem::path p ) {
-//   return WLink(new StreamFileResource(p.string(), wApp));
-  
   string videosDeployDir;
   string secDownloadPrefix;
   string secDownloadSecret;
@@ -381,6 +379,8 @@ WLink StreamingAppPrivate::linkFor ( filesystem::path p ) {
   if(wApp->readConfigurationProperty("secdownload-prefix", secDownloadPrefix) && wApp->readConfigurationProperty("secdownload-secret", secDownloadSecret)) {
     string filePath = p.string();
     boost::replace_all(filePath, videosDir(), "");
+    if(!filePath[0] == '/')
+      filePath = string("/") + filePath;
     string hexTime = (boost::format("%1$x") %WDateTime::currentDateTime().toTime_t()) .str();
     string token = Utils::hexEncode(Utils::md5(secDownloadSecret + filePath + hexTime));
     string secDownloadUrl = secDownloadPrefix + token + "/" + hexTime + filePath;
