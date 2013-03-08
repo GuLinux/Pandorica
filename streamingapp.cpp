@@ -42,6 +42,7 @@
 #include <Wt/WStreamResource>
 #include <Wt/WMessageBox>
 #include <Wt/Auth/AuthWidget>
+#include <Wt/Auth/RegistrationModel>
 #include <Wt/WPushButton>
 #include <boost/algorithm/string.hpp>
 #include <functional>
@@ -136,6 +137,19 @@ StreamingAppPrivate::StreamingAppPrivate() {
 }
 
 
+class AuthWidgetCustom : public Wt::Auth::AuthWidget {
+public:
+    AuthWidgetCustom(const Auth::AuthService& baseAuth, Auth::AbstractUserDatabase& users, Auth::Login& login, WContainerWidget* parent = 0)
+      : Auth::AuthWidget(baseAuth, users, login, parent) {}
+protected:
+    virtual Auth::RegistrationModel* createRegistrationModel() {
+      Auth::RegistrationModel *model = Auth::AuthWidget::createRegistrationModel();
+      model->setEmailPolicy(Auth::RegistrationModel::EmailMandatory);
+      return model;
+    }
+};
+
+
 StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication(environment), d(new StreamingAppPrivate) {
   useStyleSheet("http://gulinux.net/css/videostreaming.css");
   requireJQuery("http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js");
@@ -147,7 +161,7 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   enableUpdates(true);
   d->session.login().changed().connect(this, &StreamingApp::authEvent);
   messageResourceBundle().use("templates");
-  d->authWidget = new Wt::Auth::AuthWidget(Session::auth(), d->session.users(), d->session.login());
+  d->authWidget = new AuthWidgetCustom(Session::auth(), d->session.users(), d->session.login());
   d->authWidget->model()->addPasswordAuth(&Session::passwordAuth());
   d->authWidget->model()->addOAuth(Session::oAuth());
   d->authWidget->setRegistrationEnabled(true);
