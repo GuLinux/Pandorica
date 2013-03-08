@@ -7,7 +7,7 @@ class Session;
 class AddUserDialog : public Wt::WDialog
 {
 public:
-  AddUserDialog(Session *session);
+  AddUserDialog(Session *session, std::string email = std::string());
   virtual ~AddUserDialog();
 private:
   Session *_session;

@@ -16,9 +16,7 @@ using namespace std;
 using namespace boost;
 
 
-// TODO: parametri su url per apertura diretta con prepopolamento
-
-AddUserDialog::AddUserDialog(Session* session): WDialog(), _session(session)
+AddUserDialog::AddUserDialog(Session* session, string email): WDialog(), _session(session)
 {
   setTitleBarEnabled(true);
   setCaption("Add User");
@@ -35,7 +33,7 @@ AddUserDialog::AddUserDialog(Session* session): WDialog(), _session(session)
   table->setColumnWidth(1, 100);
   table->setItemDelegateForColumn(1, new RoleItemDelegate(model));
   table->setModel(model);
-  WLineEdit *newUser = new WLineEdit();
+  WLineEdit *newUser = new WLineEdit(email);
   newUser->setStyleClass("input-medium");
   
   WRegExpValidator* validator = new WRegExpValidator("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}");
@@ -55,12 +53,16 @@ AddUserDialog::AddUserDialog(Session* session): WDialog(), _session(session)
     model->reload();
   };
   
-  newUser->keyWentUp().connect([newUser,add,submitUser](WKeyEvent k){
+  auto validate = [newUser,add](){
+    WValidator::State s = newUser->validate();
+    add->setEnabled(s == WValidator::Valid);
+  };
+  
+  newUser->keyWentUp().connect([validate,submitUser](WKeyEvent k){
     if(k.key() == Wt::Key_Enter) {
       submitUser(WMouseEvent());
     }
-    WValidator::State s = newUser->validate();
-    add->setEnabled(s == WValidator::Valid);
+    validate();
   });
   add->clicked().connect(submitUser);
   
@@ -69,6 +71,8 @@ AddUserDialog::AddUserDialog(Session* session): WDialog(), _session(session)
   form->bindWidget("addButton", add);
   contents()->addWidget(form);
   contents()->addWidget(table);
+  if(!email.empty())
+    validate();
 }
 
 AddUserDialog::~AddUserDialog()
