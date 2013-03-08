@@ -263,7 +263,7 @@ void StreamingApp::setupAdminLinks()
   navBar->addWidget(navbarInner);
   navbarInner->addWidget(menu);
   
-  navBar->setStyleClass("navbar");
+  navBar->setStyleClass("navbar navbar-static-top navbar-inverse");
   navbarInner->setStyleClass("navbar-inner");
   root()->addWidget(navBar);
   

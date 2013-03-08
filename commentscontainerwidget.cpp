@@ -89,7 +89,7 @@ CommentsContainerWidget::CommentsContainerWidget(string videoId, Session* sessio
   query.where("video_id = ?").bind(videoId);
   query.where("auth_identity.provider = 'loginname'");
   query.orderBy("last_updated DESC");
-  addWidget(WW(WText, "Comments").setInline(false));
+  addWidget(WW(WText, "Comments").css("label").setInline(false));
   
   WTextArea* newCommentContent = new WTextArea();
   newCommentContent->setRows(3);
