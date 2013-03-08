@@ -216,7 +216,7 @@ void StreamingAppPrivate::mailForUnauthorizedUser(string email, WString identity
   message.setSubject("VideoStreaming: unauthorized user login");
   message.setBody(WString("The user {1} ({2}) just tried to login.\n\
 Since it doesn't appear to be in the authorized users list, it needs to be moderated.\n\
-Visit {3} to do it.").arg(identity).arg(email).arg(wApp->makeAbsoluteUrl(wApp->bookmarkUrl("/"))));
+Visit {3} to do it.").arg(identity).arg(email).arg(wApp->makeAbsoluteUrl(wApp->bookmarkUrl("/")) + "?add_user_email=" + email));
   message.addRecipient(Mail::To, Mail::Mailbox("marco.gulino@gmail.com", "Marco Gulino"));
   client.connect();
   client.send(message);
@@ -233,11 +233,20 @@ void StreamingApp::setupAdminLinks()
   WMenuItem *activeUsersItem = menu->addItem("Active Users", 0);
   WMenuItem *allLog = menu->addItem("Users Log", 0);
   
+  const string *addUserParameter = wApp->environment().getParameter("add_user_email");
   
-  menu->itemSelected().connect([addUserMenu,activeUsersItem,allLog, this](WMenuItem *selected, _n5){
+  auto displayAddUserDialog = [addUserParameter,this](WMouseEvent){
+    string addUserEmail =  addUserParameter? *addUserParameter: string();
+    AddUserDialog *dialog = new AddUserDialog(&d->session, addUserEmail);
+    dialog->show();
+  };
+  
+  if(addUserParameter)
+    WTimer::singleShot(1000, displayAddUserDialog);
+  
+  menu->itemSelected().connect([addUserMenu,activeUsersItem,allLog,displayAddUserDialog,this](WMenuItem *selected, _n5){
     if(selected == addUserMenu) {
-      AddUserDialog *dialog = new AddUserDialog(&d->session);
-      dialog->show();
+      displayAddUserDialog(WMouseEvent());
     }
     if(selected == activeUsersItem) {
       WDialog *dialog = new LoggedUsersDialog(&d->session);
