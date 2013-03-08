@@ -43,6 +43,13 @@ VideoJS::VideoJS()
 
 VideoJS::~VideoJS()
 {
+    WString js("try {\
+  var myPlayer = _V_(\"gum_video_{1}\");\
+    myPlayer.src("");\
+    myPlayer.erase();\
+} catch(err) {}");
+  js.arg(m_widget->id());
+  wApp->doJavaScript(js.toUTF8());
   delete m_widget;
 }
 
