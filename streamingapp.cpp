@@ -67,6 +67,7 @@
 #include <Wt/WViewWidget>
 #include <Wt/Utils>
 #include <Wt/WAbstractItemView>
+#include <Wt/WOverlayLoadingIndicator>
 #include <boost/format.hpp>
 
 using namespace Wt;
@@ -312,7 +313,10 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
       wApp->quit();
     }
     if(selected==refresh) {
+      WOverlayLoadingIndicator* indicator = new WOverlayLoadingIndicator();
+      wApp->root()->addWidget(indicator->widget());
       setupTreeMenu();
+      WTimer::singleShot(1000, [indicator,this](WMouseEvent) { delete indicator;});
     }
   });
   
