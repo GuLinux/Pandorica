@@ -239,7 +239,7 @@ void StreamingApp::authEvent()
     streamingAppSessions.unregisterSession(wApp->sessionId());
     root()->clear();
     wApp->changeSessionId();
-    d->showAuthWindow();
+    root()->addWidget(d->authWidget);
     return;
   }
   log("notice") << "User logged in";
@@ -272,8 +272,7 @@ void StreamingApp::authEvent()
   }
   log("notice") << "Clearing root and creating widgets";
   
-  if(d->authWidget)
-    d->authWidget->hide();
+  root()->removeWidget(d->authWidget);
   root()->clear();
   Dbo::ptr< User > myUser = d->session.user();
   SessionInfo* sessionInfo = new SessionInfo(myUser, sessionId(), wApp->environment().clientAddress());
