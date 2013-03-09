@@ -113,12 +113,13 @@ public:
   WContainerWidget* menuContainer;
   Signal<StreamingAppSession> sessionAdded;
   Signal<StreamingAppSession> sessionRemoved;
+  void showAuthWindow();
+  WMenu* topMenu;
 private:
   void queue(filesystem::path path);
   void addSubtitlesFor(filesystem::path path);
-    void setupUserMenus();
-    WMenu* topMenu;
-    WMenuItem* activeUsersMenuItem;
+  void setupUserMenus();
+  WMenuItem* activeUsersMenuItem;
 };
 
 class Message : public WTemplate {
@@ -218,17 +219,27 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   enableUpdates(true);
   d->session.login().changed().connect(this, &StreamingApp::authEvent);
   messageResourceBundle().use("templates");
-  d->authWidget = new AuthWidgetCustom(Session::auth(), d->session.users(), d->session.login());
-  d->authWidget->model()->addPasswordAuth(&Session::passwordAuth());
-  d->authWidget->model()->addOAuth(Session::oAuth());
-  d->authWidget->setRegistrationEnabled(true);
-  d->authWidget->processEnvironment();
-  root()->addWidget(d->authWidget);
+  d->showAuthWindow();
 }
+
+void StreamingAppPrivate::showAuthWindow()
+{
+  authWidget = new AuthWidgetCustom(Session::auth(), session.users(), session.login());
+  authWidget->model()->addPasswordAuth(&Session::passwordAuth());
+  authWidget->model()->addOAuth(Session::oAuth());
+  authWidget->setRegistrationEnabled(true);
+  authWidget->processEnvironment();
+  q->root()->addWidget(authWidget);
+}
+
 
 void StreamingApp::authEvent()
 {
   if(!d->session.login().loggedIn()) {
+    streamingAppSessions.unregisterSession(wApp->sessionId());
+    root()->clear();
+    wApp->changeSessionId();
+    d->showAuthWindow();
     return;
   }
   log("notice") << "User logged in";
@@ -277,7 +288,7 @@ void StreamingApp::authEvent()
   setupGui();
   auto sessionAddedCallback = [this](StreamingAppSession newSession) { d->sessionAdded.emit(newSession); wApp->triggerUpdate(); wApp->log("notice") << "*** Session added (userId=" << newSession.first.id() << ")"; };
   auto sessionRemovedCallback = [this](StreamingAppSession sessionRemoved) { d->sessionRemoved.emit(sessionRemoved); wApp->triggerUpdate(); wApp->log("notice") << "*** Session removed (userId=" << sessionRemoved.first.id() << ")"; };
-    streamingAppSessions.registerSession(sessionId(), sessionAddedCallback, sessionRemovedCallback, StreamingAppSession(myUser,this) );
+  streamingAppSessions.registerSession(sessionId(), sessionAddedCallback, sessionRemovedCallback, StreamingAppSession(myUser,this) );
 }
 
 
@@ -314,8 +325,8 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   
   topMenu->itemSelected().connect([logout,refresh,this](WMenuItem *selected,_n5){
     if(selected==logout) {
+      session.login().logout();
       wApp->redirect(wApp->bookmarkUrl("/"));
-      wApp->quit();
     }
     if(selected==refresh) {
       WOverlayLoadingIndicator* indicator = new WOverlayLoadingIndicator();
