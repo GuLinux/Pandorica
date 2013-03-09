@@ -92,12 +92,12 @@ Wt::JSignal< Wt::NoClass >& VideoJS::ended()
 void VideoJS::play()
 {
   m_widget->setText(m_text.arg(""));
-  WString js = "var myPlayer = _V_(\"gum_video_{1}\");\
+  WString js = "var myPlayer = $(\"#gum_video_{1}\")[0];\
   var playerEnded = function() { \
     console.log(\"player ended\");\
     {2};\
   };\
-  myPlayer.addEvent(\"ended\", playerEnded);\
+  myPlayer.addEventListener(\"ended\", playerEnded);\
   myPlayer.play();";
   wApp->doJavaScript(js.arg(m_widget->id()).arg(m_ended.createCall()).toUTF8());
   m_playing = true;

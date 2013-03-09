@@ -62,6 +62,7 @@
 #include "wt_helpers.h"
 #include "sessiondetails.h"
 #include "commentscontainerwidget.h"
+#include "readbwstats.h"
 
 #include <Wt/WStringListModel>
 #include <Wt/WViewWidget>
@@ -303,6 +304,10 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   }
   
   WMenuItem *refresh = topMenu->addItem("Refresh", 0);
+  
+  string serverStatusUrl;
+  if(wApp->readConfigurationProperty("server-status-url", serverStatusUrl))
+    new ReadBWStats(topMenu->addItem("", 0), serverStatusUrl, q);
   
   WMenuItem *logout = topMenu->addItem("Logout", 0);
   logout->itemWidget()->parent()->addStyleClass("pull-right");

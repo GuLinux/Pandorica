@@ -22,7 +22,7 @@ STRING(REGEX MATCH ".*Zerogoki.*" HOST_IS_ZEROGOKI "${HOSTNAME}")
 SET(INSTALL_DIR "/home/www-data/data/videostreaming" CACHE STRING "Install directory for Wt Applications and files")
 
 
-add_executable(videostreaming commentscontainerwidget.cpp sessiondetailsdialog.cpp customitemdelegates.cpp loggedusersdialog.cpp adduserdialog.cpp playlist.cpp session.cpp videojs.cpp wmediaplayerwrapper.cpp streamingapp.cpp main.cpp)
+add_executable(videostreaming readbwstats.cpp commentscontainerwidget.cpp sessiondetailsdialog.cpp customitemdelegates.cpp loggedusersdialog.cpp adduserdialog.cpp playlist.cpp session.cpp videojs.cpp wmediaplayerwrapper.cpp streamingapp.cpp main.cpp)
 
 
 string(TOLOWER ${CMAKE_BUILD_TYPE} build_type)
@@ -34,6 +34,12 @@ else(${build_type} STREQUAL "debug")
   set(WT_LINK_LIBS ${Wt_LIBRARY} ${Wt_DBO_LIBRARY} ${Wt_DBOPOSTGRES_LIBRARY} ${Wt_DBOSQLITE3_LIBRARY} ${Wt_CONNECTOR_LIBRARY})
 endif(${build_type} STREQUAL "debug")
 
-target_link_libraries(videostreaming -lboost_signals -lboost_system -lboost_filesystem ${WT_LINK_LIBS} )
+SET(BOOST_LIBS 
+-lboost_signals
+-lboost_system
+-lboost_filesystem
+)
+
+target_link_libraries(videostreaming ${BOOST_LIBS} ${WT_LINK_LIBS} )
 install(TARGETS videostreaming RUNTIME DESTINATION ${INSTALL_DIR}/bin)
 INSTALL(FILES templates.xml DESTINATION ${INSTALL_DIR} )
