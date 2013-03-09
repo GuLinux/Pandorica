@@ -76,6 +76,7 @@ namespace fs = boost::filesystem;
 
 typedef std::function<void(filesystem::path)> RunOnPath;
 
+typedef pair<Dbo::ptr<User>, StreamingApp*> StreamingAppSession;
 
 class StreamingAppPrivate {
 public:
@@ -83,7 +84,7 @@ public:
   WMediaPlayer::Encoding encodingFor ( filesystem::path p );
   WLink linkFor(filesystem::path p);
   bool isAllowed(filesystem::path p);
-  WMenu *menu;
+  WMenu *menu = 0;
   string videosDir();
   Player *player = 0;
   string extensionFor(filesystem::path p);
@@ -101,15 +102,21 @@ public:
   void mailForUnauthorizedUser(string email, WString identity);
   void setupMenus(AuthorizedUser::Role role);
   void setupAdminMenus();
+    void setupTreeMenu();
   Session session;
   SessionInfoPtr sessionInfo;
   Auth::AuthWidget* authWidget = 0;
   bool mailSent;
   StreamingApp *q;
+  WContainerWidget* menuContainer;
+  Signal<StreamingAppSession> sessionAdded;
+  Signal<StreamingAppSession> sessionRemoved;
 private:
   void queue(filesystem::path path);
   void addSubtitlesFor(filesystem::path path);
+    void setupUserMenus();
     WMenu* topMenu;
+    WMenuItem* activeUsersMenuItem;
 };
 
 class Message : public WTemplate {
@@ -152,6 +159,51 @@ protected:
     }
 };
 
+typedef boost::function<void(StreamingAppSession)> SessionCallback;
+struct StreamingAppSessionInfo {
+  SessionCallback sessionAdded;
+  SessionCallback sessionRemoved;
+  StreamingAppSession session;
+  static StreamingAppSessionInfo from(SessionCallback sessionAdded, SessionCallback sessionRemoved, StreamingAppSession session) {
+    StreamingAppSessionInfo ret;
+    ret.sessionAdded=sessionAdded;
+    ret.sessionRemoved=sessionRemoved;
+    ret.session=session;
+    return ret;
+  }
+};
+
+class StreamingAppSessions {
+public:
+  void registerSession(string sessionId, SessionCallback onSessionAdded, SessionCallback onSessionRemoved, StreamingAppSession newSession);
+  void unregisterSession(string sessionId);
+  ulong sessionCount();
+private:
+  map<string,StreamingAppSessionInfo> sessions;
+};
+
+ulong StreamingAppSessions::sessionCount()
+{
+  return sessions.size();
+}
+
+
+void StreamingAppSessions::registerSession(string sessionId, SessionCallback onSessionAdded, SessionCallback onSessionRemoved, StreamingAppSession newSession)
+{
+  sessions[sessionId] = StreamingAppSessionInfo::from(onSessionAdded, onSessionRemoved, newSession);
+  for(pair<string,StreamingAppSessionInfo> session: sessions)
+    WServer::instance()->post(session.first, boost::bind(session.second.sessionAdded, newSession));
+}
+
+void StreamingAppSessions::unregisterSession(string sessionId)
+{
+  StreamingAppSessionInfo oldSession = sessions[sessionId];
+  sessions.erase(sessionId);
+  for(pair<string,StreamingAppSessionInfo> session: sessions)
+    WServer::instance()->post(session.first, boost::bind(session.second.sessionRemoved, oldSession.session));
+}
+
+StreamingAppSessions streamingAppSessions;
 
 StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication(environment), d(new StreamingAppPrivate(this)) {
   useStyleSheet("http://gulinux.net/css/videostreaming.css");
@@ -170,7 +222,6 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   d->authWidget->setRegistrationEnabled(true);
   d->authWidget->processEnvironment();
   root()->addWidget(d->authWidget);
-//   setupGui();
 }
 
 void StreamingApp::authEvent()
@@ -222,6 +273,9 @@ void StreamingApp::authEvent()
   t.commit();
   d->setupMenus(authUser->role());
   setupGui();
+  auto sessionAddedCallback = [this](StreamingAppSession newSession) { d->sessionAdded.emit(newSession); wApp->triggerUpdate(); wApp->log("notice") << "*** Session added (userId=" << newSession.first.id() << ")"; };
+  auto sessionRemovedCallback = [this](StreamingAppSession sessionRemoved) { d->sessionRemoved.emit(sessionRemoved); wApp->triggerUpdate(); wApp->log("notice") << "*** Session removed (userId=" << sessionRemoved.first.id() << ")"; };
+    streamingAppSessions.registerSession(sessionId(), sessionAddedCallback, sessionRemovedCallback, StreamingAppSession(myUser,this) );
 }
 
 
@@ -232,11 +286,35 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   topMenu->setRenderAsList(true);
   topMenu->setStyleClass("nav");
   
+  activeUsersMenuItem = new WMenuItem("Active Users", 0);
+  
+  auto setLoggedUsersTitle = [this](StreamingAppSession, _n5){
+    activeUsersMenuItem->setText(WString("Active Users ({1})").arg(streamingAppSessions.sessionCount()));
+  };
+  
+  sessionAdded.connect(setLoggedUsersTitle);
+  sessionRemoved.connect(setLoggedUsersTitle);
+  
   if(role == AuthorizedUser::Admin)
     setupAdminMenus();
   else {
-    
+    setupUserMenus();
   }
+  
+  WMenuItem *refresh = topMenu->addItem("Refresh", 0);
+  
+  WMenuItem *logout = topMenu->addItem("Logout", 0);
+  logout->itemWidget()->parent()->addStyleClass("pull-right");
+  
+  topMenu->itemSelected().connect([logout,refresh,this](WMenuItem *selected,_n5){
+    if(selected==logout) {
+      wApp->redirect(wApp->bookmarkUrl("/"));
+      wApp->quit();
+    }
+    if(selected==refresh) {
+      setupTreeMenu();
+    }
+  });
   
   WContainerWidget* navBar = new WContainerWidget();
   WContainerWidget* navbarInner = new WContainerWidget();
@@ -248,10 +326,16 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   q->root()->addWidget(navBar);
 }
 
+void StreamingAppPrivate::setupUserMenus()
+{
+    topMenu->addItem(activeUsersMenuItem);
+}
+
+
 void StreamingAppPrivate::setupAdminMenus()
 {
   WMenuItem *addUserMenu = topMenu->addItem("Add User", 0);
-  WMenuItem *activeUsersItem = topMenu->addItem("Active Users", 0);
+  topMenu->addItem(activeUsersMenuItem);
   WMenuItem *allLog = topMenu->addItem("Users Log", 0);
   const string *addUserParameter = wApp->environment().getParameter("add_user_email");
   
@@ -264,11 +348,11 @@ void StreamingAppPrivate::setupAdminMenus()
   if(addUserParameter)
     WTimer::singleShot(1000, displayAddUserDialog);
   
-    topMenu->itemSelected().connect([addUserMenu,activeUsersItem,allLog,displayAddUserDialog,this](WMenuItem *selected, _n5){
+    topMenu->itemSelected().connect([addUserMenu,allLog,displayAddUserDialog,this](WMenuItem *selected, _n5){
     if(selected == addUserMenu) {
       displayAddUserDialog(WMouseEvent());
     }
-    if(selected == activeUsersItem) {
+    if(selected == activeUsersMenuItem) {
       WDialog *dialog = new LoggedUsersDialog(&session);
       dialog->show();
     }
@@ -277,18 +361,6 @@ void StreamingAppPrivate::setupAdminMenus()
       dialog->show();
     }
   });
-  
-  auto setLoggedUsersTitle = [activeUsersItem,this](WMouseEvent){
-    Dbo::Transaction t(session);
-    Dbo::collection<SessionInfoPtr> sessions = session.find<SessionInfo>().where("session_ended = 0");
-    activeUsersItem->setText(WString("Active Users ({1})").arg(sessions.size()));
-  };
-  
-  WTimer *timer = new WTimer(wApp);
-  timer->setInterval(30000);
-  timer->timeout().connect(setLoggedUsersTitle);
-  setLoggedUsersTitle(WMouseEvent());
-  timer->start();
 }
 
 
@@ -309,26 +381,12 @@ Visit {3} to do it.").arg(identity).arg(email).arg(wApp->makeAbsoluteUrl(wApp->b
 void StreamingApp::setupGui()
 {
   WBoxLayout *layout = new WHBoxLayout();
-  d->menu = new WMenu(Wt::Vertical);
-  d->menu->itemSelected().connect(d, &StreamingAppPrivate::menuItemClicked);
-  WContainerWidget *menuContainer = new WContainerWidget();
-  WImage* reloadImg = new WImage("http://gulinux.net/css/reload.png");
-  reloadImg->resize(24, 24);
-  WAnchor* reloadLink = new WAnchor("javascript:false", reloadImg);
-  reloadLink->setText("Reload");
-  reloadLink->clicked().connect([this](WMouseEvent&){
-    wApp->changeSessionId();
-    wApp->redirect(wApp->bookmarkUrl());
-  });
-  menuContainer->addWidget(reloadLink);
-  menuContainer->setOverflow(WContainerWidget::OverflowAuto);
-  menuContainer->addWidget(d->menu);
-  d->menu->setRenderAsList(true);
-  d->menu->setStyleClass("nav nav-list");
-  
+
+  d->menuContainer = new WContainerWidget();
+  d->menuContainer->setOverflow(WContainerWidget::OverflowAuto);
   
   WVBoxLayout* leftPanel = new WVBoxLayout();
-  leftPanel->addWidget(menuContainer);
+  leftPanel->addWidget(d->menuContainer);
   layout->addLayout(leftPanel);
 //   layout->addWidget(menuContainer);
   leftPanel->setResizable(0, true, 450);
@@ -350,13 +408,24 @@ void StreamingApp::setupGui()
   rootWidget->setLayout(layout);
   root()->addWidget(rootWidget);
 
+  d->setupTreeMenu();
   
-  d->listDirectoryAndRun(fs::path(d->videosDir()), [this](fs::path path) {
-    d->addTo(d->menu, path);
-  });
   d->parseFileParameter();
   
   d->playlist->next().connect(d, &StreamingAppPrivate::play);
+}
+
+void StreamingAppPrivate::setupTreeMenu()
+{
+  delete menu;
+  menu = new WMenu(Wt::Vertical);
+  menu->itemSelected().connect(this, &StreamingAppPrivate::menuItemClicked);
+  menuContainer->addWidget(menu);
+  menu->setRenderAsList(true);
+  menu->setStyleClass("nav nav-list");
+  listDirectoryAndRun(fs::path(videosDir()), [this](fs::path path) {
+    addTo(menu, path);
+  });
 }
 
 
@@ -600,6 +669,7 @@ StreamingApp::~StreamingApp() {
       detail.modify()->ended();
     t.commit();
   }
+    streamingAppSessions.unregisterSession(sessionId());
   delete d;
 }
 
