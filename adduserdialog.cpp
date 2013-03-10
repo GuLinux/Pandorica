@@ -20,7 +20,7 @@ AddUserDialog::AddUserDialog(Session* session, string email): WDialog(), _sessio
 {
   setTitleBarEnabled(true);
   setCaption("Add User");
-  resize(400, 300);
+  resize(550, 480);
   setClosable(true);
   setResizable(true);
   Dbo::QueryModel< AuthorizedUserPtr >* model = new Dbo::QueryModel< AuthorizedUserPtr >();
@@ -33,6 +33,7 @@ AddUserDialog::AddUserDialog(Session* session, string email): WDialog(), _sessio
   table->setColumnWidth(1, 100);
   table->setItemDelegateForColumn(1, new RoleItemDelegate(model));
   table->setModel(model);
+  table->setHeight(470);
   WLineEdit *newUser = new WLineEdit(email);
   newUser->setStyleClass("input-medium");
   
