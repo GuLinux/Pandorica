@@ -34,7 +34,7 @@ SessionDetailsDialog::SessionDetailsDialog(const Dbo::Query< SessionDetailsTuple
   Dbo::QueryModel< SessionDetailsTuple >* model = new Dbo::QueryModel<SessionDetailsTuple>();
   setTitleBarEnabled(true);
   setCaption("Session Details");
-  resize(1010, 480);
+  resize(1020, 480);
   setClosable(true);
   setResizable(true);
   model->setQuery(query);
