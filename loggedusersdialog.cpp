@@ -20,6 +20,9 @@
 
 #include "loggedusersdialog.h"
 #include "session.h"
+#include "sessioninfo.h"
+#include "comment.h"
+#include "sessiondetails.h"
 #include "customitemdelegates.h"
 #include "sessiondetailsdialog.h"
 #include <Wt/Dbo/QueryModel>
@@ -33,38 +36,40 @@
 #include <Wt/WTimer>
 #include <Wt/WItemDelegate>
 #include <Wt/WAnchor>
+#include <Wt/Auth/Dbo/AuthInfo>
 
 using namespace Wt;
 using namespace std;
 using namespace boost;
 
-
+template<class IdType,class ColumnType>
 class DetailsButtonDelegate : public WItemDelegate {
+  typedef std::function<string(ColumnType)> ColumnValue;
+  typedef std::function<IdType(WAbstractItemModel *model, const WModelIndex& index)> GetId;
 public:
-    DetailsButtonDelegate(WAbstractItemModel *model, Session *session, WObject* parent = 0)
-      : WItemDelegate(parent), model(model), session(session) {}
-    virtual WWidget* update(WWidget* widget, const WModelIndex& index, WFlags< ViewItemRenderFlag > flags);
+    DetailsButtonDelegate(WAbstractItemModel *model, Session *session, GetId idColumn, ColumnValue columnValue, WObject* parent = 0)
+      : WItemDelegate(parent), model(model), session(session), idColumn(idColumn), columnValue(columnValue) {}
+    virtual WWidget* update(WWidget* widget, const WModelIndex& index, WFlags< ViewItemRenderFlag > flags) {
+      if(!widget) {
+	WPushButton* button = new WPushButton(columnValue(any_cast<ColumnType>(model->data(index))));
+	IdType id = idColumn(model,index);
+	button->setStyleClass("btn btn-link");
+	button->clicked().connect([id,this](WMouseEvent){
+	  WDialog *dialog = new SessionDetailsDialog(id, session);
+	  dialog->show();
+	});
+	return button;
+      }
+      return widget;
+    }
 private:
   WAbstractItemModel *model;
   Session *session;
+  GetId idColumn;
+  ColumnValue columnValue;
 };
 
-WWidget* DetailsButtonDelegate::update(WWidget* widget, const WModelIndex& index, WFlags< ViewItemRenderFlag > flags)
-{
-  if(!widget) {
-    WPushButton* button = new WPushButton("Details");
-    string id = any_cast<string>(model->data(index.row(), 0));
-    button->setStyleClass("btn btn-link");
-    button->clicked().connect([id,this](WMouseEvent){
-      WDialog *dialog = new SessionDetailsDialog(id, session);
-      dialog->show();
-    });
-    return button;
-  }
-  return widget;
-}
-
-typedef boost::tuple<string,string,long,long,string,string,string,int> LoggedUserEntry;
+typedef boost::tuple<string,string,long,long,string,string,string,int,long> LoggedUserEntry;
 LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   : WDialog(), session(session)
 {
@@ -78,7 +83,8 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
     (select filename from session_details WHERE session_info.session_id = session_details.session_info_session_id ORDER BY play_started DESC LIMIT 1) as filewatching,\
     auth_info.email as email,\
     auth_identity.identity as identity,\
-    authorized_users.role as role\
+    authorized_users.role as role,\
+    session_info.user_id as user_id\
     from session_info\
     inner join auth_info on session_info.user_id = auth_info.user_id\
     inner join auth_identity on auth_info.id = auth_identity.auth_info_id\
@@ -96,7 +102,17 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   model->addColumn("filewatching", "Last File Played");
   model->addColumn("session_started", "Started");
   WTableView *table = new WTableView();
-  table->setItemDelegateForColumn(0, new DetailsButtonDelegate(model, session));
+  table->setItemDelegateForColumn(0, new DetailsButtonDelegate<string, string>(model, session,
+    [](WAbstractItemModel *model, const WModelIndex &index) { return any_cast<string>(model->data(index.row(), 0)); },
+    [](string) { return "Details"; }));
+  table->setItemDelegateForColumn(1, new DetailsButtonDelegate<long, string>(model, session,
+    [session](WAbstractItemModel *model, const WModelIndex &index) {
+      Dbo::Transaction t(*session);
+      string email = any_cast<string>(model->data(index.row(), 3));
+      auto authInfo = session->find<Auth::Dbo::AuthInfo<User>>().where("email = ?").bind(email).resultValue();
+      return authInfo->user().id();
+    },
+    [](string s) { return s; }));
   table->setItemDelegateForColumn(4, new RoleItemDelegate(model));
   table->setColumn1Fixed(false);
   table->setColumnWidth(0, 50);

@@ -6,6 +6,7 @@
 #include "customitemdelegates.h"
 #include <Wt/Dbo/QueryModel>
 #include <Wt/WTableView>
+#include <Wt/WApplication>
 #include <Wt/WTimer>
 
 using namespace std;
@@ -13,14 +14,29 @@ using namespace Wt;
 using namespace boost;
 
 SessionDetailsDialog::SessionDetailsDialog(string id, Session* session)
+  : SessionDetailsDialog(session->query<SessionDetailsTuple>("select * from session_details").where("session_info_session_id = ?").bind(id).orderBy("play_started desc"))
 {
+}
+
+SessionDetailsDialog::SessionDetailsDialog(long userId, Session* session)
+  : SessionDetailsDialog(session->query<SessionDetailsTuple>("select session_details.filename as filename,\
+							      session_details.play_started as play_started,\
+							      session_details.play_ended as play_ended,\
+							      session_details.filepath as filepath \
+	from session_details\
+	inner join session_info on session_id = session_info_session_id").where("user_id = ?").bind(userId).orderBy("play_started desc"))
+{
+  wApp->log("notice") << "finding by user_id = " << userId;
+}
+
+SessionDetailsDialog::SessionDetailsDialog(const Dbo::Query< SessionDetailsTuple>& query): WDialog()
+{
+  Dbo::QueryModel< SessionDetailsTuple >* model = new Dbo::QueryModel<SessionDetailsTuple>();
   setTitleBarEnabled(true);
   setCaption("Session Details");
   resize(1000, 480);
   setClosable(true);
   setResizable(true);
-  Dbo::QueryModel< SessionDetailsPtr >* model = new Dbo::QueryModel<SessionDetailsPtr>();
-  auto query = session->find<SessionDetails>().where("session_info_session_id = ?").bind(id).orderBy("play_started desc");
   model->setQuery(query);
   model->addColumn("filename", "File");
   model->addColumn("play_started", "Started");
@@ -44,4 +60,3 @@ SessionDetailsDialog::SessionDetailsDialog(string id, Session* session)
   });
   timer->start();
 }
-
