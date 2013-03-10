@@ -20,7 +20,7 @@ AddUserDialog::AddUserDialog(Session* session, string email): WDialog(), _sessio
 {
   setTitleBarEnabled(true);
   setCaption("Add User");
-  resize(550, 480);
+  resize(410, 480);
   setClosable(true);
   setResizable(true);
   Dbo::QueryModel< AuthorizedUserPtr >* model = new Dbo::QueryModel< AuthorizedUserPtr >();
