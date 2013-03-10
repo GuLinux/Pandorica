@@ -345,7 +345,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   WContainerWidget* navbarInner = new WContainerWidget();
 
   navBar->addWidget(navbarInner);
-  navbarInner->addWidget(WW(WText,"GuLinux's Videostreaming").css("brand"));
+  navbarInner->addWidget(WW(WText,"GuLinux Videostreaming").css("brand"));
   navbarInner->addWidget(topMenu);
   
   navBar->setStyleClass("navbar navbar-static-top navbar-inverse");
