@@ -107,13 +107,15 @@ public:
     void setupTreeMenu();
   Session session;
   SessionInfoPtr sessionInfo;
-  Auth::AuthWidget* authWidget = 0;
   bool mailSent;
   StreamingApp *q;
   WContainerWidget* menuContainer;
   Signal<StreamingAppSession> sessionAdded;
   Signal<StreamingAppSession> sessionRemoved;
-  void showAuthWindow();
+  void clearContent();
+  WContainerWidget *mainWidget = 0;
+  WContainerWidget *authContainer;
+  WContainerWidget *messagesContainer;
   WMenu* topMenu;
 private:
   void queue(filesystem::path path);
@@ -219,17 +221,23 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   enableUpdates(true);
   d->session.login().changed().connect(this, &StreamingApp::authEvent);
   messageResourceBundle().use("templates");
-  d->showAuthWindow();
-}
-
-void StreamingAppPrivate::showAuthWindow()
-{
-  authWidget = new AuthWidgetCustom(Session::auth(), session.users(), session.login());
+  d->authContainer = new WContainerWidget();
+  root()->addWidget(d->authContainer);
+  AuthWidgetCustom* authWidget = new AuthWidgetCustom(Session::auth(), d->session.users(), d->session.login());
   authWidget->model()->addPasswordAuth(&Session::passwordAuth());
   authWidget->model()->addOAuth(Session::oAuth());
   authWidget->setRegistrationEnabled(true);
   authWidget->processEnvironment();
-  q->root()->addWidget(authWidget);
+  d->authContainer->addWidget(authWidget);
+  d->authContainer->addWidget(d->messagesContainer = new WContainerWidget());
+}
+
+
+void StreamingAppPrivate::clearContent()
+{
+  delete mainWidget;
+  mainWidget = 0;
+  messagesContainer->clear();
 }
 
 
@@ -237,9 +245,8 @@ void StreamingApp::authEvent()
 {
   if(!d->session.login().loggedIn()) {
     streamingAppSessions.unregisterSession(wApp->sessionId());
-    root()->clear();
-    wApp->changeSessionId();
-    root()->addWidget(d->authWidget);
+    d->clearContent();
+    d->authContainer->show();
     return;
   }
   log("notice") << "User logged in";
@@ -253,7 +260,7 @@ void StreamingApp::authEvent()
     Message *message = WW(Message, "You need to verify your email address before logging in.<br />\
     Please check your inbox.<br />${refresh}").addCss("alert-block");
     message->bindWidget("refresh", refreshButton);
-    root()->addWidget(message);
+    d->messagesContainer->addWidget(message);
     return;
   }
   log("notice") << "User email confirmed";
@@ -266,14 +273,13 @@ void StreamingApp::authEvent()
       d->mailForUnauthorizedUser(user.email(), user.identity(Auth::Identity::LoginName));
       d->mailSent = true;
     }
-    root()->addWidget(message);
+    d->messagesContainer->addWidget(message);
     message->bindWidget("refresh", refreshButton);
     return;
   }
   log("notice") << "Clearing root and creating widgets";
-  
-  root()->removeWidget(d->authWidget);
-  root()->clear();
+  d->authContainer->hide();
+  root()->addWidget(d->mainWidget = new WContainerWidget() );
   Dbo::ptr< User > myUser = d->session.user();
   SessionInfo* sessionInfo = new SessionInfo(myUser, sessionId(), wApp->environment().clientAddress());
   Dbo::collection< SessionInfoPtr > oldSessions = d->session.find<SessionInfo>().where("user_id = ? and session_ended = 0").bind(myUser.id());
@@ -337,12 +343,14 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   
   WContainerWidget* navBar = new WContainerWidget();
   WContainerWidget* navbarInner = new WContainerWidget();
+
   navBar->addWidget(navbarInner);
+  navbarInner->addWidget(WW(WText,"GuLinux's Videostreaming").css("brand"));
   navbarInner->addWidget(topMenu);
   
   navBar->setStyleClass("navbar navbar-static-top navbar-inverse");
   navbarInner->setStyleClass("navbar-inner");
-  q->root()->addWidget(navBar);
+  mainWidget->addWidget(navBar);
 }
 
 void StreamingAppPrivate::setupUserMenus()
@@ -423,9 +431,9 @@ void StreamingApp::setupGui()
   layout->addWidget(playerContainer);
   layout->setResizable(0, true, 400);
   
-  WContainerWidget* rootWidget = new WContainerWidget();
-  rootWidget->setLayout(layout);
-  root()->addWidget(rootWidget);
+  WContainerWidget* contentWidget = new WContainerWidget();
+  contentWidget->setLayout(layout);
+  d->mainWidget->addWidget(contentWidget);
 
   d->setupTreeMenu();
   
