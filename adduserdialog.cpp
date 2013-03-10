@@ -33,7 +33,7 @@ AddUserDialog::AddUserDialog(Session* session, string email): WDialog(), _sessio
   table->setColumnWidth(1, 100);
   table->setItemDelegateForColumn(1, new RoleItemDelegate(model));
   table->setModel(model);
-  table->setHeight(470);
+  table->setHeight(440);
   WLineEdit *newUser = new WLineEdit(email);
   newUser->setStyleClass("input-medium");
   
