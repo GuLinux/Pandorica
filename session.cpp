@@ -70,7 +70,6 @@ Session::Session()
 {
   createConnection();
   connection_->setProperty("show-queries", "false");
-
   setConnection(*connection_);
 
   mapClass<User>("user");
