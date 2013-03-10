@@ -51,6 +51,7 @@ SessionDetailsDialog::SessionDetailsDialog(const Dbo::Query< SessionDetailsTuple
   table->setColumnWidth(2, 110);
   table->setColumnWidth(3, 440);
   table->setModel(model);
+  table->setHeight(470);
   contents()->addWidget(table);
   
   WTimer *timer = new WTimer(this);
