@@ -20,6 +20,7 @@
 
 #include "wmediaplayerwrapper.h"
 #include <Wt/WMediaPlayer>
+#include <Wt/WTimer>
 
 using namespace Wt;
 using namespace boost;
@@ -40,9 +41,13 @@ JSignal< NoClass >& WMediaPlayerWrapper::ended()
   return player->ended();
 }
 
-void WMediaPlayerWrapper::addSource(WMediaPlayer::Encoding encoding, const WLink& path)
+void WMediaPlayerWrapper::setSource(WMediaPlayer::Encoding encoding, const WLink& path, bool autoPlay)
 {
   player->addSource(encoding, path);
+  if(autoPlay)
+    WTimer::singleShot(1000, [this](WMouseEvent){
+      player->play();
+    });
 }
 
 bool WMediaPlayerWrapper::playing()

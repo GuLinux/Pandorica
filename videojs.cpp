@@ -53,10 +53,10 @@ VideoJS::~VideoJS()
   delete m_widget;
 }
 
-void VideoJS::addSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink& path)
+void VideoJS::setSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink& path, bool autoPlay)
 {
-  m_text = WString("<video id=\"gum_video_{1}\" class=\"video-js vjs-default-skin\" controls width=\"640\" height=\"264\" poster=\"http://video-js.zencoder.com/oceans-clip.jpg\" preload=\"auto\">\
-  <source type=\"video/{2}\" src=\"{3}\">{4}\
+  m_text = WString("<video id=\"gum_video_{1}\" class=\"video-js vjs-default-skin\" controls {2} width=\"640\" height=\"264\" poster=\"http://video-js.zencoder.com/oceans-clip.jpg\" preload=\"auto\" data-setup=\"{}\">\
+  <source type=\"video/{3}\" src=\"{4}\">{5}\
   </video>\
   <a onclick=\"_V_('gum_video_{1}').size(640,360);\" style=\"cursor: hand; cursor: pointer;\">Small</a>\
   <a onclick=\"_V_('gum_video_{1}').size(800,450);\" style=\"cursor: hand; cursor: pointer;\">Medium</a>\
@@ -69,9 +69,11 @@ void VideoJS::addSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink& pa
     type = "ogg";
   if(encoding == WMediaPlayer::M4V)
     type = "mp4";
-  m_text.arg(m_widget->id()).arg(type).arg(path.url());
-  wApp->log("debug") << "text: " << m_text;
-  wApp->log("debug") << "textformat: " << m_widget->textFormat();
+  m_text.arg(m_widget->id()).arg(autoPlay ? "autoplay" : "").arg(type).arg(path.url());
+  wApp->log("notice") << "text: " << m_text;
+  wApp->log("notice") << "textformat: " << m_widget->textFormat();
+  if(autoPlay)
+    this->m_playing = true;
 }
 
 void VideoJS::addSubtitles(const WLink& path, string name, string lang)
@@ -93,11 +95,6 @@ void VideoJS::play()
 {
   m_widget->setText(m_text.arg(""));
   WString js = "var myPlayer = _V_(\"gum_video_{1}\");\
-  var playerEnded = function() { \
-    console.log(\"player ended\");\
-    {2};\
-  };\
-  myPlayer.addEvent(\"ended\", playerEnded);\
   myPlayer.play();";
   wApp->doJavaScript(js.arg(m_widget->id()).arg(m_ended.createCall()).toUTF8());
   m_playing = true;
@@ -121,5 +118,13 @@ void VideoJS::stop()
 
 Wt::WWidget* VideoJS::widget()
 {
+  m_widget->setText(m_text.arg(""));
+  WString js = "var myPlayer = _V_(\"gum_video_{1}\");\
+  var playerEnded = function() { \
+    console.log(\"player ended\");\
+    {2};\
+  };\
+  myPlayer.addEvent(\"ended\", playerEnded);";
+//   m_widget->doJavaScript(js.toUTF8());
   return m_widget;
 }

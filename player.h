@@ -31,9 +31,9 @@ class Player
 {
 
 public:
-    Player() {}
+    Player()=default;
     virtual ~Player() {};
-    virtual void addSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink &path) = 0;
+    virtual void setSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink &path, bool autoPlay = true) = 0;
     virtual void addSubtitles(const Wt::WLink &path, std::string name, std::string lang) = 0;
     virtual bool playing() = 0;
     virtual Wt::WWidget *widget() = 0;

@@ -32,7 +32,7 @@ class WMediaPlayerWrapper : public Player
 public:
   WMediaPlayerWrapper();
   virtual ~WMediaPlayerWrapper();
-  virtual void addSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink &path);
+  virtual void setSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink &path, bool autoPlay = true);
   virtual bool playing();
   virtual Wt::WWidget *widget();
   virtual Wt::JSignal <Wt::NoClass >& ended();
