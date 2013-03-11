@@ -87,7 +87,7 @@ public:
   WLink linkFor(filesystem::path p);
   bool isAllowed(filesystem::path p);
   WMenu *menu = 0;
-  string videosDir();
+  string videosDir() const;
   Player *player = 0;
   string extensionFor(filesystem::path p);
   map<string, WMediaPlayer::Encoding> types;
@@ -121,6 +121,8 @@ private:
   void queue(filesystem::path path);
   void addSubtitlesFor(filesystem::path path);
   void setupUserMenus();
+  WLink lightySecDownloadLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p) const;
+  WLink nginxSecLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p) const;
   WMenuItem* activeUsersMenuItem;
 };
 
@@ -493,32 +495,16 @@ WMediaPlayer::Encoding StreamingAppPrivate::encodingFor ( filesystem::path p ) {
 
 WLink StreamingAppPrivate::linkFor ( filesystem::path p ) {
   string videosDeployDir;
-  string secDownloadPrefix = "http://gulinux.net:81/Videos";
-  string secDownloadSecret = "secret";
+  string secDownloadPrefix;
+  string secDownloadSecret;
   
-  if(wApp->readConfigurationProperty("secdownload-prefix", secDownloadPrefix) && wApp->readConfigurationProperty("secdownload-secret", secDownloadSecret)) {
-    string filePath = p.string();
-    boost::replace_all(filePath, videosDir(), "");
-    string hexTime = (boost::format("%1$x") %WDateTime::currentDateTime().toTime_t()) .str();
-    string token = Utils::hexEncode(Utils::md5(secDownloadSecret + filePath + hexTime));
-    string secDownloadUrl = secDownloadPrefix + token + "/" + hexTime + filePath;
-    wApp->log("notice") << "****** secDownload: filename= " << filePath;
-    wApp->log("notice") << "****** secDownload: url= " << secDownloadUrl;
-    return WLink(secDownloadUrl);
+  if(wApp->readConfigurationProperty("secdownload-prefix", secDownloadPrefix) &&
+    wApp->readConfigurationProperty("secdownload-secret", secDownloadSecret)) {
+    return lightySecDownloadLinkFor(secDownloadPrefix, secDownloadSecret, p);
   }
   
   if(wApp->readConfigurationProperty("seclink-prefix", secDownloadPrefix) && wApp->readConfigurationProperty("seclink-secret", secDownloadSecret)) {
-    string filePath = p.string();
-    boost::replace_all(filePath, videosDir(), "");
-    long expireTime = WDateTime::currentDateTime().addSecs(20000).toTime_t();
-    string token = Utils::base64Encode(Utils::md5( (boost::format("%s%s%d") % secDownloadSecret % filePath % expireTime).str() ), false);
-    token = boost::replace_all_copy(token, "=", "");
-    token = boost::replace_all_copy(token, "+", "-");
-    token = boost::replace_all_copy(token, "/", "_");
-    string secDownloadUrl = (boost::format("%s%s?st=%s&e=%d") % secDownloadPrefix % filePath % token % expireTime).str();
-    wApp->log("notice") << "****** secDownload: filename= " << filePath;
-    wApp->log("notice") << "****** secDownload: url= " << secDownloadUrl;
-    return WLink(secDownloadUrl);
+    return nginxSecLinkFor(secDownloadPrefix, secDownloadSecret, p);
   }
   
   if(wApp->readConfigurationProperty("videos-deploy-dir", videosDeployDir )) {
@@ -531,6 +517,35 @@ WLink StreamingAppPrivate::linkFor ( filesystem::path p ) {
    wApp->log("notice") << "Generated url: " << link.url();
    return link;
 }
+
+WLink StreamingAppPrivate::lightySecDownloadLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p) const
+{
+    string filePath = p.string();
+    boost::replace_all(filePath, videosDir(), "");
+    string hexTime = (boost::format("%1$x") %WDateTime::currentDateTime().toTime_t()) .str();
+    string token = Utils::hexEncode(Utils::md5(secDownloadSecret + filePath + hexTime));
+    string secDownloadUrl = secDownloadPrefix + token + "/" + hexTime + filePath;
+    wApp->log("notice") << "****** secDownload: filename= " << filePath;
+    wApp->log("notice") << "****** secDownload: url= " << secDownloadUrl;
+    return WLink(secDownloadUrl);
+}
+
+WLink StreamingAppPrivate::nginxSecLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p) const
+{
+    string filePath = p.string();
+    boost::replace_all(filePath, videosDir(), "");
+    long expireTime = WDateTime::currentDateTime().addSecs(20000).toTime_t();
+    string token = Utils::base64Encode(Utils::md5( (boost::format("%s%s%d") % secDownloadSecret % filePath % expireTime).str() ), false);
+    token = boost::replace_all_copy(token, "=", "");
+    token = boost::replace_all_copy(token, "+", "-");
+    token = boost::replace_all_copy(token, "/", "_");
+    string secDownloadUrl = (boost::format("%s%s?st=%s&e=%d") % secDownloadPrefix % filePath % token % expireTime).str();
+    wApp->log("notice") << "****** secDownload: filename= " << filePath;
+    wApp->log("notice") << "****** secDownload: url= " << secDownloadUrl;
+    return WLink(secDownloadUrl);
+}
+
+
 
 string StreamingAppPrivate::extensionFor ( filesystem::path p ) {
   string extension = p.extension().string();
@@ -545,7 +560,7 @@ bool StreamingAppPrivate::isAllowed ( filesystem::path p ) {
 }
 
 
-string StreamingAppPrivate::videosDir() {
+string StreamingAppPrivate::videosDir() const {
   string videosDir = string(getenv("HOME")) + "/Videos";
   wApp->readConfigurationProperty("videos-dir", videosDir);
   return videosDir;
