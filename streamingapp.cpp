@@ -515,7 +515,7 @@ WLink StreamingAppPrivate::linkFor ( filesystem::path p ) {
     token = boost::replace_all_copy(token, "=", "");
     token = boost::replace_all_copy(token, "+", "-");
     token = boost::replace_all_copy(token, "/", "_");
-    string secDownloadUrl = secDownloadPrefix + filePath + "?st=" + token;
+    string secDownloadUrl = (boost::format("%s%s?st=%s&e=%d") % secDownloadPrefix % filePath % token % expireTime).str();
     wApp->log("notice") << "****** secDownload: filename= " << filePath;
     wApp->log("notice") << "****** secDownload: url= " << secDownloadUrl;
     return WLink(secDownloadUrl);
