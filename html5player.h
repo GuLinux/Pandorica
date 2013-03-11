@@ -1,0 +1,42 @@
+/*
+    <one line to give the library's name and an idea of what it does.>
+    Copyright (C) 2013  Marco Gulino <email>
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+
+#ifndef HTML5PLAYER_H
+#define HTML5PLAYER_H
+
+#include <../../home/hdd/marco/Sviluppo/Witty/VideoStreaming/player.h>
+#include <Wt/WTemplate>
+
+
+class HTML5Player : public Player, public Wt::WTemplate
+{
+
+public:
+    virtual void play();
+    virtual void stop();
+    virtual Wt::JSignal< Wt::NoClass, Wt::NoClass, Wt::NoClass, Wt::NoClass, Wt::NoClass, Wt::NoClass >& ended();
+    virtual Wt::WWidget* widget();
+    virtual bool playing();
+    virtual void addSubtitles(const Wt::WLink& path, std::string name, std::string lang);
+    virtual void setSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink& path, bool autoPlay = true);
+    HTML5Player(Wt::WContainerWidget* parent = 0);
+};
+
+#endif // HTML5PLAYER_H
