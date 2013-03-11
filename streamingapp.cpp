@@ -633,7 +633,7 @@ void StreamingAppPrivate::play ( filesystem::path path ) {
     t.commit();
     playlist->nextItem();                                                                                                                                                                                                                                                   
   });
-  player->addSource(encoding, linkFor( path ));
+  player->setSource(encoding, linkFor( path ), true);
   addSubtitlesFor(path);
   playerContainerWidget->clear();
   playerContainerWidget->addWidget(player->widget());
@@ -647,9 +647,6 @@ void StreamingAppPrivate::play ( filesystem::path path ) {
   infoBox->addWidget(new WAnchor(shareLink, "Link per la condivisione"));
   wApp->setTitle( path.filename().string());
   log("notice") << "using url " << linkFor( path ).url();
-  WTimer::singleShot(1000, [this](WMouseEvent){
-    player->play();
-  });
   Dbo::Transaction t(session);
   for(auto detail : sessionInfo.modify()->sessionDetails())
     detail.modify()->ended();

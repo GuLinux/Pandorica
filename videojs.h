@@ -31,7 +31,7 @@ class VideoJS : public Player
 public:
   VideoJS();
   virtual ~VideoJS();
-  virtual void addSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink& path);
+  virtual void setSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink& path, bool autoPlay = true);
   virtual void addSubtitles(const Wt::WLink &path, std::string name, std::string lang);
   virtual Wt::JSignal< Wt::NoClass >& ended();
   virtual void play();
