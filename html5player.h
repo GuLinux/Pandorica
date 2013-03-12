@@ -51,6 +51,7 @@ protected:
   virtual void setPlayerSize(int width, int height = -1);
 private:
     Wt::JSignal<> s_ended;
+    Wt::JSignal<> s_playing;
     std::map<std::string, std::vector<Track>> tracks;
     bool isPlaying = false;
 };

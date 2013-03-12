@@ -73,7 +73,9 @@ void HTML5Player::setSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink
   setCondition("autoplay", autoPlay);
 }
 
-HTML5Player::HTML5Player(Wt::WContainerWidget* parent): WTemplate(parent), s_ended(this, "playbackEnded")
+HTML5Player::HTML5Player(Wt::WContainerWidget* parent): WTemplate(parent),
+  s_ended(this, "playbackEnded"),
+  s_playing(this, "playbackStarted")
 {
   setTemplateText(HTML(<video id="${player.id}" preload="auto" controls style="background-color: black;"
       ${<if-player_size>}${player_size}${</if-player_size>}
@@ -96,21 +98,30 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent): WTemplate(parent), s_end
     return true;
   });
   bindString("player.id",  playerId());
+  s_playing.connect([this](_n6){
+    isPlaying = true;
+    wApp->log("notice") << "*********** isPlaying: " << isPlaying;
+  });
+  s_ended.connect([this](_n6) {
+    isPlaying = false;
+    wApp->log("notice") << "*********** isPlaying: " << isPlaying;
+  });
+  addListener("play", s_playing.createCall());
 }
 
 void HTML5Player::runJavascript(string js)
 {
   string runJS = WString(JS(
-    var videoPlayer = document.getElementById("video1");
-    {1}
-  )).arg(js).toUTF8();
+    var videoPlayer = document.getElementById('{1}');
+    {2}
+  )).arg(playerId()).arg(js).toUTF8();
   doJavaScript(runJS);
 }
 
 void HTML5Player::addListener(string eventName, string function)
 {
   string js = WString(JS(
-    videoPlayer.addEventListener({1}, {2});
+    videoPlayer.addEventListener('{1}', function() { {2} });
   )).arg(eventName).arg(function).toUTF8();
   runJavascript(js);
 }
