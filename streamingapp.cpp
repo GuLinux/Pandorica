@@ -219,8 +219,10 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   useStyleSheet("http://gulinux.net/css/bootstrap/css/bootstrap.css");
   useStyleSheet("http://gulinux.net/css/bootstrap/css/bootstrap-responsive.css");
   require("http://gulinux.net/css/bootstrap/js/bootstrap.js");
-  useStyleSheet("http://vjs.zencdn.net/c/video-js.css");
-  require("http://vjs.zencdn.net/c/video.js");
+//   useStyleSheet("http://vjs.zencdn.net/c/video-js.css");
+//   require("http://vjs.zencdn.net/c/video.js");
+  require("//cdn.jsdelivr.net/mediaelement/2.10.1/mediaelement-and-player.js");
+  useStyleSheet("//cdn.jsdelivr.net/mediaelement/2.10.1/mediaelementplayer.css");
   enableUpdates(true);
   d->session.login().changed().connect(this, &StreamingApp::authEvent);
   messageResourceBundle().use("templates");
@@ -664,7 +666,6 @@ void StreamingAppPrivate::play ( filesystem::path path ) {
     playlist->nextItem();                                                                                                                                                                                                                                                   
   });
   player->setSource(encoding, linkFor( path ), true);
-  player->addSubtitles("/foo", "Italiano", "it");
   addSubtitlesFor(path);
   playerContainerWidget->clear();
   playerContainerWidget->addWidget(player->widget());

@@ -30,6 +30,9 @@ struct Track {
   std::string label;
   Track(std::string src, std::string lang, std::string label)
     : src(src), lang(lang), label(label) {}
+  Track() : Track(std::string(),std::string(),std::string() ) {}
+  bool isValid() { !src.empty() && !lang.empty() && !label.empty(); }
+  bool operator == (Track &other) { return other.src == src && other.label == label && other.lang == lang; }
 };
 
 class HTML5Player : public Player, public Wt::WTemplate
@@ -44,16 +47,20 @@ public:
     virtual void addSubtitles(const Wt::WLink& path, std::string name, std::string lang);
     virtual void setSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink& path, bool autoPlay = true);
     HTML5Player(Wt::WContainerWidget* parent = 0);
+    virtual ~HTML5Player();
 protected:
   std::string playerId();
   virtual void runJavascript(std::string js);
   virtual void addListener(std::string eventName, std::string function);
   virtual void setPlayerSize(int width, int height = -1);
+  virtual void playerReady();
 private:
     Wt::JSignal<> s_ended;
     Wt::JSignal<> s_playing;
+    Wt::JSignal<> s_playerReady;
     std::map<std::string, std::vector<Track>> tracks;
     bool isPlaying = false;
+    std::map<std::string,Track> defaultTracks;
 };
 
 #endif // HTML5PLAYER_H

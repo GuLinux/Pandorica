@@ -30,7 +30,6 @@ using namespace boost;
 void HTML5Player::play()
 {
   runJavascript("videoPlayer.play();");
-  addListener("ended", s_ended.createCall());
 }
 
 void HTML5Player::stop()
@@ -55,7 +54,10 @@ bool HTML5Player::playing()
 
 void HTML5Player::addSubtitles(const Wt::WLink& path, std::string name, std::string lang)
 {
-  tracks["subtitles"].push_back(Track(path.url(), lang, name));
+  Track track = Track(path.url(), lang, name);
+  tracks["subtitles"].push_back(track);
+  if(!defaultTracks["subtitles"].isValid())
+    defaultTracks["subtitles"] = track;
 }
 
 void HTML5Player::setSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink& path, bool autoPlay)
@@ -75,7 +77,8 @@ void HTML5Player::setSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink
 
 HTML5Player::HTML5Player(Wt::WContainerWidget* parent): WTemplate(parent),
   s_ended(this, "playbackEnded"),
-  s_playing(this, "playbackStarted")
+  s_playing(this, "playbackStarted"),
+  s_playerReady(this, "playbackReady")
 {
   setTemplateText(HTML(<video id="${player.id}" preload="auto" controls style="background-color: black;"
       ${<if-player_size>}${player_size}${</if-player_size>}
@@ -92,9 +95,10 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent): WTemplate(parent),
     wApp->log("notice") << "template function track() :" << argsJoined;
     WString trackType = args[0];
     vector<Track> tracksForType = tracks[trackType.toUTF8()];
-    for(Track track: tracksForType)
-      output << WString(HTML(<track kind="{4}" src="{1}" srclang="{2}" label="{3}" />\n))
-      .arg(track.src).arg(track.lang).arg(track.label).arg(trackType);
+    for(Track track: tracksForType) {
+      output << WString(HTML(<track kind="{4}" src="{1}" srclang="{2}" label="{3}" {5} />\n))
+      .arg(track.src).arg(track.lang).arg(track.label).arg(trackType).arg("");
+    }
     return true;
   });
   bindString("player.id",  playerId());
@@ -107,7 +111,23 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent): WTemplate(parent),
     wApp->log("notice") << "*********** isPlaying: " << isPlaying;
   });
   addListener("play", s_playing.createCall());
+  addListener("ended", s_ended.createCall());
+  s_playerReady.connect(this, &HTML5Player::playerReady);
+  runJavascript(s_playerReady.createCall());
 }
+
+void HTML5Player::playerReady()
+{
+  
+  string mediaelementOptions;
+  /* works in theory, but it goes with double subs on chrome
+   */
+  if(defaultTracks["subtitles"].isValid()) {
+    mediaelementOptions += mediaelementOptions.empty() ? "" : ", " + string("startLanguage: '") + defaultTracks["subtitles"].lang + "'";
+  }
+  runJavascript(string("$('video,audio').mediaelementplayer({ ") + mediaelementOptions + " });");
+}
+
 
 void HTML5Player::runJavascript(string js)
 {
@@ -139,4 +159,10 @@ void HTML5Player::setPlayerSize(int width, int height)
 string HTML5Player::playerId()
 {
   return string("player_id") + id();
+}
+
+
+HTML5Player::~HTML5Player()
+{
+  runJavascript("videoPlayer.src(""); videoPlayer.erase();");
 }
