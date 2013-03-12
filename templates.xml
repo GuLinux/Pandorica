@@ -2,20 +2,6 @@
   <message id="auth-mail-sender-name">Gulinux's Videostreaming</message>
   <message id="auth-mail-sender-address">marco@gulinux.net</message>
   <message id="html5_player_template">
-    <video id="${player.id}"
-	class="video-js vjs-default-skin"
-	controls
-	${<if:autoplay_option>}${autoplay_option}$</if:autoplay_option>}
-	width="640"
-	height="264"
-	poster="http://video-js.zencoder.com/oceans-clip.jpg"
-	preload="auto" data-setup="{}"
-	> 
-      <source type="${video.mimetype}" src="${video.src}">
-      ${<if:video_subs_tracks>}
-	<track kind="subtitles" src="/?wtd=bZFgETqWtJv2cGVE&amp;request=resource&amp;resource=owebd2&amp;rand=9" srclang="en" label="English"></track>
-      ${</if:video_subs_tracks>}
-    </video>
   </message>
 <message id="Wt.Auth.template.login">
     <div class="Wt-form Wt-auth-login">
