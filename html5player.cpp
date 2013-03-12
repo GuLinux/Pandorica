@@ -119,7 +119,11 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent): WTemplate(parent),
 void HTML5Player::playerReady()
 {
   
-  string mediaelementOptions;
+  string mediaelementOptions = HTML(
+    iPadUseNativeControls: true,
+    iPhoneUseNativeControls: true, 
+    AndroidUseNativeControls: true,
+  );
   /* works in theory, but it goes with double subs on chrome
    */
   if(defaultTracks["subtitles"].isValid()) {
