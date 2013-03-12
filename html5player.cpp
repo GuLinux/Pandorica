@@ -30,7 +30,7 @@ void HTML5Player::stop()
 
 }
 
-Wt::JSignal< Wt::NoClass, Wt::NoClass, Wt::NoClass, Wt::NoClass, Wt::NoClass, Wt::NoClass >& HTML5Player::ended()
+Wt::JSignal<>& HTML5Player::ended()
 {
 
 }

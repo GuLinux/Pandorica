@@ -31,7 +31,7 @@ class HTML5Player : public Player, public Wt::WTemplate
 public:
     virtual void play();
     virtual void stop();
-    virtual Wt::JSignal< Wt::NoClass, Wt::NoClass, Wt::NoClass, Wt::NoClass, Wt::NoClass, Wt::NoClass >& ended();
+    virtual Wt::JSignal<>& ended();
     virtual Wt::WWidget* widget();
     virtual bool playing();
     virtual void addSubtitles(const Wt::WLink& path, std::string name, std::string lang);
