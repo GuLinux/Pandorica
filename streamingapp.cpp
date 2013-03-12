@@ -63,6 +63,7 @@
 #include "sessiondetails.h"
 #include "commentscontainerwidget.h"
 #include "readbwstats.h"
+#include "html5player.h"
 
 #include <Wt/WStringListModel>
 #include <Wt/WViewWidget>
@@ -550,7 +551,6 @@ WLink StreamingAppPrivate::nginxSecLinkFor(string secDownloadPrefix, string secD
 string StreamingAppPrivate::extensionFor ( filesystem::path p ) {
   string extension = p.extension().string();
   boost::algorithm::to_lower(extension);
-  wApp->log("notice") << "extension for " << p << ": " << extension;
   return extension;
 }
 
@@ -650,7 +650,8 @@ void StreamingAppPrivate::play ( filesystem::path path ) {
   }
   WMediaPlayer::Encoding encoding = encodingFor( path );
   if(encoding == WMediaPlayer::WEBMV || encoding == WMediaPlayer::OGV || encoding == WMediaPlayer::M4V) {
-    player = new VideoJS();
+//     player = new VideoJS();
+    player = new HTML5Player();
   } else {
     player = new WMediaPlayerWrapper();
   }
@@ -663,6 +664,7 @@ void StreamingAppPrivate::play ( filesystem::path path ) {
     playlist->nextItem();                                                                                                                                                                                                                                                   
   });
   player->setSource(encoding, linkFor( path ), true);
+  player->addSubtitles("/foo", "Italiano", "it");
   addSubtitlesFor(path);
   playerContainerWidget->clear();
   playerContainerWidget->addWidget(player->widget());

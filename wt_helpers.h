@@ -18,6 +18,7 @@ namespace Wt {
 
 #define wLog (wApp ? wApp->log("notice") : Wt::WServer::instance()->log("notice"))
 #define JS(...) #__VA_ARGS__
+#define HTML(...) #__VA_ARGS__
 
 typedef std::function<void(Wt::WMouseEvent&)> MouseEventListener;
 
