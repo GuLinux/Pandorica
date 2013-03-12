@@ -21,7 +21,7 @@
 #ifndef HTML5PLAYER_H
 #define HTML5PLAYER_H
 
-#include <../../home/hdd/marco/Sviluppo/Witty/VideoStreaming/player.h>
+#include "player.h"
 #include <Wt/WTemplate>
 
 

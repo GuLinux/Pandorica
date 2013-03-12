@@ -21,6 +21,7 @@
 #include "videojs.h"
 #include <Wt/WText>
 #include <Wt/WApplication>
+#include <Wt/WTimer>
 #include "wt_helpers.h"
 
 using namespace Wt;
@@ -69,11 +70,13 @@ void VideoJS::setSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink& pa
     type = "ogg";
   if(encoding == WMediaPlayer::M4V)
     type = "mp4";
-  m_text.arg(m_widget->id()).arg(autoPlay ? "autoplay" : "").arg(type).arg(path.url());
+  m_text.arg(m_widget->id()).arg("").arg(type).arg(path.url());
   wApp->log("notice") << "text: " << m_text;
   wApp->log("notice") << "textformat: " << m_widget->textFormat();
-  if(autoPlay)
+  if(autoPlay) {
     this->m_playing = true;
+    WTimer::singleShot(1000, this, &VideoJS::play);
+  }
 }
 
 void VideoJS::addSubtitles(const WLink& path, string name, string lang)
