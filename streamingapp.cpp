@@ -64,12 +64,14 @@
 #include "commentscontainerwidget.h"
 #include "readbwstats.h"
 #include "html5player.h"
+#include "whtmltemplateslocalizedstrings.h"
 
 #include <Wt/WStringListModel>
 #include <Wt/WViewWidget>
 #include <Wt/Utils>
 #include <Wt/WAbstractItemView>
 #include <Wt/WOverlayLoadingIndicator>
+#include <Wt/WCombinedLocalizedStrings>
 #include <boost/format.hpp>
 
 using namespace Wt;
@@ -118,6 +120,8 @@ public:
   WContainerWidget *authContainer;
   WContainerWidget *messagesContainer;
   WMenu* topMenu;
+    WMessageResourceBundle messageResourceBundle;
+    WCombinedLocalizedStrings combinedLocalizedStrings;
 private:
   void queue(filesystem::path path);
   void addSubtitlesFor(filesystem::path path);
@@ -225,8 +229,14 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   useStyleSheet("//cdn.jsdelivr.net/mediaelement/2.10.1/mediaelementplayer.css");
   enableUpdates(true);
   d->session.login().changed().connect(this, &StreamingApp::authEvent);
-  messageResourceBundle().use("templates");
+  d->messageResourceBundle = messageResourceBundle();
+  d->messageResourceBundle.use("templates");
+  d->combinedLocalizedStrings.add(new WHTMLTemplatesLocalizedStrings("html_templates", this));
+  d->combinedLocalizedStrings.add(&d->messageResourceBundle);
+  setLocalizedStrings(&d->combinedLocalizedStrings);
+  
   d->authContainer = new WContainerWidget();
+  d->authContainer->addWidget(WW(WText, WString("<h1 style=\"text-align: center;\">{1}</h1>").arg(WString::tr("site-title"))));
   root()->addWidget(d->authContainer);
   AuthWidgetCustom* authWidget = new AuthWidgetCustom(Session::auth(), d->session.users(), d->session.login());
   authWidget->model()->addPasswordAuth(&Session::passwordAuth());
@@ -350,7 +360,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   WContainerWidget* navbarInner = new WContainerWidget();
 
   navBar->addWidget(navbarInner);
-  navbarInner->addWidget(WW(WText,"GuLinux Videostreaming").css("brand"));
+  navbarInner->addWidget(WW(WText,WString::tr("site-title")).css("brand"));
   navbarInner->addWidget(topMenu);
   
   navBar->setStyleClass("navbar navbar-static-top navbar-inverse");

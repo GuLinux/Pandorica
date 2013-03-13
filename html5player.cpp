@@ -80,15 +80,7 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent): WTemplate(parent),
   s_playing(this, "playbackStarted"),
   s_playerReady(this, "playbackReady")
 {
-  setTemplateText(HTML(<video id="${player.id}" preload="auto" controls style="background-color: black;"
-      ${<if-player_size>}${player_size}${</if-player_size>}
-      ${<if-player_class>}${player_class}${</if-player_class>}event
-      ${<autoplay>}autoplay${</autoplay>}
-      width="640" height="264"
-        >
-      <source type="${video.mimetype}" src="${video.src}" />
-      ${track:subtitles}
-    </video>), Wt::XHTMLUnsafeText);
+  setTemplateText(WString::tr("html5player.videotag"), Wt::XHTMLUnsafeText);
   addFunction("track", [this](WTemplate *t, vector<WString> args, std::ostream &output) {
     string argsJoined;
     for(WString arg: args) argsJoined += (argsJoined.empty() ? "" : ", ") + arg.toUTF8();

@@ -1,59 +1,9 @@
 <messages>
-  <message id="auth-mail-sender-name">Gulinux's Videostreaming</message>
+  <message id="site-title">Gulinux Videostreaming</message>
+  <message id="auth-mail-sender-name">Gulinux Videostreaming</message>
   <message id="auth-mail-sender-address">marco@gulinux.net</message>
   <message id="html5_player_template">
   </message>
-<message id="Wt.Auth.template.login">
-    <div class="Wt-form Wt-auth-login">
-      <h2>${tr:Wt.Auth.login-form-title}</h2>
-      <p>${tr:Wt.Auth.login-form-info}</p>
-      ${<if:oauth>}
-	<div style="text-align: center">
-	Login with:
-	<div class="btn-group">
-	${icons}
-	</div>
-      </div>
-      ${</if:oauth>}
-      <div style="padding: 10px; text-align: center;">
-	<button type="button" class="btn btn-link" data-toggle="collapse" data-target="#login-form-collapsible">Regular Login</button>
-      </div>
-      <div id="login-form-collapsible" class="collapse">
-      <div class="Wt-fields">
-    ${<if:passwords>}
-      
-          <label for="${id:user-name}">${user-name-label}
-            ${user-name-info class="Wt-info"}
-      </label>
-      ${user-name}
-
-      <label for="${id:password}">${tr:Wt.Auth.password}
-            ${password-info class="Wt-info"}
-      </label>
-      ${password}
-
-      ${<if:remember-me>}
-
-        <label for="${id:remember-me}">${tr:Wt.Auth.remember-me}
-          <span class="Wt-info">${remember-me-info}</span>
-        </label>
-        ${remember-me}
-
-      ${</if:remember-me>}
-
-     ${</if:passwords>}
-      </div>
-      
-      <div class="Wt-buttons">
-    ${login}
-      </div>
-      <div class="Wt-buttons">
-    ${lost-password} ${sep} ${register}
-      </div>
-    </div>
-  </div>
-  </message>
-  
   
   <message id="Wt.Auth.confirmmail.body">
 Hello {1},
