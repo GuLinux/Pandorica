@@ -43,3 +43,4 @@ SET(BOOST_LIBS
 target_link_libraries(videostreaming ${BOOST_LIBS} ${WT_LINK_LIBS} )
 install(TARGETS videostreaming RUNTIME DESTINATION ${INSTALL_DIR}/bin)
 INSTALL(FILES templates.xml DESTINATION ${INSTALL_DIR} )
+INSTALL(DIRECTORY html_templates DESTINATION ${INSTALL_DIR} FILES_MATCHING PATTERN "*.html" )
