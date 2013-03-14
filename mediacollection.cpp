@@ -19,30 +19,22 @@ map<string,string> supportedMimetypes{
   mimepair(".mp3", "audio/mpeg")
 };
 
-class MediaPrivate {
-public:
-  MediaPrivate(fs::path path) : path{path}, uid(hexEncode(md5(path.string()))) {}
-  const fs::path path;
-  const string uid;
-};
-Media::Media(filesystem::path path) : d(new MediaPrivate{path}) {}
-Media::Media(const Media& other) : Media(other.d->path) {}
+Media::Media(const filesystem::path& path) : m_path{path}, m_uid{hexEncode(md5(path.string()))} {}
 
 Media::~Media()
 {
-  delete d;
 }
 string Media::fullPath() const
 {
-  return d->path.string();
+  return m_path.string();
 }
 string Media::extension() const
 {
-  return d->path.extension().string();
+  return m_path.extension().string();
 }
 string Media::filename() const
 {
-  return d->path.filename().string();
+  return m_path.filename().string();
 }
 string Media::mimetype() const
 {
@@ -52,13 +44,19 @@ string Media::mimetype() const
 }
 filesystem::path Media::path() const
 {
-  return d->path;
+  return m_path;
 }
 string Media::uid() const
 {
-  return d->uid;
+  return m_uid;
 }
 
+Media::Media() {}
+
+bool Media::valid() const
+{
+  return !uid().empty() && !path().empty();
+}
 
 
 
@@ -69,7 +67,7 @@ public:
   
 public:
   string basePath;
-  vector<Media> collection;
+  map<string,Media> collection;
 };
 
 MediaCollection::MediaCollection(string basePath, WObject* parent)
@@ -82,8 +80,8 @@ void MediaCollection::rescan()
 {
   d->collection.clear();
   d->listDirectory(fs::path(d->basePath));
-  for(Media media: d->collection)
-    wApp->log("notice") << "found media: " << media.fullPath();
+  for(pair<string,Media> media: d->collection)
+    wApp->log("notice") << "found media with id=" << media.first << ": " << media.second.fullPath();
 }
 
 void MediaCollectionPrivate::listDirectory(filesystem::path path)
@@ -97,9 +95,19 @@ void MediaCollectionPrivate::listDirectory(filesystem::path path)
     else {
       Media media(path);
       if(media.mimetype() != "UNSUPPORTED")
-        collection.push_back(media);
+        collection[media.uid()] = media;
     }
   }
+}
+
+map< string, Media > MediaCollection::collection() const
+{
+  return d->collection;
+}
+
+Media MediaCollection::media(string uid) const
+{
+  return d->collection[uid];
 }
 
 
