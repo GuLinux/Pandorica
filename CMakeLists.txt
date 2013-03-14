@@ -3,7 +3,7 @@ project(videostreaming)
 add_definitions(-std=gnu++11)
 
 find_package(Wt REQUIRED)
-include_directories(${Wt_INCLUDE_DIR}  )
+include_directories(${Wt_INCLUDE_DIR} ${CMAKE_SOURCE_DIR} )
 
 
 set(Wt_CONNECTOR_LIBRARY "${Wt_HTTP_LIBRARY}")
@@ -22,7 +22,7 @@ STRING(REGEX MATCH ".*Zerogoki.*" HOST_IS_ZEROGOKI "${HOSTNAME}")
 SET(INSTALL_DIR "/home/www-data/data/videostreaming" CACHE STRING "Install directory for Wt Applications and files")
 
 
-add_executable(videostreaming whtmltemplateslocalizedstrings.cpp html5player.cpp readbwstats.cpp commentscontainerwidget.cpp sessiondetailsdialog.cpp customitemdelegates.cpp loggedusersdialog.cpp adduserdialog.cpp playlist.cpp session.cpp videojs.cpp wmediaplayerwrapper.cpp streamingapp.cpp main.cpp)
+add_executable(videostreaming Wt-Commons/whtmltemplateslocalizedstrings.cpp player/html5player.cpp readbwstats.cpp commentscontainerwidget.cpp sessiondetailsdialog.cpp customitemdelegates.cpp loggedusersdialog.cpp adduserdialog.cpp playlist.cpp session.cpp player/videojs.cpp player/wmediaplayerwrapper.cpp streamingapp.cpp main.cpp)
 
 
 string(TOLOWER ${CMAKE_BUILD_TYPE} build_type)
