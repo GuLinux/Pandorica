@@ -66,6 +66,7 @@
 #include "readbwstats.h"
 #include "player/html5player.h"
 #include "Wt-Commons/whtmltemplateslocalizedstrings.h"
+#include "mediacollection.h"
 
 
 #include <Wt/WStringListModel>
@@ -467,10 +468,12 @@ void StreamingAppPrivate::setupTreeMenu()
   menuContainer->addWidget(menu);
   menu->setRenderAsList(true);
   menu->setStyleClass("nav nav-list");
+  MediaCollection c(videosDir());
   listDirectoryAndRun(fs::path(videosDir()), [this](fs::path path) {
     addTo(menu, path);
   });
 }
+
 
 
 void StreamingAppPrivate::listDirectoryAndRun(filesystem::path directoryPath, RunOnPath runAction)
@@ -482,6 +485,38 @@ void StreamingAppPrivate::listDirectoryAndRun(filesystem::path directoryPath, Ru
     runAction(path);
   }
 }
+
+void StreamingAppPrivate::addTo ( WMenu* menu, filesystem::path p ) {
+  if(!isAllowed(p)) return;
+  WSubMenuItem *menuItem = new WSubMenuItem(p.filename().string(), 0);
+  menuItem->setPathComponent(p.string());
+  WMenu *subMenu = new WMenu(Wt::Vertical);
+  subMenu->itemSelected().connect(this, &StreamingAppPrivate::menuItemClicked);
+  subMenu->setRenderAsList(true);
+  subMenu->setStyleClass("nav nav-list");
+  menuItem->setSubMenu(subMenu);
+  subMenu->hide();
+  menu->addItem(menuItem);
+  if(fs::is_directory(p)) {
+    setIconTo(menuItem, "http://gulinux.net/css/folder.png");
+    menu->itemSelected().connect([menuItem, subMenu](WMenuItem* selItem, _n5) {
+      if(selItem == menuItem) {
+    if(subMenu->isVisible())
+      subMenu->animateHide(WAnimation(WAnimation::SlideInFromBottom));
+    else
+      subMenu->animateShow(WAnimation(WAnimation::SlideInFromTop));
+      }
+    });
+    listDirectoryAndRun(p, [subMenu,this](fs::path p){
+      addTo(subMenu, p);
+    });
+  } else {
+    filesHashes[Utils::hexEncode(Utils::md5(p.string()))] = p;
+    setIconTo(menuItem, "http://gulinux.net/css/video.png");
+    menuItemsPaths[menuItem] = p;
+  }
+}
+
 
 
 void StreamingAppPrivate::parseFileParameter() {
@@ -595,38 +630,6 @@ WWidget* IconMenuItem::createItemWidget() {
   WAnchor *anchor = new WAnchor();
   anchor->setText(text);
   return anchor;
-}
-
-
-void StreamingAppPrivate::addTo ( WMenu* menu, filesystem::path p ) {
-  if(!isAllowed(p)) return;
-  WSubMenuItem *menuItem = new WSubMenuItem(p.filename().string(), 0);
-  menuItem->setPathComponent(p.string());
-  WMenu *subMenu = new WMenu(Wt::Vertical);
-  subMenu->itemSelected().connect(this, &StreamingAppPrivate::menuItemClicked);
-  subMenu->setRenderAsList(true);
-  subMenu->setStyleClass("nav nav-list");
-  menuItem->setSubMenu(subMenu);
-  subMenu->hide();
-  menu->addItem(menuItem);
-  if(fs::is_directory(p)) {
-    setIconTo(menuItem, "http://gulinux.net/css/folder.png");
-    menu->itemSelected().connect([menuItem, subMenu](WMenuItem* selItem, _n5) {
-      if(selItem == menuItem) {
-	if(subMenu->isVisible())
-	  subMenu->animateHide(WAnimation(WAnimation::SlideInFromBottom));
-	else
-	  subMenu->animateShow(WAnimation(WAnimation::SlideInFromTop));
-      }
-    });
-    listDirectoryAndRun(p, [subMenu,this](fs::path p){
-      addTo(subMenu, p);
-    });
-  } else {
-    filesHashes[Utils::hexEncode(Utils::md5(p.string()))] = p;
-    setIconTo(menuItem, "http://gulinux.net/css/video.png");
-    menuItemsPaths[menuItem] = p;
-  }
 }
 
 void StreamingAppPrivate::setIconTo ( WMenuItem* item, string url ) {
