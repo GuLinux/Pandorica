@@ -71,36 +71,34 @@ void HTML5Player::setSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink
   if(encoding == WMediaPlayer::M4V)
     type = "mp4";
   bindString("video.mimetype", string("video/") + type, Wt::XHTMLUnsafeText);
-  wApp->log("notice") << "Autoplay option: " << autoPlay;
+  sources.push_back(Source(path.url(), string("video/") + type) );
   setCondition("autoplay", autoPlay);
 }
 
-HTML5Player::HTML5Player(Wt::WContainerWidget* parent): WTemplate(parent),
-  s_ended(this, "playbackEnded"),
-  s_playing(this, "playbackStarted"),
-  s_playerReady(this, "playbackReady")
+HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
+  : WTemplate(parent), s_ended(this, "playbackEnded"), s_playing(this, "playbackStarted"), s_playerReady(this, "playbackReady")
 {
   setTemplateText(WString::tr("html5player.videotag"), Wt::XHTMLUnsafeText);
+  addFunction("sources", [this](WTemplate *t, vector<WString> args, std::ostream &output) {
+    for(Source source: sources) {
+      output << WString::tr("player.source").arg(source.type).arg(source.src);
+    }
+    return true;
+  });
   addFunction("track", [this](WTemplate *t, vector<WString> args, std::ostream &output) {
-    string argsJoined;
-    for(WString arg: args) argsJoined += (argsJoined.empty() ? "" : ", ") + arg.toUTF8();
-    wApp->log("notice") << "template function track() :" << argsJoined;
     WString trackType = args[0];
     vector<Track> tracksForType = tracks[trackType.toUTF8()];
     for(Track track: tracksForType) {
-      output << WString(HTML(<track kind="{4}" src="{1}" srclang="{2}" label="{3}" {5} />\n))
-      .arg(track.src).arg(track.lang).arg(track.label).arg(trackType).arg("");
+      output << WString::tr("player.track").arg(track.src).arg(track.lang).arg(track.label).arg(trackType).arg("");
     }
     return true;
   });
   bindString("player.id",  playerId());
   s_playing.connect([this](_n6){
     isPlaying = true;
-    wApp->log("notice") << "*********** isPlaying: " << isPlaying;
   });
   s_ended.connect([this](_n6) {
     isPlaying = false;
-    wApp->log("notice") << "*********** isPlaying: " << isPlaying;
   });
   addListener("play", s_playing.createCall());
   addListener("ended", s_ended.createCall());

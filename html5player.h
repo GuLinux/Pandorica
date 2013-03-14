@@ -24,16 +24,6 @@
 #include "player.h"
 #include <Wt/WTemplate>
 
-struct Track {
-  std::string src;
-  std::string lang;
-  std::string label;
-  Track(std::string src, std::string lang, std::string label)
-    : src(src), lang(lang), label(label) {}
-  Track() : Track(std::string(),std::string(),std::string() ) {}
-  bool isValid() { !src.empty() && !lang.empty() && !label.empty(); }
-  bool operator == (Track &other) { return other.src == src && other.label == label && other.lang == lang; }
-};
 
 class HTML5Player : public Player, public Wt::WTemplate
 {
@@ -59,6 +49,7 @@ private:
     Wt::JSignal<> s_playing;
     Wt::JSignal<> s_playerReady;
     std::map<std::string, std::vector<Track>> tracks;
+    std::vector<Source> sources;
     bool isPlaying = false;
     std::map<std::string,Track> defaultTracks;
 };

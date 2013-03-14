@@ -27,9 +27,29 @@ namespace Wt {
 class WWidget;
 }
 
+
+struct Track {
+  std::string src;
+  std::string lang;
+  std::string label;
+  Track(std::string src, std::string lang, std::string label) : src(src), lang(lang), label(label) {}
+  Track() : Track{ std::string(),std::string(),std::string() } {}
+  bool isValid() { !src.empty() && !lang.empty() && !label.empty(); }
+  bool operator == (Track &other) { return other.src == src && other.label == label && other.lang == lang; }
+};
+
+
+struct Source {
+  std::string src;
+  std::string type;
+  Source(std::string src, std::string type) : src(src), type(type) {}
+  Source() : Source{std::string(),std::string() } {}
+  bool isValid() { !src.empty() && !type.empty(); }
+  bool operator == (Source &other) { return other.src == src && other.type == type; }
+};
+
 class Player
 {
-
 public:
     Player()=default;
     virtual ~Player() {};
