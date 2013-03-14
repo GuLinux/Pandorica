@@ -2,9 +2,6 @@
   <message id="site-title">Gulinux Videostreaming</message>
   <message id="auth-mail-sender-name">Gulinux Videostreaming</message>
   <message id="auth-mail-sender-address">marco@gulinux.net</message>
-  <message id="html5_player_template">
-  </message>
-  
   <message id="Wt.Auth.confirmmail.body">
 Hello {1},
 
