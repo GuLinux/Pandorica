@@ -29,15 +29,22 @@ class HTML5Player : public Player, public Wt::WTemplate
 {
 
 public:
+    HTML5Player(Wt::WContainerWidget* parent = 0);
+    virtual ~HTML5Player();
+    
     virtual void play();
     virtual void stop();
     virtual Wt::JSignal<>& ended();
     virtual Wt::WWidget* widget();
     virtual bool playing();
-    virtual void addSubtitles(const Wt::WLink& path, std::string name, std::string lang);
-    virtual void setSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink& path, bool autoPlay = true);
-    HTML5Player(Wt::WContainerWidget* parent = 0);
-    virtual ~HTML5Player();
+    
+    virtual void addSubtitles(const Wt::WLink& path, std::string name, std::string lang) __attribute__ ((deprecated));
+    virtual void setSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink& path, bool autoPlay = true) __attribute__ ((deprecated));
+    
+    virtual void addSource(const Source& source);
+    virtual void addSubtitles(const Track& track);
+    virtual void setAutoplay(bool autoplay);
+    
 protected:
   std::string playerId();
   virtual void runJavascript(std::string js);

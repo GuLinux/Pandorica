@@ -39,6 +39,11 @@ public:
   virtual void stop();
   virtual void play();
   virtual void addSubtitles(const Wt::WLink &path, std::string name, std::string lang);
+  virtual void addSubtitles(const Track& track);
+  
+  // TODO
+  virtual void addSource(const Source& source);
+  virtual void setAutoplay(bool autoplay);
 
 private:
   Wt::WMediaPlayer *player;

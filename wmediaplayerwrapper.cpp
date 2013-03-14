@@ -21,6 +21,7 @@
 #include "wmediaplayerwrapper.h"
 #include <Wt/WMediaPlayer>
 #include <Wt/WTimer>
+#include <Wt/WApplication>
 
 using namespace Wt;
 using namespace boost;
@@ -71,6 +72,24 @@ void WMediaPlayerWrapper::play()
 }
 
 void WMediaPlayerWrapper::addSubtitles(const WLink& path, string name, string lang)
+{
+  wApp->log("notice") << "Add subtitles on WMediaPlayer is unsupported";
+}
+
+void WMediaPlayerWrapper::addSubtitles(const Track& track)
+{
+  wApp->log("notice") << "Add subtitles on WMediaPlayer is unsupported";
+}
+
+
+// TODO
+
+void WMediaPlayerWrapper::addSource(const Source& source)
+{
+
+}
+
+void WMediaPlayerWrapper::setAutoplay(bool autoplay)
 {
 
 }
