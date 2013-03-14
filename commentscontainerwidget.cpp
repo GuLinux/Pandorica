@@ -8,7 +8,8 @@
 #include <Wt/WPushButton>
 #include <Wt/WText>
 #include <boost/function.hpp>
-#include "wt_helpers.h"
+#include "Wt-Commons/wt_helpers.h"
+
 #include "sessioninfo.h"
 #include "sessiondetails.h"
 #include "streamingapp.h"

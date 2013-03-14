@@ -19,9 +19,9 @@
 
 
 #include "streamingapp.h"
-#include "player.h"
-#include "wmediaplayerwrapper.h"
-#include "videojs.h"
+#include "player/player.h"
+#include "player/wmediaplayerwrapper.h"
+#include "player/videojs.h"
 #include <Wt/WGridLayout>
 #include <Wt/WHBoxLayout>
 #include <Wt/WVBoxLayout>
@@ -59,12 +59,14 @@
 #include "adduserdialog.h"
 #include "sessioninfo.h"
 #include "loggedusersdialog.h"
-#include "wt_helpers.h"
+#include "Wt-Commons/wt_helpers.h"
+
 #include "sessiondetails.h"
 #include "commentscontainerwidget.h"
 #include "readbwstats.h"
-#include "html5player.h"
-#include "whtmltemplateslocalizedstrings.h"
+#include "player/html5player.h"
+#include "Wt-Commons/whtmltemplateslocalizedstrings.h"
+
 
 #include <Wt/WStringListModel>
 #include <Wt/WViewWidget>

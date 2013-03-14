@@ -25,7 +25,8 @@
 #include <Wt/Http/Message>
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
-#include "wt_helpers.h"
+#include "Wt-Commons/wt_helpers.h"
+
 
 using namespace Wt;
 using namespace std;
