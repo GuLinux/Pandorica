@@ -22,7 +22,8 @@
 #include <Wt/WText>
 #include <Wt/WApplication>
 #include <Wt/WTimer>
-#include "wt_helpers.h"
+#include "Wt-Commons/wt_helpers.h"
+
 
 using namespace Wt;
 using namespace std;

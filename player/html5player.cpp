@@ -19,7 +19,8 @@
 
 
 #include "html5player.h"
-#include "wt_helpers.h"
+#include "Wt-Commons/wt_helpers.h"
+
 #include <Wt/WApplication>
 #include <boost/format.hpp>
 
