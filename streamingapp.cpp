@@ -123,8 +123,9 @@ public:
   WContainerWidget *authContainer;
   WContainerWidget *messagesContainer;
   WMenu* topMenu;
-    WMessageResourceBundle messageResourceBundle;
-    WCombinedLocalizedStrings combinedLocalizedStrings;
+  WMessageResourceBundle messageResourceBundle;
+  WCombinedLocalizedStrings combinedLocalizedStrings;
+  MediaCollection *collection;
 private:
   void queue(filesystem::path path);
   void addSubtitlesFor(filesystem::path path);
@@ -248,6 +249,7 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   authWidget->processEnvironment();
   d->authContainer->addWidget(authWidget);
   d->authContainer->addWidget(d->messagesContainer = new WContainerWidget());
+  d->collection = new MediaCollection(d->videosDir(), this);
 }
 
 
@@ -468,7 +470,6 @@ void StreamingAppPrivate::setupTreeMenu()
   menuContainer->addWidget(menu);
   menu->setRenderAsList(true);
   menu->setStyleClass("nav nav-list");
-  MediaCollection c(videosDir());
   listDirectoryAndRun(fs::path(videosDir()), [this](fs::path path) {
     addTo(menu, path);
   });
