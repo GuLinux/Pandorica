@@ -68,6 +68,7 @@ public:
 public:
   string basePath;
   map<string,Media> collection;
+  Signal<Media> added;
 };
 
 MediaCollection::MediaCollection(string basePath, WObject* parent)
@@ -94,8 +95,10 @@ void MediaCollectionPrivate::listDirectory(filesystem::path path)
       listDirectory(path);
     else {
       Media media(path);
-      if(media.mimetype() != "UNSUPPORTED")
+      if(media.mimetype() != "UNSUPPORTED") {
         collection[media.uid()] = media;
+        added.emit(media);
+      }
     }
   }
 }
@@ -108,6 +111,11 @@ map< string, Media > MediaCollection::collection() const
 Media MediaCollection::media(string uid) const
 {
   return d->collection[uid];
+}
+
+Wt::Signal< Media >& MediaCollection::added()
+{
+  return d->added;
 }
 
 

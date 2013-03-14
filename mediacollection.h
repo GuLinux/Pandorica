@@ -2,7 +2,9 @@
 #define MEDIACOLLECTION_H
 
 #include <Wt/WObject>
+#include <Wt/WSignal>
 #include <boost/filesystem.hpp>
+
 class MediaCollectionPrivate;
 class MediaPrivate;
 class Media {
@@ -30,6 +32,7 @@ public:
     void rescan();
     std::map<std::string,Media> collection() const;
     Media media(std::string uid) const;
+    Wt::Signal<Media> &added();
 private:
   MediaCollectionPrivate *const d;
 };
