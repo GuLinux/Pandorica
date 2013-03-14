@@ -27,6 +27,43 @@ using namespace Wt;
 using namespace std;
 using namespace boost;
 
+HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
+  : WTemplate(parent), s_ended(this, "playbackEnded"), s_playing(this, "playbackStarted"), s_playerReady(this, "playbackReady")
+{
+  setTemplateText(WString::tr("html5player.videotag"), Wt::XHTMLUnsafeText);
+  addFunction("sources", [this](WTemplate *t, vector<WString> args, std::ostream &output) {
+    for(Source source: sources) {
+      output << WString::tr("player.source").arg(source.type).arg(source.src);
+    }
+    return true;
+  });
+  addFunction("track", [this](WTemplate *t, vector<WString> args, std::ostream &output) {
+    WString trackType = args[0];
+    vector<Track> tracksForType = tracks[trackType.toUTF8()];
+    for(Track track: tracksForType) {
+      output << WString::tr("player.track").arg(track.src).arg(track.lang).arg(track.label).arg(trackType).arg("");
+    }
+    return true;
+  });
+  bindString("player.id",  playerId());
+  s_playing.connect([this](_n6){
+    isPlaying = true;
+  });
+  s_ended.connect([this](_n6) {
+    isPlaying = false;
+  });
+  addListener("play", s_playing.createCall());
+  addListener("ended", s_ended.createCall());
+  s_playerReady.connect(this, &HTML5Player::playerReady);
+  runJavascript(s_playerReady.createCall());
+}
+
+HTML5Player::~HTML5Player()
+{
+  runJavascript("videoPlayer.src(""); videoPlayer.erase();");
+}
+
+
 void HTML5Player::play()
 {
   runJavascript("videoPlayer.play();");
@@ -60,6 +97,12 @@ void HTML5Player::addSubtitles(const Wt::WLink& path, std::string name, std::str
     defaultTracks["subtitles"] = track;
 }
 
+void HTML5Player::addSubtitles(const Track& track)
+{
+
+}
+
+
 void HTML5Player::setSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink& path, bool autoPlay)
 {
   bindString("video.src", path.url(), Wt::XHTMLUnsafeText);
@@ -71,40 +114,21 @@ void HTML5Player::setSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink
   if(encoding == WMediaPlayer::M4V)
     type = "mp4";
   bindString("video.mimetype", string("video/") + type, Wt::XHTMLUnsafeText);
-  sources.push_back(Source(path.url(), string("video/") + type) );
-  setCondition("autoplay", autoPlay);
+  Source source{path.url(), string("video/") + type};
+  addSource(source);
+  setAutoplay(autoPlay);
 }
 
-HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
-  : WTemplate(parent), s_ended(this, "playbackEnded"), s_playing(this, "playbackStarted"), s_playerReady(this, "playbackReady")
+void HTML5Player::addSource(const Source& source)
 {
-  setTemplateText(WString::tr("html5player.videotag"), Wt::XHTMLUnsafeText);
-  addFunction("sources", [this](WTemplate *t, vector<WString> args, std::ostream &output) {
-    for(Source source: sources) {
-      output << WString::tr("player.source").arg(source.type).arg(source.src);
-    }
-    return true;
-  });
-  addFunction("track", [this](WTemplate *t, vector<WString> args, std::ostream &output) {
-    WString trackType = args[0];
-    vector<Track> tracksForType = tracks[trackType.toUTF8()];
-    for(Track track: tracksForType) {
-      output << WString::tr("player.track").arg(track.src).arg(track.lang).arg(track.label).arg(trackType).arg("");
-    }
-    return true;
-  });
-  bindString("player.id",  playerId());
-  s_playing.connect([this](_n6){
-    isPlaying = true;
-  });
-  s_ended.connect([this](_n6) {
-    isPlaying = false;
-  });
-  addListener("play", s_playing.createCall());
-  addListener("ended", s_ended.createCall());
-  s_playerReady.connect(this, &HTML5Player::playerReady);
-  runJavascript(s_playerReady.createCall());
+  sources.push_back(source);
 }
+
+void HTML5Player::setAutoplay(bool autoplay)
+{
+  setCondition("autoplay", autoplay);
+}
+
 
 void HTML5Player::playerReady()
 {
@@ -156,7 +180,3 @@ string HTML5Player::playerId()
 }
 
 
-HTML5Player::~HTML5Player()
-{
-  runJavascript("videoPlayer.src(""); videoPlayer.erase();");
-}

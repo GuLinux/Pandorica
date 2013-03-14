@@ -53,8 +53,15 @@ class Player
 public:
     Player()=default;
     virtual ~Player() {};
-    virtual void setSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink &path, bool autoPlay = true) = 0;
-    virtual void addSubtitles(const Wt::WLink &path, std::string name, std::string lang) = 0;
+    virtual void setSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink &path, bool autoPlay = true) __attribute__ ((deprecated)) = 0;
+    virtual void addSubtitles(const Wt::WLink &path, std::string name, std::string lang) __attribute__ ((deprecated)) = 0;
+    
+    // New methods:
+    virtual void addSource(const Source &source) = 0;
+    virtual void setAutoplay(bool autoplay) = 0;
+    virtual void addSubtitles(const Track &track) = 0;
+    // END
+    
     virtual bool playing() = 0;
     virtual Wt::WWidget *widget() = 0;
     virtual Wt::JSignal <Wt::NoClass >& ended() = 0;
