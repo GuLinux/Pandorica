@@ -46,6 +46,11 @@ filesystem::path Media::path() const
 {
   return m_path;
 }
+filesystem::path Media::parentDirectory() const
+{
+  return m_path.parent_path();
+}
+
 string Media::uid() const
 {
   return m_uid;
@@ -66,7 +71,7 @@ public:
     void listDirectory(filesystem::path path);
   
 public:
-  string basePath;
+  fs::path basePath;
   map<string,Media> collection;
   Signal<Media> added;
 };
@@ -80,7 +85,7 @@ MediaCollection::MediaCollection(string basePath, WObject* parent)
 void MediaCollection::rescan()
 {
   d->collection.clear();
-  d->listDirectory(fs::path(d->basePath));
+  d->listDirectory(d->basePath);
   for(pair<string,Media> media: d->collection)
     wApp->log("notice") << "found media with id=" << media.first << ": " << media.second.fullPath();
 }
@@ -125,3 +130,7 @@ MediaCollection::~MediaCollection()
   delete d;
 }
 
+filesystem::path MediaCollection::rootPath() const
+{
+  return d->basePath;
+}

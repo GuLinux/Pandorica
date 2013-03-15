@@ -18,6 +18,7 @@ public:
   std::string mimetype() const;
   std::string uid() const;
   boost::filesystem::path path() const;
+  boost::filesystem::path parentDirectory() const;
   bool valid() const;
 private:
   boost::filesystem::path m_path;
@@ -31,6 +32,7 @@ public:
     virtual ~MediaCollection();
     void rescan();
     std::map<std::string,Media> collection() const;
+    boost::filesystem::path rootPath() const;
     Media media(std::string uid) const;
     Wt::Signal<Media> &added();
 private:

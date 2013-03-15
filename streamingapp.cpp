@@ -67,6 +67,7 @@
 #include "player/html5player.h"
 #include "Wt-Commons/whtmltemplateslocalizedstrings.h"
 #include "mediacollection.h"
+#include "mediacollectionbrowser.h"
 
 
 #include <Wt/WStringListModel>
@@ -249,7 +250,6 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   authWidget->processEnvironment();
   d->authContainer->addWidget(authWidget);
   d->authContainer->addWidget(d->messagesContainer = new WContainerWidget());
-  d->collection = new MediaCollection(d->videosDir(), this);
 }
 
 
@@ -310,6 +310,7 @@ void StreamingApp::authEvent()
   d->sessionInfo = d->session.add(sessionInfo);
   t.commit();
   d->setupMenus(authUser->role());
+  d->collection = new MediaCollection(d->videosDir(), this);
   setupGui();
   auto sessionAddedCallback = [this](StreamingAppSession newSession) { d->sessionAdded.emit(newSession); wApp->triggerUpdate(); wApp->log("notice") << "*** Session added (userId=" << newSession.first.id() << ")"; };
   auto sessionRemovedCallback = [this](StreamingAppSession sessionRemoved) { d->sessionRemoved.emit(sessionRemoved); wApp->triggerUpdate(); wApp->log("notice") << "*** Session removed (userId=" << sessionRemoved.first.id() << ")"; };
@@ -453,6 +454,8 @@ void StreamingApp::setupGui()
   
   WContainerWidget* contentWidget = new WContainerWidget();
   contentWidget->setLayout(layout);
+  
+  d->mainWidget->addWidget(new MediaCollectionBrowser(d->collection));
   d->mainWidget->addWidget(contentWidget);
 
   d->setupTreeMenu();
