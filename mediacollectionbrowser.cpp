@@ -1,10 +1,12 @@
 #include "mediacollectionbrowser.h"
-#include "mediacollection.h"
 #include <Wt/WMenu>
 #include <Wt/WAnchor>
 #include <Wt/WText>
+#include <Wt/WPopupMenu>
 #include <Wt/WImage>
 #include "Wt-Commons/wt_helpers.h"
+#include <boost/format.hpp>
+#include <algorithm>
 
 using namespace Wt;
 using namespace std;
@@ -25,11 +27,14 @@ public:
   MediaCollection *const collection;
   filesystem::path currentPath;
   WContainerWidget* breadcrumb;
-    WContainerWidget* browser;
+  WContainerWidget* browser;
+  Signal< Media > playSignal;
+  Signal< Media > queueSignal;
 private:
-    void addDirectory(filesystem::path directory);
-    void addMedia(Media media);
-    WContainerWidget* addIcon(string filename, string icon, MouseEventListener onClick);
+  void addDirectory(filesystem::path directory);
+  void addMedia(Media media);
+  WContainerWidget* addIcon(string filename, string icon, MouseEventListener onClick);
+  string formatFileSize(long size);
 };
 
 MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection *collection, Wt::WContainerWidget* parent)
@@ -55,18 +60,22 @@ void MediaCollectionBrowserPrivate::browse(filesystem::path currentPath)
   };
 
   set<fs::path> directories;
-  list<Media> medias;
+  vector<Media> medias;
   
   for(MediaEntry m: collection->collection()) {
     if(belongsToCurrent(m.second.path()))
       medias.push_back(m.second);
     fs::path directory = m.second.parentDirectory();
+    while(directory != collection->rootPath() && !belongsToCurrent(directory)) {
+      wApp->log("notice") << "checking if directory " << directory.string() << " belongs to " << currentPath.string() << ": " << belongsToCurrent(directory);
+      directory = directory.parent_path();
+    }
     if(directory != currentPath && belongsToCurrent(directory) && !directories.count(directory))
       directories.insert(directory);
   }
   
 //   std::sort(directories.begin(), directories.end(), [](fs::path a, fs::path b) { return a.filename().string() < b.filename().string(); } );
-//   std::sort(medias.begin(), medias.end(), [](Media a, Media b) { return (a.filename() <b.filename()); } );
+  std::sort(medias.begin(), medias.end(), [](const Media &a, const Media &b)->bool{ return (a.filename() <b.filename()); } );
   
   for(fs::path directory: directories) addDirectory(directory);
   for(Media media: medias) addMedia(media);
@@ -84,21 +93,52 @@ void MediaCollectionBrowserPrivate::addDirectory(filesystem::path directory)
 void MediaCollectionBrowserPrivate::addMedia(Media media)
 {
   wApp->log("notice") << "Adding media " << media.filename();
-  auto onClick = [](WMouseEvent){};
+  auto onClick = [this,media](WMouseEvent e){
+    WPopupMenu *menu = new WPopupMenu();
+    WPopupMenuItem* filename = menu->addItem(media.filename());
+    filename->setSelectable(false); filename->setDisabled(true);
+    WPopupMenuItem* filesize = menu->addItem(string("File size: ") + formatFileSize(fs::file_size(media.path())));
+    filesize->setSelectable(false); filesize->setDisabled(true);
+    WPopupMenuItem* play = menu->addItem("Play");
+    WPopupMenuItem* queue = menu->addItem("Queue");
+    menu->aboutToHide().connect([this,media,menu,play,queue](_n6){
+      if(menu->result() == play)
+        playSignal.emit(media);
+      if(menu->result() == queue)
+        queueSignal.emit(media);
+    });
+    menu->popup(e);
+  };
   addIcon(media.filename(), "http://gulinux.net/css/video.png", onClick);
 }
 
 WContainerWidget* MediaCollectionBrowserPrivate::addIcon(string filename, string icon, MouseEventListener onClick)
 {
-    WContainerWidget *item = WW(WContainerWidget).css("span4");
+    WContainerWidget *item = WW(WContainerWidget).css("span3");
     item->setContentAlignment(AlignmentFlag::AlignCenter);
-    WAnchor *link = WW(WAnchor, "#").css("thumbnail");
+    WAnchor *link = WW(WAnchor, "#").css("thumbnail filesystem-item");
     link->setImage(new WImage(icon));
-    link->setText(filename);
+    link->addWidget(WW(WText, filename).css("filesystem-item-label"));
     item->addWidget(link);
     link->clicked().connect(onClick);
+    
     browser->addWidget(item);
     return item;
+}
+
+
+string MediaCollectionBrowserPrivate::formatFileSize(long size)
+{
+  int maxSizeForUnit = 900;
+  vector<string> units {"bytes", "KB", "MB", "GB"};
+  double unitSize = size;
+  
+  for(string unit: units) {
+    if(unitSize<maxSizeForUnit || unit == units.back()) {
+      return (boost::format("%.2f %s") % unitSize % unit).str();
+    }
+    unitSize /= 1024;
+  }
 }
 
 
@@ -124,6 +164,17 @@ void MediaCollectionBrowserPrivate::rebuildBreadcrumb()
     breadcrumb->addWidget(item);
   }
 }
+
+Signal< Media >& MediaCollectionBrowser::play()
+{
+  return d->playSignal;
+}
+
+Signal< Media >& MediaCollectionBrowser::queue()
+{
+  return d->queueSignal;
+}
+
 
 
 MediaCollectionBrowser::~MediaCollectionBrowser()
