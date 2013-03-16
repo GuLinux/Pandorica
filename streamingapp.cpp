@@ -76,6 +76,7 @@
 #include <Wt/WAbstractItemView>
 #include <Wt/WOverlayLoadingIndicator>
 #include <Wt/WCombinedLocalizedStrings>
+#include <Wt/WStackedWidget>
 #include <boost/format.hpp>
 
 using namespace Wt;
@@ -89,7 +90,6 @@ typedef pair<Dbo::ptr<User>, StreamingApp*> StreamingAppSession;
 
 class StreamingAppPrivate {
 public:
-  void addTo ( WMenu *menu, filesystem::path p );
   WMediaPlayer::Encoding encodingFor ( filesystem::path p );
   WLink linkFor(filesystem::path p);
   bool isAllowed(filesystem::path p);
@@ -100,23 +100,19 @@ public:
   map<string, WMediaPlayer::Encoding> types;
   StreamingAppPrivate(StreamingApp* q);
   map<WMenuItem*, boost::filesystem::path> menuItemsPaths;
-  map<string, boost::filesystem::path> filesHashes;
   void menuItemClicked(WMenuItem *item);
   void play(filesystem::path path);
   void setIconTo(WMenuItem *item, string url);
   void parseFileParameter();
   Playlist *playlist;
   WContainerWidget* playerContainerWidget;
-  void listDirectoryAndRun(filesystem::path directoryPath, RunOnPath runAction);
   void mailForUnauthorizedUser(string email, WString identity);
   void setupMenus(AuthorizedUser::Role role);
   void setupAdminMenus();
-    void setupTreeMenu();
   Session session;
   SessionInfoPtr sessionInfo;
   bool mailSent;
   StreamingApp *q;
-  WContainerWidget* menuContainer;
   Signal<StreamingAppSession> sessionAdded;
   Signal<StreamingAppSession> sessionRemoved;
   void clearContent();
@@ -124,16 +120,17 @@ public:
   WContainerWidget *authContainer;
   WContainerWidget *messagesContainer;
   WMenu* topMenu;
-  WMessageResourceBundle messageResourceBundle;
   WCombinedLocalizedStrings combinedLocalizedStrings;
   MediaCollection *collection;
-private:
+  WStackedWidget* widgetsStack;
   void queue(filesystem::path path);
+private:
   void addSubtitlesFor(filesystem::path path);
   void setupUserMenus();
   WLink lightySecDownloadLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p) const;
   WLink nginxSecLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p) const;
   WMenuItem* activeUsersMenuItem;
+  WMenuItem* filesListMenuItem;
 };
 
 class Message : public WTemplate {
@@ -234,10 +231,10 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   useStyleSheet("//cdn.jsdelivr.net/mediaelement/2.10.1/mediaelementplayer.css");
   enableUpdates(true);
   d->session.login().changed().connect(this, &StreamingApp::authEvent);
-  d->messageResourceBundle = messageResourceBundle();
-  d->messageResourceBundle.use("templates");
-  d->combinedLocalizedStrings.add(new WHTMLTemplatesLocalizedStrings("html_templates", this));
-  d->combinedLocalizedStrings.add(&d->messageResourceBundle);
+  WMessageResourceBundle *xmlResourcesBundle = new WMessageResourceBundle;
+  xmlResourcesBundle->use("templates");
+  d->combinedLocalizedStrings.add(new WHTMLTemplatesLocalizedStrings("html_templates"));
+  d->combinedLocalizedStrings.add(xmlResourcesBundle);
   setLocalizedStrings(&d->combinedLocalizedStrings);
   
   d->authContainer = new WContainerWidget();
@@ -324,6 +321,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   topMenu = new WMenu(Wt::Horizontal);
   topMenu->setRenderAsList(true);
   topMenu->setStyleClass("nav");
+  filesListMenuItem = topMenu->addItem(WString::tr("menu.videoslist"), 0);
   
   activeUsersMenuItem = new WMenuItem("Active Users", 0);
   
@@ -339,6 +337,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   else {
     setupUserMenus();
   }
+  
   
   WMenuItem *refresh = topMenu->addItem("Refresh", 0);
   
@@ -357,8 +356,17 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
     if(selected==refresh) {
       WOverlayLoadingIndicator* indicator = new WOverlayLoadingIndicator();
       wApp->root()->addWidget(indicator->widget());
-      setupTreeMenu();
+      collection->rescan();
       WTimer::singleShot(1000, [indicator,this](WMouseEvent) { delete indicator;});
+    }
+    if(selected == filesListMenuItem) {
+      if(widgetsStack->currentIndex()) {
+        filesListMenuItem->setText(WString::tr("menu.videoslist"));
+        widgetsStack->setCurrentIndex(0);
+      } else {
+        filesListMenuItem->setText(WString::tr("menu.back.to.video"));
+        widgetsStack->setCurrentIndex(1);
+      }
     }
   });
   
@@ -430,15 +438,6 @@ void StreamingApp::setupGui()
 {
   WBoxLayout *layout = new WHBoxLayout();
 
-  d->menuContainer = new WContainerWidget();
-  d->menuContainer->setOverflow(WContainerWidget::OverflowAuto);
-  
-  WVBoxLayout* leftPanel = new WVBoxLayout();
-  leftPanel->addWidget(d->menuContainer);
-  layout->addLayout(leftPanel);
-//   layout->addWidget(menuContainer);
-  leftPanel->setResizable(0, true, 450);
-  
   WContainerWidget *playerContainer = new WContainerWidget();
   WBoxLayout *playerContainerLayout = new WVBoxLayout();
   d->playerContainerWidget = new WContainerWidget();
@@ -446,7 +445,7 @@ void StreamingApp::setupGui()
   playerContainerLayout->addWidget(d->playerContainerWidget);
   d->playlist = new Playlist();
   d->playlist->setList(true);
-  leftPanel->addWidget(d->playlist, 1);
+  layout->addWidget(d->playlist, 0);
   playerContainerLayout->setResizable(0, true);
   playerContainer->setLayout(playerContainerLayout);
   layout->addWidget(playerContainer);
@@ -454,73 +453,25 @@ void StreamingApp::setupGui()
   
   WContainerWidget* contentWidget = new WContainerWidget();
   contentWidget->setLayout(layout);
+  MediaCollectionBrowser* browser = new MediaCollectionBrowser(d->collection);
+  browser->play().connect([this](Media media, _n5){
+    d->play(media.path());
+  });
+  browser->queue().connect([this](Media media, _n5){
+    d->queue(media.path());
+  });
   
-  d->mainWidget->addWidget(new MediaCollectionBrowser(d->collection));
-  d->mainWidget->addWidget(contentWidget);
+  d->widgetsStack = new WStackedWidget();
+//   d->widgetsStack->setTransitionAnimation(WAnimation(WAnimation::Fade));
+  
+  d->mainWidget->addWidget(d->widgetsStack);
+  d->widgetsStack->addWidget(contentWidget);
+  d->widgetsStack->addWidget(browser);
 
-  d->setupTreeMenu();
-  
   d->parseFileParameter();
   
   d->playlist->next().connect(d, &StreamingAppPrivate::play);
 }
-
-void StreamingAppPrivate::setupTreeMenu()
-{
-  delete menu;
-  menu = new WMenu(Wt::Vertical);
-  menu->itemSelected().connect(this, &StreamingAppPrivate::menuItemClicked);
-  menuContainer->addWidget(menu);
-  menu->setRenderAsList(true);
-  menu->setStyleClass("nav nav-list");
-  listDirectoryAndRun(fs::path(videosDir()), [this](fs::path path) {
-    addTo(menu, path);
-  });
-}
-
-
-
-void StreamingAppPrivate::listDirectoryAndRun(filesystem::path directoryPath, RunOnPath runAction)
-{
-  vector<filesystem::path> v;
-  copy(filesystem::directory_iterator(directoryPath), filesystem::directory_iterator(), back_inserter(v));
-  sort(v.begin(), v.end());
-  for(filesystem::path path: v) {
-    runAction(path);
-  }
-}
-
-void StreamingAppPrivate::addTo ( WMenu* menu, filesystem::path p ) {
-  if(!isAllowed(p)) return;
-  WSubMenuItem *menuItem = new WSubMenuItem(p.filename().string(), 0);
-  menuItem->setPathComponent(p.string());
-  WMenu *subMenu = new WMenu(Wt::Vertical);
-  subMenu->itemSelected().connect(this, &StreamingAppPrivate::menuItemClicked);
-  subMenu->setRenderAsList(true);
-  subMenu->setStyleClass("nav nav-list");
-  menuItem->setSubMenu(subMenu);
-  subMenu->hide();
-  menu->addItem(menuItem);
-  if(fs::is_directory(p)) {
-    setIconTo(menuItem, "http://gulinux.net/css/folder.png");
-    menu->itemSelected().connect([menuItem, subMenu](WMenuItem* selItem, _n5) {
-      if(selItem == menuItem) {
-    if(subMenu->isVisible())
-      subMenu->animateHide(WAnimation(WAnimation::SlideInFromBottom));
-    else
-      subMenu->animateShow(WAnimation(WAnimation::SlideInFromTop));
-      }
-    });
-    listDirectoryAndRun(p, [subMenu,this](fs::path p){
-      addTo(subMenu, p);
-    });
-  } else {
-    filesHashes[Utils::hexEncode(Utils::md5(p.string()))] = p;
-    setIconTo(menuItem, "http://gulinux.net/css/video.png");
-    menuItemsPaths[menuItem] = p;
-  }
-}
-
 
 
 void StreamingAppPrivate::parseFileParameter() {
@@ -528,7 +479,7 @@ void StreamingAppPrivate::parseFileParameter() {
     log("notice") << "Got parameter file: " << *wApp->environment().getParameter("file");
     WTimer::singleShot(1000, [this](WMouseEvent&) {
       string fileHash = * wApp->environment().getParameter("file");
-      queue(filesystem::path( filesHashes[fileHash]));
+      queue(collection->media(fileHash).path());
     });
   }    
 }
@@ -661,7 +612,8 @@ void StreamingAppPrivate::queue(filesystem::path path)
 
 
 void StreamingAppPrivate::play ( filesystem::path path ) {
-
+  filesListMenuItem->setText(WString::tr("menu.videoslist"));
+  widgetsStack->setCurrentIndex(0);
   log("notice") << "Playing file " << path;
   if(player) {
     if(!fs::is_regular_file( path ) || ! isAllowed( path )) return;

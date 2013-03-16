@@ -12,6 +12,7 @@ namespace fs = boost::filesystem;
 typedef pair<string,string> mimepair;
 map<string,string> supportedMimetypes{
   mimepair(".mp4", "video/mp4"),
+  mimepair(".m4v", "video/mp4"),
   mimepair(".ogv", "video/ogg"),
   mimepair(".webm", "video/webm"),
   mimepair(".flv", "video/x-flv"),
