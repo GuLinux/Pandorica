@@ -18,12 +18,12 @@ public:
   fs::path basePath;
   map<string,Media> collection;
   Signal<Media> added;
+  Signal<> scanned;
 };
 
 MediaCollection::MediaCollection(string basePath, WObject* parent)
   : WObject(parent), d(new MediaCollectionPrivate(basePath))
 {
-  rescan();
 }
 
 void MediaCollection::rescan()
@@ -32,6 +32,7 @@ void MediaCollection::rescan()
   d->listDirectory(d->basePath);
   for(pair<string,Media> media: d->collection)
     wApp->log("notice") << "found media with id=" << media.first << ": " << media.second.fullPath();
+  d->scanned.emit();
 }
 
 void MediaCollectionPrivate::listDirectory(filesystem::path path)
@@ -66,6 +67,12 @@ Wt::Signal< Media >& MediaCollection::added()
 {
   return d->added;
 }
+
+Signal<>& MediaCollection::scanned()
+{
+  return d->scanned;
+}
+
 
 
 

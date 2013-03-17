@@ -64,7 +64,10 @@
 #include <Wt/WOverlayLoadingIndicator>
 #include <Wt/WCombinedLocalizedStrings>
 #include <Wt/WStackedWidget>
+#include <Wt/WLineEdit>
 #include <boost/format.hpp>
+#include <Wt/WSuggestionPopup>
+#include <Wt/WStringListModel>
 
 using namespace Wt;
 using namespace std;
@@ -206,6 +209,7 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   combinedLocalizedStrings->add(xmlResourcesBundle);
   setLocalizedStrings(combinedLocalizedStrings);
 
+  d->collection = new MediaCollection(d->videosDir(), this);
   addMetaHeader("viewport", "width=device-width, initial-scale=1, maximum-scale=1");
   
   d->authContainer = new WContainerWidget();
@@ -278,7 +282,6 @@ void StreamingApp::authEvent()
   d->sessionInfo = d->session.add(sessionInfo);
   t.commit();
   d->setupMenus(authUser->role());
-  d->collection = new MediaCollection(d->videosDir(), this);
   setupGui();
   auto sessionAddedCallback = [this](StreamingAppSession newSession) { d->sessionAdded.emit(newSession); wApp->triggerUpdate(); wApp->log("notice") << "*** Session added (userId=" << newSession.first.id() << ")"; };
   auto sessionRemovedCallback = [this](StreamingAppSession sessionRemoved) { d->sessionRemoved.emit(sessionRemoved); wApp->triggerUpdate(); wApp->log("notice") << "*** Session removed (userId=" << sessionRemoved.first.id() << ")"; };
@@ -350,12 +353,37 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   navbarInner->addWidget(WW(WText,WString::tr("site-title")).css("brand"));
   
   navbarInner->addWidget(new WText(HTML(<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-  <span class="icon-bar"></span>
-  <span class="icon-bar"></span>
-  <span class="icon-bar"></span>
-  </a>), Wt::XHTMLUnsafeText));
+    <span class="icon-bar"></span>
+    <span class="icon-bar"></span>
+    <span class="icon-bar"></span>
+    </a>), Wt::XHTMLUnsafeText));
   
-  navbarInner->addWidget(WW(WContainerWidget).css("nav-collapse collapse").add(topMenu));
+  WLineEdit *searchBox = new WLineEdit();
+  searchBox->setStyleClass("search-query");
+  searchBox->setEmptyText("Search");
+  WSuggestionPopup::Options options;
+  options.highlightBeginTag = "<b>";
+  options.highlightEndTag = "</b>";
+  options.listSeparator = 0;
+  WSuggestionPopup* suggestions = new WSuggestionPopup(options);
+  WStringListModel *searchModel = new WStringListModel(suggestions);
+  suggestions->setModel(searchModel);
+  suggestions->forEdit(searchBox);
+  suggestions->setFilterLength(2);
+  
+  auto addSuggestions = [this,suggestions,searchModel](WMouseEvent) {
+    for(pair<string,Media> media: collection->collection()) {
+      wApp->log("notice") << "adding suggestion: " << media.second.filename();
+      suggestions->addSuggestion(media.second.filename(), media.first);
+    }
+    for(WString str: searchModel->stringList()) {
+      wApp->log("notice") << "suggestion correctly added: : " << str;
+    }
+  };
+  
+  collection->scanned().connect([addSuggestions](_n6){ WTimer::singleShot(1000, addSuggestions);});
+    navbarInner->addWidget(WW(WContainerWidget).css("nav-collapse collapse").add(topMenu).add(WW(WContainerWidget)
+      .css("navbar-search pull-right").add(searchBox)));
   
   navBar->setStyleClass("navbar navbar-static-top navbar-inverse");
   navbarInner->setStyleClass("navbar-inner");
@@ -436,6 +464,7 @@ void StreamingApp::setupGui()
   contentWidget->addWidget(playlistContainer);
   contentWidget->addWidget(d->playerContainerWidget);
   
+  d->collection->rescan();
   MediaCollectionBrowser* browser = new MediaCollectionBrowser(d->collection);
   browser->play().connect([this](Media media, _n5){
     d->play(media.path());
