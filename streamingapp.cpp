@@ -205,6 +205,8 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   combinedLocalizedStrings->add(new WHTMLTemplatesLocalizedStrings("html_templates"));
   combinedLocalizedStrings->add(xmlResourcesBundle);
   setLocalizedStrings(combinedLocalizedStrings);
+
+  addMetaHeader("viewport", "width=device-width, initial-scale=1, maximum-scale=1");
   
   d->authContainer = new WContainerWidget();
   d->authContainer->addWidget(WW(WText, WString("<h1 style=\"text-align: center;\">{1}</h1>").arg(WString::tr("site-title"))));
@@ -308,7 +310,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   }
   
   
-  WMenuItem *refresh = topMenu->addItem("Refresh", 0);
+//   WMenuItem *refresh = topMenu->addItem("Refresh", 0);
   
   string serverStatusUrl;
   if(wApp->readConfigurationProperty("server-status-url", serverStatusUrl))
@@ -317,17 +319,19 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   WMenuItem *logout = topMenu->addItem("Logout", 0);
   logout->itemWidget()->parent()->addStyleClass("pull-right");
   
-  topMenu->itemSelected().connect([logout,refresh,this](WMenuItem *selected,_n5){
+  topMenu->itemSelected().connect([logout/*,refresh*/,this](WMenuItem *selected,_n5){
     if(selected==logout) {
       session.login().logout();
       wApp->redirect(wApp->bookmarkUrl("/"));
     }
+    /*
     if(selected==refresh) {
       WOverlayLoadingIndicator* indicator = new WOverlayLoadingIndicator();
       wApp->root()->addWidget(indicator->widget());
       collection->rescan();
       WTimer::singleShot(1000, [indicator,this](WMouseEvent) { delete indicator;});
     }
+    */
     if(selected == filesListMenuItem) {
       if(widgetsStack->currentIndex()) {
         filesListMenuItem->setText(WString::tr("menu.videoslist"));
@@ -344,7 +348,14 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
 
   navBar->addWidget(navbarInner);
   navbarInner->addWidget(WW(WText,WString::tr("site-title")).css("brand"));
-  navbarInner->addWidget(topMenu);
+  
+  navbarInner->addWidget(new WText(HTML(<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+  <span class="icon-bar"></span>
+  <span class="icon-bar"></span>
+  <span class="icon-bar"></span>
+  </a>), Wt::XHTMLUnsafeText));
+  
+  navbarInner->addWidget(WW(WContainerWidget).css("nav-collapse collapse").add(topMenu));
   
   navBar->setStyleClass("navbar navbar-static-top navbar-inverse");
   navbarInner->setStyleClass("navbar-inner");
@@ -405,23 +416,26 @@ Visit {3} to do it.").arg(identity).arg(email).arg(wApp->makeAbsoluteUrl(wApp->b
 
 void StreamingApp::setupGui()
 {
-  WBoxLayout *layout = new WHBoxLayout();
+  WContainerWidget* contentWidget = new WContainerWidget();
 
-  WContainerWidget *playerContainer = new WContainerWidget();
-  WBoxLayout *playerContainerLayout = new WVBoxLayout();
   d->playerContainerWidget = new WContainerWidget();
   d->playerContainerWidget->setContentAlignment(AlignCenter);
-  playerContainerLayout->addWidget(d->playerContainerWidget);
   d->playlist = new Playlist();
   d->playlist->setList(true);
-  layout->addWidget(d->playlist, 0);
-  playerContainerLayout->setResizable(0, true);
-  playerContainer->setLayout(playerContainerLayout);
-  layout->addWidget(playerContainer);
-  layout->setResizable(0, true, 400);
+  d->playlist->addStyleClass("accordion-inner");
   
-  WContainerWidget* contentWidget = new WContainerWidget();
-  contentWidget->setLayout(layout);
+  WContainerWidget *playlistAccordion = WW(WContainerWidget).css("accordion-body collapse").add(d->playlist);
+  
+  WContainerWidget *playlistContainer = WW(WContainerWidget).css("accordion-group playlist").setContentAlignment(AlignCenter);
+  playlistContainer->addWidget(WW(WContainerWidget).css("accordion-heading").add(WW(WAnchor, string("#") + playlistAccordion->id(),"Playlist")
+    .setAttribute("data-toggle", "collapse").setAttribute("data-parent",string("#") + contentWidget->id()).css("accordion-toggle")));
+  playlistContainer->addWidget(playlistAccordion);
+  
+  
+  contentWidget->addStyleClass("accordion");
+  contentWidget->addWidget(playlistContainer);
+  contentWidget->addWidget(d->playerContainerWidget);
+  
   MediaCollectionBrowser* browser = new MediaCollectionBrowser(d->collection);
   browser->play().connect([this](Media media, _n5){
     d->play(media.path());
@@ -431,7 +445,6 @@ void StreamingApp::setupGui()
   });
   
   d->widgetsStack = new WStackedWidget();
-//   d->widgetsStack->setTransitionAnimation(WAnimation(WAnimation::Fade));
   
   d->mainWidget->addWidget(d->widgetsStack);
   d->widgetsStack->addWidget(contentWidget);
