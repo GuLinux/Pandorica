@@ -596,7 +596,7 @@ void StreamingAppPrivate::queueAndPlay(Media media)
 {
   if(!media.valid()) return;
   playlist->reset();
-  if(player->playing()) {
+  if(player && player->playing()) {
     player->stop();
     delete player;
     player = 0;
