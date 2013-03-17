@@ -19,12 +19,12 @@ Playlist::~Playlist()
 }
 
 
-Signal< filesystem::path >& Playlist::next()
+Signal< Media >& Playlist::next()
 {
   return _next;
 }
 
-filesystem::path Playlist::first()
+Media Playlist::first()
 {
   return internalQueue.front().second;
 }
@@ -36,7 +36,6 @@ void Playlist::nextItem(WWidget* itemToPlay)
 
   auto itemToSkip = internalQueue.begin();
   while(itemToSkip->first != itemToPlay) {
-    wApp->log("notice") << "skippedItem==" << itemToSkip->first << " [" << itemToSkip->second << "]";
     removeWidget(itemToSkip->first);
     delete itemToSkip->first;
     itemToSkip = internalQueue.erase(itemToSkip);
@@ -46,16 +45,15 @@ void Playlist::nextItem(WWidget* itemToPlay)
   wApp->log("notice") << "outside the loop: internalQueue.size(): " << internalQueue.size();
   if(internalQueue.empty()) return;
   QueueItem next = *internalQueue.begin();
-  wApp->log("notice") << "Next item: " << next.first << " [" << next.second << "]";
   _next.emit(next.second);
 }
 
 
-void Playlist::queue(filesystem::path path)
+void Playlist::queue(Media media)
 {
-  WAnchor* playlistEntry = new WAnchor("javascript:false", path.filename().string());
+  WAnchor* playlistEntry = new WAnchor("javascript:false", media.filename());
   playlistEntry->addWidget(new WBreak());
-  playlistEntry->clicked().connect([this,path, playlistEntry](WMouseEvent&){ nextItem(playlistEntry); });
+  playlistEntry->clicked().connect([this,media, playlistEntry](WMouseEvent&){ nextItem(playlistEntry); });
   addWidget(playlistEntry);
-  internalQueue.push_back(QueueItem(playlistEntry, path));
+  internalQueue.push_back(QueueItem(playlistEntry, media));
 }

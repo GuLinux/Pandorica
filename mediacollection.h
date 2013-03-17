@@ -4,27 +4,9 @@
 #include <Wt/WObject>
 #include <Wt/WSignal>
 #include <boost/filesystem.hpp>
+#include "media.h"
 
 class MediaCollectionPrivate;
-class MediaPrivate;
-class Media {
-public:
-  Media(const boost::filesystem::path &path);
-  Media();
-  ~Media();
-  std::string fullPath() const;
-  std::string filename() const;
-  std::string extension() const;
-  std::string mimetype() const;
-  std::string uid() const;
-  boost::filesystem::path path() const;
-  boost::filesystem::path parentDirectory() const;
-  bool valid() const;
-private:
-  boost::filesystem::path m_path;
-  std::string m_uid;
-};
-
 class MediaCollection : public Wt::WObject
 {
 public:
