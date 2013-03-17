@@ -90,14 +90,11 @@ typedef pair<Dbo::ptr<User>, StreamingApp*> StreamingAppSession;
 
 class StreamingAppPrivate {
 public:
-  WMediaPlayer::Encoding encodingFor ( filesystem::path p );
   WLink linkFor(filesystem::path p);
-  bool isAllowed(filesystem::path p);
   WMenu *menu = 0;
   string videosDir() const;
   Player *player = 0;
   string extensionFor(filesystem::path p);
-  map<string, WMediaPlayer::Encoding> types;
   StreamingAppPrivate(StreamingApp* q);
   map<WMenuItem*, boost::filesystem::path> menuItemsPaths;
   void menuItemClicked(WMenuItem *item);
@@ -145,19 +142,7 @@ Message::Message(WString text, WContainerWidget* parent): WTemplate(parent)
 
 
 
-StreamingAppPrivate::StreamingAppPrivate(StreamingApp *q) : q(q) {
-  types.insert(pair<string, WMediaPlayer::Encoding>(".mp3", WMediaPlayer::MP3));
-  types.insert(pair<string, WMediaPlayer::Encoding>(".m4a", WMediaPlayer::M4A));
-  types.insert(pair<string, WMediaPlayer::Encoding>(".m4v", WMediaPlayer::M4V));
-  types.insert(pair<string, WMediaPlayer::Encoding>(".mp4", WMediaPlayer::M4V));
-  types.insert(pair<string, WMediaPlayer::Encoding>(".oga", WMediaPlayer::OGA));
-  types.insert(pair<string, WMediaPlayer::Encoding>(".ogg", WMediaPlayer::OGA));
-  types.insert(pair<string, WMediaPlayer::Encoding>(".ogv", WMediaPlayer::OGV));
-  types.insert(pair<string, WMediaPlayer::Encoding>(".wav", WMediaPlayer::WAV));
-  types.insert(pair<string, WMediaPlayer::Encoding>(".webm", WMediaPlayer::WEBMV));
-  types.insert(pair<string, WMediaPlayer::Encoding>(".flv", WMediaPlayer::FLV));
-  types.insert(pair<string, WMediaPlayer::Encoding>(".f4v", WMediaPlayer::FLV));
-}
+StreamingAppPrivate::StreamingAppPrivate(StreamingApp *q) : q(q) {}
 
 
 class AuthWidgetCustom : public Wt::Auth::AuthWidget {
@@ -490,14 +475,6 @@ void StreamingApp::refresh() {
   d->parseFileParameter();
 }
 
-
-
-WMediaPlayer::Encoding StreamingAppPrivate::encodingFor ( filesystem::path p ) {
-  return types[extensionFor(p)];
-}
-
-
-
 WLink StreamingAppPrivate::linkFor ( filesystem::path p ) {
   string videosDeployDir;
   string secDownloadPrefix;
@@ -559,11 +536,6 @@ string StreamingAppPrivate::extensionFor ( filesystem::path p ) {
 }
 
 
-bool StreamingAppPrivate::isAllowed ( filesystem::path p ) {
-  return types.count(extensionFor(p)) || fs::is_directory(p);
-}
-
-
 string StreamingAppPrivate::videosDir() const {
   string videosDir = string(getenv("HOME")) + "/Videos";
   wApp->readConfigurationProperty("videos-dir", videosDir);
@@ -616,27 +588,23 @@ void StreamingAppPrivate::play ( Media media ) {
   widgetsStack->setCurrentIndex(0);
   log("notice") << "Playing file " << media.path();
   if(player) {
-    if(!fs::is_regular_file( media.path() ) || ! isAllowed( media.path() )) return;
     player->stop();
-    // player->clearSources();
     delete player;
   }
-  WMediaPlayer::Encoding encoding = encodingFor( media.path() );
-  if(encoding == WMediaPlayer::WEBMV || encoding == WMediaPlayer::OGV || encoding == WMediaPlayer::M4V) {
-//     player = new VideoJS();
-    player = new HTML5Player();
-  } else {
-    player = new WMediaPlayerWrapper();
-  }
+  player = new HTML5Player();
+  
+  player->addSource( Source(linkFor( media.path() ).url(), media.mimetype()) );
+  player->setAutoplay(true);
+  
   player->ended().connect([this](_n6){
     Dbo::Transaction t(session);
     for(auto detail : sessionInfo.modify()->sessionDetails())
       detail.modify()->ended();
     sessionInfo.flush();
     t.commit();
-    playlist->nextItem();                                                                                                                                                                                                                                                   
+    playlist->nextItem();
   });
-  player->setSource(encoding, linkFor( media.path() ), true);
+
   addSubtitlesFor(media.path());
   playerContainerWidget->clear();
   playerContainerWidget->addWidget(player->widget());
@@ -681,7 +649,7 @@ void StreamingAppPrivate::addSubtitlesFor(filesystem::path path)
     fs::path mySub = fs::path(langPath.string() + "/" + path.filename().string() + ".vtt");
     if(fs::exists(mySub)) {
       wApp->log("notice") << "sub found: lang= " << lang << ", path= " << mySub;
-      player->addSubtitles(linkFor(mySub), name, lang);
+      player->addSubtitles(Track(linkFor(mySub).url(), lang, name));
     }
   }
 }

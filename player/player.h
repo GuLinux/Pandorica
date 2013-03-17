@@ -22,6 +22,7 @@
 #define PLAYER_H
 #include <Wt/WJavaScript>
 #include <Wt/WMediaPlayer>
+#include "media.h"
 
 namespace Wt {
 class WWidget;
@@ -53,9 +54,6 @@ class Player
 public:
     Player()=default;
     virtual ~Player() {};
-    virtual void setSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink &path, bool autoPlay = true) __attribute__ ((deprecated)) = 0;
-    virtual void addSubtitles(const Wt::WLink &path, std::string name, std::string lang) __attribute__ ((deprecated)) = 0;
-    
     // New methods:
     virtual void addSource(const Source &source) = 0;
     virtual void setAutoplay(bool autoplay) = 0;

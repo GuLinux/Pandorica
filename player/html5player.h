@@ -38,8 +38,6 @@ public:
     virtual Wt::WWidget* widget();
     virtual bool playing();
     
-    virtual void addSubtitles(const Wt::WLink& path, std::string name, std::string lang) __attribute__ ((deprecated));
-    virtual void setSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink& path, bool autoPlay = true) __attribute__ ((deprecated));
     
     virtual void addSource(const Source& source);
     virtual void addSubtitles(const Track& track);

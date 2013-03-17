@@ -32,13 +32,11 @@ class WMediaPlayerWrapper : public Player
 public:
   WMediaPlayerWrapper();
   virtual ~WMediaPlayerWrapper();
-  virtual void setSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink &path, bool autoPlay = true);
   virtual bool playing();
   virtual Wt::WWidget *widget();
   virtual Wt::JSignal <Wt::NoClass >& ended();
   virtual void stop();
   virtual void play();
-  virtual void addSubtitles(const Wt::WLink &path, std::string name, std::string lang);
   virtual void addSubtitles(const Track& track);
   
   // TODO
@@ -46,7 +44,7 @@ public:
   virtual void setAutoplay(bool autoplay);
 
 private:
-  Wt::WMediaPlayer *player;
+  Wt::WMediaPlayer *player = 0;
 };
 
 #endif // WMEDIAPLAYERWRAPPER_H

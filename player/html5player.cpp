@@ -31,7 +31,7 @@ using namespace boost;
 HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
   : WTemplate(parent), s_ended(this, "playbackEnded"), s_playing(this, "playbackStarted"), s_playerReady(this, "playbackReady")
 {
-  setTemplateText(WString::tr("html5player.videotag"), Wt::XHTMLUnsafeText);
+  setTemplateText(WString::tr("html5player.mediatag"), Wt::XHTMLUnsafeText);
   addFunction("sources", [this](WTemplate *t, vector<WString> args, std::ostream &output) {
     for(Source source: sources) {
       output << WString::tr("player.source").arg(source.type).arg(source.src);
@@ -61,18 +61,18 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
 
 HTML5Player::~HTML5Player()
 {
-  runJavascript("videoPlayer.src(""); videoPlayer.erase();");
+  runJavascript("mediaPlayer.src(""); mediaPlayer.erase();");
 }
 
 
 void HTML5Player::play()
 {
-  runJavascript("videoPlayer.play();");
+  runJavascript("mediaPlayer.play();");
 }
 
 void HTML5Player::stop()
 {
-  runJavascript("videoPlayer.stop();");
+  runJavascript("mediaPlayer.stop();");
 }
 
 Wt::JSignal<>& HTML5Player::ended()
@@ -90,38 +90,23 @@ bool HTML5Player::playing()
   return isPlaying;
 }
 
-void HTML5Player::addSubtitles(const Wt::WLink& path, std::string name, std::string lang)
+void HTML5Player::addSubtitles(const Track& track)
 {
-  Track track = Track(path.url(), lang, name);
   tracks["subtitles"].push_back(track);
   if(!defaultTracks["subtitles"].isValid())
     defaultTracks["subtitles"] = track;
 }
 
-void HTML5Player::addSubtitles(const Track& track)
-{
-
-}
-
-
-void HTML5Player::setSource(Wt::WMediaPlayer::Encoding encoding, const Wt::WLink& path, bool autoPlay)
-{
-  bindString("video.src", path.url(), Wt::XHTMLUnsafeText);
-  string type;
-  if(encoding == WMediaPlayer::WEBMV)
-    type = "webm";
-  if(encoding == WMediaPlayer::OGV)
-    type = "ogg";
-  if(encoding == WMediaPlayer::M4V)
-    type = "mp4";
-  bindString("video.mimetype", string("video/") + type, Wt::XHTMLUnsafeText);
-  Source source{path.url(), string("video/") + type};
-  addSource(source);
-  setAutoplay(autoPlay);
-}
 
 void HTML5Player::addSource(const Source& source)
 {
+  if(source.type.find("video/") != string::npos) {
+    bindString("media.defaultsize", "width=\"640\" height=\"264\"");
+    bindString("media.tagtype",  "video" );
+  } else {
+    bindString("media.tagtype", "audio" );
+    bindString("media.defaultsize", "");
+  }
   sources.push_back(source);
 }
 
@@ -151,7 +136,7 @@ void HTML5Player::playerReady()
 void HTML5Player::runJavascript(string js)
 {
   string runJS = WString(JS(
-    var videoPlayer = document.getElementById('{1}');
+    var mediaPlayer = document.getElementById('{1}');
     {2}
   )).arg(playerId()).arg(js).toUTF8();
   doJavaScript(runJS);
@@ -160,16 +145,16 @@ void HTML5Player::runJavascript(string js)
 void HTML5Player::addListener(string eventName, string function)
 {
   string js = WString(JS(
-    videoPlayer.addEventListener('{1}', function() { {2} });
+    mediaPlayer.addEventListener('{1}', function() { {2} });
   )).arg(eventName).arg(function).toUTF8();
   runJavascript(js);
 }
 
 void HTML5Player::setPlayerSize(int width, int height)
 {
-  string js = (boost::format("videoPlayer.width=%d;") % width).str();
+  string js = (boost::format("mediaPlayer.width=%d;") % width).str();
   if(height>0)
-    js += (boost::format("videoPlayer.height=%d;") % height).str();
+    js += (boost::format("mediaPlayer.height=%d;") % height).str();
   runJavascript(js);
 }
 
