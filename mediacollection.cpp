@@ -9,63 +9,6 @@ using namespace boost;
 using namespace Wt::Utils;
 namespace fs = boost::filesystem;
 
-typedef pair<string,string> mimepair;
-map<string,string> supportedMimetypes{
-  mimepair(".mp4", "video/mp4"),
-  mimepair(".m4v", "video/mp4"),
-  mimepair(".ogv", "video/ogg"),
-  mimepair(".webm", "video/webm"),
-  mimepair(".flv", "video/x-flv"),
-  mimepair(".ogg", "audio/ogg"),
-  mimepair(".mp3", "audio/mpeg")
-};
-
-Media::Media(const filesystem::path& path) : m_path{path}, m_uid{hexEncode(md5(path.string()))} {}
-
-Media::~Media()
-{
-}
-string Media::fullPath() const
-{
-  return m_path.string();
-}
-string Media::extension() const
-{
-  return m_path.extension().string();
-}
-string Media::filename() const
-{
-  return m_path.filename().string();
-}
-string Media::mimetype() const
-{
-  if(supportedMimetypes.count(extension()) >0)
-    return supportedMimetypes[extension()];
-  return "UNSUPPORTED";
-}
-filesystem::path Media::path() const
-{
-  return m_path;
-}
-filesystem::path Media::parentDirectory() const
-{
-  return m_path.parent_path();
-}
-
-string Media::uid() const
-{
-  return m_uid;
-}
-
-Media::Media() {}
-
-bool Media::valid() const
-{
-  return !uid().empty() && !path().empty();
-}
-
-
-
 class MediaCollectionPrivate {
 public:
   MediaCollectionPrivate(string basePath) : basePath(basePath) {}

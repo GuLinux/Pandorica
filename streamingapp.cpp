@@ -101,7 +101,6 @@ public:
   StreamingAppPrivate(StreamingApp* q);
   map<WMenuItem*, boost::filesystem::path> menuItemsPaths;
   void menuItemClicked(WMenuItem *item);
-  void play(filesystem::path path);
   void setIconTo(WMenuItem *item, string url);
   void parseFileParameter();
   Playlist *playlist;
@@ -122,7 +121,8 @@ public:
   WMenu* topMenu;
   MediaCollection *collection;
   WStackedWidget* widgetsStack;
-  void queue(filesystem::path path);
+  void play(Media media);
+  void queue(Media media);
 private:
   void addSubtitlesFor(filesystem::path path);
   void setupUserMenus();
@@ -599,10 +599,10 @@ void StreamingAppPrivate::menuItemClicked ( WMenuItem* item ) {
   queue(path);
 }
 
-void StreamingAppPrivate::queue(filesystem::path path)
+void StreamingAppPrivate::queue(Media media)
 {
-  if(path.empty()) return;
-  playlist->queue(path);
+  if(!media.valid()) return;
+  playlist->queue(media);
   if(!player || !player->playing()) {
     WTimer::singleShot(500, [this](WMouseEvent) {
       play(playlist->first());
@@ -611,17 +611,17 @@ void StreamingAppPrivate::queue(filesystem::path path)
 }
 
 
-void StreamingAppPrivate::play ( filesystem::path path ) {
+void StreamingAppPrivate::play ( Media media ) {
   filesListMenuItem->setText(WString::tr("menu.videoslist"));
   widgetsStack->setCurrentIndex(0);
-  log("notice") << "Playing file " << path;
+  log("notice") << "Playing file " << media.path();
   if(player) {
-    if(!fs::is_regular_file( path ) || ! isAllowed( path )) return;
+    if(!fs::is_regular_file( media.path() ) || ! isAllowed( media.path() )) return;
     player->stop();
     // player->clearSources();
     delete player;
   }
-  WMediaPlayer::Encoding encoding = encodingFor( path );
+  WMediaPlayer::Encoding encoding = encodingFor( media.path() );
   if(encoding == WMediaPlayer::WEBMV || encoding == WMediaPlayer::OGV || encoding == WMediaPlayer::M4V) {
 //     player = new VideoJS();
     player = new HTML5Player();
@@ -636,24 +636,24 @@ void StreamingAppPrivate::play ( filesystem::path path ) {
     t.commit();
     playlist->nextItem();                                                                                                                                                                                                                                                   
   });
-  player->setSource(encoding, linkFor( path ), true);
-  addSubtitlesFor(path);
+  player->setSource(encoding, linkFor( media.path() ), true);
+  addSubtitlesFor(media.path());
   playerContainerWidget->clear();
   playerContainerWidget->addWidget(player->widget());
   WContainerWidget* infoBox = new WContainerWidget();
   playerContainerWidget->addWidget(infoBox);
-  string fileId = Utils::hexEncode(Utils::md5(path.string()));
+  string fileId = Utils::hexEncode(Utils::md5(media.path().string()));
   playerContainerWidget->addWidget(new CommentsContainerWidget(fileId, &session));
-  infoBox->addWidget(new WText(string("File: ") + path.filename().string()));
+  infoBox->addWidget(new WText(string("File: ") + media.filename()));
   WLink shareLink(wApp->bookmarkUrl("/") + string("?file=") + fileId);
   infoBox->addWidget(new WBreak() );
   infoBox->addWidget(new WAnchor(shareLink, "Link per la condivisione"));
-  wApp->setTitle( path.filename().string());
-  log("notice") << "using url " << linkFor( path ).url();
+  wApp->setTitle( media.filename() );
+  log("notice") << "using url " << linkFor( media.path() ).url();
   Dbo::Transaction t(session);
   for(auto detail : sessionInfo.modify()->sessionDetails())
     detail.modify()->ended();
-  sessionInfo.modify()->sessionDetails().insert(new SessionDetails(path));
+  sessionInfo.modify()->sessionDetails().insert(new SessionDetails(media.path()));
   sessionInfo.flush();
   t.commit();
 }
