@@ -120,7 +120,6 @@ public:
   WContainerWidget *authContainer;
   WContainerWidget *messagesContainer;
   WMenu* topMenu;
-  WCombinedLocalizedStrings combinedLocalizedStrings;
   MediaCollection *collection;
   WStackedWidget* widgetsStack;
   void queue(filesystem::path path);
@@ -233,9 +232,10 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   d->session.login().changed().connect(this, &StreamingApp::authEvent);
   WMessageResourceBundle *xmlResourcesBundle = new WMessageResourceBundle;
   xmlResourcesBundle->use("templates");
-  d->combinedLocalizedStrings.add(new WHTMLTemplatesLocalizedStrings("html_templates"));
-  d->combinedLocalizedStrings.add(xmlResourcesBundle);
-  setLocalizedStrings(&d->combinedLocalizedStrings);
+  WCombinedLocalizedStrings* combinedLocalizedStrings = new WCombinedLocalizedStrings();
+  combinedLocalizedStrings->add(new WHTMLTemplatesLocalizedStrings("html_templates"));
+  combinedLocalizedStrings->add(xmlResourcesBundle);
+  setLocalizedStrings(combinedLocalizedStrings);
   
   d->authContainer = new WContainerWidget();
   d->authContainer->addWidget(WW(WText, WString("<h1 style=\"text-align: center;\">{1}</h1>").arg(WString::tr("site-title"))));
