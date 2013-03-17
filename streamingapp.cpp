@@ -21,26 +21,17 @@
 #include "streamingapp.h"
 #include "player/player.h"
 #include "player/wmediaplayerwrapper.h"
-#include "player/videojs.h"
-#include <Wt/WGridLayout>
 #include <Wt/WHBoxLayout>
 #include <Wt/WVBoxLayout>
-#include <Wt/WMediaPlayer>
 #include <Wt/WContainerWidget>
-#include <Wt/WTreeView>
-#include <Wt/WStandardItem>
-#include <Wt/WStandardItemModel>
 #include <Wt/WAnchor>
 #include <Wt/WFileResource>
 #include <Wt/WTimer>
 #include <Wt/WEnvironment>
 #include <Wt/WMenu>
-#include <Wt/WSubMenuItem>
 #include <Wt/WImage>
 #include <Wt/WText>
 #include <Wt/Utils>
-#include <Wt/WStreamResource>
-#include <Wt/WMessageBox>
 #include <Wt/Auth/AuthWidget>
 #include <Wt/Auth/RegistrationModel>
 #include <Wt/WPushButton>
@@ -70,10 +61,6 @@
 #include "mediacollectionbrowser.h"
 
 
-#include <Wt/WStringListModel>
-#include <Wt/WViewWidget>
-#include <Wt/Utils>
-#include <Wt/WAbstractItemView>
 #include <Wt/WOverlayLoadingIndicator>
 #include <Wt/WCombinedLocalizedStrings>
 #include <Wt/WStackedWidget>
@@ -96,9 +83,6 @@ public:
   Player *player = 0;
   string extensionFor(filesystem::path p);
   StreamingAppPrivate(StreamingApp* q);
-  map<WMenuItem*, boost::filesystem::path> menuItemsPaths;
-  void menuItemClicked(WMenuItem *item);
-  void setIconTo(WMenuItem *item, string url);
   void parseFileParameter();
   Playlist *playlist;
   WContainerWidget* playerContainerWidget;
@@ -542,34 +526,6 @@ string StreamingAppPrivate::videosDir() const {
   return videosDir;
 }
 
-
-
-class IconMenuItem : public WSubMenuItem {
-public:
-  IconMenuItem(string text) : WSubMenuItem(text, 0) {
-    this->text = text;
-  }
-  virtual WWidget* createItemWidget();
-  string text;
-};
-
-WWidget* IconMenuItem::createItemWidget() {
-  WAnchor *anchor = new WAnchor();
-  anchor->setText(text);
-  return anchor;
-}
-
-void StreamingAppPrivate::setIconTo ( WMenuItem* item, string url ) {
-    WContainerWidget *cont = dynamic_cast<WContainerWidget*>(item->itemWidget());
-    WImage *icon = new WImage(url);
-    icon->setStyleClass("menu_item_ico");
-    cont->insertWidget(0, icon);
-}
-
-void StreamingAppPrivate::menuItemClicked ( WMenuItem* item ) {
-  filesystem::path path = menuItemsPaths[item];
-  queue(path);
-}
 
 void StreamingAppPrivate::queue(Media media)
 {
