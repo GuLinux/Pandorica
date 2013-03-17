@@ -27,9 +27,21 @@ using namespace Wt;
 using namespace boost;
 using namespace std;
 
+using MediaType = pair<WMediaPlayer::Encoding,WMediaPlayer::MediaType>;
+using EncodingEntry = pair<string,MediaType>;
+
+map<string,MediaType> encodings {
+  EncodingEntry("video/webm", MediaType(WMediaPlayer::WEBMV, WMediaPlayer::Video) ),
+  EncodingEntry("video/ogg", MediaType(WMediaPlayer::OGV, WMediaPlayer::Video)),
+  EncodingEntry("video/mp4", MediaType(WMediaPlayer::M4V, WMediaPlayer::Video)),
+  EncodingEntry("video/x-flv", MediaType(WMediaPlayer::FLV, WMediaPlayer::Video)),
+  EncodingEntry("audio/mpeg", MediaType(WMediaPlayer::MP3, WMediaPlayer::Audio)),
+  EncodingEntry("audio/ogg", MediaType(WMediaPlayer::OGA, WMediaPlayer::Audio))
+};
+
 WMediaPlayerWrapper::WMediaPlayerWrapper()
 {
-  player = new WMediaPlayer(WMediaPlayer::Video);
+//   player = new WMediaPlayer(WMediaPlayer::Video);
 }
 
 WMediaPlayerWrapper::~WMediaPlayerWrapper()
@@ -40,15 +52,6 @@ WMediaPlayerWrapper::~WMediaPlayerWrapper()
 JSignal< NoClass >& WMediaPlayerWrapper::ended()
 {
   return player->ended();
-}
-
-void WMediaPlayerWrapper::setSource(WMediaPlayer::Encoding encoding, const WLink& path, bool autoPlay)
-{
-  player->addSource(encoding, path);
-  if(autoPlay)
-    WTimer::singleShot(1000, [this](WMouseEvent){
-      player->play();
-    });
 }
 
 bool WMediaPlayerWrapper::playing()
@@ -71,26 +74,24 @@ void WMediaPlayerWrapper::play()
   player->play();
 }
 
-void WMediaPlayerWrapper::addSubtitles(const WLink& path, string name, string lang)
-{
-  wApp->log("notice") << "Add subtitles on WMediaPlayer is unsupported";
-}
-
 void WMediaPlayerWrapper::addSubtitles(const Track& track)
 {
   wApp->log("notice") << "Add subtitles on WMediaPlayer is unsupported";
 }
 
 
-// TODO
-
 void WMediaPlayerWrapper::addSource(const Source& source)
 {
-
+  if(!player)
+    player = new WMediaPlayer(encodings[source.type].second);
+  player->addSource(encodings[source.type].first, source.src);
 }
 
 void WMediaPlayerWrapper::setAutoplay(bool autoplay)
 {
-
+  if(autoplay)
+    WTimer::singleShot(1000, [this](WMouseEvent){
+      player->play();
+    });
 }
 
