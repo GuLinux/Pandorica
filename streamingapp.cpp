@@ -106,8 +106,11 @@ public:
   WMenu* topMenu;
   MediaCollection *collection;
   WStackedWidget* widgetsStack;
-  void play(Media media);
   void queue(Media media);
+  void queueAndPlay(Media media);
+  void play(Media media);
+  JSignal<string> playSignal;
+  JSignal<string> queueSignal;
 private:
   void addSubtitlesFor(filesystem::path path);
   void setupUserMenus();
@@ -129,8 +132,14 @@ Message::Message(WString text, WContainerWidget* parent): WTemplate(parent)
 }
 
 
-
-StreamingAppPrivate::StreamingAppPrivate(StreamingApp *q) : q(q) {}
+StreamingAppPrivate::StreamingAppPrivate(StreamingApp *q) : q(q), playSignal(q, "playSignal"), queueSignal(q, "queueSignal") {
+  playSignal.connect([this](string uid, _n5){
+    queueAndPlay(collection->media(uid));
+  });
+  queueSignal.connect([this](string uid, _n5){
+    queue(collection->media(uid));
+  });
+}
 
 
 class AuthWidgetCustom : public Wt::Auth::AuthWidget {
@@ -360,28 +369,28 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
     </a>), Wt::XHTMLUnsafeText));
   
   WContainerWidget* searchBoxDiv = WW(WContainerWidget).css("navbar-search pull-left");
-  WLineEdit *searchBox = new WLineEdit(searchBoxDiv);
+  WLineEdit *searchBox = new WLineEdit();
+  searchBoxDiv->addWidget(searchBox);
   searchBox->setStyleClass("search-query");
   searchBox->setAttributeValue("placeholder", "Search");
-  WSuggestionPopup::Options options;
-  options.highlightBeginTag = "<b>";
-  options.highlightEndTag = "</b>";
-  options.listSeparator = 0;
-  WSuggestionPopup* suggestions = new WSuggestionPopup(options, searchBoxDiv);
-  WStringListModel *searchModel = new WStringListModel(suggestions);
-  WSortFilterProxyModel *filterModel = new WSortFilterProxyModel(searchModel);
-  filterModel->setFilterKeyColumn(0);
-  filterModel->setSourceModel(searchModel);
-  suggestions->setModel(searchModel);
-  suggestions->filterModel().connect([filterModel](const WString &searchString, _n5){
-    filterModel->setFilterRegExp(WString(".*{1}.*").arg(searchString));
-    wApp->log("notice") << "Filtering model with regex " << filterModel->filterRegExp() << ": " << filterModel->rowCount();
+  
+  string jsMatcher = JS( function (editElement) {
+    return function(suggestion) {
+      if(suggestion==null) return editElement.value;
+      var matches = suggestion.match(new RegExp(".*" + editElement.value + ".*", "gi"));
+      return { match :matches != null, suggestion: suggestion.replace(new RegExp("(" + editElement.value + ")", "gi"), "<u><b>$1</b></u>") };
+    }
   });
+  string jsReplace = (boost::format(JS( function (editElement, suggestionText, suggestionValue) {
+    editElement.value = "";
+    %s
+  })) % playSignal.createCall("suggestionValue")).str();
+  
+  WSuggestionPopup* suggestions = new WSuggestionPopup(jsMatcher, jsReplace, navbarInner);
   auto addSuggestions = [this,suggestions,searchBox](_n6) {
     for(pair<string,Media> media: collection->collection()) {
       suggestions->addSuggestion(media.second.filename(), media.first);
     }
-    suggestions->setFilterLength(-1);
     suggestions->forEdit(searchBox);
   };
   
@@ -470,7 +479,7 @@ void StreamingApp::setupGui()
   d->collection->rescan();
   MediaCollectionBrowser* browser = new MediaCollectionBrowser(d->collection);
   browser->play().connect([this](Media media, _n5){
-    d->play(media.path());
+    d->queueAndPlay(media.path());
   });
   browser->queue().connect([this](Media media, _n5){
     d->queue(media.path());
@@ -581,6 +590,18 @@ void StreamingAppPrivate::queue(Media media)
       play(playlist->first());
     });
   }
+}
+
+void StreamingAppPrivate::queueAndPlay(Media media)
+{
+  if(!media.valid()) return;
+  playlist->reset();
+  if(player->playing()) {
+    player->stop();
+    delete player;
+    player = 0;
+  }
+  queue(media);
 }
 
 

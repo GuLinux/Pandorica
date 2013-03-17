@@ -17,6 +17,7 @@ public:
   void nextItem(WWidget* itemToPlay = 0);
   Wt::Signal<Media> &next();
   Media first();
+  void reset();
 private:
   std::list<QueueItem> internalQueue;
   Wt::Signal<Media> _next;

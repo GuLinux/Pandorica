@@ -48,6 +48,13 @@ void Playlist::nextItem(WWidget* itemToPlay)
   _next.emit(next.second);
 }
 
+void Playlist::reset()
+{
+  clear();
+  internalQueue.clear();
+}
+
+
 
 void Playlist::queue(Media media)
 {
