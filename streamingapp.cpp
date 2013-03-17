@@ -68,6 +68,7 @@
 #include <boost/format.hpp>
 #include <Wt/WSuggestionPopup>
 #include <Wt/WStringListModel>
+#include <Wt/WSortFilterProxyModel>
 
 using namespace Wt;
 using namespace std;
@@ -358,32 +359,34 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
     <span class="icon-bar"></span>
     </a>), Wt::XHTMLUnsafeText));
   
-  WLineEdit *searchBox = new WLineEdit();
+  WContainerWidget* searchBoxDiv = WW(WContainerWidget).css("navbar-search pull-left");
+  WLineEdit *searchBox = new WLineEdit(searchBoxDiv);
   searchBox->setStyleClass("search-query");
-  searchBox->setEmptyText("Search");
+  searchBox->setAttributeValue("placeholder", "Search");
   WSuggestionPopup::Options options;
   options.highlightBeginTag = "<b>";
   options.highlightEndTag = "</b>";
   options.listSeparator = 0;
-  WSuggestionPopup* suggestions = new WSuggestionPopup(options);
+  WSuggestionPopup* suggestions = new WSuggestionPopup(options, searchBoxDiv);
   WStringListModel *searchModel = new WStringListModel(suggestions);
+  WSortFilterProxyModel *filterModel = new WSortFilterProxyModel(searchModel);
+  filterModel->setFilterKeyColumn(0);
+  filterModel->setSourceModel(searchModel);
   suggestions->setModel(searchModel);
-  suggestions->forEdit(searchBox);
-  suggestions->setFilterLength(2);
-  
-  auto addSuggestions = [this,suggestions,searchModel](WMouseEvent) {
+  suggestions->filterModel().connect([filterModel](const WString &searchString, _n5){
+    filterModel->setFilterRegExp(WString(".*{1}.*").arg(searchString));
+    wApp->log("notice") << "Filtering model with regex " << filterModel->filterRegExp() << ": " << filterModel->rowCount();
+  });
+  auto addSuggestions = [this,suggestions,searchBox](_n6) {
     for(pair<string,Media> media: collection->collection()) {
-      wApp->log("notice") << "adding suggestion: " << media.second.filename();
       suggestions->addSuggestion(media.second.filename(), media.first);
     }
-    for(WString str: searchModel->stringList()) {
-      wApp->log("notice") << "suggestion correctly added: : " << str;
-    }
+    suggestions->setFilterLength(-1);
+    suggestions->forEdit(searchBox);
   };
   
-  collection->scanned().connect([addSuggestions](_n6){ WTimer::singleShot(1000, addSuggestions);});
-    navbarInner->addWidget(WW(WContainerWidget).css("nav-collapse collapse").add(topMenu).add(WW(WContainerWidget)
-      .css("navbar-search pull-right").add(searchBox)));
+  collection->scanned().connect(addSuggestions);
+    navbarInner->addWidget(WW(WContainerWidget).css("nav-collapse collapse").add(topMenu).add(searchBoxDiv));
   
   navBar->setStyleClass("navbar navbar-static-top navbar-inverse");
   navbarInner->setStyleClass("navbar-inner");
