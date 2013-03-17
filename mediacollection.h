@@ -17,6 +17,7 @@ public:
     boost::filesystem::path rootPath() const;
     Media media(std::string uid) const;
     Wt::Signal<Media> &added();
+    Wt::Signal<> &scanned();
 private:
   MediaCollectionPrivate *const d;
 };
