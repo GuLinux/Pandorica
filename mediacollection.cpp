@@ -30,8 +30,6 @@ void MediaCollection::rescan()
 {
   d->collection.clear();
   d->listDirectory(d->basePath);
-  for(pair<string,Media> media: d->collection)
-    wApp->log("notice") << "found media with id=" << media.first << ": " << media.second.fullPath();
   d->scanned.emit();
 }
 
