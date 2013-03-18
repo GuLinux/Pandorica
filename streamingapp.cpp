@@ -335,7 +335,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
         latestCommentsItemWidget->doJavaScript(hidejs);
         queueAndPlay(media);
       });
-      commentWidget->addWidget(WW(WText, comment->content()).css("well comment-text comment-box-element").setInline(false));
+      commentWidget->addWidget(WW(WText, WString::fromUTF8(comment->content())).css("well comment-text comment-box-element").setInline(false));
       latestCommentsBody->addWidget(WW(WContainerWidget).css("comment-text").add(commentWidget));
     }
   });
