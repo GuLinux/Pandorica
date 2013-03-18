@@ -196,7 +196,8 @@ void StreamingAppSessions::unregisterSession(string sessionId)
   StreamingAppSessionInfo oldSession = sessions[sessionId];
   sessions.erase(sessionId);
   for(pair<string,StreamingAppSessionInfo> session: sessions)
-    WServer::instance()->post(session.first, boost::bind(session.second.sessionRemoved, oldSession.session));
+    if(sessionId != session.first)
+      WServer::instance()->post(session.first, boost::bind(session.second.sessionRemoved, oldSession.session));
 }
 
 StreamingAppSessions streamingAppSessions;
