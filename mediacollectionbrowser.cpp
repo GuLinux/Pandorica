@@ -74,7 +74,6 @@ void MediaCollectionBrowserPrivate::browse(filesystem::path currentPath)
       directories.insert(directory);
   }
   
-//   std::sort(directories.begin(), directories.end(), [](fs::path a, fs::path b) { return a.filename().string() < b.filename().string(); } );
   std::sort(medias.begin(), medias.end(), [](const Media &a, const Media &b)->bool{ return (a.filename() <b.filename()); } );
   
   for(fs::path directory: directories) addDirectory(directory);
@@ -101,7 +100,8 @@ void MediaCollectionBrowserPrivate::addMedia(Media media)
     filesize->setSelectable(false); filesize->setDisabled(true);
     WPopupMenuItem* play = menu->addItem("Play");
     WPopupMenuItem* queue = menu->addItem("Queue");
-    menu->aboutToHide().connect([this,media,menu,play,queue](_n6){
+    WPopupMenuItem* close = menu->addItem("Cancel");
+    menu->aboutToHide().connect([this,media,menu,play,queue,close](_n6){
       if(menu->result() == play)
         playSignal.emit(media);
       if(menu->result() == queue)
