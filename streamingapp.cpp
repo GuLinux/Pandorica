@@ -34,6 +34,7 @@
 #include <Wt/Utils>
 #include <Wt/Auth/AuthWidget>
 #include <Wt/Auth/RegistrationModel>
+#include <Wt/Auth/Dbo/AuthInfo>
 #include <Wt/WPushButton>
 #include <boost/algorithm/string.hpp>
 #include <functional>
@@ -328,7 +329,9 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
       WAnchor *videoLink = new WAnchor("#", media.filename());
       videoLink->setStyleClass("label label-info comment-box-element");
       header->addWidget(videoLink);
-      header->addWidget(WW(WText,WString("{1} ({2})").arg("USERNAME").arg(comment->lastUpdated().toString())).css("label label-success comment-box-element"));
+      Dbo::ptr<Auth::Dbo::AuthInfo<User>> authInfo = session.find<Auth::Dbo::AuthInfo<User>>().where("user_id = ?").bind(comment->user().id());
+      header->addWidget(WW(WText,WString("{1} ({2})").arg(authInfo->identity("loginname")).arg(comment->lastUpdated().toString()))
+        .css("label label-success comment-box-element"));
       commentWidget->addWidget(header);
       videoLink->clicked().connect([latestCommentsContainer, latestCommentsItemWidget, media,this](WMouseEvent){
         string hidejs = (boost::format(JS( $('#%s').modal('hide'); )) % latestCommentsContainer->id()).str();
