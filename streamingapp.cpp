@@ -332,7 +332,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
         queueAndPlay(media);
       });
       commentWidget->addWidget(WW(WText, comment->content()).css("comment-text").setInline(false));
-      latestCommentsBody->addWidget(WW(WContainerWidget).css("comment-text span6").add(commentWidget));
+      latestCommentsBody->addWidget(WW(WContainerWidget).css("comment-text").add(commentWidget));
     }
   });
   
