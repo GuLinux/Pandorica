@@ -306,12 +306,47 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   topMenu->setRenderAsList(true);
   topMenu->setStyleClass("nav");
   filesListMenuItem = topMenu->addItem(WString::tr("menu.videoslist"), 0);
+  WMenuItem *latestCommentsMenuItem = topMenu->addItem(WString::tr("menu.latest.comments"), 0);
+  WAnchor * latestCommentsItemWidget = (WAnchor *) latestCommentsMenuItem->itemWidget();
   
+  WContainerWidget* latestCommentsBody = WW(WContainerWidget).css("modal-body");
+  WContainerWidget* latestCommentsContainer = WW(WContainerWidget).css("modal fade hide").add(latestCommentsBody);
+  
+  
+  latestCommentsItemWidget->clicked().connect([latestCommentsBody,this](WMouseEvent){
+    latestCommentsBody->clear();
+    Dbo::Transaction t(session);
+    Dbo::collection<CommentPtr> latestComments = session.find<Comment>().orderBy("last_updated desc").limit(5);
+    for(CommentPtr comment: latestComments) {
+      WContainerWidget* commentWidget = new WContainerWidget;
+      Media media = collection->media(comment->videoId());
+      
+      WContainerWidget *header = WW(WContainerWidget);
+      header->addWidget(WW(WText,WString("{1} ({2})").arg("USERNAME").arg(comment->lastUpdated().toString())).css("label-success"));
+      
+      WAnchor *videoLink = new WAnchor("#", media.filename());
+      videoLink->addStyleClass("label-info pull-right");
+      header->addWidget(videoLink);
+      commentWidget->addWidget(header);
+      videoLink->clicked().connect([media,this](WMouseEvent){
+        queueAndPlay(media);
+      });
+      commentWidget->addWidget(WW(WText, comment->content()).css("comment-text").setInline(false));
+      latestCommentsBody->addWidget(WW(WContainerWidget).css("well comment-text span6").add(commentWidget));
+    }
+  });
+  
+  latestCommentsItemWidget->addWidget(latestCommentsContainer);
+  latestCommentsItemWidget->clicked().connect([latestCommentsItemWidget,latestCommentsContainer,this](WMouseEvent){
+    string togglejs = (boost::format(JS( $('#%s').modal('toggle'); )) % latestCommentsContainer->id()).str();
+    latestCommentsItemWidget->doJavaScript(togglejs);
+  });
   activeUsersMenuItem = new WMenuItem("Active Users", 0);
   
   auto setLoggedUsersTitle = [this](StreamingAppSession, _n5){
     activeUsersMenuItem->setText(WString("Active Users ({1})").arg(streamingAppSessions.sessionCount()));
   };
+  
   
   sessionAdded.connect(setLoggedUsersTitle);
   sessionRemoved.connect(setLoggedUsersTitle);
