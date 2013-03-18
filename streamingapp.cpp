@@ -456,7 +456,6 @@ void StreamingAppPrivate::setupAdminMenus()
   topMenu->addItem(activeUsersMenuItem);
   WMenuItem *allLog = topMenu->addItem("Users Log", 0);
   WMenuItem *addUserMenu = topMenu->addItem("Add User", 0);
-  WMenuItem *crashTest = topMenu->addItem("Crash Test", 0);
   const string *addUserParameter = wApp->environment().getParameter("add_user_email");
   
   auto displayAddUserDialog = [addUserParameter,this](WMouseEvent){
@@ -478,16 +477,6 @@ void StreamingAppPrivate::setupAdminMenus()
   ((WAnchor*)allLog->itemWidget())->clicked().connect([this](WMouseEvent){
       WDialog *dialog = new LoggedUsersDialog(&session, true);
       dialog->show();
-  });
-  
-  ((WAnchor*)crashTest->itemWidget())->clicked().connect([this](WMouseEvent){
-    if(streamingAppSessions.sessionCount() > 1) {
-      wApp->log("notice") << "More than one session found, not crashing";
-      return;
-    }
-    wApp->log("notice") << "************************** BOOM **************************";
-    WText *crash = 0;
-    crash->refresh();
   });
 }
 
