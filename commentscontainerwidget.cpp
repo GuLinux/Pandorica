@@ -69,7 +69,7 @@ CommentView::CommentView(CommentTuple data, WContainerWidget* parent): WContaine
   setContentAlignment(AlignLeft);
   addWidget(WW(WContainerWidget).css("span4 label label-success comment-header")
     .add(WW(WText, username).setInline(false))
-    .add(WW(WText, email).setInline(false))
+//     .add(WW(WText, email).setInline(false))
     .add(WW(WText, commentTime.toString()).setInline(false)));
   addWidget(WW(WText,WString::fromUTF8(commentText)).css("span8 well comment-text") );
 }

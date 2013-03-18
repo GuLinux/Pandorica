@@ -16,7 +16,10 @@ public:
   Comment(std::string videoId, Wt::Dbo::ptr<User> user, std::string content)
     : _videoId(videoId), _user(user), _content(content), _lastUpdated(Wt::WDateTime::currentDateTime().toTime_t()) {}
   ~Comment() {}
-  
+  std::string content() const { return _content; }
+  std::string videoId() const { return _videoId; }
+  Wt::WDateTime lastUpdated() const { return Wt::WDateTime::fromTime_t(_lastUpdated); }
+  Wt::Dbo::ptr<User> user() const { return _user; }
 private:
   std::string _content;
   std::string _videoId;
