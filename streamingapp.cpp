@@ -325,14 +325,14 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
       header->addWidget(WW(WText,WString("{1} ({2})").arg("USERNAME").arg(comment->lastUpdated().toString())).css("label-success"));
       
       WAnchor *videoLink = new WAnchor("#", media.filename());
-      videoLink->addStyleClass("label-info pull-right");
+      videoLink->addStyleClass("label pull-right");
       header->addWidget(videoLink);
       commentWidget->addWidget(header);
       videoLink->clicked().connect([media,this](WMouseEvent){
         queueAndPlay(media);
       });
       commentWidget->addWidget(WW(WText, comment->content()).css("comment-text").setInline(false));
-      latestCommentsBody->addWidget(WW(WContainerWidget).css("well comment-text span6").add(commentWidget));
+      latestCommentsBody->addWidget(WW(WContainerWidget).css("comment-text span6").add(commentWidget));
     }
   });
   
