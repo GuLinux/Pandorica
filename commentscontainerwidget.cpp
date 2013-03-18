@@ -61,13 +61,13 @@ public:
 
 CommentView::CommentView(CommentTuple data, WContainerWidget* parent): WContainerWidget(parent)
 {
-  setStyleClass("row-fluid comment-box");
+  setStyleClass("row comment-box");
   string username = data.get<3>();
   string email = data.get<2>();
   WDateTime commentTime = WDateTime::fromTime_t(data.get<1>());
   string commentText = data.get<0>();
   setContentAlignment(AlignLeft);
-  addWidget(WW(WContainerWidget).css("span4 label label-success comment-header")
+  addWidget(WW(WContainerWidget).css("span3 label label-success comment-header")
     .add(WW(WText, username).setInline(false))
 //     .add(WW(WText, email).setInline(false))
     .add(WW(WText, commentTime.toString()).setInline(false)));
@@ -107,7 +107,7 @@ CommentsContainerWidget::CommentsContainerWidget(string videoId, Session* sessio
   
   addWidget(WW(WContainerWidget).css("add-comment-box").add(newCommentContent).add(insertComment).setContentAlignment(AlignCenter));
   
-  addWidget(d->commentsContainer = WW(WContainerWidget).css("container-fluid") );
+  addWidget(d->commentsContainer = WW(WContainerWidget).css("container") );
 
   Dbo::Transaction t(*d->session);
   for(CommentTuple comment : query.resultList())

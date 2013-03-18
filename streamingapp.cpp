@@ -310,11 +310,12 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   WAnchor * latestCommentsItemWidget = (WAnchor *) latestCommentsMenuItem->itemWidget();
   
   WContainerWidget* latestCommentsBody = WW(WContainerWidget).css("modal-body");
-  WContainerWidget* latestCommentsContainer = WW(WContainerWidget).css("modal fade hide").add(latestCommentsBody);
+  WContainerWidget* latestCommentsContainer = WW(WContainerWidget).css("modal fade hide comments-modal").add(latestCommentsBody);
   
   
-  latestCommentsItemWidget->clicked().connect([latestCommentsBody,this](WMouseEvent){
+  latestCommentsItemWidget->clicked().connect([latestCommentsContainer, latestCommentsItemWidget, latestCommentsBody,this](WMouseEvent){
     latestCommentsBody->clear();
+    wApp->log("notice") << "************** latestComments is visible: " << latestCommentsBody->isVisible();
     Dbo::Transaction t(session);
     Dbo::collection<CommentPtr> latestComments = session.find<Comment>().orderBy("last_updated desc").limit(5);
     for(CommentPtr comment: latestComments) {
@@ -322,21 +323,24 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
       Media media = collection->media(comment->videoId());
       
       WContainerWidget *header = WW(WContainerWidget);
-      header->addWidget(WW(WText,WString("{1} ({2})").arg("USERNAME").arg(comment->lastUpdated().toString())).css("label-success"));
+      header->setContentAlignment(AlignCenter);
       
       WAnchor *videoLink = new WAnchor("#", media.filename());
-      videoLink->addStyleClass("label pull-right");
+      videoLink->setStyleClass("label label-info comment-box-element");
       header->addWidget(videoLink);
+      header->addWidget(WW(WText,WString("{1} ({2})").arg("USERNAME").arg(comment->lastUpdated().toString())).css("label label-success comment-box-element"));
       commentWidget->addWidget(header);
-      videoLink->clicked().connect([media,this](WMouseEvent){
+      videoLink->clicked().connect([latestCommentsContainer, latestCommentsItemWidget, media,this](WMouseEvent){
+        string hidejs = (boost::format(JS( $('#%s').modal('hide'); )) % latestCommentsContainer->id()).str();
+        latestCommentsItemWidget->doJavaScript(hidejs);
         queueAndPlay(media);
       });
-      commentWidget->addWidget(WW(WText, comment->content()).css("comment-text").setInline(false));
+      commentWidget->addWidget(WW(WText, comment->content()).css("well comment-text comment-box-element").setInline(false));
       latestCommentsBody->addWidget(WW(WContainerWidget).css("comment-text").add(commentWidget));
     }
   });
+  wApp->root()->addWidget(latestCommentsContainer);
   
-  latestCommentsItemWidget->addWidget(latestCommentsContainer);
   latestCommentsItemWidget->clicked().connect([latestCommentsItemWidget,latestCommentsContainer,this](WMouseEvent){
     string togglejs = (boost::format(JS( $('#%s').modal('toggle'); )) % latestCommentsContainer->id()).str();
     latestCommentsItemWidget->doJavaScript(togglejs);
@@ -445,16 +449,9 @@ void StreamingAppPrivate::setupUserMenus()
 
 void StreamingAppPrivate::setupAdminMenus()
 {
-//   topMenu->addItem(activeUsersMenuItem);
-  WMenuItem *adminSubMenuItem = new WMenuItem("Admin", 0);
-  WMenu *adminMenu = new WMenu(Wt::Vertical);
-  adminMenu->setRenderAsList(true);
-  adminMenu->setStyleClass("dropdown-menu");
-  adminMenu->addItem(activeUsersMenuItem);
-  
-  
-  WMenuItem *allLog = adminMenu->addItem("Users Log", 0);
-  WMenuItem *addUserMenu = adminMenu->addItem("Add User", 0);
+  topMenu->addItem(activeUsersMenuItem);
+  WMenuItem *allLog = topMenu->addItem("Users Log", 0);
+  WMenuItem *addUserMenu = topMenu->addItem("Add User", 0);
   const string *addUserParameter = wApp->environment().getParameter("add_user_email");
   
   auto displayAddUserDialog = [addUserParameter,this](WMouseEvent){
@@ -466,24 +463,16 @@ void StreamingAppPrivate::setupAdminMenus()
   if(addUserParameter)
     WTimer::singleShot(1000, displayAddUserDialog);
 
-  ((WAnchor*) adminSubMenuItem->itemWidget())->addWidget(adminMenu);
-  topMenu->addItem(adminSubMenuItem);
-  adminSubMenuItem->itemWidget()->setStyleClass("dropdown-toggle");
-  adminSubMenuItem->itemWidget()->parent()->setStyleClass("dropdown");
-  adminSubMenuItem->itemWidget()->setAttributeValue("data-toggle", "dropdown");
-  
-  adminMenu->itemSelected().connect([addUserMenu,allLog,displayAddUserDialog,this](WMenuItem *selected, _n5){
-    if(selected == addUserMenu) {
+  ((WAnchor*)activeUsersMenuItem->itemWidget())->clicked().connect([this](WMouseEvent){
+    WDialog *dialog = new LoggedUsersDialog(&session);
+    dialog->show();
+  });
+  ((WAnchor*)addUserMenu->itemWidget())->clicked().connect([displayAddUserDialog,this](WMouseEvent){
       displayAddUserDialog(WMouseEvent());
-    }
-    if(selected == activeUsersMenuItem) {
-      WDialog *dialog = new LoggedUsersDialog(&session);
-      dialog->show();
-    }
-    if(selected == allLog) {
+  });
+  ((WAnchor*)allLog->itemWidget())->clicked().connect([this](WMouseEvent){
       WDialog *dialog = new LoggedUsersDialog(&session, true);
       dialog->show();
-    }
   });
 }
 
