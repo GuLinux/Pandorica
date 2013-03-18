@@ -410,9 +410,16 @@ void StreamingAppPrivate::setupUserMenus()
 
 void StreamingAppPrivate::setupAdminMenus()
 {
-  WMenuItem *addUserMenu = topMenu->addItem("Add User", 0);
-  topMenu->addItem(activeUsersMenuItem);
-  WMenuItem *allLog = topMenu->addItem("Users Log", 0);
+//   topMenu->addItem(activeUsersMenuItem);
+  WMenuItem *adminSubMenuItem = new WMenuItem("Admin", 0);
+  WMenu *adminMenu = new WMenu(Wt::Vertical);
+  adminMenu->setRenderAsList(true);
+  adminMenu->setStyleClass("dropdown-menu");
+  adminMenu->addItem(activeUsersMenuItem);
+  
+  
+  WMenuItem *allLog = adminMenu->addItem("Users Log", 0);
+  WMenuItem *addUserMenu = adminMenu->addItem("Add User", 0);
   const string *addUserParameter = wApp->environment().getParameter("add_user_email");
   
   auto displayAddUserDialog = [addUserParameter,this](WMouseEvent){
@@ -423,8 +430,14 @@ void StreamingAppPrivate::setupAdminMenus()
   
   if(addUserParameter)
     WTimer::singleShot(1000, displayAddUserDialog);
+
+  ((WAnchor*) adminSubMenuItem->itemWidget())->addWidget(adminMenu);
+  topMenu->addItem(adminSubMenuItem);
+  adminSubMenuItem->itemWidget()->setStyleClass("dropdown-toggle");
+  adminSubMenuItem->itemWidget()->parent()->setStyleClass("dropdown");
+  adminSubMenuItem->itemWidget()->setAttributeValue("data-toggle", "dropdown");
   
-    topMenu->itemSelected().connect([addUserMenu,allLog,displayAddUserDialog,this](WMenuItem *selected, _n5){
+  adminMenu->itemSelected().connect([addUserMenu,allLog,displayAddUserDialog,this](WMenuItem *selected, _n5){
     if(selected == addUserMenu) {
       displayAddUserDialog(WMouseEvent());
     }
