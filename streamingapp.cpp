@@ -21,6 +21,7 @@
 #include "streamingapp.h"
 #include "player/player.h"
 #include "player/wmediaplayerwrapper.h"
+#include <Wt/WTemplate>
 #include <Wt/WHBoxLayout>
 #include <Wt/WVBoxLayout>
 #include <Wt/WContainerWidget>
@@ -104,7 +105,7 @@ public:
   WContainerWidget *mainWidget = 0;
   WContainerWidget *authContainer;
   WContainerWidget *messagesContainer;
-  WMenu* topMenu;
+  WTemplate* topBarTemplate;
   MediaCollection *collection;
   WStackedWidget* widgetsStack;
   void queue(Media media);
@@ -117,8 +118,8 @@ private:
   void setupUserMenus();
   WLink lightySecDownloadLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p) const;
   WLink nginxSecLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p) const;
-  WMenuItem* activeUsersMenuItem;
-  WMenuItem* filesListMenuItem;
+  WText* activeUsersMenuItem;
+  WText* filesListMenuItem;
 };
 
 class Message : public WTemplate {
@@ -304,18 +305,15 @@ void StreamingApp::authEvent()
 void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
 {
   wApp->log("notice") << "Setting up topbar links";
-  topMenu = new WMenu(Wt::Horizontal);
-  topMenu->setRenderAsList(true);
-  topMenu->setStyleClass("nav");
-  filesListMenuItem = topMenu->addItem(WString::tr("menu.videoslist"), 0);
-  WMenuItem *latestCommentsMenuItem = topMenu->addItem(WString::tr("menu.latest.comments"), 0);
-  WAnchor * latestCommentsItemWidget = (WAnchor *) latestCommentsMenuItem->itemWidget();
+  topBarTemplate = new WTemplate(WString::tr("navbar"));
+  filesListMenuItem = new WText(WString::tr("menu.videoslist"));
+  WText *latestCommentsMenuItem = new WText(WString::tr("menu.latest.comments"));
   
   WContainerWidget* latestCommentsBody = WW(WContainerWidget).css("modal-body");
   WContainerWidget* latestCommentsContainer = WW(WContainerWidget).css("modal fade hide comments-modal").add(latestCommentsBody);
   
   
-  latestCommentsItemWidget->clicked().connect([latestCommentsContainer, latestCommentsItemWidget, latestCommentsBody,this](WMouseEvent){
+  latestCommentsMenuItem->clicked().connect([latestCommentsMenuItem,latestCommentsContainer,latestCommentsBody,this](WMouseEvent){
     latestCommentsBody->clear();
     wApp->log("notice") << "************** latestComments is visible: " << latestCommentsBody->isVisible();
     Dbo::Transaction t(session);
@@ -334,9 +332,9 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
       header->addWidget(WW(WText,WString("{1} ({2})").arg(authInfo->identity("loginname")).arg(comment->lastUpdated().toString()))
         .css("label label-success comment-box-element"));
       commentWidget->addWidget(header);
-      videoLink->clicked().connect([latestCommentsContainer, latestCommentsItemWidget, media,this](WMouseEvent){
+      videoLink->clicked().connect([latestCommentsContainer, latestCommentsMenuItem, media,this](WMouseEvent){
         string hidejs = (boost::format(JS( $('#%s').modal('hide'); )) % latestCommentsContainer->id()).str();
-        latestCommentsItemWidget->doJavaScript(hidejs);
+        latestCommentsMenuItem->doJavaScript(hidejs);
         queueAndPlay(media);
       });
       commentWidget->addWidget(WW(WText, WString::fromUTF8(comment->content())).css("well comment-text comment-box-element").setInline(false));
@@ -345,16 +343,19 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   });
   wApp->root()->addWidget(latestCommentsContainer);
   
-  latestCommentsItemWidget->clicked().connect([latestCommentsItemWidget,latestCommentsContainer,this](WMouseEvent){
+  latestCommentsMenuItem->clicked().connect([latestCommentsMenuItem,latestCommentsContainer,this](WMouseEvent){
     string togglejs = (boost::format(JS( $('#%s').modal('toggle'); )) % latestCommentsContainer->id()).str();
-    latestCommentsItemWidget->doJavaScript(togglejs);
+    latestCommentsMenuItem->doJavaScript(togglejs);
   });
-  activeUsersMenuItem = new WMenuItem("Active Users", 0);
+  activeUsersMenuItem = new WText("Users");
   
   auto setLoggedUsersTitle = [this](StreamingAppSession, _n5){
-    activeUsersMenuItem->setText(WString("Active Users ({1})").arg(streamingAppSessions.sessionCount()));
+    activeUsersMenuItem->setText(WString("Users: {1}").arg(streamingAppSessions.sessionCount()));
   };
   
+  topBarTemplate->bindWidget("latest.comments", latestCommentsMenuItem);
+  topBarTemplate->bindWidget("users.count", activeUsersMenuItem);
+  topBarTemplate->bindWidget("media.list", filesListMenuItem);
   
   sessionAdded.connect(setLoggedUsersTitle);
   sessionRemoved.connect(setLoggedUsersTitle);
@@ -368,18 +369,29 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   
 //   WMenuItem *refresh = topMenu->addItem("Refresh", 0);
   
-  string serverStatusUrl;
-  if(wApp->readConfigurationProperty("server-status-url", serverStatusUrl))
-    new ReadBWStats(topMenu->addItem("", 0), serverStatusUrl, q);
+  string serverStatusUrl; // TODO
+  if(false || wApp->readConfigurationProperty("server-status-url", serverStatusUrl)) {
+    WText *bwStatsItem = new WText();
+    new ReadBWStats(bwStatsItem, serverStatusUrl, q);
+  }
   
-  WMenuItem *logout = topMenu->addItem("Logout", 0);
-  logout->itemWidget()->parent()->addStyleClass("pull-right");
+  WText *logout = new WText("Logout");
+  topBarTemplate->bindWidget("logout", logout);
   
-  topMenu->itemSelected().connect([logout/*,refresh*/,this](WMenuItem *selected,_n5){
-    if(selected==logout) {
-      session.login().logout();
-      wApp->redirect(wApp->bookmarkUrl("/"));
+  logout->clicked().connect([this](WMouseEvent) {
+    session.login().logout();
+    wApp->redirect(wApp->bookmarkUrl("/")); 
+  });
+  filesListMenuItem->clicked().connect([this](WMouseEvent){
+    if(widgetsStack->currentIndex()) {
+      filesListMenuItem->setText(WString::tr("menu.videoslist"));
+      widgetsStack->setCurrentIndex(0);
+    } else {
+      filesListMenuItem->setText(WString::tr("menu.back.to.video"));
+      widgetsStack->setCurrentIndex(1);
     }
+  });
+  
     /*
     if(selected==refresh) {
       WOverlayLoadingIndicator* indicator = new WOverlayLoadingIndicator();
@@ -388,32 +400,8 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
       WTimer::singleShot(1000, [indicator,this](WMouseEvent) { delete indicator;});
     }
     */
-    if(selected == filesListMenuItem) {
-      if(widgetsStack->currentIndex()) {
-        filesListMenuItem->setText(WString::tr("menu.videoslist"));
-        widgetsStack->setCurrentIndex(0);
-      } else {
-        filesListMenuItem->setText(WString::tr("menu.back.to.video"));
-        widgetsStack->setCurrentIndex(1);
-      }
-    }
-  });
   
-  WContainerWidget* navBar = new WContainerWidget();
-  WContainerWidget* navbarInner = new WContainerWidget();
-
-  navBar->addWidget(navbarInner);
-  navbarInner->addWidget(WW(WText,WString::tr("site-title")).css("brand"));
-  
-  navbarInner->addWidget(new WText(HTML(<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-    <span class="icon-bar"></span>
-    <span class="icon-bar"></span>
-    <span class="icon-bar"></span>
-    </a>), Wt::XHTMLUnsafeText));
-  
-  WContainerWidget* searchBoxDiv = WW(WContainerWidget).css("navbar-search pull-left");
   WLineEdit *searchBox = new WLineEdit();
-  searchBoxDiv->addWidget(searchBox);
   searchBox->setStyleClass("search-query");
   searchBox->setAttributeValue("placeholder", "Search");
   
@@ -429,7 +417,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
     %s
   })) % playSignal.createCall("suggestionValue")).str();
   
-  WSuggestionPopup* suggestions = new WSuggestionPopup(jsMatcher, jsReplace, navbarInner);
+  WSuggestionPopup* suggestions = new WSuggestionPopup(jsMatcher, jsReplace, wApp->root()); // TODO: verificare
   auto addSuggestions = [this,suggestions,searchBox](_n6) {
     for(pair<string,Media> media: collection->collection()) {
       suggestions->addSuggestion(media.second.filename(), media.first);
@@ -437,25 +425,29 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
     suggestions->forEdit(searchBox);
   };
   
-  collection->scanned().connect(addSuggestions);
-    navbarInner->addWidget(WW(WContainerWidget).css("nav-collapse collapse").add(topMenu).add(searchBoxDiv));
+  topBarTemplate->bindWidget("search", searchBox);
   
-  navBar->setStyleClass("navbar navbar-static-top navbar-inverse");
-  navbarInner->setStyleClass("navbar-inner");
-  mainWidget->addWidget(navBar);
+  collection->scanned().connect(addSuggestions);
+  
+  mainWidget->addWidget(topBarTemplate);
 }
 
 void StreamingAppPrivate::setupUserMenus()
 {
-    topMenu->addItem(activeUsersMenuItem);
+  topBarTemplate->setCondition("is-user", true);
+  topBarTemplate->setCondition("is-admin", false);
 }
 
 
 void StreamingAppPrivate::setupAdminMenus()
 {
-  topMenu->addItem(activeUsersMenuItem);
-  WMenuItem *allLog = topMenu->addItem("Users Log", 0);
-  WMenuItem *addUserMenu = topMenu->addItem("Add User", 0);
+  topBarTemplate->setCondition("is-user", false);
+  topBarTemplate->setCondition("is-admin", true);
+  WText *allLog = new WText("Users Log");
+  WText *addUserMenu = new WText("Add User");
+  topBarTemplate->bindWidget("users.log", allLog);
+  topBarTemplate->bindWidget("users.add", addUserMenu);
+  
   const string *addUserParameter = wApp->environment().getParameter("add_user_email");
   
   auto displayAddUserDialog = [addUserParameter,this](WMouseEvent){
@@ -467,14 +459,14 @@ void StreamingAppPrivate::setupAdminMenus()
   if(addUserParameter)
     WTimer::singleShot(1000, displayAddUserDialog);
 
-  ((WAnchor*)activeUsersMenuItem->itemWidget())->clicked().connect([this](WMouseEvent){
+  activeUsersMenuItem->clicked().connect([this](WMouseEvent){
     WDialog *dialog = new LoggedUsersDialog(&session);
     dialog->show();
   });
-  ((WAnchor*)addUserMenu->itemWidget())->clicked().connect([displayAddUserDialog,this](WMouseEvent){
+  addUserMenu->clicked().connect([displayAddUserDialog,this](WMouseEvent){
       displayAddUserDialog(WMouseEvent());
   });
-  ((WAnchor*)allLog->itemWidget())->clicked().connect([this](WMouseEvent){
+  allLog->clicked().connect([this](WMouseEvent){
       WDialog *dialog = new LoggedUsersDialog(&session, true);
       dialog->show();
   });
