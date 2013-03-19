@@ -79,6 +79,10 @@ void WMediaPlayerWrapper::addSubtitles(const Track& track)
   wApp->log("notice") << "Add subtitles on WMediaPlayer is unsupported";
 }
 
+void WMediaPlayerWrapper::setPoster(const Wt::WLink& poster)
+{
+}
+
 
 void WMediaPlayerWrapper::addSource(const Source& source)
 {

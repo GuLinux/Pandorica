@@ -1,5 +1,4 @@
 #include "mediacollection.h"
-#include <boost/filesystem.hpp>
 #include <Wt/Utils>
 #include <Wt/WApplication>
 

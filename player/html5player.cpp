@@ -57,12 +57,19 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
   addListener("ended", s_ended.createCall());
   s_playerReady.connect(this, &HTML5Player::playerReady);
   runJavascript(s_playerReady.createCall());
+  bindEmpty("poster_option");
 }
 
 HTML5Player::~HTML5Player()
 {
   runJavascript("mediaPlayer.src(""); mediaPlayer.erase();");
 }
+
+void HTML5Player::setPoster(const WLink& poster)
+{
+  bindString("poster_option", string("poster='") + poster.url() + "'");
+}
+
 
 
 void HTML5Player::play()
