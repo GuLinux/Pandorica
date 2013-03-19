@@ -48,7 +48,7 @@ function genFileData() {
         createThumbnail "$fname" "$medias_dir"
         ;;
         *)
-#	echo "Unknown file type: $fname"
+	echo "Unknown file type: $fname"
 	return
         ;;
     esac

@@ -6,12 +6,13 @@
 
 class MediaCollectionBrowserPrivate;
 class MediaCollection;
+class Settings;
 
 class MediaCollectionBrowser : public Wt::WContainerWidget
 {
 
 public:
-    MediaCollectionBrowser(MediaCollection *collection, Wt::WContainerWidget* parent = 0);
+    MediaCollectionBrowser(MediaCollection *collection, Settings *settings, Wt::WContainerWidget* parent = 0);
     virtual ~MediaCollectionBrowser();
     Wt::Signal<Media> &queue();
     Wt::Signal<Media> &play();

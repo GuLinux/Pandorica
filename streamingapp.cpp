@@ -506,7 +506,7 @@ void StreamingApp::setupGui()
   contentWidget->addWidget(d->playerContainerWidget);
   
   d->collection->rescan();
-  MediaCollectionBrowser* browser = new MediaCollectionBrowser(d->collection);
+  MediaCollectionBrowser* browser = new MediaCollectionBrowser(d->collection, &d->settings);
   browser->play().connect([this](Media media, _n5){
     d->queueAndPlay(media.path());
   });
