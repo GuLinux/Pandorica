@@ -20,7 +20,6 @@
 
 #include "streamingapp.h"
 #include "player/player.h"
-#include "player/wmediaplayerwrapper.h"
 #include <Wt/WTemplate>
 #include <Wt/WHBoxLayout>
 #include <Wt/WVBoxLayout>
@@ -57,10 +56,10 @@
 #include "sessiondetails.h"
 #include "commentscontainerwidget.h"
 #include "readbwstats.h"
-#include "player/html5player.h"
 #include "Wt-Commons/whtmltemplateslocalizedstrings.h"
 #include "mediacollection.h"
 #include "mediacollectionbrowser.h"
+#include "settings.h"
 
 
 #include <Wt/WOverlayLoadingIndicator>
@@ -83,12 +82,9 @@ typedef pair<Dbo::ptr<User>, StreamingApp*> StreamingAppSession;
 
 class StreamingAppPrivate {
 public:
-  WLink linkFor(filesystem::path p);
-  WMenu *menu = 0;
-  string videosDir() const;
+  StreamingAppPrivate(StreamingApp* q);
   Player *player = 0;
   string extensionFor(filesystem::path p);
-  StreamingAppPrivate(StreamingApp* q);
   void parseFileParameter();
   Playlist *playlist;
   WContainerWidget* playerContainerWidget;
@@ -113,11 +109,10 @@ public:
   void play(Media media);
   JSignal<string> playSignal;
   JSignal<string> queueSignal;
+  Settings settings;
 private:
   void addSubtitlesFor(filesystem::path path);
   void setupUserMenus();
-  WLink lightySecDownloadLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p) const;
-  WLink nginxSecLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p) const;
   WText* activeUsersMenuItem;
   WText* filesListMenuItem;
 };
@@ -203,7 +198,7 @@ void StreamingAppSessions::unregisterSession(string sessionId)
 
 StreamingAppSessions streamingAppSessions;
 
-StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication(environment), d(new StreamingAppPrivate(this)) {
+StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(environment), d(new StreamingAppPrivate(this)) {
   useStyleSheet("http://gulinux.net/css/videostreaming.css");
   requireJQuery("http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js");
   useStyleSheet("http://gulinux.net/css/bootstrap/css/bootstrap.css");
@@ -222,7 +217,7 @@ StreamingApp::StreamingApp ( const Wt::WEnvironment& environment) : WApplication
   combinedLocalizedStrings->add(xmlResourcesBundle);
   setLocalizedStrings(combinedLocalizedStrings);
 
-  d->collection = new MediaCollection(d->videosDir(), this);
+  d->collection = new MediaCollection(d->settings.videosDir(), this);
   addMetaHeader("viewport", "width=device-width, initial-scale=1, maximum-scale=1");
   
   d->authContainer = new WContainerWidget();
@@ -547,59 +542,6 @@ void StreamingApp::refresh() {
   d->parseFileParameter();
 }
 
-WLink StreamingAppPrivate::linkFor ( filesystem::path p ) {
-  string videosDeployDir;
-  string secDownloadPrefix;
-  string secDownloadSecret;
-  
-  if(wApp->readConfigurationProperty("secdownload-prefix", secDownloadPrefix) &&
-    wApp->readConfigurationProperty("secdownload-secret", secDownloadSecret)) {
-    return lightySecDownloadLinkFor(secDownloadPrefix, secDownloadSecret, p);
-  }
-  
-  if(wApp->readConfigurationProperty("seclink-prefix", secDownloadPrefix) && wApp->readConfigurationProperty("seclink-secret", secDownloadSecret)) {
-    return nginxSecLinkFor(secDownloadPrefix, secDownloadSecret, p);
-  }
-  
-  if(wApp->readConfigurationProperty("videos-deploy-dir", videosDeployDir )) {
-    string relpath = p.string();
-    boost::replace_all(relpath, videosDir(), videosDeployDir);
-    return WLink(relpath);
-  }
-
-   WLink link = WLink(new WFileResource(p.string(), wApp));
-   wApp->log("notice") << "Generated url: " << link.url();
-   return link;
-}
-
-WLink StreamingAppPrivate::lightySecDownloadLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p) const
-{
-    string filePath = p.string();
-    boost::replace_all(filePath, videosDir(), "");
-    string hexTime = (boost::format("%1$x") %WDateTime::currentDateTime().toTime_t()) .str();
-    string token = Utils::hexEncode(Utils::md5(secDownloadSecret + filePath + hexTime));
-    string secDownloadUrl = secDownloadPrefix + token + "/" + hexTime + filePath;
-    wApp->log("notice") << "****** secDownload: filename= " << filePath;
-    wApp->log("notice") << "****** secDownload: url= " << secDownloadUrl;
-    return WLink(secDownloadUrl);
-}
-
-WLink StreamingAppPrivate::nginxSecLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p) const
-{
-    string filePath = p.string();
-    boost::replace_all(filePath, videosDir(), "");
-    long expireTime = WDateTime::currentDateTime().addSecs(20000).toTime_t();
-    string token = Utils::base64Encode(Utils::md5( (boost::format("%s%s%d") % secDownloadSecret % filePath % expireTime).str() ), false);
-    token = boost::replace_all_copy(token, "=", "");
-    token = boost::replace_all_copy(token, "+", "-");
-    token = boost::replace_all_copy(token, "/", "_");
-    string secDownloadUrl = (boost::format("%s%s?st=%s&e=%d") % secDownloadPrefix % filePath % token % expireTime).str();
-    wApp->log("notice") << "****** secDownload: filename= " << filePath;
-    wApp->log("notice") << "****** secDownload: url= " << secDownloadUrl;
-    return WLink(secDownloadUrl);
-}
-
-
 
 string StreamingAppPrivate::extensionFor ( filesystem::path p ) {
   string extension = p.extension().string();
@@ -607,12 +549,6 @@ string StreamingAppPrivate::extensionFor ( filesystem::path p ) {
   return extension;
 }
 
-
-string StreamingAppPrivate::videosDir() const {
-  string videosDir = string(getenv("HOME")) + "/Videos";
-  wApp->readConfigurationProperty("videos-dir", videosDir);
-  return videosDir;
-}
 
 
 void StreamingAppPrivate::queue(Media media)
@@ -647,9 +583,9 @@ void StreamingAppPrivate::play ( Media media ) {
     player->stop();
     delete player;
   }
-  player = new HTML5Player();
+  player = settings.newPlayer();
   
-  player->addSource( Source(linkFor( media.path() ).url(), media.mimetype()) );
+  player->addSource( Source(settings.linkFor( media.path() ).url(), media.mimetype()) );
   player->setAutoplay(true);
   
   player->ended().connect([this](_n6){
@@ -673,7 +609,7 @@ void StreamingAppPrivate::play ( Media media ) {
   infoBox->addWidget(new WBreak() );
   infoBox->addWidget(new WAnchor(shareLink, "Link per la condivisione"));
   wApp->setTitle( media.filename() );
-  log("notice") << "using url " << linkFor( media.path() ).url();
+  log("notice") << "using url " << settings.linkFor( media.path() ).url();
   Dbo::Transaction t(session);
   for(auto detail : sessionInfo.modify()->sessionDetails())
     detail.modify()->ended();
@@ -705,11 +641,10 @@ void StreamingAppPrivate::addSubtitlesFor(filesystem::path path)
     fs::path mySub = fs::path(langPath.string() + "/" + path.filename().string() + ".vtt");
     if(fs::exists(mySub)) {
       wApp->log("notice") << "sub found: lang= " << lang << ", path= " << mySub;
-      player->addSubtitles(Track(linkFor(mySub).url(), lang, name));
+      player->addSubtitles(Track(settings.linkFor(mySub).url(), lang, name));
     }
   }
 }
-
 
 
 StreamingApp::~StreamingApp() {
