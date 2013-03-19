@@ -306,6 +306,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
 {
   wApp->log("notice") << "Setting up topbar links";
   topBarTemplate = new WTemplate(WString::tr("navbar"));
+  topBarTemplate->addFunction("tr", &WTemplate::Functions::tr);
   filesListMenuItem = new WText(WString::tr("menu.videoslist"));
   WText *latestCommentsMenuItem = new WText(WString::tr("menu.latest.comments"));
   
@@ -417,7 +418,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
     %s
   })) % playSignal.createCall("suggestionValue")).str();
   
-  WSuggestionPopup* suggestions = new WSuggestionPopup(jsMatcher, jsReplace, wApp->root()); // TODO: verificare
+  WSuggestionPopup* suggestions = new WSuggestionPopup(jsMatcher, jsReplace, wApp->root());
   auto addSuggestions = [this,suggestions,searchBox](_n6) {
     for(pair<string,Media> media: collection->collection()) {
       suggestions->addSuggestion(media.second.filename(), media.first);
