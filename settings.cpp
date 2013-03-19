@@ -56,14 +56,15 @@ WLink Settings::linkFor(filesystem::path p)
   string secDownloadPrefix;
   string secDownloadSecret;
   
+  if(wApp->readConfigurationProperty("seclink-prefix", secDownloadPrefix) && wApp->readConfigurationProperty("seclink-secret", secDownloadSecret)) {
+    return d->nginxSecLinkFor(secDownloadPrefix, secDownloadSecret, p);
+  }
+
   if(wApp->readConfigurationProperty("secdownload-prefix", secDownloadPrefix) &&
     wApp->readConfigurationProperty("secdownload-secret", secDownloadSecret)) {
     return d->lightySecDownloadLinkFor(secDownloadPrefix, secDownloadSecret, p);
   }
   
-  if(wApp->readConfigurationProperty("seclink-prefix", secDownloadPrefix) && wApp->readConfigurationProperty("seclink-secret", secDownloadSecret)) {
-    return d->nginxSecLinkFor(secDownloadPrefix, secDownloadSecret, p);
-  }
   
   if(wApp->readConfigurationProperty("videos-deploy-dir", videosDeployDir )) {
     string relpath = p.string();
