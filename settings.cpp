@@ -53,15 +53,22 @@ Player* Settings::newPlayer()
 WLink Settings::linkFor(filesystem::path p)
 {
   string videosDeployDir;
+  string secLinkPrefix;
+  string secLinkSecret;
   string secDownloadPrefix;
   string secDownloadSecret;
   
-  if(wApp->readConfigurationProperty("seclink-prefix", secDownloadPrefix) && wApp->readConfigurationProperty("seclink-secret", secDownloadSecret)) {
-    return d->nginxSecLinkFor(secDownloadPrefix, secDownloadSecret, p);
+  bool has_nginx = (wApp->readConfigurationProperty("seclink-prefix", secLinkPrefix)
+    && wApp->readConfigurationProperty("seclink-secret", secLinkSecret));
+  bool has_lighttpd = (wApp->readConfigurationProperty("secdownload-prefix", secDownloadPrefix)
+    && wApp->readConfigurationProperty("secdownload-secret", secDownloadSecret));
+  string downloadPreference = value("download_src", "nginx");
+  
+  if(downloadPreference == "nginx" && has_nginx) {
+    return d->nginxSecLinkFor(secLinkPrefix, secLinkSecret, p);
   }
 
-  if(wApp->readConfigurationProperty("secdownload-prefix", secDownloadPrefix) &&
-    wApp->readConfigurationProperty("secdownload-secret", secDownloadSecret)) {
+  if(has_lighttpd) {
     return d->lightySecDownloadLinkFor(secDownloadPrefix, secDownloadSecret, p);
   }
   
