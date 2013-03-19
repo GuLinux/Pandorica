@@ -51,7 +51,6 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection *collection, Wt::
 
 void MediaCollectionBrowserPrivate::browse(filesystem::path currentPath)
 {
-  wApp->log("notice") << "**** browsing " << currentPath.string();
   this->currentPath = currentPath;
   browser->clear();
   rebuildBreadcrumb();
@@ -67,7 +66,6 @@ void MediaCollectionBrowserPrivate::browse(filesystem::path currentPath)
       medias.push_back(m.second);
     fs::path directory = m.second.parentDirectory();
     while(directory != collection->rootPath() && !belongsToCurrent(directory)) {
-      wApp->log("notice") << "checking if directory " << directory.string() << " belongs to " << currentPath.string() << ": " << belongsToCurrent(directory);
       directory = directory.parent_path();
     }
     if(directory != currentPath && belongsToCurrent(directory) && !directories.count(directory))
@@ -82,7 +80,6 @@ void MediaCollectionBrowserPrivate::browse(filesystem::path currentPath)
 
 void MediaCollectionBrowserPrivate::addDirectory(filesystem::path directory)
 {
-  wApp->log("notice") << "Adding directory " << directory.filename().string();
   auto onClick = [this,directory](WMouseEvent){
     browse(directory);
   };
@@ -91,7 +88,7 @@ void MediaCollectionBrowserPrivate::addDirectory(filesystem::path directory)
 
 void MediaCollectionBrowserPrivate::addMedia(Media media)
 {
-  wApp->log("notice") << "Adding media " << media.filename();
+  wApp->log("notice") << "adding media " << media.path();
   auto onClick = [this,media](WMouseEvent e){
     WPopupMenu *menu = new WPopupMenu();
     WPopupMenuItem* filename = menu->addItem(media.filename());

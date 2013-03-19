@@ -24,17 +24,17 @@
 #include <Wt/WObject>
 
 namespace Wt {
-class WMenuItem;
+class WText;
 }
 
 class ReadBWStats : public Wt::WObject
 {
 
 public:
-    ReadBWStats(Wt::WMenuItem *widget, std::string url, Wt::WObject* parent = 0) : Wt::WObject(parent), widget(widget), url(url) { startPolling(); }
+    ReadBWStats(Wt::WText *widget, std::string url, Wt::WObject* parent = 0) : Wt::WObject(parent), widget(widget), url(url) { startPolling(); }
     virtual ~ReadBWStats() {}
 private:
-  Wt::WMenuItem *widget;
+  Wt::WText *widget;
   std::string url;
   void startPolling();
   long prevKB = 0;

@@ -20,7 +20,7 @@
 
 #include "readbwstats.h"
 #include <Wt/WTimer>
-#include <Wt/WMenuItem>
+#include <Wt/WText>
 #include <Wt/Http/Client>
 #include <Wt/Http/Message>
 #include <boost/algorithm/string.hpp>

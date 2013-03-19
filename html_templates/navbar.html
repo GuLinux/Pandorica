@@ -1,0 +1,33 @@
+<div class="navbar navbar-static-top navbar-inverse">
+  <div class="navbar-inner">
+    <a class="brand" href="#">${tr:site-title}</a>
+    <span id="om3vmtk">
+      <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+        <span class="icon-bar"></span> 
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </a>
+    </span>
+    <div id="om3vmtr" class="nav-collapse collapse">
+      <ul class="nav">
+        <li><a href="#">${media.list}</a></li>
+        <li><a href="#">${latest.comments}</a></li>
+        ${<is-admin>}
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Admin</a>
+            <ul class="dropdown-menu" role="menu">
+              <li><a href="#">${users.count}</a>
+              <li><a href="#">${users.log}</a>
+              <li><a href="#">${users.add}</a>
+            </ul>
+         </li>
+        ${</is-admin>}
+        ${<is-user>}
+          <li><a href="#">${users.count}</a></li>
+        ${</is-user>}
+        <div class="navbar-search pull-right">${search}</div>
+        <li><a href="#">${logout}</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
