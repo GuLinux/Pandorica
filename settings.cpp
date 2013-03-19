@@ -33,6 +33,14 @@ string Settings::videosDir() const
   return videosDir;
 }
 
+filesystem::path Settings::mediaData() const
+{
+  string dataPath = videosDir() + "/.media_data";
+  wApp->readConfigurationProperty("media_data", dataPath);
+  return fs::path(dataPath);
+}
+
+
 string Settings::value(string cookieName, string defaultValue)
 {
   const string *value = wApp->environment().getCookieValue(cookieName);
@@ -48,6 +56,13 @@ Player* Settings::newPlayer()
     return new WMediaPlayerWrapper();
   return new HTML5Player();
 }
+
+bool Settings::autoplay()
+{
+  string autoplay = value("media_autoplay", "true");
+  return autoplay=="true" && false;
+}
+
 
 
 WLink Settings::linkFor(filesystem::path p)

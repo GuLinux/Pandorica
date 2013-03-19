@@ -54,12 +54,10 @@ class Player
 public:
     Player()=default;
     virtual ~Player() {};
-    // New methods:
     virtual void addSource(const Source &source) = 0;
     virtual void setAutoplay(bool autoplay) = 0;
     virtual void addSubtitles(const Track &track) = 0;
-    // END
-    
+    virtual void setPoster(const Wt::WLink& poster) = 0;
     virtual bool playing() = 0;
     virtual Wt::WWidget *widget() = 0;
     virtual Wt::JSignal <Wt::NoClass >& ended() = 0;

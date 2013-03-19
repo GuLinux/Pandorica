@@ -40,6 +40,7 @@ public:
     
     
     virtual void addSource(const Source& source);
+    virtual void setPoster(const Wt::WLink& poster);
     virtual void addSubtitles(const Track& track);
     virtual void setAutoplay(bool autoplay);
     

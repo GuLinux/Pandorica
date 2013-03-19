@@ -586,8 +586,16 @@ void StreamingAppPrivate::play ( Media media ) {
   player = settings.newPlayer();
   
   player->addSource( Source(settings.linkFor( media.path() ).url(), media.mimetype()) );
-  player->setAutoplay(true);
-  
+  player->setAutoplay(settings.autoplay());
+  fs::path preview = media.preview(&settings);
+  if(fs::exists(preview)) {
+    player->setPoster(settings.linkFor(preview));
+  }
+  for(fs::path subtitle: media.subtitles(&settings)) {
+    // TODO: translation map, for instance ita=Italiano, eng=English etc
+    string fileBareName = subtitle.filename().replace_extension().string();
+    player->addSubtitles(Track( settings.linkFor(subtitle).url(), fileBareName, fileBareName ));
+  }
   player->ended().connect([this](_n6){
     Dbo::Transaction t(session);
     for(auto detail : sessionInfo.modify()->sessionDetails())

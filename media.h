@@ -21,6 +21,7 @@
 #ifndef MEDIA_H
 #define MEDIA_H
 #include <boost/filesystem.hpp>
+class Settings;
 
 class Media {
 public:
@@ -32,6 +33,8 @@ public:
   std::string extension() const;
   std::string mimetype() const;
   std::string uid() const;
+  boost::filesystem::path preview(Settings *settings) const;
+  std::list<boost::filesystem::path> subtitles(Settings *settings) const;
   boost::filesystem::path path() const;
   boost::filesystem::path parentDirectory() const;
   bool valid() const;
