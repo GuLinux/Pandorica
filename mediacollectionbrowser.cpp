@@ -5,6 +5,7 @@
 #include <Wt/WPopupMenu>
 #include <Wt/WImage>
 #include "Wt-Commons/wt_helpers.h"
+#include "settings.h"
 #include <boost/format.hpp>
 #include <algorithm>
 
@@ -18,13 +19,14 @@ typedef pair<string,Media> MediaEntry;
 
 class MediaCollectionBrowserPrivate {
 public:
-  MediaCollectionBrowserPrivate(MediaCollection *collection)
-    : collection(collection) {}
+  MediaCollectionBrowserPrivate(MediaCollection *collection, Settings *settings)
+    : collection(collection) , settings(settings) {}
     void rebuildBreadcrumb();
     void browse(filesystem::path currentPath);
     
 public:
   MediaCollection *const collection;
+  Settings *settings;
   filesystem::path currentPath;
   WContainerWidget* breadcrumb;
   WContainerWidget* browser;
@@ -37,8 +39,8 @@ private:
   string formatFileSize(long size);
 };
 
-MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection *collection, Wt::WContainerWidget* parent)
-  : WContainerWidget(parent), d(new MediaCollectionBrowserPrivate(collection))
+MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Settings* settings, WContainerWidget* parent)
+  : WContainerWidget(parent), d(new MediaCollectionBrowserPrivate(collection, settings))
 {
   d->breadcrumb = WW(WContainerWidget).css("breadcrumb");
   d->breadcrumb->setList(true);
@@ -83,7 +85,7 @@ void MediaCollectionBrowserPrivate::addDirectory(filesystem::path directory)
   auto onClick = [this,directory](WMouseEvent){
     browse(directory);
   };
-  addIcon(directory.filename().string(), "http://gulinux.net/css/folder.png", onClick);
+  addIcon(directory.filename().string(), "http://gulinux.net/css/fs_icons/inode-directory.png", onClick);
 }
 
 void MediaCollectionBrowserPrivate::addMedia(Media media)
@@ -106,7 +108,12 @@ void MediaCollectionBrowserPrivate::addMedia(Media media)
     });
     menu->popup(e);
   };
-  addIcon(media.filename(), "http://gulinux.net/css/video.png", onClick);
+  string icon = "http://gulinux.net/css/fs_icons/video-x-generic.png";
+  if(media.mimetype().find("audio") != string::npos)
+    icon = "http://gulinux.net/css/fs_icons/audio-x-generic.png";
+  if(boost::filesystem::exists(media.preview(settings)))
+    icon = settings->linkFor(media.preview(settings)).url();
+  addIcon(media.filename(), icon, onClick);
 }
 
 WContainerWidget* MediaCollectionBrowserPrivate::addIcon(string filename, string icon, MouseEventListener onClick)
