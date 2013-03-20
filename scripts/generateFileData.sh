@@ -58,6 +58,9 @@ function createThumbnail() {
     mv 00000001.png preview.png
     rm 00000*.png
     cd -
+    if ! [ -r "$dataDir/preview.png" ]; then
+        ffmpeg -i "$file" -loglevel quiet -ss $one_third -f image2 -vframes 1 "$dataDir/preview.png" 2>/dev/null
+    fi
 }
 
 function genFileData() {
