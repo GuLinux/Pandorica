@@ -1,6 +1,5 @@
 #!/bin/bash
 #set -x
-set -e
 
 function idFor() {
     echo -n "$@" | md5sum | cut -f1 -d' '
@@ -59,7 +58,7 @@ function createThumbnail() {
     rm 00000*.png
     cd -
     if ! [ -r "$dataDir/preview.png" ]; then
-        ffmpeg -i "$file" -loglevel quiet -ss $one_third -f image2 -vframes 1 "$dataDir/preview.png" 2>/dev/null
+        ffmpeg -i "$file" -loglevel error -ss $one_third -f image2 -vframes 1 "$dataDir/preview.png"
     fi
 }
 
