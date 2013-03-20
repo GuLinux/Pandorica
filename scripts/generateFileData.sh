@@ -11,12 +11,21 @@ function mediaDataDir() {
     echo "$medias_dir/$( idFor "$fname")"
 }
 
+function saveMediaInfo() {
+    file="$1"
+    dataDir="$( mediaDataDir "$1" "$2")"
+    outfile="$dataDir/media.info"
+    ffprobe -loglevel quiet -of json            -show_format -show_streams "$file" > "$outfile.json"
+    ffprobe -loglevel quiet -of flat=sep_char=_ -show_format -show_streams "$file" > "$outfile"
+    echo "$outfile"
+}
+
 function extractSubtitles() {
     file="$1"
     dataDir="$( mediaDataDir "$1" "$2")/subs"
     mkdir -p "$dataDir"
     echo "Extracting subtitles from $file to $dataDir"
-    eval "$( ffprobe -loglevel quiet -of flat=sep_char=_ -show_format -show_streams "$file" )"
+    eval "$( cat "$3" )"
     for i in `seq 0 $(( $format_nb_streams-1))`; do
         stream_type="$( eval echo \$streams_stream_${i}_codec_type )"
         track_language=$( eval echo \$streams_stream_${i}_tags_language)
@@ -32,7 +41,7 @@ function createThumbnail() {
     dataDir="$( mediaDataDir "$1" "$2")"
     if [ -r "$dataDir/preview.png" ]; then return; fi
     echo "Creating thumbnail for $file to $dataDir"
-    eval "$( ffprobe -loglevel quiet -of flat=sep_char=_ -show_format "$file" )"
+    eval "$( cat "$3")"
     if test "x$format_duration" == "xN/A"; then return; fi
     one_third="$(( $(echo $format_duration | cut -d. -f1) / 3 ))"
     mkdir -p "$dataDir"
@@ -44,11 +53,12 @@ function genFileData() {
     medias_dir="$1"; shift
     case "$fname" in
         *.mp4|*.m4v)
-        extractSubtitles "$fname" "$medias_dir"
-        createThumbnail "$fname" "$medias_dir"
+        mediaInfo="$( saveMediaInfo "$fname" "$medias_dir" )"
+        extractSubtitles "$fname" "$medias_dir" "$mediaInfo"
+        createThumbnail "$fname" "$medias_dir" "$mediaInfo"
         ;;
         *)
-	echo "Unknown file type: $fname"
+#	echo "Unknown file type: $fname"
 	return
         ;;
     esac
