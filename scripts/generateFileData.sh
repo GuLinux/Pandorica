@@ -1,5 +1,5 @@
 #!/bin/bash
-#set -x
+set -x
 set -e
 
 function idFor() {
@@ -17,8 +17,8 @@ function saveMediaInfo() {
     dataDir="$( mediaDataDir "$1" "$2")"
     mkdir -p "$dataDir"
     outfile="$dataDir/media.info"
-    ffprobe -loglevel quiet -of json            -show_format -show_streams "$file" > "$outfile.json"
-    ffprobe -loglevel quiet -of flat=sep_char=_ -show_format -show_streams "$file" > "$outfile"
+    ffprobe -loglevel quiet -print_format json            -show_format -show_streams "$file" > "$outfile.json"
+    ffprobe -loglevel quiet -print_format flat=sep_char=_ -show_format -show_streams "$file" > "$outfile"
     echo "$outfile"
 }
 
@@ -69,9 +69,9 @@ function genFileData() {
         ;;
         *)
 #	echo "Unknown file type: $fname"
-	return
         ;;
     esac
+    exit 0
 }
 
 if test "x$1" == "xfunct"; then
