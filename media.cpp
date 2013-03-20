@@ -93,19 +93,62 @@ filesystem::path Media::preview(Settings *settings) const
   return previewPath;
 }
 
-list< filesystem::path > Media::subtitles(Settings* settings) const
+list< MediaSubtitle > Media::subtitles(Settings* settings) const
 {
-  list<fs::path> subtitles;
+  list<MediaSubtitle> subtitles;
   fs::path subtitlesDirectory = fs::absolute(fs::path(uid() + "/subs/"), settings->mediaData());
   if(! (fs::exists(subtitlesDirectory) && fs::is_directory(subtitlesDirectory)))
     return subtitles;
   for(fs::directory_iterator it=fs::directory_iterator(subtitlesDirectory); it!=fs::directory_iterator(); it++) {
     if(it->path().extension() == ".vtt") {
-      subtitles.push_back(it->path());
+      subtitles.push_back(MediaSubtitle(it->path()));
     }
   }
 }
 
+map<string,string> defaultLabels { 
+  pair<string,string>{"ita", "Italiano"},
+  pair<string,string>{"eng", "English"},
+  pair<string,string>{"und", "Undefined"}
+};
+
+std::string defaultLabelFor(string language) {
+  if(! defaultLabels.count(language))
+    return defaultLabels["und"];
+  return defaultLabels[language];
+}
+
+MediaSubtitle::MediaSubtitle(const filesystem::path path) : _path(path)
+{
+  string filename = path.filename().replace_extension().string();
+  std::size_t firstDotPos=filename.find('.');
+  if(firstDotPos == string::npos && filename.size() == 3) {
+    _language = filename;
+    _label = defaultLabelFor(_language);
+  }
+  _language = filename.substr(0, firstDotPos);
+  if(filename.length() < firstDotPos+2) {
+    _label = defaultLabelFor(_language);
+  } else {
+    _label = filename.substr(firstDotPos+1);
+  }
+}
+
+filesystem::path MediaSubtitle::path() const
+{
+  return _path;
+}
+
+
+string MediaSubtitle::language() const
+{
+  return _language;
+}
+
+string MediaSubtitle::label() const
+{
+  return _label;
+}
 
 
 

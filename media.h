@@ -23,6 +23,17 @@
 #include <boost/filesystem.hpp>
 class Settings;
 
+class MediaSubtitle {
+public:
+  MediaSubtitle(const boost::filesystem::path path);
+  boost::filesystem::path path() const;
+  std::string label() const;
+  std::string language() const;
+private:
+  boost::filesystem::path _path;
+  std::string _label;
+  std::string _language;
+};
 class Media {
 public:
   Media(const boost::filesystem::path &path);
@@ -34,7 +45,7 @@ public:
   std::string mimetype() const;
   std::string uid() const;
   boost::filesystem::path preview(Settings *settings) const;
-  std::list<boost::filesystem::path> subtitles(Settings *settings) const;
+  std::list<MediaSubtitle> subtitles(Settings *settings) const;
   boost::filesystem::path path() const;
   boost::filesystem::path parentDirectory() const;
   bool valid() const;

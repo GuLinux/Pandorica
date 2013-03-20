@@ -206,8 +206,8 @@ StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(
   require("http://gulinux.net/css/bootstrap/js/bootstrap.js");
 //   useStyleSheet("http://vjs.zencdn.net/c/video-js.css");
 //   require("http://vjs.zencdn.net/c/video.js");
-  require("//cdn.jsdelivr.net/mediaelement/2.10.1/mediaelement-and-player.js");
-  useStyleSheet("//cdn.jsdelivr.net/mediaelement/2.10.1/mediaelementplayer.css");
+  require("http://gulinux.net/css/mediaelement/mediaelement-and-player.js");
+  useStyleSheet("http://gulinux.net/css/mediaelement/mediaelementplayer.css");
   enableUpdates(true);
   d->session.login().changed().connect(this, &StreamingApp::authEvent);
   WMessageResourceBundle *xmlResourcesBundle = new WMessageResourceBundle;
@@ -583,10 +583,9 @@ void StreamingAppPrivate::play ( Media media ) {
   if(fs::exists(preview)) {
     player->setPoster(settings.linkFor(preview));
   }
-  for(fs::path subtitle: media.subtitles(&settings)) {
+  for(MediaSubtitle subtitle: media.subtitles(&settings)) {
     // TODO: translation map, for instance ita=Italiano, eng=English etc
-    string fileBareName = subtitle.filename().replace_extension().string();
-    player->addSubtitles(Track( settings.linkFor(subtitle).url(), fileBareName, fileBareName ));
+    player->addSubtitles(Track( settings.linkFor(subtitle.path()).url(), subtitle.language(), subtitle.label() ));
   }
   player->ended().connect([this](_n6){
     Dbo::Transaction t(session);
