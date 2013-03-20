@@ -97,6 +97,8 @@ CommentsContainerWidget::CommentsContainerWidget(string videoId, Session* sessio
   newCommentContent->setWidth(500);
   newCommentContent->setInline(false);
   WPushButton* insertComment = WW(WPushButton, "Add Comment").css("btn btn-primary btn-small").onClick([this,videoId,newCommentContent](WMouseEvent){
+    if(newCommentContent->text().empty())
+      return;
     Comment *comment = new Comment(videoId, d->session->user(), newCommentContent->text().toUTF8());
     Dbo::Transaction t(*d->session);
     Dbo::ptr< Comment > newComment = d->session->add(comment);
@@ -104,6 +106,10 @@ CommentsContainerWidget::CommentsContainerWidget(string videoId, Session* sessio
     newCommentContent->setText("");
     commentViewers.commentAdded(videoId, newComment.id());
   });
+  newCommentContent->keyWentUp().connect([insertComment,newCommentContent](WKeyEvent){
+    insertComment->setEnabled(!newCommentContent->text().empty());
+  });
+  insertComment->setEnabled(false);
   
   addWidget(WW(WContainerWidget).css("add-comment-box").add(newCommentContent).add(insertComment).setContentAlignment(AlignCenter));
   
