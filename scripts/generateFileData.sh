@@ -53,7 +53,7 @@ function createThumbnail() {
     #ffmpeg -i "$file" -loglevel quiet -ss $one_third -f image2 -vframes 1 "$dataDir/preview.png" 2>/dev/null
     cd "$dataDir"
     mplayer "$( readlink -f "$file" )" -vo png:z=9 -ao null -frames 1 -ss "$one_third" 2>&1 > /dev/null
-    mv 00000003.png preview.png
+    mv 00000001.png preview.png
     rm 00000*.png
     cd -
 }
