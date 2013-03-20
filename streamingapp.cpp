@@ -388,15 +388,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
     }
   });
   
-    /*
-    if(selected==refresh) {
-      WOverlayLoadingIndicator* indicator = new WOverlayLoadingIndicator();
-      wApp->root()->addWidget(indicator->widget());
-      collection->rescan();
-      WTimer::singleShot(1000, [indicator,this](WMouseEvent) { delete indicator;});
-    }
-    */
-  
+
   WLineEdit *searchBox = new WLineEdit();
   searchBox->setStyleClass("search-query");
   searchBox->setAttributeValue("placeholder", "Search");
