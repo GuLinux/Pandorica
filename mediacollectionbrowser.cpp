@@ -112,7 +112,7 @@ void MediaCollectionBrowserPrivate::addMedia(Media media)
   if(media.mimetype().find("audio") != string::npos)
     icon = "http://gulinux.net/css/fs_icons/audio-x-generic.png";
   if(boost::filesystem::exists(media.preview(settings, Media::PreviewThumb)))
-    icon = settings->linkFor(media.preview(settings)).url();
+    icon = settings->linkFor(media.preview(settings, Media::PreviewThumb)).url();
   addIcon(media.filename(), icon, onClick);
 }
 
