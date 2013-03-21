@@ -23,6 +23,7 @@
 #include <iostream>
 #include <fstream>
 #include "comment.h"
+#include "mediaattachment.h"
 
 namespace {
 
@@ -80,6 +81,8 @@ Session::Session()
   mapClass<AuthorizedUser>("authorized_users");
   mapClass<AuthInfo::AuthIdentityType>("auth_identity");
   mapClass<AuthInfo::AuthTokenType>("auth_token");
+  mapClass<MediaProperties>("media_properties");
+  mapClass<MediaAttachment>("media_attachment");
   ofstream schema;
   schema.open("schema.sql");
   schema << tableCreationSql();
