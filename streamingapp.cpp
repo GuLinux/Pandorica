@@ -364,9 +364,6 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
     setupUserMenus();
   }
   
-  
-//   WMenuItem *refresh = topMenu->addItem("Refresh", 0);
-  
   string serverStatusUrl; // TODO
   if(false || wApp->readConfigurationProperty("server-status-url", serverStatusUrl)) {
     WText *bwStatsItem = new WText();
