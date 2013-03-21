@@ -58,8 +58,12 @@ function createThumbnail() {
     rm 00000*.png
     cd -
     if ! [ -r "$dataDir/preview.png" ]; then
-        ffmpeg -i "$file" -loglevel error -ss $one_third -f image2 -vframes 1 "$dataDir/preview.png"
+	set -x
+        ffmpeg -i "$( readlink -f "$file")" -loglevel error -ss $one_third -f image2 -vframes 1 "$dataDir/preview.png"
+	set +x
     fi
+    convert "$dataDir/preview.png" -size 640 "$dataDir/preview_player.png"
+    convert "$dataDir/preview.png" -size 260 "$dataDir/preview_thumb.png"
 }
 
 function genFileData() {

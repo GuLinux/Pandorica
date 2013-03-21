@@ -86,9 +86,12 @@ bool Media::valid() const
   return !uid().empty() && !path().empty();
 }
 
-filesystem::path Media::preview(Settings *settings) const
+filesystem::path Media::preview(Settings *settings, PreviewSize size ) const
 {
-  fs::path previewPath = fs::absolute(fs::path(uid() + "/preview.png"), settings->mediaData());
+  string previewFileName = "/preview.png";
+  if(size == PreviewPlayer) previewFileName = "/preview_player.png";
+  if(size == PreviewThumb) previewFileName = "/preview_thumb.png";
+  fs::path previewPath = fs::absolute(fs::path(uid() + previewFileName), settings->mediaData());
   wApp->log("notice") << "previewPath=" << previewPath;
   return previewPath;
 }
