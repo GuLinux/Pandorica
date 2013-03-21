@@ -112,6 +112,11 @@ map<string,string> defaultLabels {
   pair<string,string>{"und", "Undefined"}
 };
 
+map<string,string> threeLangCodeToTwo {
+  pair<string,string>{"ita", "it"},
+  pair<string,string>{"eng", "en"}
+};
+
 std::string defaultLabelFor(string language) {
   if(! defaultLabels.count(language))
     return defaultLabels["und"];
@@ -123,10 +128,10 @@ MediaSubtitle::MediaSubtitle(const filesystem::path path) : _path(path)
   string filename = path.filename().replace_extension().string();
   std::size_t firstDotPos=filename.find('.');
   if(firstDotPos == string::npos && filename.size() == 3) {
-    _language = filename;
+    _language = threeLangCodeToTwo[filename];
     _label = defaultLabelFor(_language);
   }
-  _language = filename.substr(0, firstDotPos);
+  _language = threeLangCodeToTwo[filename.substr(0, firstDotPos)];
   if(filename.length() < firstDotPos+2) {
     _label = defaultLabelFor(_language);
   } else {
