@@ -580,7 +580,7 @@ void StreamingAppPrivate::play ( Media media ) {
   
   player->addSource( Source(settings.linkFor( media.path() ).url(), media.mimetype()) );
   player->setAutoplay(settings.autoplay());
-  fs::path preview = media.preview(&settings);
+  fs::path preview = media.preview(&settings, Media::PreviewPlayer);
   if(fs::exists(preview)) {
     player->setPoster(settings.linkFor(preview));
   }

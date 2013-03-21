@@ -36,6 +36,7 @@ private:
 };
 class Media {
 public:
+  enum PreviewSize {PreviewFull, PreviewPlayer, PreviewThumb};
   Media(const boost::filesystem::path &path);
   Media();
   ~Media();
@@ -44,7 +45,7 @@ public:
   std::string extension() const;
   std::string mimetype() const;
   std::string uid() const;
-  boost::filesystem::path preview(Settings *settings) const;
+  boost::filesystem::path preview(Settings *settings, PreviewSize size = PreviewPlayer) const;
   std::list<MediaSubtitle> subtitles(Settings *settings) const;
   boost::filesystem::path path() const;
   boost::filesystem::path parentDirectory() const;
