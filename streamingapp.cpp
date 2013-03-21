@@ -112,7 +112,6 @@ public:
   JSignal<string> queueSignal;
   Settings settings;
 private:
-  void addSubtitlesFor(filesystem::path path);
   void setupUserMenus();
   WText* activeUsersMenuItem;
   WText* filesListMenuItem;
@@ -597,7 +596,6 @@ void StreamingAppPrivate::play ( Media media ) {
     playlist->nextItem();
   });
 
-  addSubtitlesFor(media.path());
   playerContainerWidget->clear();
   playerContainerWidget->addWidget(player->widget());
   WContainerWidget* infoBox = new WContainerWidget();
@@ -616,34 +614,6 @@ void StreamingAppPrivate::play ( Media media ) {
   sessionInfo.modify()->sessionDetails().insert(new SessionDetails(media.path()));
   sessionInfo.flush();
   t.commit();
-}
-
-void StreamingAppPrivate::addSubtitlesFor(filesystem::path path)
-{
-  wApp->log("notice") << "Adding subtitles for " << path;
-  fs::path subsdir(path.parent_path().string() + "/.subs");
-  wApp->log("notice") << "subs path: " << subsdir;
-  if(!fs::exists(subsdir)) {
-    wApp->log("notice") << "subs path: " << subsdir << " not existing, exiting";
-    return;
-  }
-  vector<filesystem::path> v;
-  copy(filesystem::directory_iterator(subsdir), filesystem::directory_iterator(), back_inserter(v));
-  sort(v.begin(), v.end());
-  for(filesystem::path langPath: v) {
-    string lang = langPath.filename().string();
-    string name = "Subtitles (unknown language)";
-    if(lang == "it")
-      name = "Italiano";
-    if(lang == "en")
-      name = "English";
-    wApp->log("notice") << "subs lang path: " << langPath;
-    fs::path mySub = fs::path(langPath.string() + "/" + path.filename().string() + ".vtt");
-    if(fs::exists(mySub)) {
-      wApp->log("notice") << "sub found: lang= " << lang << ", path= " << mySub;
-      player->addSubtitles(Track(settings.linkFor(mySub).url(), lang, name));
-    }
-  }
 }
 
 
