@@ -28,6 +28,7 @@
 #include <Wt/WFileResource>
 #include <Wt/WTimer>
 #include <Wt/WEnvironment>
+#include <Wt/WFileResource>
 #include <Wt/WMenu>
 #include <Wt/WImage>
 #include <Wt/WText>
@@ -584,8 +585,8 @@ void StreamingAppPrivate::play ( Media media ) {
     player->setPoster(settings.linkFor(preview));
   }
   for(MediaSubtitle subtitle: media.subtitles(&settings)) {
-    // TODO: translation map, for instance ita=Italiano, eng=English etc
-    player->addSubtitles(Track( settings.linkFor(subtitle.path()).url(), subtitle.language(), subtitle.label() ));
+    WFileResource *resource = new WFileResource("text/vtt", subtitle.path().string(), wApp);
+    player->addSubtitles(Track( resource->url() , subtitle.language(), subtitle.label() ));
   }
   player->ended().connect([this](_n6){
     Dbo::Transaction t(session);
