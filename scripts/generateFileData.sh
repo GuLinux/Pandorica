@@ -48,10 +48,15 @@ function createThumbnail() {
     eval "$( cat "$3")"
     if test "x$format_duration" == "xN/A" || test "x$format_duration" == "x"; then return; fi
     format_duration=$(echo $format_duration | cut -d. -f1)
-    random_offset="$(( $RANDOM % $(( $format_duration / 20  ))  ))"
-    one_third="$(( $format_duration / 3 + $random_offset ))"
+    random_offset="$(( $RANDOM % $(( $format_duration / 30  ))  ))"
+    if test "x$(( $RANDOM %2 ))" == "x0"; then
+	random_offset="$(( $random_offset * -1 ))"
+    fi
     mkdir -p "$dataDir"
-    #ffmpeg -i "$file" -loglevel quiet -ss $one_third -f image2 -vframes 1 "$dataDir/preview.png" 2>/dev/null
+
+    one_third="$(( $format_duration / 3 + $random_offset ))"
+    echo "Random total duration: $format_duration, random offset: $random_offset, one_third: $one_third"
+
     set -x
     ffmpegthumbnailer -i "$file" -o "$dataDir/preview.png" -s 0 -t $one_third -f
     set +x
