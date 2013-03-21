@@ -107,9 +107,10 @@ list< MediaSubtitle > Media::subtitles(Settings* settings) const
 }
 
 map<string,string> defaultLabels { 
-  pair<string,string>{"ita", "Italiano"},
-  pair<string,string>{"eng", "English"},
-  pair<string,string>{"und", "Undefined"}
+  pair<string,string>{"it", "Italiano"},
+  pair<string,string>{"en", "English"},
+  pair<string,string>{"und", "Undefined"},
+  pair<string,string>{"", "Undefined"}
 };
 
 map<string,string> threeLangCodeToTwo {
