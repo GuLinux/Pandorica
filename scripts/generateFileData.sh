@@ -48,13 +48,13 @@ function createThumbnail() {
     eval "$( cat "$3")"
     if test "x$format_duration" == "xN/A" || test "x$format_duration" == "x"; then return; fi
     format_duration=$(echo $format_duration | cut -d. -f1)
-    random_offset="$(( $RANDOM % $(( $format_duration / 30  ))  ))"
+    random_offset="$(( $RANDOM % $(( $format_duration / 15  ))  ))"
     if test "x$(( $RANDOM %2 ))" == "x0"; then
 	random_offset="$(( $random_offset * -1 ))"
     fi
     mkdir -p "$dataDir"
 
-    one_third="$(( $format_duration / 3 + $random_offset ))"
+    one_third="$(( $format_duration / 4 + $random_offset ))"
     echo "Random total duration: $format_duration, random offset: $random_offset, one_third: $one_third"
 
     set -x
