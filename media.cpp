@@ -22,6 +22,8 @@
 #include <map>
 #include "settings.h"
 #include "Wt/WApplication"
+#include "mediaattachment.h"
+#include "session.h"
 #include <boost/filesystem.hpp>
 
 using namespace Wt;
@@ -86,77 +88,33 @@ bool Media::valid() const
   return !uid().empty() && !path().empty();
 }
 
-filesystem::path Media::preview(Settings *settings, PreviewSize size ) const
+Dbo::ptr< MediaAttachment > Media::preview(Session* session, Media::PreviewSize size ) const
 {
-  string previewFileName = "/preview.png";
-  if(size == PreviewPlayer) previewFileName = "/preview_player.png";
-  if(size == PreviewThumb) previewFileName = "/preview_thumb.png";
-  fs::path previewPath = fs::absolute(fs::path(uid() + previewFileName), settings->mediaData());
-  wApp->log("notice") << "previewPath=" << previewPath;
-  return previewPath;
-}
-
-list< MediaSubtitle > Media::subtitles(Settings* settings) const
-{
-  list<MediaSubtitle> subtitles;
-  fs::path subtitlesDirectory = fs::absolute(fs::path(uid() + "/subs/"), settings->mediaData());
-  if(! (fs::exists(subtitlesDirectory) && fs::is_directory(subtitlesDirectory)))
-    return subtitles;
-  for(fs::directory_iterator it=fs::directory_iterator(subtitlesDirectory); it!=fs::directory_iterator(); it++) {
-    if(it->path().extension() == ".vtt") {
-      subtitles.push_back(MediaSubtitle(it->path()));
-    }
+  string previewSize;
+  switch(size) {
+    case Media::PreviewFull:
+      previewSize="full"; break;
+    case Media::PreviewPlayer:
+      previewSize="player"; break;
+    case Media::PreviewThumb:
+      previewSize="thumbnail"; break;
   }
+  Dbo::Transaction t(*session);
+  return session->find<MediaAttachment>().where("media_id = ? AND type = 'preview' AND name = ?")
+    .bind(uid()).bind(previewSize);
 }
 
-map<string,string> defaultLabels { 
-  pair<string,string>{"it", "Italiano"},
-  pair<string,string>{"en", "English"},
-  pair<string,string>{"und", "Undefined"},
-  pair<string,string>{"", "Undefined"}
-};
-
-map<string,string> threeLangCodeToTwo {
-  pair<string,string>{"ita", "it"},
-  pair<string,string>{"eng", "en"}
-};
-
-std::string defaultLabelFor(string language) {
-  if(! defaultLabels.count(language))
-    return defaultLabels["und"];
-  return defaultLabels[language];
-}
-
-MediaSubtitle::MediaSubtitle(const filesystem::path path) : _path(path)
+Dbo::collection<MediaAttachmentPtr> Media::subtitles(Session* session) const
 {
-  string filename = path.filename().replace_extension().string();
-  std::size_t firstDotPos=filename.find('.');
-  if(firstDotPos == string::npos && filename.size() == 3) {
-    _language = threeLangCodeToTwo[filename];
-    _label = defaultLabelFor(_language);
-  }
-  _language = threeLangCodeToTwo[filename.substr(0, firstDotPos)];
-  if(filename.length() < firstDotPos+2) {
-    _label = defaultLabelFor(_language);
-  } else {
-    _label = filename.substr(firstDotPos+1);
-  }
+  Dbo::Transaction t(*session);
+  return subtitles(&t);
 }
 
-filesystem::path MediaSubtitle::path() const
+Dbo::collection< Dbo::ptr< MediaAttachment > > Media::subtitles(Dbo::Transaction* transaction) const
 {
-  return _path;
-}
-
-
-string MediaSubtitle::language() const
-{
-  return _language;
-}
-
-string MediaSubtitle::label() const
-{
-  return _label;
+  Dbo::collection<MediaAttachmentPtr> subs = transaction->session().find<MediaAttachment>().where("media_id = ? AND type = 'subtitles'")
+    .bind(uid());
+  return subs;
 }
 
 

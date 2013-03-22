@@ -4,6 +4,7 @@
 #include <Wt/WContainerWidget>
 #include "mediacollection.h"
 
+class Session;
 class MediaCollectionBrowserPrivate;
 class MediaCollection;
 class Settings;
@@ -12,10 +13,10 @@ class MediaCollectionBrowser : public Wt::WContainerWidget
 {
 
 public:
-    MediaCollectionBrowser(MediaCollection *collection, Settings *settings, Wt::WContainerWidget* parent = 0);
-    virtual ~MediaCollectionBrowser();
-    Wt::Signal<Media> &queue();
-    Wt::Signal<Media> &play();
+  MediaCollectionBrowser(MediaCollection *collection, Settings *settings, Session *session, Wt::WContainerWidget* parent = 0);
+  virtual ~MediaCollectionBrowser();
+  Wt::Signal<Media> &queue();
+  Wt::Signal<Media> &play();
 private:
   MediaCollectionBrowserPrivate *const d;
 };
