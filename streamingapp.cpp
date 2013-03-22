@@ -356,14 +356,13 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   sessionAdded.connect(setLoggedUsersTitle);
   sessionRemoved.connect(setLoggedUsersTitle);
   
-  if(role == AuthorizedUser::Admin)
+  if(role == AuthorizedUser::Admin) {
+    wApp->setCookie("download_src", "lighttpd", WDateTime::currentDateTime().addDays(365));
     setupAdminMenus();
+  }
   else {
     setupUserMenus();
   }
-  
-  
-//   WMenuItem *refresh = topMenu->addItem("Refresh", 0);
   
   string serverStatusUrl; // TODO
   if(false || wApp->readConfigurationProperty("server-status-url", serverStatusUrl)) {

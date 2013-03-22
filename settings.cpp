@@ -26,6 +26,10 @@ public:
 Settings::Settings() : d(new SettingsPrivate(this)) {}
 Settings::~Settings() { delete d; }
 
+const std::string Settings::downloadSource = "download_src";
+const std::string Settings::mediaAutoplay = "media_autoplay";
+const std::string Settings::preferredPlayer = "player";
+
 string Settings::videosDir() const
 {
   string videosDir = string(getenv("HOME")) + "/Videos";
@@ -51,7 +55,7 @@ string Settings::value(string cookieName, string defaultValue)
 
 Player* Settings::newPlayer()
 {
-  string playerSetting = value("player", "html5");
+  string playerSetting = value(Settings::preferredPlayer, "html5");
   if(playerSetting == "jPlayer")
     return new WMediaPlayerWrapper();
   return new HTML5Player();
@@ -59,7 +63,7 @@ Player* Settings::newPlayer()
 
 bool Settings::autoplay()
 {
-  string autoplay = value("media_autoplay", "true");
+  string autoplay = value(Settings::mediaAutoplay, "true");
   return autoplay=="true" && false;
 }
 
@@ -77,7 +81,7 @@ WLink Settings::linkFor(filesystem::path p)
     && wApp->readConfigurationProperty("seclink-secret", secLinkSecret));
   bool has_lighttpd = (wApp->readConfigurationProperty("secdownload-prefix", secDownloadPrefix)
     && wApp->readConfigurationProperty("secdownload-secret", secDownloadSecret));
-  string downloadPreference = value("download_src", "nginx");
+  string downloadPreference = value(Settings::downloadSource, "nginx");
   
   if(downloadPreference == "nginx" && has_nginx) {
     return d->nginxSecLinkFor(secLinkPrefix, secLinkSecret, p);
