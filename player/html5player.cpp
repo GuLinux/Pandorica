@@ -136,7 +136,7 @@ void HTML5Player::playerReady()
   if(defaultTracks["subtitles"].isValid()) {
     mediaelementOptions += mediaelementOptions.empty() ? "" : ", " + string("startLanguage: '") + defaultTracks["subtitles"].lang + "'";
   }
-  runJavascript(string("$('video,audio').mediaelementplayer({ ") + mediaelementOptions + " });");
+  runJavascript(string("$('video,audio').mediaelementplayer();"));
 }
 
 
@@ -165,6 +165,10 @@ void HTML5Player::setPlayerSize(int width, int height)
   runJavascript(js);
 }
 
+void HTML5Player::refresh()
+{
+  runJavascript(string("$('video,audio').mediaelementplayer();"));
+}
 
 
 string HTML5Player::playerId()
