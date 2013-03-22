@@ -72,8 +72,8 @@ function createThumbnail() {
         ffmpeg -i "$( readlink -f "$file")" -loglevel error -ss $one_third -f image2 -vframes 1 "$dataDir/preview.png"
 	set +x
     fi
-    convert "$dataDir/preview.png" -scale 640 "$dataDir/preview_player.png"
-    convert "$dataDir/preview.png" -scale 260 "$dataDir/preview_thumb.png"
+    convert "$dataDir/preview.png" -scale 640x264 "$dataDir/preview_player.png"
+    convert "$dataDir/preview.png" -scale 260x107 "$dataDir/preview_thumb.png"
 }
 
 function genFileData() {
