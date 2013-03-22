@@ -11,6 +11,11 @@ function idFor() {
     echo -n "$@" | md5sum | cut -f1 -d' '
 }
 
+function sqlEscape() {
+#printf "%q" "$*"
+  echo "$@" | sed "s/'/''/g"
+}
+
 function saveMediaInfo() {
     ffprobe -loglevel quiet -print_format flat=sep_char=_ -show_format -show_streams "$1" > "$INFO_FILE"
     has_media_info="$( echo "select count(*) from media_properties WHERE media_id='$(idFor "$filename")';" | doSql_$2 )"
@@ -21,7 +26,7 @@ function saveMediaInfo() {
     eval "$( cat "$INFO_FILE")"
     format_duration=$(echo $format_duration | cut -d. -f1)
     echo "INSERT INTO media_properties(media_id, title, filename, duration, size, width, height)
-    VALUES('$(idFor "$1")', 'todo', '$format_filename', $format_duration, $format_size, $streams_stream_0_width, $streams_stream_0_height);" | doSql_$2
+    VALUES('$(idFor "$1")', 'todo', '$(sqlEscape "$format_filename")', $format_duration, $format_size, $streams_stream_0_width, $streams_stream_0_height);" | doSql_$2
 }
 
 function file_to_hex() {
@@ -61,7 +66,7 @@ function extractSubtitles() {
         ffmpeg -loglevel quiet -y -i "$file" -map 0:$i -c srt "${sub_filename}.srt" 2>/dev/null
         curl -F "subrip_file=@${sub_filename}.srt" http://atelier.u-sub.net/srt2vtt/index.php > "${sub_filename}.vtt"
         echo "INSERT INTO media_attachment(version,media_id,type,name,value,mimetype,data) VALUES
-        (1,'$(idFor "$1")', 'subtitles', '$track_title','$track_language', 'text/vtt', $(file_to_$driver "${sub_filename}.vtt") );"  | doSql_$driver
+        (1,'$(idFor "$1")', 'subtitles', '$(sqlEscape "$track_title")','$track_language', 'text/vtt', $(file_to_$driver "${sub_filename}.vtt") );"  | doSql_$driver
       fi
     done
 }
@@ -70,7 +75,7 @@ function createThumbnail() {
     file="$1"
     driver="$2"
     has_preview="$( echo "select count(*) from media_attachment WHERE type='preview' AND media_id='$(idFor "$filename")';" | doSql_$driver )"
-    if test $has_subtitles -gt 0; then
+  if test $has_preview -gt 0; then
       echo "previews already existing; skipping"
       return
     fi
