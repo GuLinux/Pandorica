@@ -63,6 +63,7 @@ public:
     virtual Wt::JSignal <Wt::NoClass >& ended() = 0;
     virtual void stop() = 0;
     virtual void play() = 0;
+    virtual void refresh() = 0;
 };
 
 #endif // PLAYER_H

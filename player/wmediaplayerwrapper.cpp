@@ -99,3 +99,6 @@ void WMediaPlayerWrapper::setAutoplay(bool autoplay)
     });
 }
 
+void WMediaPlayerWrapper::refresh()
+{
+}

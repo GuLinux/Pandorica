@@ -37,7 +37,7 @@ public:
     virtual Wt::JSignal<>& ended();
     virtual Wt::WWidget* widget();
     virtual bool playing();
-    
+    virtual void refresh();
     
     virtual void addSource(const Source& source);
     virtual void setPoster(const Wt::WLink& poster);

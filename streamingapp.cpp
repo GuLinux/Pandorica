@@ -533,6 +533,8 @@ void StreamingAppPrivate::parseFileParameter() {
 void StreamingApp::refresh() {
   Wt::WApplication::refresh();
   d->parseFileParameter();
+  if(d->player)
+    d->player->refresh();
 }
 
 
