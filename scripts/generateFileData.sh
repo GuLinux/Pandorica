@@ -3,9 +3,6 @@
 
 WORKDIR="/tmp/$( basename "$0").work"
 INFO_FILE="$WORKDIR/media_info.flat"
-SQLFILE="$WORKDIR/insert.sql"
-
-truncate -s 0 "$SQLFILE"
 
 function idFor() {
     echo -n "$@" | md5sum | cut -f1 -d' '
@@ -24,9 +21,12 @@ function saveMediaInfo() {
       return
     fi
     eval "$( cat "$INFO_FILE")"
+    if test "$format_duration" == "N/A" || test "$format_duration" == ""; then
+      format_duration=-1
+    fi
     format_duration=$(echo $format_duration | cut -d. -f1)
     echo "INSERT INTO media_properties(media_id, title, filename, duration, size, width, height)
-    VALUES('$(idFor "$1")', 'todo', '$(sqlEscape "$format_filename")', $format_duration, $format_size, $streams_stream_0_width, $streams_stream_0_height);" | doSql_$2
+    VALUES('$(idFor "$1")', 'todo', '$(sqlEscape "$format_filename")', $format_duration, $format_size, ${streams_stream_0_width--1}, ${streams_stream_0_height--1});" | doSql_$2
 }
 
 function file_to_hex() {
@@ -54,8 +54,10 @@ function extractSubtitles() {
       echo "subtitles already existing; skipping"
       return
     fi
-    
-    echo "Extracting subtitles from $file to $dataDir"
+    SQLFILE="$WORKDIR/tmpSql"
+    truncate -s 0 "$SQLFILE"
+    echo "BEGIN TRANSACTION;" > "$SQLFILE"
+    echo "Extracting subtitles from $file to $WORKDIR"
     eval "$(cat "$INFO_FILE")"
     for i in `seq 0 $(( $format_nb_streams-1))`; do
       stream_type="$( eval echo \$streams_stream_${i}_codec_type )"
@@ -66,9 +68,12 @@ function extractSubtitles() {
         ffmpeg -loglevel quiet -y -i "$file" -map 0:$i -c srt "${sub_filename}.srt" 2>/dev/null
         curl -F "subrip_file=@${sub_filename}.srt" http://atelier.u-sub.net/srt2vtt/index.php > "${sub_filename}.vtt"
         echo "INSERT INTO media_attachment(version,media_id,type,name,value,mimetype,data) VALUES
-        (1,'$(idFor "$1")', 'subtitles', '$(sqlEscape "$track_title")','$track_language', 'text/vtt', $(file_to_$driver "${sub_filename}.vtt") );"  | doSql_$driver
+        (1,'$(idFor "$1")', 'subtitles', '$(sqlEscape "$track_title")','$track_language', 'text/vtt', $(file_to_$driver "${sub_filename}.vtt") );" >> "$SQLFILE"
       fi
     done
+    if test "$( cat "$SQLFILE" | wc -l)" == "1"; then return; fi
+    echo "END TRANSACTION;" >> "$SQLFILE"
+  cat "$SQLFILE" | doSql_$driver || mv "$SQLFILE" "/tmp/$( basename $0 ).failed.$(date +%s)"
 }
 
 function createThumbnail() {
@@ -76,34 +81,43 @@ function createThumbnail() {
     driver="$2"
     has_preview="$( echo "select count(*) from media_attachment WHERE type='preview' AND media_id='$(idFor "$filename")';" | doSql_$driver )"
   if test $has_preview -gt 0; then
-      echo "previews already existing; skipping"
-      return
-    fi
-    echo "Creating thumbnail for $file"
-    eval "$(cat "$INFO_FILE" )"
-    
-    if test "x$format_duration" == "xN/A" || test "x$format_duration" == "x"; then return; fi
-      format_duration=$(echo $format_duration | cut -d. -f1)
-      random_offset="$(( $RANDOM % $(( $format_duration / 15  ))  ))"
-    if test "x$(( $RANDOM %2 ))" == "x0"; then
-      random_offset="$(( $random_offset * -1 ))"
-    fi
+    echo "previews already existing; skipping"
+    return
+  fi
+  SQLFILE="$WORKDIR/tmpSql"
+  truncate -s 0 "$SQLFILE"
+  echo "BEGIN TRANSACTION;" > "$SQLFILE"
+  eval "$(cat "$INFO_FILE" )"
+  
+  if test "x$format_duration" == "xN/A" || test "x$format_duration" == "x"; then return; fi
+    format_duration=$(echo $format_duration | cut -d. -f1)
+    echo "Format duration: $format_duration"
+    if test "$format_duration" -lt 20; then
+      random_offset="0"
+    else
+    random_offset="$(( $RANDOM % $(( $format_duration / 15  ))  ))"
+  fi
+  if test "x$(( $RANDOM %2 ))" == "x0"; then
+    random_offset="$(( $random_offset * -1 ))"
+  fi
 
-    one_third="$(( $format_duration / 4 + $random_offset ))"
-    echo "Random total duration: $format_duration, random offset: $random_offset, one_third: $one_third"
+  one_third="$(( $format_duration / 4 + $random_offset ))"
+  echo "Random total duration: $format_duration, random offset: $random_offset, one_third: $one_third"
 
-    set -x
-    ffmpegthumbnailer -i "$file" -o "$WORKDIR/preview.png" -s 0 -t $( printf "%02d:%02d:%02d\n" "$(($one_third/3600%24))" "$(($one_third/60%60))" "$(($one_third%60))" ) -f
-    set +x
-    if ! [ -r "$WORKDIR/preview.png" ]; then return; fi
-    convert "$WORKDIR/preview.png" -scale 640x264 "$WORKDIR/preview_player.png"
-    convert "$WORKDIR/preview.png" -scale 260x264 "$WORKDIR/preview_thumb.png"
-    echo "INSERT INTO media_attachment(version,media_id,type,name,mimetype,value,data) VALUES
-    (1,'$(idFor "$1")', 'preview', 'full', 'image/png', '', $(file_to_$driver "$WORKDIR/preview.png") );" | doSql_$driver 
-    echo "INSERT INTO media_attachment(version,media_id,type,name,mimetype,value,data) VALUES
-    (1,'$(idFor "$1")', 'preview', 'player', 'image/png', '', $(file_to_$driver "$WORKDIR/preview_player.png") );" | doSql_$driver 
-    echo "INSERT INTO media_attachment(version,media_id,type,name,mimetype,value,data) VALUES
-    (1,'$(idFor "$1")', 'preview', 'thumbnail', 'image/png', '', $(file_to_$driver "$WORKDIR/preview_thumb.png") );" | doSql_$driver 
+  set -x
+  ffmpegthumbnailer -i "$file" -o "$WORKDIR/preview.png" -s 0 -t $( printf "%02d:%02d:%02d\n" "$(($one_third/3600%24))" "$(($one_third/60%60))" "$(($one_third%60))" ) -f
+  set +x
+  if ! [ -r "$WORKDIR/preview.png" ]; then return; fi
+  convert "$WORKDIR/preview.png" -scale 640x264 "$WORKDIR/preview_player.png"
+  convert "$WORKDIR/preview.png" -scale 260x264 "$WORKDIR/preview_thumb.png"
+  echo "INSERT INTO media_attachment(version,media_id,type,name,mimetype,value,data) VALUES
+  (1,'$(idFor "$1")', 'preview', 'full', 'image/png', '', $(file_to_$driver "$WORKDIR/preview.png") );" >> "$SQLFILE"
+  echo "INSERT INTO media_attachment(version,media_id,type,name,mimetype,value,data) VALUES
+  (1,'$(idFor "$1")', 'preview', 'player', 'image/png', '', $(file_to_$driver "$WORKDIR/preview_player.png") );" >> "$SQLFILE"
+  echo "INSERT INTO media_attachment(version,media_id,type,name,mimetype,value,data) VALUES
+  (1,'$(idFor "$1")', 'preview', 'thumbnail', 'image/png', '', $(file_to_$driver "$WORKDIR/preview_thumb.png") );" >> "$SQLFILE"
+  echo "END TRANSACTION;" >> "$SQLFILE"
+  cat "$SQLFILE" | doSql_$driver || mv "$SQLFILE" "/tmp/$( basename $0 ).failed.$(date +%s)"
 }
 
 filename="$1"
@@ -115,7 +129,7 @@ fi
 rm -rf "$WORKDIR"
 mkdir -p "$WORKDIR"
 sqlDriver="${2-sqlite}"
-
+echo "Saving metadata to $sqlDriver db for $filename"
 saveMediaInfo "$filename" "$sqlDriver"
 extractSubtitles "$filename" "$sqlDriver"
 createThumbnail "$filename" "$sqlDriver"
