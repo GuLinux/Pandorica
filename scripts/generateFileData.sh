@@ -32,7 +32,8 @@ function saveMediaInfo() {
 }
 
 function file_to_hex() {
-  od -A n -t x1 "$1"|tr -d '\r\n\t '
+#od -A n -t x1 "$1"|tr -d '\r\n\t '
+  xxd -p "$1" | tr -d '\n'
 }
 
 function file_to_sqlite() {
