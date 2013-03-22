@@ -13,6 +13,8 @@ function sqlEscape() {
   echo "$@" | sed "s/'/''/g"
 }
 
+
+
 function saveMediaInfo() {
     ffprobe -loglevel quiet -print_format flat=sep_char=_ -show_format -show_streams "$1" > "$INFO_FILE"
     has_media_info="$( echo "select count(*) from media_properties WHERE media_id='$(idFor "$filename")';" | doSql_$2 )"
@@ -43,6 +45,10 @@ function file_to_psql() {
 
 function doSql_sqlite() {
   sqlite3  "${SQLITE_FILE-build/videostreaming.sqlite}"
+}
+
+function doSql_psql() {
+  sudo -u postgres psql videostreaming -t -A
 }
 
 function extractSubtitles() {
