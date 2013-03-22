@@ -48,8 +48,8 @@ function createThumbnail() {
     ffmpegthumbnailer -i "$file" -o "$WORKDIR/preview.png" -s 0 -t $( printf "%02d:%02d:%02d\n" "$(($one_third/3600%24))" "$(($one_third/60%60))" "$(($one_third%60))" ) -f
     set +x
     if ! [ -r "$WORKDIR/preview.png" ]; then return; fi
-    convert "$WORKDIR/preview.png" -scale 640 "$WORKDIR/preview_player.png"
-    convert "$WORKDIR/preview.png" -scale 260 "$WORKDIR/preview_thumb.png"
+    convert "$WORKDIR/preview.png" -scale 640x264 "$WORKDIR/preview_player.png"
+    convert "$WORKDIR/preview.png" -scale 260x264 "$WORKDIR/preview_thumb.png"
 }
 
 filename="$1"

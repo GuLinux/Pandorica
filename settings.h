@@ -18,6 +18,9 @@ public:
     Wt::WLink linkFor(boost::filesystem::path p);
     Player *newPlayer();
     bool autoplay();
+    static const std::string downloadSource;
+    static const std::string mediaAutoplay;
+    static const std::string preferredPlayer;
 private:
   SettingsPrivate *const d;
 };
