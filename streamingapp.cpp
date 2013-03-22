@@ -610,7 +610,7 @@ void StreamingAppPrivate::play ( Media media ) {
     wApp->log("notice") << "Found subtitle " << subtitle.id() << ", " << lang;
     string label = subtitle->name().empty() ? defaultLabelFor(lang) : subtitle->name();
     WMemoryResource *resource = new WMemoryResource(subtitle->mimetype(), subtitle->data(), q);
-    player->addSubtitles(Track( resource->url() , subtitle->value(), subtitle->name() ));
+    player->addSubtitles(Track( resource->url() , lang, label ));
   }
   player->ended().connect([this,&t](_n6){
     for(auto detail : sessionInfo.modify()->sessionDetails())
