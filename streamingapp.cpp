@@ -61,6 +61,7 @@
 #include "mediacollection.h"
 #include "mediacollectionbrowser.h"
 #include "settings.h"
+#include "mediaattachment.h"
 
 
 #include <Wt/WOverlayLoadingIndicator>
@@ -71,6 +72,7 @@
 #include <Wt/WSuggestionPopup>
 #include <Wt/WStringListModel>
 #include <Wt/WSortFilterProxyModel>
+#include <Wt/WMemoryResource>
 
 using namespace Wt;
 using namespace std;
@@ -497,7 +499,7 @@ void StreamingApp::setupGui()
   contentWidget->addWidget(d->playerContainerWidget);
   
   d->collection->rescan();
-  MediaCollectionBrowser* browser = new MediaCollectionBrowser(d->collection, &d->settings);
+  MediaCollectionBrowser* browser = new MediaCollectionBrowser(d->collection, &d->settings, &d->session);
   browser->play().connect([this](Media media, _n5){
     d->queueAndPlay(media.path());
   });
@@ -566,6 +568,26 @@ void StreamingAppPrivate::queueAndPlay(Media media)
 }
 
 
+map<string,string> defaultLabels { 
+  pair<string,string>{"it", "Italiano"},
+  pair<string,string>{"en", "English"},
+  pair<string,string>{"und", "Undefined"},
+  pair<string,string>{"", "Undefined"}
+};
+
+map<string,string> threeLangCodeToTwo {
+  pair<string,string>{"ita", "it"},
+  pair<string,string>{"eng", "en"}
+};
+
+std::string defaultLabelFor(string language) {
+  if(! defaultLabels.count(language))
+    return defaultLabels["und"];
+  return defaultLabels[language];
+}
+
+
+
 void StreamingAppPrivate::play ( Media media ) {
   filesListMenuItem->setText(WString::tr("menu.videoslist"));
   widgetsStack->setCurrentIndex(0);
@@ -578,16 +600,19 @@ void StreamingAppPrivate::play ( Media media ) {
   
   player->addSource( Source(settings.linkFor( media.path() ).url(), media.mimetype()) );
   player->setAutoplay(settings.autoplay());
-  fs::path preview = media.preview(&settings, Media::PreviewPlayer);
-  if(fs::exists(preview)) {
-    player->setPoster(settings.linkFor(preview));
+  Dbo::ptr< MediaAttachment > preview = media.preview(&session, Media::PreviewPlayer);
+  if(preview) {
+    player->setPoster((new WMemoryResource(preview->mimetype(), preview->data(), q))->url());
   }
-  for(MediaSubtitle subtitle: media.subtitles(&settings)) {
-    WFileResource *resource = new WFileResource("text/vtt", subtitle.path().string(), wApp);
-    player->addSubtitles(Track( resource->url() , subtitle.language(), subtitle.label() ));
+  Dbo::Transaction t(session);
+  for(MediaAttachmentPtr subtitle : media.subtitles(&t)) {
+    string lang = threeLangCodeToTwo[subtitle->value()];
+    wApp->log("notice") << "Found subtitle " << subtitle.id() << ", " << lang;
+    string label = subtitle->name().empty() ? defaultLabelFor(lang) : subtitle->name();
+    WMemoryResource *resource = new WMemoryResource(subtitle->mimetype(), subtitle->data(), q);
+    player->addSubtitles(Track( resource->url() , subtitle->value(), subtitle->name() ));
   }
-  player->ended().connect([this](_n6){
-    Dbo::Transaction t(session);
+  player->ended().connect([this,&t](_n6){
     for(auto detail : sessionInfo.modify()->sessionDetails())
       detail.modify()->ended();
     sessionInfo.flush();
@@ -607,7 +632,6 @@ void StreamingAppPrivate::play ( Media media ) {
   infoBox->addWidget(new WAnchor(shareLink, "Link per la condivisione"));
   wApp->setTitle( media.filename() );
   log("notice") << "using url " << settings.linkFor( media.path() ).url();
-  Dbo::Transaction t(session);
   for(auto detail : sessionInfo.modify()->sessionDetails())
     detail.modify()->ended();
   sessionInfo.modify()->sessionDetails().insert(new SessionDetails(media.path()));

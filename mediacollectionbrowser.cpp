@@ -4,8 +4,11 @@
 #include <Wt/WText>
 #include <Wt/WPopupMenu>
 #include <Wt/WImage>
+#include <Wt/WMemoryResource>
 #include "Wt-Commons/wt_helpers.h"
 #include "settings.h"
+#include "mediaattachment.h"
+#include "session.h"
 #include <boost/format.hpp>
 #include <algorithm>
 
@@ -19,14 +22,15 @@ typedef pair<string,Media> MediaEntry;
 
 class MediaCollectionBrowserPrivate {
 public:
-  MediaCollectionBrowserPrivate(MediaCollection *collection, Settings *settings)
-    : collection(collection) , settings(settings) {}
+  MediaCollectionBrowserPrivate(MediaCollection *collection, Settings *settings, Session *session, MediaCollectionBrowser *q)
+    : collection(collection) , settings(settings), session(session), q(q) {}
     void rebuildBreadcrumb();
     void browse(filesystem::path currentPath);
     
 public:
   MediaCollection *const collection;
   Settings *settings;
+  Session *session;
   filesystem::path currentPath;
   WContainerWidget* breadcrumb;
   WContainerWidget* browser;
@@ -37,10 +41,11 @@ private:
   void addMedia(Media media);
   WContainerWidget* addIcon(string filename, string icon, MouseEventListener onClick);
   string formatFileSize(long size);
+  MediaCollectionBrowser* q;
 };
 
-MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Settings* settings, WContainerWidget* parent)
-  : WContainerWidget(parent), d(new MediaCollectionBrowserPrivate(collection, settings))
+MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Settings* settings, Session* session, WContainerWidget* parent)
+  : WContainerWidget(parent), d(new MediaCollectionBrowserPrivate(collection, settings, session, this))
 {
   d->breadcrumb = WW(WContainerWidget).css("breadcrumb");
   d->breadcrumb->setList(true);
@@ -111,8 +116,9 @@ void MediaCollectionBrowserPrivate::addMedia(Media media)
   string icon = "http://gulinux.net/css/fs_icons/video-x-generic.png";
   if(media.mimetype().find("audio") != string::npos)
     icon = "http://gulinux.net/css/fs_icons/audio-x-generic.png";
-  if(boost::filesystem::exists(media.preview(settings, Media::PreviewThumb)))
-    icon = settings->linkFor(media.preview(settings, Media::PreviewThumb)).url();
+  Dbo::ptr<MediaAttachment> preview = media.preview(session, Media::PreviewThumb);
+  if(preview)
+    icon = (new WMemoryResource(preview->mimetype(), preview->data(), q))->url();;
   addIcon(media.filename(), icon, onClick);
 }
 

@@ -13,10 +13,15 @@ function idFor() {
 
 function saveMediaInfo() {
     ffprobe -loglevel quiet -print_format flat=sep_char=_ -show_format -show_streams "$1" > "$INFO_FILE"
+    has_media_info="$( echo "select count(*) from media_properties WHERE media_id='$(idFor "$filename")';" | doSql_$2 )"
+    if test $has_media_info -gt 0; then
+      echo "media_properties already existing; skipping"
+      return
+    fi
     eval "$( cat "$INFO_FILE")"
     format_duration=$(echo $format_duration | cut -d. -f1)
     echo "INSERT INTO media_properties(media_id, title, filename, duration, size, width, height)
-    VALUES('$(idFor "$1")', 'todo', '$format_filename', $format_duration, $format_size, $streams_stream_0_width, $streams_stream_0_height);" > "$SQLFILE"
+    VALUES('$(idFor "$1")', 'todo', '$format_filename', $format_duration, $format_size, $streams_stream_0_width, $streams_stream_0_height);" | doSql_$2
 }
 
 function file_to_hex() {
@@ -31,9 +36,20 @@ function file_to_psql() {
   echo "E'\\\\x$(file_to_hex "$1" )'"
 }
 
+function doSql_sqlite() {
+  sqlite3  "${SQLITE_FILE-build/videostreaming.sqlite}"
+}
+
 function extractSubtitles() {
     file="$1"
     driver="$2"
+    
+    has_subtitles="$( echo "select count(*) from media_attachment WHERE type='subtitles' AND media_id='$(idFor "$file")';" | doSql_$driver )"
+    if test $has_subtitles -gt 0; then
+      echo "subtitles already existing; skipping"
+      return
+    fi
+    
     echo "Extracting subtitles from $file to $dataDir"
     eval "$(cat "$INFO_FILE")"
     for i in `seq 0 $(( $format_nb_streams-1))`; do
@@ -44,14 +60,20 @@ function extractSubtitles() {
       if test "x$stream_type" == "xsubtitle" && ! [ -r "${sub_filename}.vtt" ] ; then
         ffmpeg -loglevel quiet -y -i "$file" -map 0:$i -c srt "${sub_filename}.srt" 2>/dev/null
         curl -F "subrip_file=@${sub_filename}.srt" http://atelier.u-sub.net/srt2vtt/index.php > "${sub_filename}.vtt"
-        echo "INSERT INTO media_attachment(version,media_id,type,name,value,data) VALUES
-        (1,'$(idFor "$1")', 'subtitles', '$track_title','$track_language', $(file_to_$driver "${sub_filename}.vtt") );" >> "$SQLFILE"
+        echo "INSERT INTO media_attachment(version,media_id,type,name,value,mimetype,data) VALUES
+        (1,'$(idFor "$1")', 'subtitles', '$track_title','$track_language', 'text/vtt', $(file_to_$driver "${sub_filename}.vtt") );"  | doSql_$driver
       fi
     done
 }
 
 function createThumbnail() {
     file="$1"
+    driver="$2"
+    has_preview="$( echo "select count(*) from media_attachment WHERE type='preview' AND media_id='$(idFor "$filename")';" | doSql_$driver )"
+    if test $has_subtitles -gt 0; then
+      echo "previews already existing; skipping"
+      return
+    fi
     echo "Creating thumbnail for $file"
     eval "$(cat "$INFO_FILE" )"
     
@@ -71,12 +93,12 @@ function createThumbnail() {
     if ! [ -r "$WORKDIR/preview.png" ]; then return; fi
     convert "$WORKDIR/preview.png" -scale 640x264 "$WORKDIR/preview_player.png"
     convert "$WORKDIR/preview.png" -scale 260x264 "$WORKDIR/preview_thumb.png"
-    echo "INSERT INTO media_attachment(version,media_id,type,name,value,data) VALUES
-    (1,'$(idFor "$1")', 'preview', 'full', '', $(file_to_$driver "$WORKDIR/preview.png") );" >> "$SQLFILE"
-    echo "INSERT INTO media_attachment(version,media_id,type,name,value,data) VALUES
-    (1,'$(idFor "$1")', 'preview', 'player', '', $(file_to_$driver "$WORKDIR/preview_player.png") );" >> "$SQLFILE"
-    echo "INSERT INTO media_attachment(version,media_id,type,name,value,data) VALUES
-    (1,'$(idFor "$1")', 'preview', 'thumbnail', '', $(file_to_$driver "$WORKDIR/preview_thumb.png") );" >> "$SQLFILE"
+    echo "INSERT INTO media_attachment(version,media_id,type,name,mimetype,value,data) VALUES
+    (1,'$(idFor "$1")', 'preview', 'full', 'image/png', '', $(file_to_$driver "$WORKDIR/preview.png") );" | doSql_$driver 
+    echo "INSERT INTO media_attachment(version,media_id,type,name,mimetype,value,data) VALUES
+    (1,'$(idFor "$1")', 'preview', 'player', 'image/png', '', $(file_to_$driver "$WORKDIR/preview_player.png") );" | doSql_$driver 
+    echo "INSERT INTO media_attachment(version,media_id,type,name,mimetype,value,data) VALUES
+    (1,'$(idFor "$1")', 'preview', 'thumbnail', 'image/png', '', $(file_to_$driver "$WORKDIR/preview_thumb.png") );" | doSql_$driver 
 }
 
 filename="$1"
@@ -87,9 +109,11 @@ fi
 
 rm -rf "$WORKDIR"
 mkdir -p "$WORKDIR"
+sqlDriver="${2-sqlite}"
 
-saveMediaInfo "$filename"
-extractSubtitles "$filename" "${2-sqlite}"
-createThumbnail "$filename" "${2-sqlite}"
-echo "Load the generated sql file "$SQLFILE" into your sql command line utility"
+saveMediaInfo "$filename" "$sqlDriver"
+extractSubtitles "$filename" "$sqlDriver"
+createThumbnail "$filename" "$sqlDriver"
+
+#cat "$SQLFILE" | doSql_$sqlDriver
 

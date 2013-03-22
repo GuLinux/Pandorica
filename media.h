@@ -21,19 +21,17 @@
 #ifndef MEDIA_H
 #define MEDIA_H
 #include <boost/filesystem.hpp>
-class Settings;
+#include <Wt/Dbo/ptr>
 
-class MediaSubtitle {
-public:
-  MediaSubtitle(const boost::filesystem::path path);
-  boost::filesystem::path path() const;
-  std::string label() const;
-  std::string language() const;
-private:
-  boost::filesystem::path _path;
-  std::string _label;
-  std::string _language;
-};
+namespace Wt {
+namespace Dbo {
+class Transaction;
+}
+}
+
+class Session;
+class MediaAttachment;
+
 class Media {
 public:
   enum PreviewSize {PreviewFull, PreviewPlayer, PreviewThumb};
@@ -45,8 +43,9 @@ public:
   std::string extension() const;
   std::string mimetype() const;
   std::string uid() const;
-  boost::filesystem::path preview(Settings *settings, PreviewSize size = PreviewPlayer) const;
-  std::list<MediaSubtitle> subtitles(Settings *settings) const;
+  Wt::Dbo::ptr<MediaAttachment> preview(Session *session, PreviewSize size = PreviewPlayer) const;
+  Wt::Dbo::collection<Wt::Dbo::ptr<MediaAttachment>> subtitles(Session *session) const;
+  Wt::Dbo::collection<Wt::Dbo::ptr<MediaAttachment>> subtitles(Wt::Dbo::Transaction *transaction) const;
   boost::filesystem::path path() const;
   boost::filesystem::path parentDirectory() const;
   bool valid() const;

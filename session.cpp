@@ -70,7 +70,7 @@ void Session::configureAuth()
 Session::Session()
 {
   createConnection();
-  connection_->setProperty("show-queries", "false");
+  connection_->setProperty("show-queries", "true");
   setConnection(*connection_);
 
   mapClass<User>("user");
