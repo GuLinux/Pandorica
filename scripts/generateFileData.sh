@@ -62,7 +62,6 @@ function extractSubtitles() {
     SQLFILE="$WORKDIR/tmpSql"
     truncate -s 0 "$SQLFILE"
     echo "BEGIN TRANSACTION;" > "$SQLFILE"
-    echo "Extracting subtitles from $file to $WORKDIR"
     eval "$(cat "$INFO_FILE")"
     for i in `seq 0 $(( $format_nb_streams-1))`; do
       stream_type="$( eval echo \$streams_stream_${i}_codec_type )"
@@ -70,6 +69,7 @@ function extractSubtitles() {
       track_title="$( eval echo \$streams_stream_${i}_tags_title)"
       sub_filename="$WORKDIR/${i}"
       if test "x$stream_type" == "xsubtitle" && ! [ -r "${sub_filename}.vtt" ] ; then
+        echo "Extracting subtitles from $file to $WORKDIR"
         ffmpeg -loglevel quiet -y -i "$file" -map 0:$i -c srt "${sub_filename}.srt" 2>/dev/null
         curl -F "subrip_file=@${sub_filename}.srt" http://atelier.u-sub.net/srt2vtt/index.php > "${sub_filename}.vtt"
         echo "INSERT INTO media_attachment(version,media_id,type,name,value,mimetype,data) VALUES
