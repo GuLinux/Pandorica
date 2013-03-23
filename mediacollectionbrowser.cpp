@@ -40,7 +40,7 @@ public:
 private:
   void addDirectory(filesystem::path directory);
   void addMedia(Media media);
-  WContainerWidget* addIcon(string filename, string icon, MouseEventListener onClick);
+  WContainerWidget* addIcon(string filename, std::function<string(WObject*)> icon, MouseEventListener onClick);
   string formatFileSize(long size);
   MediaCollectionBrowser* q;
 };
@@ -91,7 +91,7 @@ void MediaCollectionBrowserPrivate::addDirectory(filesystem::path directory)
   auto onClick = [this,directory](WMouseEvent){
     browse(directory);
   };
-  addIcon(directory.filename().string(), "http://gulinux.net/css/fs_icons/inode-directory.png", onClick);
+  addIcon(directory.filename().string(), [](WObject*){ return "http://gulinux.net/css/fs_icons/inode-directory.png"; }, onClick);
 }
 
 void MediaCollectionBrowserPrivate::addMedia(Media media)
@@ -126,21 +126,21 @@ void MediaCollectionBrowserPrivate::addMedia(Media media)
     });
     menu->popup(e);
   };
-  string icon = "http://gulinux.net/css/fs_icons/video-x-generic.png";
+  std::function<string(WObject*)> icon = [](WObject *){ return "http://gulinux.net/css/fs_icons/video-x-generic.png"; };
   if(media.mimetype().find("audio") != string::npos)
-    icon = "http://gulinux.net/css/fs_icons/audio-x-generic.png";
+    icon = [](WObject *){ return "http://gulinux.net/css/fs_icons/audio-x-generic.png"; };
   Dbo::ptr<MediaAttachment> preview = media.preview(session, Media::PreviewThumb);
   if(preview)
-    icon = (new WMemoryResource(preview->mimetype(), preview->data(), q))->url();;
+    icon = [preview](WObject *parent){ return (new WMemoryResource(preview->mimetype(), preview->data(), parent))->url(); };
   addIcon(media.filename(), icon, onClick);
 }
 
-WContainerWidget* MediaCollectionBrowserPrivate::addIcon(string filename, string icon, MouseEventListener onClick)
+WContainerWidget* MediaCollectionBrowserPrivate::addIcon(string filename, std::function<string(WObject*)> icon, MouseEventListener onClick)
 {
     WContainerWidget *item = WW(WContainerWidget).css("span3");
     item->setContentAlignment(AlignmentFlag::AlignCenter);
     WAnchor *link = WW(WAnchor, "javascript:false").css("thumbnail filesystem-item");
-    link->setImage(new WImage(icon));
+    link->setImage(new WImage(icon(item) ));
     link->addWidget(WW(WText, filename).css("filesystem-item-label"));
     item->addWidget(link);
     link->clicked().connect(onClick);

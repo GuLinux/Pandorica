@@ -589,7 +589,6 @@ std::string defaultLabelFor(string language) {
 }
 
 
-
 void StreamingAppPrivate::play ( Media media ) {
   filesListMenuItem->setText(WString::tr("menu.videoslist"));
   widgetsStack->setCurrentIndex(0);
@@ -606,12 +605,13 @@ void StreamingAppPrivate::play ( Media media ) {
   if(preview) {
     player->setPoster((new WMemoryResource(preview->mimetype(), preview->data(), q))->url());
   }
+  WContainerWidget *container = new WContainerWidget();
   Dbo::Transaction t(session);
   for(MediaAttachmentPtr subtitle : media.subtitles(&t)) {
     string lang = threeLangCodeToTwo[subtitle->value()];
     wApp->log("notice") << "Found subtitle " << subtitle.id() << ", " << lang;
     string label = subtitle->name().empty() ? defaultLabelFor(lang) : subtitle->name();
-    WMemoryResource *resource = new WMemoryResource(subtitle->mimetype(), subtitle->data(), q);
+    WMemoryResource *resource = new WMemoryResource(subtitle->mimetype(), subtitle->data(), container);
     player->addSubtitles(Track( resource->url() , lang, label ));
   }
   player->ended().connect([this,&t](_n6){
@@ -623,7 +623,8 @@ void StreamingAppPrivate::play ( Media media ) {
   });
 
   playerContainerWidget->clear();
-  playerContainerWidget->addWidget(player->widget());
+  container->addWidget(player->widget());
+  playerContainerWidget->addWidget(container);
   WContainerWidget* infoBox = new WContainerWidget();
   playerContainerWidget->addWidget(infoBox);
   string fileId = Utils::hexEncode(Utils::md5(media.path().string()));
