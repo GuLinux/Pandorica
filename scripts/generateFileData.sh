@@ -9,7 +9,6 @@ function idFor() {
 }
 
 function sqlEscape() {
-#printf "%q" "$*"
   echo "$@" | sed "s/'/''/g"
 }
 
@@ -18,7 +17,7 @@ function sqlEscape() {
 function saveMediaInfo() {
     ffprobe -loglevel quiet -print_format flat=sep_char=_ -show_format -show_streams "$1" > "$INFO_FILE"
     has_media_info="$( echo "select count(*) from media_properties WHERE media_id='$(idFor "$filename")';" | doSql_$sqlDriver )"
-    if test $has_media_info -gt 0; then
+    if test "$has_media_info" -gt 0; then
       test "$quietMode" != "true" && echo "media_properties already existing; skipping"
       return
     fi
@@ -49,7 +48,7 @@ function doSql_sqlite() {
 }
 
 function doSql_psql() {
-  psql -h localhost -p 5432 videostreaming videostreaming
+  psql -A -t -h localhost -p 5432 videostreaming videostreaming
 }
 
 function extractSubtitles() {
