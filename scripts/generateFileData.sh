@@ -19,7 +19,7 @@ function saveMediaInfo() {
     ffprobe -loglevel quiet -print_format flat=sep_char=_ -show_format -show_streams "$1" > "$INFO_FILE"
     has_media_info="$( echo "select count(*) from media_properties WHERE media_id='$(idFor "$filename")';" | doSql_$2 )"
     if test $has_media_info -gt 0; then
-      echo "media_properties already existing; skipping"
+      test "$quietMode" != "true" && echo "media_properties already existing; skipping"
       return
     fi
     eval "$( cat "$INFO_FILE")"
@@ -54,11 +54,10 @@ function doSql_psql() {
 
 function extractSubtitles() {
     file="$1"
-    driver="$2"
     
-    has_subtitles="$( echo "select count(*) from media_attachment WHERE type='subtitles' AND media_id='$(idFor "$file")';" | doSql_$driver )"
+    has_subtitles="$( echo "select count(*) from media_attachment WHERE type='subtitles' AND media_id='$(idFor "$file")';" | doSql_$sqlDriver )"
     if test $has_subtitles -gt 0; then
-      echo "subtitles already existing; skipping"
+      test "$quietMode" != "true" && echo "subtitles already existing; skipping"
       return
     fi
     SQLFILE="$WORKDIR/tmpSql"
@@ -75,20 +74,19 @@ function extractSubtitles() {
         ffmpeg -loglevel quiet -y -i "$file" -map 0:$i -c srt "${sub_filename}.srt" 2>/dev/null
         curl -F "subrip_file=@${sub_filename}.srt" http://atelier.u-sub.net/srt2vtt/index.php > "${sub_filename}.vtt"
         echo "INSERT INTO media_attachment(version,media_id,type,name,value,mimetype,data) VALUES
-        (1,'$(idFor "$1")', 'subtitles', '$(sqlEscape "$track_title")','$track_language', 'text/vtt', $(file_to_$driver "${sub_filename}.vtt") );" >> "$SQLFILE"
+        (1,'$(idFor "$1")', 'subtitles', '$(sqlEscape "$track_title")','$track_language', 'text/vtt', $(file_to_$sqlDriver "${sub_filename}.vtt") );" >> "$SQLFILE"
       fi
     done
     if test "$( cat "$SQLFILE" | wc -l)" == "1"; then return; fi
     echo "END TRANSACTION;" >> "$SQLFILE"
-  cat "$SQLFILE" | doSql_$driver || mv "$SQLFILE" "/tmp/$( basename $0 ).failed.$(date +%s)"
+  cat "$SQLFILE" | doSql_$sqlDriver || mv "$SQLFILE" "/tmp/$( basename $0 ).failed.$(date +%s)"
 }
 
 function createThumbnail() {
     file="$1"
-    driver="$2"
-    has_preview="$( echo "select count(*) from media_attachment WHERE type='preview' AND media_id='$(idFor "$filename")';" | doSql_$driver )"
+    has_preview="$( echo "select count(*) from media_attachment WHERE type='preview' AND media_id='$(idFor "$filename")';" | doSql_$sqlDriver )"
   if test $has_preview -gt 0; then
-    echo "previews already existing; skipping"
+    test "$quietMode" != "true" && echo "previews already existing; skipping"
     return
   fi
   SQLFILE="$WORKDIR/tmpSql"
@@ -118,25 +116,47 @@ function createThumbnail() {
   convert "$WORKDIR/preview.png" -scale 640x264 "$WORKDIR/preview_player.png"
   convert "$WORKDIR/preview.png" -scale 260x264 "$WORKDIR/preview_thumb.png"
   echo "INSERT INTO media_attachment(version,media_id,type,name,mimetype,value,data) VALUES
-  (1,'$(idFor "$1")', 'preview', 'full', 'image/png', '', $(file_to_$driver "$WORKDIR/preview.png") );" >> "$SQLFILE"
+  (1,'$(idFor "$1")', 'preview', 'full', 'image/png', '', $(file_to_$sqlDriver "$WORKDIR/preview.png") );" >> "$SQLFILE"
   echo "INSERT INTO media_attachment(version,media_id,type,name,mimetype,value,data) VALUES
-  (1,'$(idFor "$1")', 'preview', 'player', 'image/png', '', $(file_to_$driver "$WORKDIR/preview_player.png") );" >> "$SQLFILE"
+  (1,'$(idFor "$1")', 'preview', 'player', 'image/png', '', $(file_to_$sqlDriver "$WORKDIR/preview_player.png") );" >> "$SQLFILE"
   echo "INSERT INTO media_attachment(version,media_id,type,name,mimetype,value,data) VALUES
-  (1,'$(idFor "$1")', 'preview', 'thumbnail', 'image/png', '', $(file_to_$driver "$WORKDIR/preview_thumb.png") );" >> "$SQLFILE"
+  (1,'$(idFor "$1")', 'preview', 'thumbnail', 'image/png', '', $(file_to_$sqlDriver "$WORKDIR/preview_thumb.png") );" >> "$SQLFILE"
   echo "END TRANSACTION;" >> "$SQLFILE"
-  cat "$SQLFILE" | doSql_$driver || mv "$SQLFILE" "/tmp/$( basename $0 ).failed.$(date +%s)"
+  cat "$SQLFILE" | doSql_$sqlDriver || mv "$SQLFILE" "/tmp/$( basename $0 ).failed.$(date +%s)"
 }
 
-filename="$1"
-if ! [ -r "$filename" ]; then
-  echo "Usage: $0 filename sql_driver"
-  exit 1
-fi
+function do_Help() {
+  echo "Usage: $0 filename [options]"
+  echo "Options:"
+  echo "-d sqldriver | --driver sqldriver"
+  echo "-q | --quiet"
+  exit 0
+}
+
+filename="$1"; shift
+if ! [ -r "$filename" ]; then do_Help; fi
 
 rm -rf "$WORKDIR"
 mkdir -p "$WORKDIR"
-sqlDriver="${2-sqlite}"
-echo "Saving metadata to $sqlDriver db for $filename"
+
+sqlDriver="sqlite"
+quietMode="false"
+while test "x$1" != "x"; do
+  case "$1" in
+    "-d"|"--driver")
+    sqlDriver="$2"; shift
+    ;;
+    "-q"|"--quiet")
+    quietMode="true"
+    ;;
+    *)
+    do_Help
+    ;;
+  esac
+  shift
+done
+
+test "$quietMode" != "true" && echo "Saving metadata to $sqlDriver db for $filename"
 saveMediaInfo "$filename" "$sqlDriver"
 extractSubtitles "$filename" "$sqlDriver"
 createThumbnail "$filename" "$sqlDriver"
