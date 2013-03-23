@@ -9,6 +9,7 @@
 #include "settings.h"
 #include "mediaattachment.h"
 #include "session.h"
+#include "authorizeduser.h"
 #include <boost/format.hpp>
 #include <algorithm>
 
@@ -105,11 +106,23 @@ void MediaCollectionBrowserPrivate::addMedia(Media media)
     WPopupMenuItem* play = menu->addItem("Play");
     WPopupMenuItem* queue = menu->addItem("Queue");
     WPopupMenuItem* close = menu->addItem("Cancel");
-    menu->aboutToHide().connect([this,media,menu,play,queue,close](_n6){
+    WPopupMenuItem* clearThumbs = 0;
+    Dbo::Transaction t(*session);
+    AuthorizedUserPtr authUser = session->find<AuthorizedUser>().where("email = ?").bind( session->login().user().email() );
+    if(authUser && authUser->role() == AuthorizedUser::Admin) {
+      clearThumbs = menu->addItem("Delete Preview");
+    }
+    
+    menu->aboutToHide().connect([this,media,menu,play,queue,close,clearThumbs](_n6){
       if(menu->result() == play)
         playSignal.emit(media);
       if(menu->result() == queue)
         queueSignal.emit(media);
+      if(clearThumbs && menu->result() == clearThumbs) {
+        Dbo::Transaction t(*session);
+        session->execute("DELETE FROM media_attachment WHERE media_id=? and type = 'preview';").bind(media.uid());
+        t.commit();
+      }
     });
     menu->popup(e);
   };
