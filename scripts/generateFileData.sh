@@ -17,7 +17,7 @@ function sqlEscape() {
 
 function saveMediaInfo() {
     ffprobe -loglevel quiet -print_format flat=sep_char=_ -show_format -show_streams "$1" > "$INFO_FILE"
-    has_media_info="$( echo "select count(*) from media_properties WHERE media_id='$(idFor "$filename")';" | doSql_$2 )"
+    has_media_info="$( echo "select count(*) from media_properties WHERE media_id='$(idFor "$filename")';" | doSql_$sqlDriver )"
     if test $has_media_info -gt 0; then
       test "$quietMode" != "true" && echo "media_properties already existing; skipping"
       return
@@ -28,7 +28,7 @@ function saveMediaInfo() {
     fi
     format_duration=$(echo $format_duration | cut -d. -f1)
     echo "INSERT INTO media_properties(media_id, title, filename, duration, size, width, height)
-    VALUES('$(idFor "$1")', 'todo', '$(sqlEscape "$format_filename")', $format_duration, $format_size, ${streams_stream_0_width--1}, ${streams_stream_0_height--1});" | doSql_$2
+    VALUES('$(idFor "$1")', 'todo', '$(sqlEscape "$format_filename")', $format_duration, $format_size, ${streams_stream_0_width--1}, ${streams_stream_0_height--1});" | doSql_$sqlDriver
 }
 
 function file_to_hex() {
