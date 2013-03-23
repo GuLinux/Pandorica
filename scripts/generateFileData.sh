@@ -49,7 +49,7 @@ function doSql_sqlite() {
 }
 
 function doSql_psql() {
-  sudo -u postgres psql videostreaming -t -A
+  psql -h localhost -p 5432 videostreaming videostreaming
 }
 
 function extractSubtitles() {
