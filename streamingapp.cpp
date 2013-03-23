@@ -293,8 +293,20 @@ void StreamingApp::authEvent()
   t.commit();
   d->setupMenus(authUser->role());
   setupGui();
-  auto sessionAddedCallback = [this](StreamingAppSession newSession) { d->sessionAdded.emit(newSession); wApp->triggerUpdate(); wApp->log("notice") << "*** Session added (userId=" << newSession.first.id() << ")"; };
-  auto sessionRemovedCallback = [this](StreamingAppSession sessionRemoved) { d->sessionRemoved.emit(sessionRemoved); wApp->triggerUpdate(); wApp->log("notice") << "*** Session removed (userId=" << sessionRemoved.first.id() << ")"; };
+  auto sessionAddedCallback = [this](StreamingAppSession newSession) {
+    WTimer::singleShot(2000, [this,newSession](WMouseEvent) {
+      d->sessionAdded.emit(newSession);
+      wApp->triggerUpdate(); 
+      wApp->log("notice") << "*** Session added (userId=" << newSession.first.id() << ")";
+    });
+  };
+  auto sessionRemovedCallback = [this](StreamingAppSession sessionRemoved) {
+    WTimer::singleShot(2000, [this,sessionRemoved](WMouseEvent){
+      d->sessionRemoved.emit(sessionRemoved);
+      wApp->triggerUpdate();
+      wApp->log("notice") << "*** Session removed (userId=" << sessionRemoved.first.id() << ")";
+    });
+  };
   streamingAppSessions.registerSession(sessionId(), sessionAddedCallback, sessionRemovedCallback, StreamingAppSession(myUser,this) );
 }
 
