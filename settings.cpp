@@ -18,17 +18,24 @@ namespace fs=boost::filesystem;
 class SettingsPrivate {
 public:
   SettingsPrivate(Settings *q) : q(q) {}
-    WLink lightySecDownloadLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p);
-    WLink nginxSecLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p);
+  WLink lightySecDownloadLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p);
+  WLink nginxSecLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p);
   Settings *q;
+  map<string,string> sessionSettings;
+};
+const std::string Settings::downloadSource = "download_src";
+const std::string Settings::mediaAutoplay = "media_autoplay";
+const std::string Settings::preferredPlayer = "player";
+
+map<string,string> defaultValues {
+  {Settings::mediaAutoplay, "autoplay_always"},
+  {Settings::downloadSource, "lighttpd"},
+  {Settings::preferredPlayer, "html5"}
 };
 
 Settings::Settings() : d(new SettingsPrivate(this)) {}
 Settings::~Settings() { delete d; }
 
-const std::string Settings::downloadSource = "download_src";
-const std::string Settings::mediaAutoplay = "media_autoplay";
-const std::string Settings::preferredPlayer = "player";
 
 string Settings::videosDir() const
 {
@@ -45,26 +52,45 @@ filesystem::path Settings::mediaData() const
 }
 
 
-string Settings::value(string cookieName, string defaultValue)
+string Settings::value(string cookieName)
 {
+  if(!d->sessionSettings[cookieName].empty())
+    return d->sessionSettings[cookieName];
+  
   const string *value = wApp->environment().getCookieValue(cookieName);
-  if(!value)
-    return defaultValue;
+  if(!value) {
+    wApp->log("notice") << "cookie " << cookieName << " not found; returning default";
+    return defaultValues[cookieName];
+  }
+  wApp->log("notice") << "cookie " << cookieName << " found: " << *value;
   return *value;
 }
 
+void Settings::setValue(string settingName, string value)
+{
+  wApp->setCookie(settingName, value, WDateTime::currentDateTime().addDays(365));
+  d->sessionSettings[settingName] = value;
+}
+
+
 Player* Settings::newPlayer()
 {
-  string playerSetting = value(Settings::preferredPlayer, "html5");
-  if(playerSetting == "jPlayer")
+  string playerSetting = value(Settings::preferredPlayer);
+  if(playerSetting == "jplayer")
     return new WMediaPlayerWrapper();
   return new HTML5Player();
 }
 
-bool Settings::autoplay()
+bool Settings::autoplay(const Media& media)
 {
-  string autoplay = value(Settings::mediaAutoplay, "true");
-  return autoplay=="true" && false;
+  string autoplay = value(Settings::mediaAutoplay);
+  if(autoplay == "autoplay_always")
+    return true;
+  if(autoplay == "autoplay_audio_only")
+    return media.mimetype().find("audio") != string::npos;
+  if(autoplay == "autoplay_video_only")
+    return media.mimetype().find("video") != string::npos;
+  return false;
 }
 
 
@@ -81,7 +107,7 @@ WLink Settings::linkFor(filesystem::path p)
     && wApp->readConfigurationProperty("seclink-secret", secLinkSecret));
   bool has_lighttpd = (wApp->readConfigurationProperty("secdownload-prefix", secDownloadPrefix)
     && wApp->readConfigurationProperty("secdownload-secret", secDownloadSecret));
-  string downloadPreference = value(Settings::downloadSource, "nginx");
+  string downloadPreference = value(Settings::downloadSource);
   
   if(downloadPreference == "nginx" && has_nginx) {
     return d->nginxSecLinkFor(secLinkPrefix, secLinkSecret, p);
