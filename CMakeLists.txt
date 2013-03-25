@@ -22,7 +22,7 @@ STRING(REGEX MATCH ".*Zerogoki.*" HOST_IS_ZEROGOKI "${HOSTNAME}")
 SET(INSTALL_DIR "/home/www-data/data/videostreaming" CACHE STRING "Install directory for Wt Applications and files")
 
 
-add_executable(videostreaming settings.cpp media.cpp mediacollectionbrowser.cpp mediacollection.cpp Wt-Commons/whtmltemplateslocalizedstrings.cpp player/html5player.cpp 
+add_executable(videostreaming settingspage.cpp settings.cpp media.cpp mediacollectionbrowser.cpp mediacollection.cpp Wt-Commons/whtmltemplateslocalizedstrings.cpp player/html5player.cpp 
 readbwstats.cpp commentscontainerwidget.cpp sessiondetailsdialog.cpp customitemdelegates.cpp loggedusersdialog.cpp adduserdialog.cpp playlist.cpp session.cpp 
 player/videojs.cpp player/wmediaplayerwrapper.cpp streamingapp.cpp main.cpp)
 

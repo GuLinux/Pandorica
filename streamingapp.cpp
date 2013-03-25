@@ -62,6 +62,7 @@
 #include "mediacollectionbrowser.h"
 #include "settings.h"
 #include "mediaattachment.h"
+#include "settingspage.h"
 
 
 #include <Wt/WOverlayLoadingIndicator>
@@ -325,7 +326,6 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   
   latestCommentsMenuItem->clicked().connect([latestCommentsMenuItem,latestCommentsContainer,latestCommentsBody,this](WMouseEvent){
     latestCommentsBody->clear();
-    wApp->log("notice") << "************** latestComments is visible: " << latestCommentsBody->isVisible();
     Dbo::Transaction t(session);
     Dbo::collection<CommentPtr> latestComments = session.find<Comment>().orderBy("last_updated desc").limit(5);
     for(CommentPtr comment: latestComments) {
@@ -363,6 +363,14 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
     activeUsersMenuItem->setText(WString("Users: {1}").arg(streamingAppSessions.sessionCount()));
   };
   
+  SettingsPage* settingsPage = new SettingsPage(&settings);
+  settingsPage->addStyleClass("modal fade hide");
+  q->root()->addWidget(settingsPage);
+  
+  topBarTemplate->bindWidget("settings", WW(WText, "Settings").onClick([settingsPage,this](WMouseEvent) {
+    string togglejs = (boost::format(JS( $('#%s').modal('toggle'); )) % settingsPage->id()).str();
+    wApp->doJavaScript(togglejs);
+  }));
   topBarTemplate->bindWidget("latest.comments", latestCommentsMenuItem);
   topBarTemplate->bindWidget("users.count", activeUsersMenuItem);
   topBarTemplate->bindWidget("media.list", filesListMenuItem);
@@ -612,7 +620,7 @@ void StreamingAppPrivate::play ( Media media ) {
   player = settings.newPlayer();
   
   player->addSource( Source(settings.linkFor( media.path() ).url(), media.mimetype()) );
-  player->setAutoplay(settings.autoplay());
+  player->setAutoplay(settings.autoplay(media));
   Dbo::ptr< MediaAttachment > preview = media.preview(&session, Media::PreviewPlayer);
   if(preview) {
     player->setPoster((new WMemoryResource(preview->mimetype(), preview->data(), q))->url());
