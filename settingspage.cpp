@@ -39,8 +39,8 @@ SettingsPage::SettingsPage(Settings* settings, WContainerWidget* parent): WConta
   }));
   
   addSetting("Player", createCombo(Settings::preferredPlayer, {
-    {"jplayer", "HTML5"},
-    {"html5", "jPlayer"}
+    {"html5", "HTML5"},
+    {"jplayer", "jPlayer"}
   }), "HTML5 is the most feature complete; jPlayer might be a bit more stable, but it lacks subtitles support");
   addSetting("Download Source", createCombo(Settings::downloadSource, {
     {"lighttpd", "Internal (lighttpd)"},
