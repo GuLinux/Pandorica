@@ -96,7 +96,7 @@ CommentsContainerWidget::CommentsContainerWidget(string videoId, Session* sessio
   newCommentContent->setRows(3);
   newCommentContent->setWidth(500);
   newCommentContent->setInline(false);
-  WPushButton* insertComment = WW(WPushButton, "Add Comment").css("btn btn-primary btn-small").onClick([this,videoId,newCommentContent](WMouseEvent){
+  WPushButton* insertComment = WW(WPushButton, "Add Comment").css("btn btn-primary btn-small").onClick([=](WMouseEvent){
     if(newCommentContent->text().empty())
       return;
     Comment *comment = new Comment(videoId, d->session->user(), newCommentContent->text().toUTF8());
@@ -106,7 +106,7 @@ CommentsContainerWidget::CommentsContainerWidget(string videoId, Session* sessio
     newCommentContent->setText("");
     commentViewers.commentAdded(videoId, newComment.id());
   });
-  newCommentContent->keyWentUp().connect([insertComment,newCommentContent](WKeyEvent){
+  newCommentContent->keyWentUp().connect([=](WKeyEvent){
     insertComment->setEnabled(!newCommentContent->text().empty());
   });
   insertComment->setEnabled(false);
@@ -119,7 +119,7 @@ CommentsContainerWidget::CommentsContainerWidget(string videoId, Session* sessio
   for(CommentTuple comment : query.resultList())
     d->commentsContainer->addWidget(new CommentView(comment) );
   
-  auto commentAdded = [this,videoId,querysql] (string commentVideoId, long commentId) {
+  auto commentAdded = [=] (string commentVideoId, long commentId) {
     if(commentVideoId != videoId) return;
     Dbo::Transaction t(*d->session);
     auto query = d->session->query<CommentTuple>(querysql).where("comment.id = ?").bind(commentId);

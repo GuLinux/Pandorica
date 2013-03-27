@@ -47,10 +47,10 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
     return true;
   });
   bindString("player.id",  playerId());
-  s_playing.connect([this](_n6){
+  s_playing.connect([=](_n6){
     isPlaying = true;
   });
-  s_ended.connect([this](_n6) {
+  s_ended.connect([=](_n6) {
     isPlaying = false;
   });
   addListener("play", s_playing.createCall());

@@ -133,10 +133,10 @@ Message::Message(WString text, WContainerWidget* parent): WTemplate(parent)
 
 
 StreamingAppPrivate::StreamingAppPrivate(StreamingApp *q) : q(q), playSignal(q, "playSignal"), queueSignal(q, "queueSignal") {
-  playSignal.connect([this](string uid, _n5){
+  playSignal.connect([=](string uid, _n5){
     queueAndPlay(collection->media(uid));
   });
-  queueSignal.connect([this](string uid, _n5){
+  queueSignal.connect([=](string uid, _n5){
     queue(collection->media(uid));
   });
 }
@@ -342,7 +342,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
       header->addWidget(WW(WText,WString("{1} ({2})").arg(authInfo->identity("loginname")).arg(comment->lastUpdated().toString()))
         .css("label label-success comment-box-element"));
       commentWidget->addWidget(header);
-      videoLink->clicked().connect([latestCommentsContainer, latestCommentsMenuItem, media,this](WMouseEvent){
+      videoLink->clicked().connect([=](WMouseEvent){
         string hidejs = (boost::format(JS( $('#%s').modal('hide'); )) % latestCommentsContainer->id()).str();
         latestCommentsMenuItem->doJavaScript(hidejs);
         queueAndPlay(media);
@@ -353,7 +353,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   });
   wApp->root()->addWidget(latestCommentsContainer);
   
-  latestCommentsMenuItem->clicked().connect([latestCommentsMenuItem,latestCommentsContainer,this](WMouseEvent){
+  latestCommentsMenuItem->clicked().connect([=](WMouseEvent){
     string togglejs = (boost::format(JS( $('#%s').modal('toggle'); )) % latestCommentsContainer->id()).str();
     latestCommentsMenuItem->doJavaScript(togglejs);
   });
@@ -395,11 +395,11 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   WText *logout = new WText("Logout");
   topBarTemplate->bindWidget("logout", logout);
   
-  logout->clicked().connect([this](WMouseEvent) {
+  logout->clicked().connect([=](WMouseEvent) {
     session.login().logout();
     wApp->redirect(wApp->bookmarkUrl("/")); 
   });
-  filesListMenuItem->clicked().connect([this](WMouseEvent){
+  filesListMenuItem->clicked().connect([=](WMouseEvent){
     if(widgetsStack->currentIndex()) {
       filesListMenuItem->setText(WString::tr("menu.videoslist"));
       widgetsStack->setCurrentIndex(0);
@@ -459,7 +459,7 @@ void StreamingAppPrivate::setupAdminMenus()
   
   const string *addUserParameter = wApp->environment().getParameter("add_user_email");
   
-  auto displayAddUserDialog = [addUserParameter,this](WMouseEvent){
+  auto displayAddUserDialog = [=](WMouseEvent){
     string addUserEmail =  addUserParameter? *addUserParameter: string();
     AddUserDialog *dialog = new AddUserDialog(&session, addUserEmail);
     dialog->show();
@@ -468,14 +468,14 @@ void StreamingAppPrivate::setupAdminMenus()
   if(addUserParameter)
     WTimer::singleShot(1000, displayAddUserDialog);
 
-  activeUsersMenuItem->clicked().connect([this](WMouseEvent){
+  activeUsersMenuItem->clicked().connect([=](WMouseEvent){
     WDialog *dialog = new LoggedUsersDialog(&session);
     dialog->show();
   });
-  addUserMenu->clicked().connect([displayAddUserDialog,this](WMouseEvent){
+  addUserMenu->clicked().connect([=](WMouseEvent){
       displayAddUserDialog(WMouseEvent());
   });
-  allLog->clicked().connect([this](WMouseEvent){
+  allLog->clicked().connect([=](WMouseEvent){
       WDialog *dialog = new LoggedUsersDialog(&session, true);
       dialog->show();
   });
@@ -520,10 +520,10 @@ void StreamingApp::setupGui()
   
   d->collection->rescan();
   MediaCollectionBrowser* browser = new MediaCollectionBrowser(d->collection, &d->settings, &d->session);
-  browser->play().connect([this](Media media, _n5){
+  browser->play().connect([=](Media media, _n5){
     d->queueAndPlay(media.path());
   });
-  browser->queue().connect([this](Media media, _n5){
+  browser->queue().connect([=](Media media, _n5){
     d->queue(media.path());
   });
   
@@ -542,7 +542,7 @@ void StreamingApp::setupGui()
 void StreamingAppPrivate::parseFileParameter() {
   if(wApp->environment().getParameter("file")) {
     log("notice") << "Got parameter file: " << *wApp->environment().getParameter("file");
-    WTimer::singleShot(1000, [this](WMouseEvent&) {
+    WTimer::singleShot(1000, [=](WMouseEvent&) {
       string fileHash = * wApp->environment().getParameter("file");
       queue(collection->media(fileHash).path());
     });
@@ -571,7 +571,7 @@ void StreamingAppPrivate::queue(Media media)
   if(!media.valid()) return;
   playlist->queue(media);
   if(!player || !player->playing()) {
-    WTimer::singleShot(500, [this](WMouseEvent) {
+    WTimer::singleShot(500, [=](WMouseEvent) {
       play(playlist->first());
     });
   }
@@ -634,7 +634,7 @@ void StreamingAppPrivate::play ( Media media ) {
     WMemoryResource *resource = new WMemoryResource(subtitle->mimetype(), subtitle->data(), container);
     player->addSubtitles(Track( resource->url() , lang, label ));
   }
-  player->ended().connect([this,&t](_n6){
+  player->ended().connect([=,&t](_n6){
     for(auto detail : sessionInfo.modify()->sessionDetails())
       detail.modify()->ended();
     sessionInfo.flush();

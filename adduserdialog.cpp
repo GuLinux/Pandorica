@@ -45,7 +45,7 @@ AddUserDialog::AddUserDialog(Session* session, string email): WDialog(), _sessio
   add->setEnabled(false);
   newUser->setValidator(validator);
   
-  auto submitUser = [newUser,session, model,add](WMouseEvent) {
+  auto submitUser = [=](WMouseEvent) {
     Dbo::Transaction t(*session);
     session->add<AuthorizedUser>(new AuthorizedUser(newUser->text().toUTF8()));
     t.commit();
@@ -54,12 +54,12 @@ AddUserDialog::AddUserDialog(Session* session, string email): WDialog(), _sessio
     model->reload();
   };
   
-  auto validate = [newUser,add](){
+  auto validate = [=](){
     WValidator::State s = newUser->validate();
     add->setEnabled(s == WValidator::Valid);
   };
   
-  newUser->keyWentUp().connect([validate,submitUser](WKeyEvent k){
+  newUser->keyWentUp().connect([=](WKeyEvent k){
     if(k.key() == Wt::Key_Enter) {
       submitUser(WMouseEvent());
     }
