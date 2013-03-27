@@ -54,7 +54,7 @@ WComboBox* SettingsPage::createCombo(string name, vector< SettingPair > values)
   WComboBox *combo = new WComboBox();
   ComboPairModel* model = new ComboPairModel(values, this);
   combo->setModel(model);
-  combo->activated().connect([this,name,values](int index, _n5){
+  combo->activated().connect([=](int index, _n5){
     settings->setValue(name, values[index].first);
   });
   for(int index=0; index<values.size(); index++) {

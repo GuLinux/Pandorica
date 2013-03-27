@@ -62,7 +62,7 @@ void MediaCollectionBrowserPrivate::browse(filesystem::path currentPath)
   this->currentPath = currentPath;
   browser->clear();
   rebuildBreadcrumb();
-  auto belongsToCurrent = [this](fs::path p){
+  auto belongsToCurrent = [=](fs::path p){
     return p.parent_path() == this->currentPath;
   };
 
@@ -88,7 +88,7 @@ void MediaCollectionBrowserPrivate::browse(filesystem::path currentPath)
 
 void MediaCollectionBrowserPrivate::addDirectory(filesystem::path directory)
 {
-  auto onClick = [this,directory](WMouseEvent){
+  auto onClick = [=](WMouseEvent){
     browse(directory);
   };
   addIcon(directory.filename().string(), [](WObject*){ return "http://gulinux.net/css/fs_icons/inode-directory.png"; }, onClick);
@@ -97,7 +97,7 @@ void MediaCollectionBrowserPrivate::addDirectory(filesystem::path directory)
 void MediaCollectionBrowserPrivate::addMedia(Media media)
 {
   wApp->log("notice") << "adding media " << media.path();
-  auto onClick = [this,media](WMouseEvent e){
+  auto onClick = [=](WMouseEvent e){
     WPopupMenu *menu = new WPopupMenu();
     WPopupMenuItem* filename = menu->addItem(media.filename());
     filename->setSelectable(false); filename->setDisabled(true);
@@ -113,7 +113,7 @@ void MediaCollectionBrowserPrivate::addMedia(Media media)
       clearThumbs = menu->addItem("Delete Preview");
     }
     
-    menu->aboutToHide().connect([this,media,menu,play,queue,close,clearThumbs](_n6){
+    menu->aboutToHide().connect([=](_n6){
       if(menu->result() == play)
         playSignal.emit(media);
       if(menu->result() == queue)
@@ -131,7 +131,7 @@ void MediaCollectionBrowserPrivate::addMedia(Media media)
     icon = [](WObject *){ return "http://gulinux.net/css/fs_icons/audio-x-generic.png"; };
   Dbo::ptr<MediaAttachment> preview = media.preview(session, Media::PreviewThumb);
   if(preview)
-    icon = [preview](WObject *parent){ return (new WMemoryResource(preview->mimetype(), preview->data(), parent))->url(); };
+    icon = [=](WObject *parent){ return (new WMemoryResource(preview->mimetype(), preview->data(), parent))->url(); };
   addIcon(media.filename(), icon, onClick);
 }
 
@@ -181,7 +181,7 @@ void MediaCollectionBrowserPrivate::rebuildBreadcrumb()
     WContainerWidget *item = new WContainerWidget;
     if(breadcrumb->count())
       item->addWidget(WW(WText, "/").css("divider"));
-    item->addWidget( WW(WAnchor, "javascript:false", p.filename().string()).onClick([this,p](WMouseEvent){
+    item->addWidget( WW(WAnchor, "javascript:false", p.filename().string()).onClick([=](WMouseEvent){
       browse(p);
     }) );
     breadcrumb->addWidget(item);
