@@ -5,6 +5,27 @@
   <message id="menu.back.to.video">Show Video</message>
   <message id="auth-mail-sender-name">Gulinux Videostreaming</message>
   <message id="auth-mail-sender-address">marco@gulinux.net</message>
+  <!-- settings -->
+  <message id="autoplay_never.combo">Never</message>
+  <message id="autoplay_audio_only.combo">Only for Audio Files</message>
+  <message id="autoplay_video_only.combo">Only for Video Files</message>
+  <message id="autoplay_always.combo">Always</message>
+  
+  <message id="html5.combo">HTML5 (MediaElement)</message>
+  <message id="jplayer.combo">jPlayer</message>
+  
+  <message id="lighttpd.combo">Internal (Lighttpd)</message>
+  <message id="nginx.combo">Nginx</message>
+  
+  <message id="download_src.label">Download Source</message>
+  <message id="download_src.description">Nginx could be faster in some environments, but it might not always work</message>
+  
+  <message id="player.label">Player</message>
+  <message id="player.description">HTML5 is the most feature complete; jPlayer might be a bit more stable, but it lacks subtitles support</message>
+  
+  <message id="media_autoplay.label">AutoPlay</message>
+  <message id="media_autoplay.description"></message>
+  
   <message id="Wt.Auth.confirmmail.body">
 Hello {1},
 

@@ -8,7 +8,6 @@ namespace Wt {
   class WComboBox;
 }
 
-typedef std::pair<std::string,Wt::WString> SettingPair;
 class SettingsPage : public Wt::WContainerWidget
 {
 
@@ -16,8 +15,8 @@ public:
     SettingsPage(Settings *settings, Wt::WContainerWidget* parent = 0);
     virtual ~SettingsPage();
 private:
-  void addSetting(const Wt::WString &label, Wt::WFormWidget *widget, const Wt::WString &helpText = Wt::WString());
-  Wt::WComboBox *createCombo(std::string name, std::vector<SettingPair> values);
+  void addSetting(const std::string& settingName, Wt::WFormWidget* widget);
+  Wt::WComboBox *createCombo(std::string name, std::vector<std::string> values);
   Wt::WContainerWidget *content;
   Settings *settings;
 };
