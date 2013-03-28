@@ -47,7 +47,7 @@ public:
   WContainerWidget* browser;
   Signal< Media > playSignal;
   Signal< Media > queueSignal;
-    bool isAdmin;
+  bool isAdmin;
 private:
   void addDirectory(filesystem::path directory);
   void addMedia(Media media);
@@ -65,11 +65,17 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Sett
   d->browser->setList(true);
   addWidget(d->breadcrumb);
   addWidget(d->browser);
-  d->browse(d->collection->rootPath());
+  d->currentPath = d->collection->rootPath();
   Dbo::Transaction t(*session);
   AuthorizedUserPtr authUser = session->find<AuthorizedUser>().where("email = ?").bind( session->login().user().email() );
   d->isAdmin = authUser && authUser->role() == AuthorizedUser::Admin;
 }
+
+void MediaCollectionBrowser::reload()
+{
+  d->browse(d->currentPath);
+}
+
 
 void MediaCollectionBrowserPrivate::browse(filesystem::path currentPath)
 {
@@ -177,7 +183,16 @@ WContainerWidget* MediaCollectionBrowserPrivate::addIcon(string filename, GetIco
     if(popover.isValid()) {
       link->setAttributeValue("data-toggle", "popover");
       string tooltipJS = (boost::format(JS(
-        $('#%s').popover({placement: 'bottom', html: true, title: %s, content: %s, trigger: 'hover'});
+        var element = $('#%s');
+        var positionLeft = element.offset()["left"];
+        var positionRight = $(window).width() - positionLeft - element.width();
+        var positionBottom = $(window).height() - element.offset()["top"] - element.height();
+        console.log("Left: " + positionLeft + ", Right: " + positionRight + ", window width: " + $(window).width());
+        var placement = "bottom";
+        if(positionBottom < 150) placement = "top";
+        if(positionLeft < 100) placement = "right";
+        if(positionRight < 150) placement = "left";
+        element.popover({placement: placement, html: true, title: %s, content: %s, trigger: 'hover'});
       )) % link->id() % popover.title.jsStringLiteral() % popover.text.jsStringLiteral() ).str();
       link->doJavaScript(tooltipJS);
       

@@ -17,6 +17,7 @@ public:
   virtual ~MediaCollectionBrowser();
   Wt::Signal<Media> &queue();
   Wt::Signal<Media> &play();
+  void reload();
 private:
   MediaCollectionBrowserPrivate *const d;
 };

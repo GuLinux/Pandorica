@@ -114,6 +114,7 @@ public:
   JSignal<string> playSignal;
   JSignal<string> queueSignal;
   Settings settings;
+    MediaCollectionBrowser* mediaCollectionBrowser;
 private:
   void setupUserMenus();
   WText* activeUsersMenuItem;
@@ -408,6 +409,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
     } else {
       filesListMenuItem->setText(WString::tr("menu.back.to.video"));
       widgetsStack->setCurrentIndex(1);
+      mediaCollectionBrowser->reload();
     }
   });
   
@@ -521,11 +523,11 @@ void StreamingApp::setupGui()
   contentWidget->addWidget(d->playerContainerWidget);
   
   d->collection->rescan();
-  MediaCollectionBrowser* browser = new MediaCollectionBrowser(d->collection, &d->settings, &d->session);
-  browser->play().connect([=](Media media, _n5){
+  d->mediaCollectionBrowser = new MediaCollectionBrowser(d->collection, &d->settings, &d->session);
+  d->mediaCollectionBrowser->play().connect([=](Media media, _n5){
     d->queueAndPlay(media.path());
   });
-  browser->queue().connect([=](Media media, _n5){
+  d->mediaCollectionBrowser->queue().connect([=](Media media, _n5){
     d->queue(media.path());
   });
   
@@ -533,7 +535,7 @@ void StreamingApp::setupGui()
   
   d->mainWidget->addWidget(d->widgetsStack);
   d->widgetsStack->addWidget(contentWidget);
-  d->widgetsStack->addWidget(browser);
+  d->widgetsStack->addWidget(d->mediaCollectionBrowser);
 
   d->parseFileParameter();
   
