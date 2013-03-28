@@ -35,6 +35,7 @@ SettingsPage::SettingsPage(Settings* settings, WContainerWidget* parent): WConta
   
   addSetting(Settings::preferredPlayer, createCombo(Settings::preferredPlayer, { "html5", "jplayer"} ) );
   addSetting(Settings::downloadSource, createCombo(Settings::downloadSource, {"lighttpd", "nginx"}) );
+  addSetting(Settings::guiLanguage, createCombo(Settings::guiLanguage, {"<browserdefault>", "en", "it"}) );
   addWidget(WW(WContainerWidget).css("modal-footer").add(new WText(WString::tr("settings.footer"))));
 }
 

@@ -16,10 +16,12 @@ public:
     std::string videosDir() const;
     boost::filesystem::path mediaData() const;
     std::string value(std::string cookieName);
+    std::string locale();
     void setValue(std::string settingName, std::string value);
     Wt::WLink linkFor(boost::filesystem::path p);
     Player *newPlayer();
     bool autoplay(const Media &media);
+    static const std::string guiLanguage;
     static const std::string downloadSource;
     static const std::string mediaAutoplay;
     static const std::string preferredPlayer;
