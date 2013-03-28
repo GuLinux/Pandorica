@@ -4,6 +4,7 @@
 #include <Wt/WDateTime>
 #include <Wt/WFileResource>
 #include <Wt/Utils>
+
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
 #include "player/html5player.h"
@@ -21,17 +22,19 @@ public:
   WLink lightySecDownloadLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p);
   WLink nginxSecLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p);
   Settings *q;
+  map<string,string> defaultValues {
+    {Settings::mediaAutoplay, "autoplay_always"},
+    {Settings::downloadSource, "lighttpd"},
+    {Settings::preferredPlayer, "html5"},
+  };
   map<string,string> sessionSettings;
 };
 const std::string Settings::downloadSource = "download_src";
 const std::string Settings::mediaAutoplay = "media_autoplay";
 const std::string Settings::preferredPlayer = "player";
+const std::string Settings::guiLanguage = "gui_language";
 
-map<string,string> defaultValues {
-  {Settings::mediaAutoplay, "autoplay_always"},
-  {Settings::downloadSource, "lighttpd"},
-  {Settings::preferredPlayer, "html5"}
-};
+
 
 Settings::Settings() : d(new SettingsPrivate(this)) {}
 Settings::~Settings() { delete d; }
@@ -60,16 +63,27 @@ string Settings::value(string cookieName)
   const string *value = wApp->environment().getCookieValue(cookieName);
   if(!value) {
     wApp->log("notice") << "cookie " << cookieName << " not found; returning default";
-    return defaultValues[cookieName];
+    return d->defaultValues[cookieName];
   }
   wApp->log("notice") << "cookie " << cookieName << " found: " << *value;
   return *value;
 }
 
+string Settings::locale()
+{
+  string storedValue = value(guiLanguage);
+  if(storedValue == "<browserdefault>") storedValue = wApp->environment().locale();
+  return storedValue;
+}
+
+
 void Settings::setValue(string settingName, string value)
 {
   wApp->setCookie(settingName, value, WDateTime::currentDateTime().addDays(365));
   d->sessionSettings[settingName] = value;
+  if(settingName == guiLanguage) {
+    wApp->setLocale(locale());
+  }
 }
 
 

@@ -43,6 +43,10 @@
   <message id="html5.combo">HTML5 (MediaElement)</message>
   <message id="jplayer.combo">jPlayer</message>
   
+  <message id="en.combo">English</message>
+  <message id="it.combo">Italiano</message>
+  <message id="<browserdefault>.combo">Browser Default</message>
+  
   <message id="lighttpd.combo">Internal (Lighttpd)</message>
   <message id="nginx.combo">Nginx</message>
   
@@ -54,6 +58,9 @@
   
   <message id="media_autoplay.label">AutoPlay</message>
   <message id="media_autoplay.description"></message>
+  
+  <message id="gui_language.label">Language</message>
+  <message id="gui_language.description"></message>
   
   <message id="Wt.Auth.confirmmail.body">
 Hello {1},

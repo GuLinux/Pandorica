@@ -47,7 +47,7 @@
   <message id="menu.latest.comments">Ultimi Commenti</message>
   <message id="menu.back.to.video">Mostra Video</message>
   <message id="menu.users">Utenti: {1}</message>
-  <message id="menu.settings">Importazioni</message>
+  <message id="menu.settings">Impostazioni</message>
   <message id="menu.search">Cerca</message>
   
   
@@ -82,6 +82,8 @@
   <message id="lighttpd.combo">Interno (Lighttpd)</message>
   <message id="nginx.combo">Nginx</message>
   
+  <message id="<browserdefault>.combo">Automatico</message>
+  
   <message id="download_src.label">Server di Download</message>
   <message id="download_src.description">Nginx potrebbe essere più veloce, a seconda dell'ambiente.</message>
   
@@ -90,6 +92,8 @@
   
   <message id="media_autoplay.label">AutoPlay</message>
   <message id="media_autoplay.description"></message>
+  <message id="gui_language.label">Lingua</message>
+  
   
   <message id="Wt.Auth.confirmmail.body">
 Hello {1},
