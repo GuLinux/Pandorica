@@ -12,6 +12,8 @@
 #include "authorizeduser.h"
 #include <boost/format.hpp>
 #include <algorithm>
+#include <Wt/Dbo/Transaction>
+#include <Wt/WTime>
 
 using namespace Wt;
 using namespace std;
@@ -20,6 +22,14 @@ using namespace boost;
 namespace fs = boost::filesystem;
 
 typedef pair<string,Media> MediaEntry;
+typedef std::function<string(WObject*)> GetIconF;
+
+struct Popover {
+  WString title;
+  WString text;
+  Popover(WString title = WString(), WString text = WString()) : title(title), text(text) {}
+  bool isValid() const { return !title.empty() && !text.empty(); }
+};
 
 class MediaCollectionBrowserPrivate {
 public:
@@ -37,10 +47,11 @@ public:
   WContainerWidget* browser;
   Signal< Media > playSignal;
   Signal< Media > queueSignal;
+    bool isAdmin;
 private:
   void addDirectory(filesystem::path directory);
   void addMedia(Media media);
-  WContainerWidget* addIcon(string filename, std::function<string(WObject*)> icon, MouseEventListener onClick);
+  WContainerWidget* addIcon(string filename, GetIconF icon, MouseEventListener onClick, Popover popover = Popover());
   string formatFileSize(long size);
   MediaCollectionBrowser* q;
 };
@@ -55,6 +66,9 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Sett
   addWidget(d->breadcrumb);
   addWidget(d->browser);
   d->browse(d->collection->rootPath());
+  Dbo::Transaction t(*session);
+  AuthorizedUserPtr authUser = session->find<AuthorizedUser>().where("email = ?").bind( session->login().user().email() );
+  d->isAdmin = authUser && authUser->role() == AuthorizedUser::Admin;
 }
 
 void MediaCollectionBrowserPrivate::browse(filesystem::path currentPath)
@@ -97,20 +111,36 @@ void MediaCollectionBrowserPrivate::addDirectory(filesystem::path directory)
 void MediaCollectionBrowserPrivate::addMedia(Media media)
 {
   wApp->log("notice") << "adding media " << media.path();
+  Popover popover(media.filename());
+  WString fileSizeText = WString::tr("mediabrowser.filesize").arg(formatFileSize(fs::file_size(media.path()) ) );
+  popover.text += fileSizeText;
+  Dbo::Transaction t(*session);
+  MediaPropertiesPtr mediaProperties = session->find<MediaProperties>().where("media_id = ?").bind(media.uid());
+  WString mediaLengthText;
+  if(mediaProperties && mediaProperties->duration() > 0) {
+    mediaLengthText = WString::tr("mediabrowser.medialength").arg( WTime(0,0,0).addSecs(mediaProperties->duration()).toString() );
+    popover.text += "<br />" + mediaLengthText;
+  }
+  
   auto onClick = [=](WMouseEvent e){
     WPopupMenu *menu = new WPopupMenu();
+
     WPopupMenuItem* filename = menu->addItem(media.filename());
     filename->setSelectable(false); filename->setDisabled(true);
-    WPopupMenuItem* filesize = menu->addItem(string("File size: ") + formatFileSize(fs::file_size(media.path())));
+    WPopupMenuItem* filesize = menu->addItem(fileSizeText);
     filesize->setSelectable(false); filesize->setDisabled(true);
-    WPopupMenuItem* play = menu->addItem("Play");
-    WPopupMenuItem* queue = menu->addItem("Queue");
-    WPopupMenuItem* close = menu->addItem("Cancel");
+    
+    if(!mediaLengthText.empty()) {
+      WPopupMenuItem* mediaLength = menu->addItem(mediaLengthText);
+      mediaLength->setSelectable(false); mediaLength->setDisabled(true);
+    }
+    
+    WPopupMenuItem* play = menu->addItem(WString::tr("mediabrowser.play"));
+    WPopupMenuItem* queue = menu->addItem(WString::tr("mediabrowser.queue"));
+    WPopupMenuItem* close = menu->addItem(WString::tr("mediabrowser.cancelpopup"));
     WPopupMenuItem* clearThumbs = 0;
-    Dbo::Transaction t(*session);
-    AuthorizedUserPtr authUser = session->find<AuthorizedUser>().where("email = ?").bind( session->login().user().email() );
-    if(authUser && authUser->role() == AuthorizedUser::Admin) {
-      clearThumbs = menu->addItem("Delete Preview");
+    if(isAdmin) {
+      clearThumbs = menu->addItem(WString::tr("mediabrowser.admin.deletepreview"));
     }
     
     menu->aboutToHide().connect([=](_n6){
@@ -132,19 +162,29 @@ void MediaCollectionBrowserPrivate::addMedia(Media media)
   Dbo::ptr<MediaAttachment> preview = media.preview(session, Media::PreviewThumb);
   if(preview)
     icon = [=](WObject *parent){ return (new WMemoryResource(preview->mimetype(), preview->data(), parent))->url(); };
-  addIcon(media.filename(), icon, onClick);
+  addIcon(media.filename(), icon, onClick, popover);
 }
 
-WContainerWidget* MediaCollectionBrowserPrivate::addIcon(string filename, std::function<string(WObject*)> icon, MouseEventListener onClick)
+WContainerWidget* MediaCollectionBrowserPrivate::addIcon(string filename, GetIconF icon, MouseEventListener onClick, Popover popover)
 {
-    WContainerWidget *item = WW(WContainerWidget).css("span3");
+    WContainerWidget *item = WW(WContainerWidget).css("span3 media-icon-container");
     item->setContentAlignment(AlignmentFlag::AlignCenter);
     WAnchor *link = WW(WAnchor, "javascript:false").css("thumbnail filesystem-item");
     link->setImage(new WImage(icon(item) ));
     link->addWidget(WW(WText, filename).css("filesystem-item-label"));
     item->addWidget(link);
     link->clicked().connect(onClick);
-    
+    if(popover.isValid()) {
+      link->setAttributeValue("data-toggle", "popover");
+      string tooltipJS = (boost::format(JS(
+        $('#%s').popover({placement: 'bottom', html: true, title: %s, content: %s, trigger: 'hover'});
+      )) % link->id() % popover.title.jsStringLiteral() % popover.text.jsStringLiteral() ).str();
+      link->doJavaScript(tooltipJS);
+      
+      link->clicked().connect([=](WMouseEvent) { link->doJavaScript((boost::format(JS(
+        $('#%s').popover('hide');
+      )) % link->id() ).str() ); } );
+    }
     browser->addWidget(item);
     return item;
 }

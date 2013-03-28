@@ -214,7 +214,8 @@ StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(
   enableUpdates(true);
   d->session.login().changed().connect(this, &StreamingApp::authEvent);
   WMessageResourceBundle *xmlResourcesBundle = new WMessageResourceBundle;
-  xmlResourcesBundle->use("templates");
+  xmlResourcesBundle->use("strings");
+  setLocale("it");
   WCombinedLocalizedStrings* combinedLocalizedStrings = new WCombinedLocalizedStrings();
   combinedLocalizedStrings->add(new WHTMLTemplatesLocalizedStrings("html_templates"));
   combinedLocalizedStrings->add(xmlResourcesBundle);
@@ -357,17 +358,17 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
     string togglejs = (boost::format(JS( $('#%s').modal('toggle'); )) % latestCommentsContainer->id()).str();
     latestCommentsMenuItem->doJavaScript(togglejs);
   });
-  activeUsersMenuItem = new WText("Users");
+  activeUsersMenuItem = new WText(WString::tr("menu.users").arg(""));
   
   auto setLoggedUsersTitle = [this](StreamingAppSession, _n5){
-    activeUsersMenuItem->setText(WString("Users: {1}").arg(streamingAppSessions.sessionCount()));
+    activeUsersMenuItem->setText(WString::tr("menu.users").arg(streamingAppSessions.sessionCount()));
   };
   
   SettingsPage* settingsPage = new SettingsPage(&settings);
   settingsPage->addStyleClass("modal fade hide");
   q->root()->addWidget(settingsPage);
   
-  topBarTemplate->bindWidget("settings", WW(WText, "Settings").onClick([settingsPage,this](WMouseEvent) {
+  topBarTemplate->bindWidget("settings", WW(WText, WString::tr("menu.settings")).onClick([settingsPage,this](WMouseEvent) {
     string togglejs = (boost::format(JS( $('#%s').modal('toggle'); )) % settingsPage->id()).str();
     wApp->doJavaScript(togglejs);
   }));
@@ -392,7 +393,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
     new ReadBWStats(bwStatsItem, serverStatusUrl, q);
   }
   
-  WText *logout = new WText("Logout");
+  WText *logout = new WText(WString::tr("menu.logout"));
   topBarTemplate->bindWidget("logout", logout);
   
   logout->clicked().connect([=](WMouseEvent) {
@@ -412,7 +413,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
 
   WLineEdit *searchBox = new WLineEdit();
   searchBox->setStyleClass("search-query");
-  searchBox->setAttributeValue("placeholder", "Search");
+  searchBox->setAttributeValue("placeholder", WString::tr("menu.search"));
   
   string jsMatcher = JS( function (editElement) {
     return function(suggestion) {
@@ -509,7 +510,7 @@ void StreamingApp::setupGui()
   WContainerWidget *playlistAccordion = WW(WContainerWidget).css("accordion-body collapse").add(d->playlist);
   
   WContainerWidget *playlistContainer = WW(WContainerWidget).css("accordion-group playlist").setContentAlignment(AlignCenter);
-  playlistContainer->addWidget(WW(WContainerWidget).css("accordion-heading").add(WW(WAnchor, string("#") + playlistAccordion->id(),"Playlist")
+  playlistContainer->addWidget(WW(WContainerWidget).css("accordion-heading").add(WW(WAnchor, string("#") + playlistAccordion->id(), WString::tr("playlist.accordion"))
     .setAttribute("data-toggle", "collapse").setAttribute("data-parent",string("#") + contentWidget->id()).css("accordion-toggle")));
   playlistContainer->addWidget(playlistAccordion);
   
@@ -649,10 +650,10 @@ void StreamingAppPrivate::play ( Media media ) {
   playerContainerWidget->addWidget(infoBox);
   string fileId = Utils::hexEncode(Utils::md5(media.path().string()));
   playerContainerWidget->addWidget(new CommentsContainerWidget(fileId, &session));
-  infoBox->addWidget(new WText(string("File: ") + media.filename()));
+  infoBox->addWidget(new WText(string("File: ") + media.filename())); // TODO: replace with title, if existing
   WLink shareLink(wApp->bookmarkUrl("/") + string("?file=") + fileId);
   infoBox->addWidget(new WBreak() );
-  infoBox->addWidget(new WAnchor(shareLink, "Link per la condivisione"));
+  infoBox->addWidget(new WAnchor(shareLink, WString::tr("player.sharelink")));
   wApp->setTitle( media.filename() );
   log("notice") << "using url " << settings.linkFor( media.path() ).url();
   for(auto detail : sessionInfo.modify()->sessionDetails())

@@ -28,13 +28,14 @@ ComboPairModel::ComboPairModel(vector<string> items, WObject* parent)
 
 SettingsPage::SettingsPage(Settings* settings, WContainerWidget* parent): WContainerWidget(parent), settings(settings)
 {
-  addWidget(WW(WContainerWidget).css("modal-header").add(new WText("<h3>Settings</h3>")));
+  addWidget(WW(WContainerWidget).css("modal-header").add(new WText(WString::tr("settings.header"))));
   content = WW(WContainerWidget).css("modal-body form-horizontal");
   addWidget(content);
   addSetting(Settings::mediaAutoplay, createCombo(Settings::mediaAutoplay, { "autoplay_never", "autoplay_audio_only", "autoplay_video_only", "autoplay_always" }));
   
   addSetting(Settings::preferredPlayer, createCombo(Settings::preferredPlayer, { "html5", "jplayer"} ) );
   addSetting(Settings::downloadSource, createCombo(Settings::downloadSource, {"lighttpd", "nginx"}) );
+  addWidget(WW(WContainerWidget).css("modal-footer").add(new WText(WString::tr("settings.footer"))));
 }
 
 WComboBox* SettingsPage::createCombo(string name, vector<string> values)

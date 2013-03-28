@@ -90,13 +90,13 @@ CommentsContainerWidget::CommentsContainerWidget(string videoId, Session* sessio
   query.where("video_id = ?").bind(videoId);
   query.where("auth_identity.provider = 'loginname'");
   query.orderBy("last_updated DESC");
-  addWidget(WW(WText, "Comments").css("label").setInline(false));
+  addWidget(WW(WText, WString::tr("comments.label")).css("label").setInline(false));
   
   WTextArea* newCommentContent = new WTextArea();
   newCommentContent->setRows(3);
   newCommentContent->setWidth(500);
   newCommentContent->setInline(false);
-  WPushButton* insertComment = WW(WPushButton, "Add Comment").css("btn btn-primary btn-small").onClick([=](WMouseEvent){
+  WPushButton* insertComment = WW(WPushButton, WString::tr("comments.addcomment.button")).css("btn btn-primary btn-small").onClick([=](WMouseEvent){
     if(newCommentContent->text().empty())
       return;
     Comment *comment = new Comment(videoId, d->session->user(), newCommentContent->text().toUTF8());
