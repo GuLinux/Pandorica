@@ -77,4 +77,5 @@ namespace Wt {
 }
 
 typedef Wt::Dbo::ptr<MediaAttachment> MediaAttachmentPtr;
+typedef Wt::Dbo::ptr<MediaProperties> MediaPropertiesPtr;
 #endif

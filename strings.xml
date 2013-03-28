@@ -1,11 +1,40 @@
 <messages>
+  <!-- general, not retranslated -->
   <message id="site-title">Gulinux Videostreaming</message>
+  <message id="auth-mail-sender-name">Gulinux Videostreaming</message>
+  <message id="auth-mail-sender-address">marco@gulinux.net</message>
+  <message id="playlist.accordion">Playlist</message>
+
+ <!-- menu -->
   <message id="menu.videoslist">Media List</message>
   <message id="menu.latest.comments">Latest Comments</message>
   <message id="menu.back.to.video">Show Video</message>
-  <message id="auth-mail-sender-name">Gulinux Videostreaming</message>
-  <message id="auth-mail-sender-address">marco@gulinux.net</message>
+  <message id="menu.users">Users: {1}</message>
+  <message id="menu.settings">Settings</message>
+  <message id="menu.logout">Logout</message>
+  <message id="menu.search">Search</message>
+  
+  <!-- media browser -->
+  <message id="mediabrowser.play">Play</message>
+  <message id="mediabrowser.queue">Queue</message>
+  <message id="mediabrowser.cancelpopup">Cancel Popup</message>
+  <message id="mediabrowser.admin.deletepreview">Delete Preview</message>
+  <message id="mediabrowser.filesize">File Size: {1}</message>
+  <message id="mediabrowser.medialength">Length: {1}</message>
+  
+  
+  <!-- comments -->
+  <message id="comments.label">Comments</message>
+  <message id="comments.addcomment.button">Add Comment</message>
+  
+  
+  <!-- player -->
+  <message id="player.sharelink">Share link</message>
+  
   <!-- settings -->
+  <message id="settings.header"><h3>Settings</h3></message>
+  <message id="settings.footer">* Settings are stored in cookies, so be aware that they might reset if you delete them, or change your browser or computer.</message>
+  
   <message id="autoplay_never.combo">Never</message>
   <message id="autoplay_audio_only.combo">Only for Audio Files</message>
   <message id="autoplay_video_only.combo">Only for Video Files</message>
