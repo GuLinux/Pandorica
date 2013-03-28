@@ -215,7 +215,7 @@ StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(
   d->session.login().changed().connect(this, &StreamingApp::authEvent);
   WMessageResourceBundle *xmlResourcesBundle = new WMessageResourceBundle;
   xmlResourcesBundle->use("strings");
-  setLocale("it");
+//   setLocale("it");
   WCombinedLocalizedStrings* combinedLocalizedStrings = new WCombinedLocalizedStrings();
   combinedLocalizedStrings->add(new WHTMLTemplatesLocalizedStrings("html_templates"));
   combinedLocalizedStrings->add(xmlResourcesBundle);
