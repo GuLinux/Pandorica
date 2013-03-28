@@ -22,11 +22,6 @@ public:
   WLink lightySecDownloadLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p);
   WLink nginxSecLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p);
   Settings *q;
-  map<string,string> defaultValues {
-    {Settings::mediaAutoplay, "autoplay_always"},
-    {Settings::downloadSource, "lighttpd"},
-    {Settings::preferredPlayer, "html5"},
-  };
   map<string,string> sessionSettings;
 };
 const std::string Settings::downloadSource = "download_src";
@@ -34,7 +29,12 @@ const std::string Settings::mediaAutoplay = "media_autoplay";
 const std::string Settings::preferredPlayer = "player";
 const std::string Settings::guiLanguage = "gui_language";
 
-
+map<string,string> defaultValues {
+  {Settings::mediaAutoplay, "autoplay_always"},
+  {Settings::downloadSource, "lighttpd"},
+  {Settings::preferredPlayer, "html5"},
+  {Settings::guiLanguage, "<browserdefault>"},
+  };
 
 Settings::Settings() : d(new SettingsPrivate(this)) {}
 Settings::~Settings() { delete d; }
@@ -63,7 +63,7 @@ string Settings::value(string cookieName)
   const string *value = wApp->environment().getCookieValue(cookieName);
   if(!value) {
     wApp->log("notice") << "cookie " << cookieName << " not found; returning default";
-    return d->defaultValues[cookieName];
+    return defaultValues[cookieName];
   }
   wApp->log("notice") << "cookie " << cookieName << " found: " << *value;
   return *value;
