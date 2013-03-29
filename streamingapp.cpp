@@ -639,6 +639,7 @@ void StreamingAppPrivate::play ( Media media ) {
     player->addSubtitles(Track( resource->url() , lang, label ));
   }
   player->ended().connect([=,&t](_n6){
+    Dbo::Transaction t(session);
     for(auto detail : sessionInfo.modify()->sessionDetails())
       detail.modify()->ended();
     sessionInfo.flush();
