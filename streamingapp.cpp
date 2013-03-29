@@ -400,6 +400,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   
   logout->clicked().connect([=](WMouseEvent) {
     session.login().logout();
+    wApp->quit();
     wApp->redirect(wApp->bookmarkUrl("/")); 
   });
   filesListMenuItem->clicked().connect([=](WMouseEvent){
