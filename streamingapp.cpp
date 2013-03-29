@@ -433,7 +433,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   })) % playSignal.createCall("suggestionValue")).str();
   
   WSuggestionPopup* suggestions = new WSuggestionPopup(jsMatcher, jsReplace, wApp->root());
-  auto addSuggestions = [=](_n6) {
+  auto addSuggestions = [=](WMouseEvent) {
     for(pair<string,Media> media: collection->collection()) {
       suggestions->addSuggestion(media.second.filename(), media.first);
     }
@@ -441,7 +441,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   };
   
   
-  collection->scanned().connect(addSuggestions);
+  collection->scanned().connect([=](_n6) { WTimer::singleShot(2000, addSuggestions); } );
   
 }
 
