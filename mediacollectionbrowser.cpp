@@ -90,7 +90,7 @@ void MediaCollectionBrowserPrivate::browse(filesystem::path currentPath)
     if(belongsToCurrent(m.second.path()))
       medias.push_back(m.second);
     fs::path directory = m.second.parentDirectory();
-    while(directory != collection->rootPath() && !belongsToCurrent(directory)) {
+    while(directory != collection->rootPath() && !belongsToCurrent(directory) && directory != filesystem::path("/")) {
       directory = directory.parent_path();
     }
     if(directory != currentPath && belongsToCurrent(directory) && !directories.count(directory))
