@@ -37,8 +37,8 @@ public:
     : collection(collection) , settings(settings), session(session), q(q) {}
     void rebuildBreadcrumb();
     void browse(filesystem::path currentPath);
-    
 public:
+  AuthorizedUser::Role userRole;
   MediaCollection *const collection;
   Settings *settings;
   Session *session;
@@ -47,7 +47,7 @@ public:
   WContainerWidget* browser;
   Signal< Media > playSignal;
   Signal< Media > queueSignal;
-  bool isAdmin;
+  bool roleWasFetched = false;
 private:
   void addDirectory(filesystem::path directory);
   void addMedia(Media media);
@@ -66,9 +66,6 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Sett
   addWidget(d->breadcrumb);
   addWidget(d->browser);
   d->currentPath = d->collection->rootPath();
-  Dbo::Transaction t(*session);
-  AuthorizedUserPtr authUser = session->find<AuthorizedUser>().where("email = ?").bind( session->login().user().email() );
-  d->isAdmin = authUser && authUser->role() == AuthorizedUser::Admin;
 }
 
 void MediaCollectionBrowser::reload()
@@ -121,6 +118,14 @@ void MediaCollectionBrowserPrivate::addMedia(Media media)
   WString fileSizeText = WString::tr("mediabrowser.filesize").arg(formatFileSize(fs::file_size(media.path()) ) );
   popover.text += fileSizeText;
   Dbo::Transaction t(*session);
+  
+  if(!roleWasFetched) {
+    roleWasFetched = true;
+    Dbo::Transaction t(*session);
+    AuthorizedUserPtr authUser = session->find<AuthorizedUser>().where("email = ?").bind( session->login().user().email() );
+    userRole = authUser ? authUser->role() : AuthorizedUser::NormalUser;
+  }
+  
   MediaPropertiesPtr mediaProperties = session->find<MediaProperties>().where("media_id = ?").bind(media.uid());
   WString mediaLengthText;
   if(mediaProperties && mediaProperties->duration() > 0) {
@@ -145,7 +150,7 @@ void MediaCollectionBrowserPrivate::addMedia(Media media)
     WPopupMenuItem* queue = menu->addItem(WString::tr("mediabrowser.queue"));
     WPopupMenuItem* close = menu->addItem(WString::tr("mediabrowser.cancelpopup"));
     WPopupMenuItem* clearThumbs = 0;
-    if(isAdmin) {
+    if(userRole == AuthorizedUser::Admin) {
       clearThumbs = menu->addItem(WString::tr("mediabrowser.admin.deletepreview"));
     }
     
