@@ -417,6 +417,8 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   WLineEdit *searchBox = new WLineEdit();
   searchBox->setStyleClass("search-query");
   searchBox->setAttributeValue("placeholder", WString::tr("menu.search"));
+  topBarTemplate->bindWidget("search", searchBox);
+  mainWidget->addWidget(topBarTemplate);
   
   string jsMatcher = JS( function (editElement) {
     return function(suggestion) {
@@ -431,18 +433,16 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   })) % playSignal.createCall("suggestionValue")).str();
   
   WSuggestionPopup* suggestions = new WSuggestionPopup(jsMatcher, jsReplace, wApp->root());
-  auto addSuggestions = [this,suggestions,searchBox](_n6) {
+  auto addSuggestions = [=](_n6) {
     for(pair<string,Media> media: collection->collection()) {
       suggestions->addSuggestion(media.second.filename(), media.first);
     }
     suggestions->forEdit(searchBox);
   };
   
-  topBarTemplate->bindWidget("search", searchBox);
   
   collection->scanned().connect(addSuggestions);
   
-  mainWidget->addWidget(topBarTemplate);
 }
 
 void StreamingAppPrivate::setupUserMenus()
