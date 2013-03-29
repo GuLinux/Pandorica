@@ -108,7 +108,7 @@ public:
   WTemplate* topBarTemplate;
   MediaCollection *collection;
   WStackedWidget* widgetsStack;
-  void queue(Media media);
+  void queue(Media media, bool autoplay = true);
   void queueAndPlay(Media media);
   void play(Media media);
   JSignal<string> playSignal;
@@ -528,7 +528,7 @@ void StreamingApp::setupGui()
     d->queueAndPlay(media.path());
   });
   d->mediaCollectionBrowser->queue().connect([=](Media media, _n5){
-    d->queue(media.path());
+    d->queue(media.path(), false);
   });
   
   d->widgetsStack = new WStackedWidget();
@@ -570,11 +570,11 @@ string StreamingAppPrivate::extensionFor ( filesystem::path p ) {
 
 
 
-void StreamingAppPrivate::queue(Media media)
+void StreamingAppPrivate::queue(Media media, bool autoplay)
 {
   if(!media.valid()) return;
   playlist->queue(media);
-  if(!player || !player->playing()) {
+  if( (!player || !player->playing()) && autoplay) {
     WTimer::singleShot(500, [=](WMouseEvent) {
       play(playlist->first());
     });
