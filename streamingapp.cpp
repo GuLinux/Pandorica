@@ -539,7 +539,7 @@ void StreamingApp::setupGui()
   d->parseFileParameter();
   
   d->playlist->next().connect(d, &StreamingAppPrivate::play);
-  WTimer::singleShot(2000, [=](WMouseEvent) {   d->collection->rescan(); });
+  WTimer::singleShot(500, [=](WMouseEvent) {   d->collection->rescan(); });
 }
 
 
