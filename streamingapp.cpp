@@ -114,7 +114,8 @@ public:
   JSignal<string> playSignal;
   JSignal<string> queueSignal;
   Settings settings;
-    MediaCollectionBrowser* mediaCollectionBrowser;
+  MediaCollectionBrowser* mediaCollectionBrowser;
+  std::function<void(WMouseEvent)> displayAddUserDialog;
 private:
   void setupUserMenus();
   WText* activeUsersMenuItem;
@@ -462,15 +463,15 @@ void StreamingAppPrivate::setupAdminMenus()
   topBarTemplate->bindWidget("users.log", allLog);
   topBarTemplate->bindWidget("users.add", addUserMenu);
   
-  const string *addUserParameter = wApp->environment().getParameter("add_user_email");
   
-  auto displayAddUserDialog = [=](WMouseEvent){
+  displayAddUserDialog = [=](WMouseEvent){
+    const string *addUserParameter = wApp->environment().getParameter("add_user_email");
     string addUserEmail =  addUserParameter? *addUserParameter: string();
     AddUserDialog *dialog = new AddUserDialog(&session, addUserEmail);
     dialog->show();
   };
   
-  if(addUserParameter)
+  if(wApp->environment().getParameter("add_user_email"))
     WTimer::singleShot(1000, displayAddUserDialog);
 
   activeUsersMenuItem->clicked().connect([=](WMouseEvent){
@@ -560,6 +561,8 @@ void StreamingApp::refresh() {
   d->parseFileParameter();
   if(d->player)
     d->player->refresh();
+  if(wApp->environment().getParameter("add_user_email"))
+    WTimer::singleShot(1000, d->displayAddUserDialog);
 }
 
 
