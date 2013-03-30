@@ -27,7 +27,7 @@ function saveMediaInfo() {
     fi
     format_duration=$(echo $format_duration | cut -d. -f1)
     echo "INSERT INTO media_properties(media_id, title, filename, duration, size, width, height)
-    VALUES('$(idFor "$1")', '', '$(sqlEscape "$format_filename")', $format_duration, $format_size, ${streams_stream_0_width--1}, ${streams_stream_0_height--1});" | doSql_$sqlDriver
+    VALUES('$(idFor "$1")', '', '$(sqlEscape "$filename")', $format_duration, ${format_size--1}, ${streams_stream_0_width--1}, ${streams_stream_0_height--1});" | doSql_$sqlDriver
 }
 
 function file_to_hex() {
