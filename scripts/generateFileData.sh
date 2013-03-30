@@ -141,6 +141,8 @@ function do_Help() {
   echo "Options:"
   echo "-d sqldriver | --driver sqldriver"
   echo "-q | --quiet"
+  echo "-nc | --skip-cleanup"
+  echo "-f | --find-directory <extensions> (scans a directory for specified file extensions)"
   exit 0
 }
 
@@ -152,13 +154,38 @@ mkdir -p "$WORKDIR"
 
 sqlDriver="sqlite"
 quietMode="false"
+directory_mode="false"
+skip_cleanup="false"
+
 while test "x$1" != "x"; do
   case "$1" in
     "-d"|"--driver")
     sqlDriver="$2"; shift
+    if test "$sqlDriver" == ""; then
+      echo "Error! sqlDriver must not be empty"
+      do_Help
+      exit 1
+    fi
     ;;
     "-q"|"--quiet")
     quietMode="true"
+    ;;
+    "-f"|"--find-directory")
+    directory_mode="true"
+    extensions_to_search="$2"; shift
+    if ! [ -d "$filename" ]; then
+      echo "Error! in directory mode the first argument must be a directory." >&2
+      do_Help
+      exit 1
+    fi
+    if test "$extensions_to_search" == ""; then
+      echo "In find directory mode, at least an extension must be specified" >&2
+      do_Help
+      exit 1
+    fi
+    ;;
+    "-nc"|"--skip-cleanup")
+    skip_cleanup="true"
     ;;
     *)
     do_Help
@@ -167,8 +194,23 @@ while test "x$1" != "x"; do
   shift
 done
 
+if test "x$directory_mode" == "xtrue"; then
+  find_cmd="find -L \"$filename\" \("
+  for extension in $extensions_to_search; do
+    find_cmd="$find_cmd $separator -iname \"*$extension\""
+    separator="-or"
+  done
+  test "$quietMode" == "true" && quiet_mode_arg="-q"
+  find_cmd="$find_cmd \) -exec \"$0\" {} $quiet_mode_arg -d $sqlDriver -nc \;"
+  
+  test "$skip_cleanup" != "true" && cleanupMissingData "$sqlDriver"
+  bash -c "$find_cmd"
+
+  exit 0
+fi
+  
 test "$quietMode" != "true" && echo "Saving metadata to $sqlDriver db for $filename"
-cleanupMissingData "$sqlDriver"
+test "$skip_cleanup" != "true" && cleanupMissingData "$sqlDriver"
 saveMediaInfo "$filename" "$sqlDriver"
 extractSubtitles "$filename" "$sqlDriver"
 createThumbnail "$filename" "$sqlDriver"
