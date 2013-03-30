@@ -81,7 +81,7 @@ function extractSubtitles() {
   cat "$SQLFILE" | doSql_$sqlDriver || mv "$SQLFILE" "/tmp/$( basename $0 ).failed.$(date +%s)"
 }
 
-function cleanupMissingFiles() {
+function cleanupMissingData() {
   echo "select filename from media_properties;" | doSql_$sqlDriver | while read filename; do
     if ! [ -r "$filename" ]; then
       echo "Media $filename missing, cleaning up"
@@ -90,6 +90,7 @@ function cleanupMissingFiles() {
       echo "delete from media_attachment where media_id = '$media_id';" | doSql_$sqlDriver
     fi
   done
+  echo "delete from media_properties where duration = -1;" | doSql_$sqlDriver
 }
 
 function createThumbnail() {
@@ -167,10 +168,10 @@ while test "x$1" != "x"; do
 done
 
 test "$quietMode" != "true" && echo "Saving metadata to $sqlDriver db for $filename"
+cleanupMissingData "$sqlDriver"
 saveMediaInfo "$filename" "$sqlDriver"
 extractSubtitles "$filename" "$sqlDriver"
 createThumbnail "$filename" "$sqlDriver"
-cleanupMissingFiles "$sqlDriver"
 
 #cat "$SQLFILE" | doSql_$sqlDriver
 
