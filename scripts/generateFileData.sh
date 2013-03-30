@@ -121,7 +121,9 @@ function createThumbnail() {
   echo "Random total duration: $format_duration, random offset: $random_offset, one_third: $one_third"
 
   set -x
-  ffmpegthumbnailer -i "$file" -o "$WORKDIR/preview.png" -s 0 -t $( printf "%02d:%02d:%02d\n" "$(($one_third/3600%24))" "$(($one_third/60%60))" "$(($one_third%60))" ) -f || rm -f "$WORKDIR/preview.png"
+  if ! ffmpegthumbnailer -i "$file" -o "$WORKDIR/preview.png" -s 0 -t $( printf "%02d:%02d:%02d\n" "$(($one_third/3600%24))" "$(($one_third/60%60))" "$(($one_third%60))" ) -f ; then
+    rm -f "$WORKDIR/preview.png"
+  fi
   set +x
   if ! [ -r "$WORKDIR/preview.png" ]; then return; fi
   convert "$WORKDIR/preview.png" -scale 640x264 "$WORKDIR/preview_player.png"
