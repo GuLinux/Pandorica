@@ -32,6 +32,10 @@
   
   <!-- player -->
   <message id="player.sharelink">Share link</message>
+  <message id="player.downloadlink">Download</message>
+  <message id="player.resizeSmall">Small</message>
+  <message id="player.resizeMedium">Medium</message>
+  <message id="player.resizeLarge">Large</message>
   
   <!-- settings -->
   <message id="settings.header"><h3>Settings</h3></message>

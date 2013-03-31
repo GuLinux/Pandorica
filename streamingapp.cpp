@@ -630,7 +630,8 @@ void StreamingAppPrivate::play ( Media media ) {
   }
   player = settings.newPlayer();
   
-  player->addSource( Source(settings.linkFor( media.path() ).url(), media.mimetype()) );
+  WLink mediaLink = settings.linkFor( media.path() );
+  player->addSource( Source(mediaLink.url(), media.mimetype()) );
   player->setAutoplay(settings.autoplay(media));
   Dbo::ptr< MediaAttachment > preview = media.preview(&session, Media::PreviewPlayer);
   if(preview) {
@@ -662,11 +663,20 @@ void StreamingAppPrivate::play ( Media media ) {
   string fileId = Utils::hexEncode(Utils::md5(media.path().string()));
   playerContainerWidget->addWidget(new CommentsContainerWidget(fileId, &session));
   infoBox->addWidget(new WText(media.title(&session)));
+  /** TODO: apparently unsupported :(
+  infoBox->addWidget(new WBreak() );
+  WAnchor *resizeSmall = WW(WAnchor, "#", WString::tr("player.resizeSmall")).css("btn btn-info btn-mini").onClick([=](WMouseEvent){player->setPlayerSize(640);});
+  WAnchor *resizeMedium = WW(WAnchor, "#", WString::tr("player.resizeMedium")).css("btn btn-info btn-mini").onClick([=](WMouseEvent){player->setPlayerSize(900);});
+  WAnchor *resizeLarge = WW(WAnchor, "#", WString::tr("player.resizeLarge")).css("btn btn-info btn-mini").onClick([=](WMouseEvent){player->setPlayerSize(1420);});
+  infoBox->addWidget(WW(WContainerWidget).add(resizeSmall).add(resizeMedium).add(resizeLarge));
+  */
   WLink shareLink(wApp->bookmarkUrl("/") + string("?file=") + fileId);
   infoBox->addWidget(new WBreak() );
-  infoBox->addWidget(new WAnchor(shareLink, WString::tr("player.sharelink")));
+  infoBox->addWidget(WW(WAnchor, shareLink, WString::tr("player.sharelink")).css("btn btn-success btn-mini"));
+  infoBox->addWidget(new WText(" "));
+  infoBox->addWidget(WW(WAnchor, mediaLink, WString::tr("player.downloadlink")).css("btn btn-success btn-mini"));
   wApp->setTitle( media.title(&session) );
-  log("notice") << "using url " << settings.linkFor( media.path() ).url();
+  log("notice") << "using url " << mediaLink.url();
   for(auto detail : sessionInfo.modify()->sessionDetails())
     detail.modify()->ended();
   sessionInfo.modify()->sessionDetails().insert(new SessionDetails(media.path()));

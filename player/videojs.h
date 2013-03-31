@@ -38,6 +38,7 @@ public:
   virtual bool playing();
   virtual void stop();
   virtual Wt::WWidget* widget();
+  virtual void setPlayerSize(int width, int height = -1) {}
 private:
   Wt::WText *m_widget;
   Wt::JSignal<Wt::NoClass> m_ended;

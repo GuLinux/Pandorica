@@ -43,12 +43,12 @@ public:
     virtual void setPoster(const Wt::WLink& poster);
     virtual void addSubtitles(const Track& track);
     virtual void setAutoplay(bool autoplay);
+  virtual void setPlayerSize(int width, int height = -1);
     
 protected:
   std::string playerId();
   virtual void runJavascript(std::string js);
   virtual void addListener(std::string eventName, std::string function);
-  virtual void setPlayerSize(int width, int height = -1);
   virtual void playerReady();
 private:
     Wt::JSignal<> s_ended;

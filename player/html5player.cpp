@@ -159,9 +159,18 @@ void HTML5Player::addListener(string eventName, string function)
 
 void HTML5Player::setPlayerSize(int width, int height)
 {
-  string js = (boost::format("mediaPlayer.width=%d;") % width).str();
-  if(height>0)
-    js += (boost::format("mediaPlayer.height=%d;") % height).str();
+  string js = JS(
+    var currentWidth = mediaPlayer.width;
+    var currentHeight = mediaPlayer.height;
+    var newWidth = %d;
+    var newHeight = %d;
+    if(newHeight<1)
+      newHeight = newWidth / ( currentWidth / currentHeight );
+    mediaPlayer.width=newWidth;
+    mediaPlayer.height=newHeight;
+  );
+  
+  js = (boost::format(js) % width % height).str();
   runJavascript(js);
 }
 
