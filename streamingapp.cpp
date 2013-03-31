@@ -674,7 +674,12 @@ void StreamingAppPrivate::play ( Media media ) {
   infoBox->addWidget(new WBreak() );
   infoBox->addWidget(WW(WAnchor, shareLink, WString::tr("player.sharelink")).css("btn btn-success btn-mini"));
   infoBox->addWidget(new WText(" "));
-  infoBox->addWidget(WW(WAnchor, mediaLink, WString::tr("player.downloadlink")).css("btn btn-success btn-mini"));
+  WAnchor *downloadLink = WW(WAnchor, mediaLink, WString::tr("player.downloadlink")).css("btn btn-success btn-mini");
+  downloadLink->setTarget(AnchorTarget::TargetNewWindow);
+  downloadLink->setAttributeValue("data-toggle","tooltip");
+  downloadLink->setAttributeValue("title", WString::tr("player.downloadlink.tooltip"));
+  downloadLink->doJavaScript((boost::format("$('#%s').tooltip();") % downloadLink->id()).str() );
+  infoBox->addWidget(downloadLink);
   wApp->setTitle( media.title(&session) );
   log("notice") << "using url " << mediaLink.url();
   for(auto detail : sessionInfo.modify()->sessionDetails())

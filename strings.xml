@@ -33,6 +33,7 @@
   <!-- player -->
   <message id="player.sharelink">Share link</message>
   <message id="player.downloadlink">Download</message>
+  <message id="player.downloadlink.tooltip">To correctly download the file, right click this link and choose "Save As"</message>
   <message id="player.resizeSmall">Small</message>
   <message id="player.resizeMedium">Medium</message>
   <message id="player.resizeLarge">Large</message>
