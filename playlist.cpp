@@ -1,4 +1,5 @@
 #include "playlist.h"
+#include "session.h"
 #include <Wt/WApplication>
 #include <Wt/WAnchor>
 
@@ -8,7 +9,7 @@ using namespace boost;
 namespace fs = boost::filesystem;
 
 
-Playlist::Playlist(Wt::WContainerWidget* parent): WContainerWidget(parent)
+Playlist::Playlist(Session* session, WContainerWidget* parent): WContainerWidget(parent), session(session)
 {
 
 }
@@ -58,7 +59,7 @@ void Playlist::reset()
 
 void Playlist::queue(Media media)
 {
-  WAnchor* playlistEntry = new WAnchor("javascript:false", media.filename());
+  WAnchor* playlistEntry = new WAnchor("javascript:false", media.title(session));
   playlistEntry->addWidget(new WBreak());
   playlistEntry->clicked().connect([this,media, playlistEntry](WMouseEvent&){ nextItem(playlistEntry); });
   addWidget(playlistEntry);

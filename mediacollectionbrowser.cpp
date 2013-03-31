@@ -14,6 +14,9 @@
 #include <algorithm>
 #include <Wt/Dbo/Transaction>
 #include <Wt/WTime>
+#include <Wt/WMessageBox>
+#include <Wt/WLineEdit>
+#include <Wt/WPushButton>
 
 using namespace Wt;
 using namespace std;
@@ -50,9 +53,11 @@ public:
   bool roleWasFetched = false;
 private:
   void addDirectory(filesystem::path directory);
-  void addMedia(Media media);
-  WContainerWidget* addIcon(string filename, GetIconF icon, MouseEventListener onClick, Popover popover = Popover());
+  void addMedia(Media& media);
+  WContainerWidget* addIcon(WString filename, GetIconF icon, MouseEventListener onClick, Popover popover = Popover());
   string formatFileSize(long size);
+    void setTitleFor(Media media);
+    void clearThumbnailsFor(Media media);
   MediaCollectionBrowser* q;
 };
 
@@ -113,10 +118,10 @@ void MediaCollectionBrowserPrivate::addDirectory(filesystem::path directory)
   addIcon(directory.filename().string(), [](WObject*){ return "http://gulinux.net/css/fs_icons/inode-directory.png"; }, onClick);
 }
 
-void MediaCollectionBrowserPrivate::addMedia(Media media)
+void MediaCollectionBrowserPrivate::addMedia(Media &media)
 {
   wApp->log("notice") << "adding media " << media.path();
-  Popover popover(media.filename());
+  Popover popover(media.title(session));
   WString fileSizeText = WString::tr("mediabrowser.filesize").arg(formatFileSize(fs::file_size(media.path()) ) );
   popover.text += fileSizeText;
   Dbo::Transaction t(*session);
@@ -137,8 +142,8 @@ void MediaCollectionBrowserPrivate::addMedia(Media media)
   
   auto onClick = [=](WMouseEvent e){
     WPopupMenu *menu = new WPopupMenu();
-
-    WPopupMenuItem* filename = menu->addItem(media.filename());
+    WPopupMenuItem* filename = menu->addItem(media.title(session));
+    
     filename->setSelectable(false); filename->setDisabled(true);
     WPopupMenuItem* filesize = menu->addItem(fileSizeText);
     filesize->setSelectable(false); filesize->setDisabled(true);
@@ -152,8 +157,10 @@ void MediaCollectionBrowserPrivate::addMedia(Media media)
     WPopupMenuItem* queue = menu->addItem(WString::tr("mediabrowser.queue"));
     WPopupMenuItem* close = menu->addItem(WString::tr("mediabrowser.cancelpopup"));
     WPopupMenuItem* clearThumbs = 0;
+    WPopupMenuItem* setTitle = 0;
     if(userRole == AuthorizedUser::Admin) {
       clearThumbs = menu->addItem(WString::tr("mediabrowser.admin.deletepreview"));
+      setTitle = menu->addItem(WString::tr("mediabrowser.admin.settitle"));
     }
     
     menu->aboutToHide().connect([=](_n6){
@@ -162,9 +169,10 @@ void MediaCollectionBrowserPrivate::addMedia(Media media)
       if(menu->result() == queue)
         queueSignal.emit(media);
       if(clearThumbs && menu->result() == clearThumbs) {
-        Dbo::Transaction t(*session);
-        session->execute("DELETE FROM media_attachment WHERE media_id=? and type = 'preview';").bind(media.uid());
-        t.commit();
+        clearThumbnailsFor(media);
+      }
+      if(setTitle && menu->result() == setTitle) {
+        setTitleFor(media);
       }
     });
     menu->popup(e);
@@ -175,10 +183,60 @@ void MediaCollectionBrowserPrivate::addMedia(Media media)
   Dbo::ptr<MediaAttachment> preview = media.preview(session, Media::PreviewThumb);
   if(preview)
     icon = [=](WObject *parent){ return (new WMemoryResource(preview->mimetype(), preview->data(), parent))->url(); };
-  addIcon(media.filename(), icon, onClick, popover);
+  addIcon(media.title(session), icon, onClick, popover);
 }
 
-WContainerWidget* MediaCollectionBrowserPrivate::addIcon(string filename, GetIconF icon, MouseEventListener onClick, Popover popover)
+void MediaCollectionBrowserPrivate::clearThumbnailsFor(Media media)
+{
+  Dbo::Transaction t(*session);
+  session->execute("DELETE FROM media_attachment WHERE media_id=? and type = 'preview';").bind(media.uid());
+  t.commit();
+  q->reload();
+}
+
+
+void MediaCollectionBrowserPrivate::setTitleFor(Media media)
+{
+  Dbo::Transaction t(*session);
+  MediaPropertiesPtr properties = session->find<MediaProperties>().where("media_id = ?").bind(media.uid());
+  if(!properties) {
+    t.rollback();
+    WMessageBox::show(WString::tr("mediabrowser.admin.settitle.missingproperties.caption"), WString::tr("mediabrowser.admin.settitle.missingproperties.body"), StandardButton::Ok);
+    return;
+  }
+  WDialog *setTitleDialog = new WDialog(WString::tr("mediabrowser.admin.settitle"));
+  setTitleDialog->contents()->addStyleClass("form-inline");
+  WLineEdit *titleEdit = new WLineEdit(properties->title().empty() ? media.filename() : properties->title());
+  WPushButton* okButton = WW(WPushButton, "Ok").onClick([=](WMouseEvent) { setTitleDialog->accept(); } ).css("btn");
+  auto editIsEnabled = [=] () {
+    return !titleEdit->text().empty() && titleEdit->text().toUTF8() != media.filename() && titleEdit->text().toUTF8() != properties->title();
+  };
+  okButton->setEnabled(editIsEnabled());
+  
+  titleEdit->keyWentUp().connect([=](WKeyEvent key){
+    if(key.key() == Wt::Key_Enter && editIsEnabled() )
+      setTitleDialog->accept();
+    okButton->setEnabled(editIsEnabled());
+  });
+  setTitleDialog->contents()->addWidget(titleEdit);
+  setTitleDialog->contents()->addWidget(okButton);
+  setTitleDialog->contents()->setPadding(10);
+  setTitleDialog->setClosable(true);
+  titleEdit->setWidth(500);
+  setTitleDialog->finished().connect([=](WDialog::DialogCode code, _n5){
+    if(code != WDialog::Accepted)
+      return;
+    Dbo::Transaction t(*session);
+    properties.modify()->setTitle(titleEdit->text().toUTF8());
+    properties.flush();
+    t.commit();
+    q->reload();
+  });
+  setTitleDialog->show();
+}
+
+
+WContainerWidget* MediaCollectionBrowserPrivate::addIcon(WString filename, GetIconF icon, MouseEventListener onClick, Popover popover)
 {
     WContainerWidget *item = WW(WContainerWidget).css("span3 media-icon-container");
     item->setContentAlignment(AlignmentFlag::AlignCenter);

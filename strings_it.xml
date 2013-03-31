@@ -56,9 +56,11 @@
   <message id="mediabrowser.queue">Accoda</message>
   <message id="mediabrowser.cancelpopup">Chiudi Popup</message>
   <message id="mediabrowser.admin.deletepreview">Cancella Anteprima</message>
+  <message id="mediabrowser.admin.settitle">Imposta Titolo</message>
   <message id="mediabrowser.filesize">Dimensione File: {1}</message>
   <message id="mediabrowser.medialength">Durata: {1}</message>
-  
+  <message id="mediabrowser.admin.settitle.missingproperties.caption">Errore: Media Properties mancanti</message>
+  <message id="mediabrowser.admin.settitle.missingproperties.body">Le proprietà del media selezionato non sono presenti su database<br />Dovresti prima eseguire lo script "generateFileData".</message>
   
   <!-- comments -->
   <message id="comments.label">Commenti</message>
