@@ -74,6 +74,12 @@ void WMediaPlayerWrapper::play()
   player->play();
 }
 
+void WMediaPlayerWrapper::setPlayerSize(int width, int height)
+{
+  player->setVideoSize(width,height);
+}
+
+
 void WMediaPlayerWrapper::addSubtitles(const Track& track)
 {
   wApp->log("notice") << "Add subtitles on WMediaPlayer is unsupported";

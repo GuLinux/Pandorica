@@ -68,7 +68,9 @@
   
   <!-- player -->
   <message id="player.sharelink">Link per la condivisione</message>
-  
+  <message id="player.resizeSmall">Piccolo</message>
+  <message id="player.resizeMedium">Medio</message>
+  <message id="player.resizeLarge">Largo</message>
   <!-- settings -->
   <message id="settings.header"><h3>Impostazioni</h3></message>
   <message id="settings.footer">* Le impostazioni vengono memorizzate nei cookies, quindi ricorda che potrebbero resettarsi cancellandoli, o cambiando browser o computer.</message>

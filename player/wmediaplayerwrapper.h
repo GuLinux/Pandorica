@@ -43,7 +43,7 @@ public:
   // TODO
   virtual void addSource(const Source& source);
   virtual void setAutoplay(bool autoplay);
-
+  virtual void setPlayerSize(int width, int height = -1);
 private:
   Wt::WMediaPlayer *player = 0;
 };
