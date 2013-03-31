@@ -61,6 +61,16 @@ string Media::filename() const
 {
   return m_path.filename().string();
 }
+
+WString Media::title(Session* session) const
+{
+  Dbo::Transaction t(*session);
+  MediaPropertiesPtr properties = session->find<MediaProperties>().where("media_id = ?").bind(uid());
+  if(!properties || properties->title().empty())
+    return filename();
+  return properties->title();
+}
+
 string Media::mimetype() const
 {
   if(supportedMimetypes.count(extension()) >0)

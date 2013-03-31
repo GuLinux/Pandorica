@@ -5,13 +5,14 @@
 #include <boost/filesystem.hpp>
 #include "media.h"
 
+class Session;
 typedef std::pair<Wt::WWidget*,Media> QueueItem;
 
 class Playlist : public Wt::WContainerWidget
 {
 
 public:
-  Playlist(Wt::WContainerWidget* parent = 0);
+  Playlist(Session *session, Wt::WContainerWidget* parent = 0);
   virtual ~Playlist();
   void queue(Media media);
   void nextItem(WWidget* itemToPlay = 0);
@@ -21,6 +22,7 @@ public:
 private:
   std::list<QueueItem> internalQueue;
   Wt::Signal<Media> _next;
+  Session *session;
 };
 
 #endif // PLAYLIST_H

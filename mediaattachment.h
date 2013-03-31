@@ -24,6 +24,7 @@ public:
   inline long size() const { return _size; }
   inline int width() const { return _width; }
   inline int height() const { return _height; }
+  void setTitle(std::string title) { _title = title; }
   
 private:
   std::string _mediaId;

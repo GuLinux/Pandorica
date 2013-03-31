@@ -339,7 +339,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
       WContainerWidget *header = WW(WContainerWidget);
       header->setContentAlignment(AlignCenter);
       
-      WAnchor *videoLink = new WAnchor("#", media.filename());
+      WAnchor *videoLink = new WAnchor("#", media.title(&session));
       videoLink->setStyleClass("label label-info comment-box-element");
       header->addWidget(videoLink);
       Dbo::ptr<Auth::Dbo::AuthInfo<User>> authInfo = session.find<Auth::Dbo::AuthInfo<User>>().where("user_id = ?").bind(comment->user().id());
@@ -437,7 +437,10 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   WSuggestionPopup* suggestions = new WSuggestionPopup(jsMatcher, jsReplace, wApp->root());
   auto addSuggestions = [=](_n6) {
     for(pair<string,Media> media: collection->collection()) {
-      suggestions->addSuggestion(media.second.filename(), media.first);
+      WString title = media.second.title(&session);
+      suggestions->addSuggestion(title, media.first);
+      if(title.toUTF8() != media.second.filename())
+        suggestions->addSuggestion(media.second.filename(), media.first); // TODO check di consistenza
     }
     suggestions->forEdit(searchBox);
   };
@@ -508,7 +511,7 @@ void StreamingApp::setupGui()
 
   d->playerContainerWidget = new WContainerWidget();
   d->playerContainerWidget->setContentAlignment(AlignCenter);
-  d->playlist = new Playlist();
+  d->playlist = new Playlist(&d->session);
   d->playlist->setList(true);
   d->playlist->addStyleClass("accordion-inner");
   
@@ -658,11 +661,11 @@ void StreamingAppPrivate::play ( Media media ) {
   playerContainerWidget->addWidget(infoBox);
   string fileId = Utils::hexEncode(Utils::md5(media.path().string()));
   playerContainerWidget->addWidget(new CommentsContainerWidget(fileId, &session));
-  infoBox->addWidget(new WText(string("File: ") + media.filename())); // TODO: replace with title, if existing
+  infoBox->addWidget(new WText(media.title(&session)));
   WLink shareLink(wApp->bookmarkUrl("/") + string("?file=") + fileId);
   infoBox->addWidget(new WBreak() );
   infoBox->addWidget(new WAnchor(shareLink, WString::tr("player.sharelink")));
-  wApp->setTitle( media.filename() );
+  wApp->setTitle( media.title(&session) );
   log("notice") << "using url " << settings.linkFor( media.path() ).url();
   for(auto detail : sessionInfo.modify()->sessionDetails())
     detail.modify()->ended();

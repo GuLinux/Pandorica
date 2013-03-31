@@ -22,6 +22,7 @@
 #define MEDIA_H
 #include <boost/filesystem.hpp>
 #include <Wt/Dbo/ptr>
+#include <Wt/WString>
 
 namespace Wt {
 namespace Dbo {
@@ -38,6 +39,7 @@ public:
   Media(const boost::filesystem::path &path);
   Media();
   ~Media();
+  Wt::WString title(Session* session) const;
   std::string fullPath() const;
   std::string filename() const;
   std::string extension() const;
