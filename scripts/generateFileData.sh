@@ -95,6 +95,11 @@ function cleanupMissingData() {
 
 function createThumbnail() {
     file="$1"
+    if ! grep -q "codec_type=\"video\"" "$INFO_FILE"; then
+        test "$quietMode" != "true" && echo "File has not video streams; skipping previews" 
+        return
+    fi
+
     has_preview="$( echo "select count(*) from media_attachment WHERE type='preview' AND media_id='$(idFor "$filename")';" | doSql_$sqlDriver )"
   if test $has_preview -gt 0; then
     test "$quietMode" != "true" && echo "previews already existing; skipping"
