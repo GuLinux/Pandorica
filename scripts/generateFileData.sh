@@ -143,6 +143,10 @@ function createThumbnail() {
   cat "$SQLFILE" | doSql_$sqlDriver || mv "$SQLFILE" "/tmp/$( basename $0 ).failed.$(date +%s)"
 }
 
+function createAlbumArt() {
+    true
+}
+
 function do_Help() {
   echo "Usage: $0 filename [options]"
   echo "Options:"
@@ -218,9 +222,17 @@ fi
   
 test "$quietMode" != "true" && echo "Saving metadata to $sqlDriver db for $filename"
 test "$skip_cleanup" != "true" && cleanupMissingData "$sqlDriver"
+extension="${filename##*.}"
 saveMediaInfo "$filename" "$sqlDriver"
 extractSubtitles "$filename" "$sqlDriver"
-createThumbnail "$filename" "$sqlDriver"
+case $extension in
+    "mp3"|"wma"|"ogg")
+    createAlbumArt "$filename" "$sqlDriver"
+    ;;
+    *)
+    createThumbnail "$filename" "$sqlDriver"
+    ;;
+esac
 
 #cat "$SQLFILE" | doSql_$sqlDriver
 
