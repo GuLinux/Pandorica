@@ -14,7 +14,11 @@ using namespace Wt;
 using namespace boost;
 
 SessionDetailsDialog::SessionDetailsDialog(string id, Session* session)
-  : SessionDetailsDialog(session->query<SessionDetailsTuple>("select * from session_details").where("session_info_session_id = ?").bind(id).orderBy("play_started desc"))
+  : SessionDetailsDialog(session->query<SessionDetailsTuple>("select \
+    filename,\
+    play_started,\
+    play_ended,\
+    filepath from session_details").where("session_info_session_id = ?").bind(id).orderBy("play_started desc"))
 {
 }
 
