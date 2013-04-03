@@ -15,11 +15,15 @@ function sqlEscape() {
 
 
 function saveMediaInfo() {
-    ffprobe -loglevel quiet -print_format flat=sep_char=_ -show_format -show_streams "$1" > "$INFO_FILE"
     has_media_info="$( echo "select count(*) from media_properties WHERE media_id='$(idFor "$filename")';" | doSql_$sqlDriver )"
     if test "$has_media_info" -gt 0; then
       test "$quietMode" != "true" && echo "media_properties already existing; skipping"
       return
+    fi
+    ffprobe -loglevel quiet -print_format flat=sep_char=_ -show_format -show_streams "$1" > "$INFO_FILE"
+    if ! [ -r "$INFO_FILE" ]; then
+      echo "Error writing media properties temporary file; exiting" >&2
+      exit 1
     fi
     eval "$( cat "$INFO_FILE")"
     if test "$format_duration" == "N/A" || test "$format_duration" == ""; then
