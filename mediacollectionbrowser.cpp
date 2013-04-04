@@ -30,7 +30,6 @@ typedef std::function<string(WObject*)> GetIconF;
 struct Popover {
   WString title;
   WString text;
-  Popover(WString title = WString(), WString text = WString()) : title(title), text(text) {}
   bool isValid() const { return !title.empty() && !text.empty(); }
 };
 
@@ -121,7 +120,7 @@ void MediaCollectionBrowserPrivate::addDirectory(filesystem::path directory)
 void MediaCollectionBrowserPrivate::addMedia(Media &media)
 {
   wApp->log("notice") << "adding media " << media.path();
-  Popover popover(media.title(session));
+  Popover popover{media.title(session)};
   WString fileSizeText = WString::tr("mediabrowser.filesize").arg(formatFileSize(fs::file_size(media.path()) ) );
   popover.text += fileSizeText;
   Dbo::Transaction t(*session);
