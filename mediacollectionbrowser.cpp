@@ -176,7 +176,7 @@ void MediaCollectionBrowserPrivate::addMedia(Media &media)
     });
     menu->popup(e);
   };
-  std::function<string(WObject*)> icon = [](WObject *){ return "http://gulinux.net/css/fs_icons/video-x-generic.png"; };
+  GetIconF icon = [](WObject *){ return "http://gulinux.net/css/fs_icons/video-x-generic.png"; };
   if(media.mimetype().find("audio") != string::npos)
     icon = [](WObject *){ return "http://gulinux.net/css/fs_icons/audio-x-generic.png"; };
   Dbo::ptr<MediaAttachment> preview = media.preview(session, Media::PreviewThumb);
