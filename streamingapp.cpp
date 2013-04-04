@@ -602,15 +602,11 @@ void StreamingAppPrivate::queueAndPlay(Media media)
 
 
 map<string,string> defaultLabels { 
-  pair<string,string>{"it", "Italiano"},
-  pair<string,string>{"en", "English"},
-  pair<string,string>{"und", "Undefined"},
-  pair<string,string>{"", "Undefined"}
+  {"it", "Italiano"}, {"en", "English"}, {"und", "Undefined"}, {"", "Undefined"}
 };
 
 map<string,string> threeLangCodeToTwo {
-  pair<string,string>{"ita", "it"},
-  pair<string,string>{"eng", "en"}
+  {"ita", "it"}, {"eng", "en"}
 };
 
 std::string defaultLabelFor(string language) {
@@ -631,7 +627,7 @@ void StreamingAppPrivate::play ( Media media ) {
   player = settings.newPlayer();
   
   WLink mediaLink = settings.linkFor( media.path() );
-  player->addSource( Source(mediaLink.url(), media.mimetype()) );
+  player->addSource( Source{mediaLink.url(), media.mimetype()} );
   player->setAutoplay(settings.autoplay(media));
   Dbo::ptr< MediaAttachment > preview = media.preview(&session, Media::PreviewPlayer);
   if(preview) {
@@ -644,7 +640,7 @@ void StreamingAppPrivate::play ( Media media ) {
     wApp->log("notice") << "Found subtitle " << subtitle.id() << ", " << lang;
     string label = subtitle->name().empty() ? defaultLabelFor(lang) : subtitle->name();
     WMemoryResource *resource = new WMemoryResource(subtitle->mimetype(), subtitle->data(), container);
-    player->addSubtitles(Track( resource->url() , lang, label ));
+    player->addSubtitles( Track{resource->url(), lang, label} );
   }
   player->ended().connect([=,&t](_n6){
     Dbo::Transaction t(session);
