@@ -627,7 +627,7 @@ void StreamingAppPrivate::play ( Media media ) {
   player = settings.newPlayer();
   
   WLink mediaLink = settings.linkFor( media.path() );
-  player->addSource( Source{mediaLink.url(), media.mimetype()} );
+  player->addSource( {mediaLink.url(), media.mimetype()} );
   player->setAutoplay(settings.autoplay(media));
   Dbo::ptr< MediaAttachment > preview = media.preview(&session, Media::PreviewPlayer);
   if(preview) {
@@ -640,7 +640,7 @@ void StreamingAppPrivate::play ( Media media ) {
     wApp->log("notice") << "Found subtitle " << subtitle.id() << ", " << lang;
     string label = subtitle->name().empty() ? defaultLabelFor(lang) : subtitle->name();
     WMemoryResource *resource = new WMemoryResource(subtitle->mimetype(), subtitle->data(), container);
-    player->addSubtitles( Track{resource->url(), lang, label} );
+    player->addSubtitles( {resource->url(), lang, label} );
   }
   player->ended().connect([=,&t](_n6){
     Dbo::Transaction t(session);
@@ -671,7 +671,7 @@ void StreamingAppPrivate::play ( Media media ) {
   infoBox->addWidget(WW(WAnchor, shareLink, WString::tr("player.sharelink")).css("btn btn-success btn-mini"));
   infoBox->addWidget(new WText(" "));
   WAnchor *downloadLink = WW(WAnchor, mediaLink, WString::tr("player.downloadlink")).css("btn btn-success btn-mini");
-  downloadLink->setTarget(AnchorTarget::TargetNewWindow);
+  downloadLink->setTarget(Wt::TargetNewWindow);
   downloadLink->setAttributeValue("data-toggle","tooltip");
   downloadLink->setAttributeValue("title", WString::tr("player.downloadlink.tooltip"));
   downloadLink->doJavaScript((boost::format("$('#%s').tooltip();") % downloadLink->id()).str() );
