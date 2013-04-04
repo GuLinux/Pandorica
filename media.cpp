@@ -33,15 +33,9 @@ using namespace Wt::Utils;
 namespace fs = boost::filesystem;
 
 
-typedef pair<string,string> mimepair;
 map<string,string> supportedMimetypes{
-  mimepair(".mp4", "video/mp4"),
-  mimepair(".m4v", "video/mp4"),
-  mimepair(".ogv", "video/ogg"),
-  mimepair(".webm", "video/webm"),
-  mimepair(".flv", "video/x-flv"),
-  mimepair(".ogg", "audio/ogg"),
-  mimepair(".mp3", "audio/mpeg")
+  {".mp4", "video/mp4"}, {".m4v", "video/mp4"}, {".ogv", "video/ogg"}, {".webm", "video/webm"}, {".flv", "video/x-flv"},
+  {".ogg", "audio/ogg"}, {".mp3", "audio/mpeg"}
 };
 
 Media::Media(const filesystem::path& path) : m_path{path}, m_uid{hexEncode(md5(path.string()))} {}
