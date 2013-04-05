@@ -31,10 +31,10 @@ using namespace boost;
 HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
   : WTemplate(parent), s_ended(this, "playbackEnded"), s_playing(this, "playbackStarted"), s_playerReady(this, "playbackReady")
 {
-  setTemplateText(WString::tr("html5player.mediatag"), Wt::XHTMLUnsafeText);
+  setTemplateText(wtr("html5player.mediatag"), Wt::XHTMLUnsafeText);
   addFunction("sources", [this](WTemplate *t, vector<WString> args, std::ostream &output) {
     for(Source source: sources) {
-      output << WString::tr("player.source").arg(source.type).arg(source.src);
+      output << wtr("player.source").arg(source.type).arg(source.src);
     }
     return true;
   });
@@ -42,7 +42,7 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
     WString trackType = args[0];
     vector<Track> tracksForType = tracks[trackType.toUTF8()];
     for(Track track: tracksForType) {
-      output << WString::tr("player.track").arg(track.src).arg(track.lang).arg(track.label).arg(trackType).arg("");
+      output << wtr("player.track").arg(track.src).arg(track.lang).arg(track.label).arg(trackType).arg("");
     }
     return true;
   });

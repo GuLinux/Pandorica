@@ -228,7 +228,7 @@ StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(
   addMetaHeader("viewport", "width=device-width, initial-scale=1, maximum-scale=1");
   
   d->authContainer = new WContainerWidget();
-  d->authContainer->addWidget(WW(WText, WString("<h1 style=\"text-align: center;\">{1}</h1>").arg(WString::tr("site-title"))));
+  d->authContainer->addWidget(WW(WText, WString("<h1 style=\"text-align: center;\">{1}</h1>").arg(wtr("site-title"))));
   root()->addWidget(d->authContainer);
   AuthWidgetCustom* authWidget = new AuthWidgetCustom(Session::auth(), d->session.users(), d->session.login());
   authWidget->model()->addPasswordAuth(&Session::passwordAuth());
@@ -287,9 +287,9 @@ void StreamingApp::authEvent()
   log("notice") << "Clearing root and creating widgets";
   d->authContainer->hide();
   root()->addWidget(d->mainWidget = new WContainerWidget() );
-  Dbo::ptr< User > myUser = d->session.user();
+  auto myUser = d->session.user();
   SessionInfo* sessionInfo = new SessionInfo(myUser, sessionId(), wApp->environment().clientAddress());
-  Dbo::collection< SessionInfoPtr > oldSessions = d->session.find<SessionInfo>().where("user_id = ? and session_ended = 0").bind(myUser.id());
+  Dbo::collection<SessionInfoPtr> oldSessions = d->session.find<SessionInfo>().where("user_id = ? and session_ended = 0").bind(myUser.id());
   for(SessionInfoPtr oldSessionInfo: oldSessions) {
     oldSessionInfo.modify()->end();
     oldSessionInfo.flush();
@@ -312,17 +312,17 @@ void StreamingApp::authEvent()
       wApp->log("notice") << "*** Session removed (userId=" << sessionRemoved.first.id() << ")";
     });
   };
-  streamingAppSessions.registerSession(sessionId(), sessionAddedCallback, sessionRemovedCallback, StreamingAppSession(myUser,this) );
+  streamingAppSessions.registerSession(sessionId(), sessionAddedCallback, sessionRemovedCallback, {myUser,this} );
 }
 
 
 void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
 {
   wApp->log("notice") << "Setting up topbar links";
-  topBarTemplate = new WTemplate(WString::tr("navbar"));
+  topBarTemplate = new WTemplate(wtr("navbar"));
   topBarTemplate->addFunction("tr", &WTemplate::Functions::tr);
-  filesListMenuItem = new WText(WString::tr("menu.videoslist"));
-  WText *latestCommentsMenuItem = new WText(WString::tr("menu.latest.comments"));
+  filesListMenuItem = new WText(wtr("menu.videoslist"));
+  WText *latestCommentsMenuItem = new WText(wtr("menu.latest.comments"));
   
   WContainerWidget* latestCommentsBody = WW(WContainerWidget).css("modal-body");
   WContainerWidget* latestCommentsContainer = WW(WContainerWidget).css("modal fade hide comments-modal").add(latestCommentsBody);
@@ -361,17 +361,17 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
     string togglejs = (boost::format(JS( $('#%s').modal('toggle'); )) % latestCommentsContainer->id()).str();
     latestCommentsMenuItem->doJavaScript(togglejs);
   });
-  activeUsersMenuItem = new WText(WString::tr("menu.users").arg(""));
+  activeUsersMenuItem = new WText(wtr("menu.users").arg(""));
   
   auto setLoggedUsersTitle = [this](StreamingAppSession, _n5){
-    activeUsersMenuItem->setText(WString::tr("menu.users").arg(streamingAppSessions.sessionCount()));
+    activeUsersMenuItem->setText(wtr("menu.users").arg(streamingAppSessions.sessionCount()));
   };
   
   SettingsPage* settingsPage = new SettingsPage(&settings);
   settingsPage->addStyleClass("modal fade hide");
   q->root()->addWidget(settingsPage);
   
-  topBarTemplate->bindWidget("settings", WW(WText, WString::tr("menu.settings")).onClick([settingsPage,this](WMouseEvent) {
+  topBarTemplate->bindWidget("settings", WW(WText, wtr("menu.settings")).onClick([settingsPage,this](WMouseEvent) {
     string togglejs = (boost::format(JS( $('#%s').modal('toggle'); )) % settingsPage->id()).str();
     wApp->doJavaScript(togglejs);
   }));
@@ -396,7 +396,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
     new ReadBWStats(bwStatsItem, serverStatusUrl, q);
   }
   
-  WText *logout = new WText(WString::tr("menu.logout"));
+  WText *logout = new WText(wtr("menu.logout"));
   topBarTemplate->bindWidget("logout", logout);
   
   logout->clicked().connect([=](WMouseEvent) {
@@ -406,10 +406,10 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   });
   filesListMenuItem->clicked().connect([=](WMouseEvent){
     if(widgetsStack->currentIndex()) {
-      filesListMenuItem->setText(WString::tr("menu.videoslist"));
+      filesListMenuItem->setText(wtr("menu.videoslist"));
       widgetsStack->setCurrentIndex(0);
     } else {
-      filesListMenuItem->setText(WString::tr("menu.back.to.video"));
+      filesListMenuItem->setText(wtr("menu.back.to.video"));
       widgetsStack->setCurrentIndex(1);
       mediaCollectionBrowser->reload();
     }
@@ -418,7 +418,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
 
   WLineEdit *searchBox = new WLineEdit();
   searchBox->setStyleClass("search-query");
-  searchBox->setAttributeValue("placeholder", WString::tr("menu.search"));
+  searchBox->setAttributeValue("placeholder", wtr("menu.search"));
   topBarTemplate->bindWidget("search", searchBox);
   mainWidget->addWidget(topBarTemplate);
   
@@ -437,7 +437,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   WSuggestionPopup* suggestions = new WSuggestionPopup(jsMatcher, jsReplace, wApp->root());
   auto addSuggestions = [=](_n6) {
     for(pair<string,Media> media: collection->collection()) {
-      WString title = media.second.title(&session);
+      WString title{media.second.title(&session)};
       suggestions->addSuggestion(title, media.first);
       if(title.toUTF8() != media.second.filename())
         suggestions->addSuggestion(media.second.filename(), media.first); // TODO check di consistenza
@@ -461,8 +461,8 @@ void StreamingAppPrivate::setupAdminMenus()
 {
   topBarTemplate->setCondition("is-user", false);
   topBarTemplate->setCondition("is-admin", true);
-  WText *allLog = new WText("Users Log");
-  WText *addUserMenu = new WText("Add User");
+  WText *allLog = new WText{"Users Log"};
+  WText *addUserMenu = new WText{"Add User"};
   topBarTemplate->bindWidget("users.log", allLog);
   topBarTemplate->bindWidget("users.add", addUserMenu);
   
@@ -470,23 +470,20 @@ void StreamingAppPrivate::setupAdminMenus()
   displayAddUserDialog = [=](WMouseEvent){
     const string *addUserParameter = wApp->environment().getParameter("add_user_email");
     string addUserEmail =  addUserParameter? *addUserParameter: string();
-    AddUserDialog *dialog = new AddUserDialog(&session, addUserEmail);
-    dialog->show();
+    (new AddUserDialog{&session, addUserEmail})->show();
   };
   
   if(wApp->environment().getParameter("add_user_email"))
     WTimer::singleShot(1000, displayAddUserDialog);
 
   activeUsersMenuItem->clicked().connect([=](WMouseEvent){
-    WDialog *dialog = new LoggedUsersDialog(&session);
-    dialog->show();
+    (new LoggedUsersDialog{&session})->show();
   });
   addUserMenu->clicked().connect([=](WMouseEvent){
       displayAddUserDialog(WMouseEvent());
   });
   allLog->clicked().connect([=](WMouseEvent){
-      WDialog *dialog = new LoggedUsersDialog(&session, true);
-      dialog->show();
+    (new LoggedUsersDialog{&session, true})->show();
   });
 }
 
@@ -495,30 +492,30 @@ void StreamingAppPrivate::mailForUnauthorizedUser(string email, WString identity
 {
   Mail::Client client;
   Mail::Message message;
-  message.setFrom(Mail::Mailbox("noreply@gulinux.net", "Videostreaming Gulinux"));
+  message.setFrom({"noreply@gulinux.net", "Videostreaming Gulinux"});
   message.setSubject("VideoStreaming: unauthorized user login");
   message.setBody(WString("The user {1} ({2}) just tried to login.\n\
 Since it doesn't appear to be in the authorized users list, it needs to be moderated.\n\
 Visit {3} to do it.").arg(identity).arg(email).arg(wApp->makeAbsoluteUrl(wApp->bookmarkUrl("/")) + "?add_user_email=" + email));
-  message.addRecipient(Mail::To, Mail::Mailbox("marco.gulino@gmail.com", "Marco Gulino"));
+  message.addRecipient(Mail::To, {"marco.gulino@gmail.com", "Marco Gulino"});
   client.connect();
   client.send(message);
 }
 
 void StreamingApp::setupGui()
 {
-  WContainerWidget* contentWidget = new WContainerWidget();
+  WContainerWidget* contentWidget = new WContainerWidget;
 
-  d->playerContainerWidget = new WContainerWidget();
+  d->playerContainerWidget = new WContainerWidget;
   d->playerContainerWidget->setContentAlignment(AlignCenter);
-  d->playlist = new Playlist(&d->session);
+  d->playlist = new Playlist{&d->session};
   d->playlist->setList(true);
   d->playlist->addStyleClass("accordion-inner");
   
   WContainerWidget *playlistAccordion = WW(WContainerWidget).css("accordion-body collapse").add(d->playlist);
   
   WContainerWidget *playlistContainer = WW(WContainerWidget).css("accordion-group playlist").setContentAlignment(AlignCenter);
-  playlistContainer->addWidget(WW(WContainerWidget).css("accordion-heading").add(WW(WAnchor, string("#") + playlistAccordion->id(), WString::tr("playlist.accordion"))
+  playlistContainer->addWidget(WW(WContainerWidget).css("accordion-heading").add(WW(WAnchor, string("#") + playlistAccordion->id(), wtr("playlist.accordion"))
     .setAttribute("data-toggle", "collapse").setAttribute("data-parent",string("#") + contentWidget->id()).css("accordion-toggle")));
   playlistContainer->addWidget(playlistAccordion);
   
@@ -527,7 +524,7 @@ void StreamingApp::setupGui()
   contentWidget->addWidget(playlistContainer);
   contentWidget->addWidget(d->playerContainerWidget);
   
-  d->mediaCollectionBrowser = new MediaCollectionBrowser(d->collection, &d->settings, &d->session);
+  d->mediaCollectionBrowser = new MediaCollectionBrowser{d->collection, &d->settings, &d->session};
   d->mediaCollectionBrowser->play().connect([=](Media media, _n5){
     d->queueAndPlay(media.path());
   });
@@ -617,7 +614,7 @@ std::string defaultLabelFor(string language) {
 
 
 void StreamingAppPrivate::play ( Media media ) {
-  filesListMenuItem->setText(WString::tr("menu.videoslist"));
+  filesListMenuItem->setText(wtr("menu.videoslist"));
   widgetsStack->setCurrentIndex(0);
   log("notice") << "Playing file " << media.path();
   if(player) {
@@ -629,17 +626,17 @@ void StreamingAppPrivate::play ( Media media ) {
   WLink mediaLink = settings.linkFor( media.path() );
   player->addSource( {mediaLink.url(), media.mimetype()} );
   player->setAutoplay(settings.autoplay(media));
-  Dbo::ptr< MediaAttachment > preview = media.preview(&session, Media::PreviewPlayer);
+  auto preview = media.preview(&session, Media::PreviewPlayer);
   if(preview) {
-    player->setPoster((new WMemoryResource(preview->mimetype(), preview->data(), q))->url());
+    player->setPoster((new WMemoryResource{preview->mimetype(), preview->data(), q})->url());
   }
-  WContainerWidget *container = new WContainerWidget();
+  WContainerWidget *container = new WContainerWidget;
   Dbo::Transaction t(session);
   for(MediaAttachmentPtr subtitle : media.subtitles(&t)) {
     string lang = threeLangCodeToTwo[subtitle->value()];
     wApp->log("notice") << "Found subtitle " << subtitle.id() << ", " << lang;
     string label = subtitle->name().empty() ? defaultLabelFor(lang) : subtitle->name();
-    WMemoryResource *resource = new WMemoryResource(subtitle->mimetype(), subtitle->data(), container);
+    WMemoryResource *resource = new WMemoryResource{subtitle->mimetype(), subtitle->data(), container};
     player->addSubtitles( {resource->url(), lang, label} );
   }
   player->ended().connect([=,&t](_n6){
@@ -654,33 +651,33 @@ void StreamingAppPrivate::play ( Media media ) {
   playerContainerWidget->clear();
   container->addWidget(player->widget());
   playerContainerWidget->addWidget(container);
-  WContainerWidget* infoBox = new WContainerWidget();
+  WContainerWidget* infoBox = new WContainerWidget;
   playerContainerWidget->addWidget(infoBox);
-  string fileId = Utils::hexEncode(Utils::md5(media.path().string()));
-  playerContainerWidget->addWidget(new CommentsContainerWidget(fileId, &session));
-  infoBox->addWidget(new WText(media.title(&session)));
+  string fileId {Utils::hexEncode(Utils::md5(media.path().string()))};
+  playerContainerWidget->addWidget(new CommentsContainerWidget{fileId, &session});
+  infoBox->addWidget(new WText{media.title(&session)});
   /** TODO: apparently unsupported :(
   infoBox->addWidget(new WBreak() );
-  WAnchor *resizeSmall = WW(WAnchor, "#", WString::tr("player.resizeSmall")).css("btn btn-info btn-mini").onClick([=](WMouseEvent){player->setPlayerSize(640);});
-  WAnchor *resizeMedium = WW(WAnchor, "#", WString::tr("player.resizeMedium")).css("btn btn-info btn-mini").onClick([=](WMouseEvent){player->setPlayerSize(900);});
-  WAnchor *resizeLarge = WW(WAnchor, "#", WString::tr("player.resizeLarge")).css("btn btn-info btn-mini").onClick([=](WMouseEvent){player->setPlayerSize(1420);});
+  WAnchor *resizeSmall = WW(WAnchor, "#", wtr("player.resizeSmall")).css("btn btn-info btn-mini").onClick([=](WMouseEvent){player->setPlayerSize(640);});
+  WAnchor *resizeMedium = WW(WAnchor, "#", wtr("player.resizeMedium")).css("btn btn-info btn-mini").onClick([=](WMouseEvent){player->setPlayerSize(900);});
+  WAnchor *resizeLarge = WW(WAnchor, "#", wtr("player.resizeLarge")).css("btn btn-info btn-mini").onClick([=](WMouseEvent){player->setPlayerSize(1420);});
   infoBox->addWidget(WW(WContainerWidget).add(resizeSmall).add(resizeMedium).add(resizeLarge));
   */
   WLink shareLink(wApp->bookmarkUrl("/") + string("?file=") + fileId);
-  infoBox->addWidget(new WBreak() );
-  infoBox->addWidget(WW(WAnchor, shareLink, WString::tr("player.sharelink")).css("btn btn-success btn-mini"));
-  infoBox->addWidget(new WText(" "));
-  WAnchor *downloadLink = WW(WAnchor, mediaLink, WString::tr("player.downloadlink")).css("btn btn-success btn-mini");
+  infoBox->addWidget(new WBreak );
+  infoBox->addWidget(WW(WAnchor, shareLink, wtr("player.sharelink")).css("btn btn-success btn-mini"));
+  infoBox->addWidget(new WText{" "});
+  WAnchor *downloadLink = WW(WAnchor, mediaLink, wtr("player.downloadlink")).css("btn btn-success btn-mini");
   downloadLink->setTarget(Wt::TargetNewWindow);
   downloadLink->setAttributeValue("data-toggle","tooltip");
-  downloadLink->setAttributeValue("title", WString::tr("player.downloadlink.tooltip"));
+  downloadLink->setAttributeValue("title", wtr("player.downloadlink.tooltip"));
   downloadLink->doJavaScript((boost::format("$('#%s').tooltip();") % downloadLink->id()).str() );
   infoBox->addWidget(downloadLink);
   wApp->setTitle( media.title(&session) );
   log("notice") << "using url " << mediaLink.url();
   for(auto detail : sessionInfo.modify()->sessionDetails())
     detail.modify()->ended();
-  sessionInfo.modify()->sessionDetails().insert(new SessionDetails(media.path()));
+  sessionInfo.modify()->sessionDetails().insert(new SessionDetails{media.path()});
   sessionInfo.flush();
   t.commit();
 }

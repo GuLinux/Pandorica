@@ -54,7 +54,7 @@ namespace Wt {
     struct dbo_traits<SessionInfo>
     {
       typedef std::string IdType;
-      static IdType invalidId() { return std::string(); }
+      static IdType invalidId() { return {}; }
       static const char *surrogateIdField() { return 0; }
       static const char *versionField() { return 0; }
     };
