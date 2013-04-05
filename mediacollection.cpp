@@ -41,7 +41,7 @@ void MediaCollectionPrivate::listDirectory(filesystem::path path)
     if(fs::is_directory(path))
       listDirectory(path);
     else {
-      Media media(path);
+      Media media{path};
       if(media.mimetype() != "UNSUPPORTED") {
         collection[media.uid()] = media;
         added.emit(media);

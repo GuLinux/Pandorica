@@ -207,7 +207,7 @@ void MediaCollectionBrowserPrivate::setTitleFor(Media media)
   setTitleDialog->contents()->addStyleClass("form-inline");
   WLineEdit *titleEdit = new WLineEdit(properties->title().empty() ? media.filename() : properties->title());
   WPushButton* okButton = WW(WPushButton, "Ok").onClick([=](WMouseEvent) { setTitleDialog->accept(); } ).css("btn");
-  auto editIsEnabled = [=] () {
+  auto editIsEnabled = [=] {
     return !titleEdit->text().empty() && titleEdit->text().toUTF8() != media.filename() && titleEdit->text().toUTF8() != properties->title();
   };
   okButton->setEnabled(editIsEnabled());
