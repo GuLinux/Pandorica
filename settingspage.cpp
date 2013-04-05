@@ -12,7 +12,7 @@ using namespace std;
 class ComboPairModel : public Wt::WAbstractListModel {
 public:
   ComboPairModel(vector<string> items, WObject* parent = 0);
-  inline virtual boost::any data(const WModelIndex& index, int role = DisplayRole) const { return WString::tr(items[index.row()] + ".combo"); }
+  inline virtual boost::any data(const WModelIndex& index, int role = Wt::DisplayRole) const { return wtr(items[index.row()] + ".combo"); }
   inline virtual int rowCount(const WModelIndex& parent = WModelIndex()) const { return items.size(); }
   inline string itemAt(int row) { return items[row]; }
 private:
@@ -28,7 +28,7 @@ ComboPairModel::ComboPairModel(vector<string> items, WObject* parent)
 
 SettingsPage::SettingsPage(Settings* settings, WContainerWidget* parent): WContainerWidget(parent), settings(settings)
 {
-  addWidget(WW(WContainerWidget).css("modal-header").add(new WText(WString::tr("settings.header"))));
+  addWidget(WW(WContainerWidget).css("modal-header").add(new WText(wtr("settings.header"))));
   content = WW(WContainerWidget).css("modal-body form-horizontal");
   addWidget(content);
   addSetting(Settings::mediaAutoplay, createCombo(Settings::mediaAutoplay, { "autoplay_never", "autoplay_audio_only", "autoplay_video_only", "autoplay_always" }));
@@ -36,7 +36,7 @@ SettingsPage::SettingsPage(Settings* settings, WContainerWidget* parent): WConta
   addSetting(Settings::preferredPlayer, createCombo(Settings::preferredPlayer, { "html5", "jplayer"} ) );
   addSetting(Settings::downloadSource, createCombo(Settings::downloadSource, {"lighttpd", "nginx"}) );
   addSetting(Settings::guiLanguage, createCombo(Settings::guiLanguage, {"<browserdefault>", "en", "it"}) );
-  addWidget(WW(WContainerWidget).css("modal-footer").add(new WText(WString::tr("settings.footer"))));
+  addWidget(WW(WContainerWidget).css("modal-footer").add(new WText(wtr("settings.footer"))));
 }
 
 WComboBox* SettingsPage::createCombo(string name, vector<string> values)
@@ -58,8 +58,8 @@ WComboBox* SettingsPage::createCombo(string name, vector<string> values)
 
 void SettingsPage::addSetting(const string& settingName, WFormWidget* widget)
 {
-  WString label = WString::tr(settingName + ".label");
-  WString helpText = WString::tr(settingName + ".description");
+  WString label = wtr(settingName + ".label");
+  WString helpText = wtr(settingName + ".description");
   
   WLabel *labelWidget = WW(WLabel, label).css("control-label");
   labelWidget->setBuddy(widget);

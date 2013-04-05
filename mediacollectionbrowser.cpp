@@ -121,7 +121,7 @@ void MediaCollectionBrowserPrivate::addMedia(Media &media)
 {
   wApp->log("notice") << "adding media " << media.path();
   Popover popover{media.title(session)};
-  WString fileSizeText = WString::tr("mediabrowser.filesize").arg(formatFileSize(fs::file_size(media.path()) ) );
+  WString fileSizeText = wtr("mediabrowser.filesize").arg(formatFileSize(fs::file_size(media.path()) ) );
   popover.text += fileSizeText;
   Dbo::Transaction t(*session);
   
@@ -135,7 +135,7 @@ void MediaCollectionBrowserPrivate::addMedia(Media &media)
   MediaPropertiesPtr mediaProperties = session->find<MediaProperties>().where("media_id = ?").bind(media.uid());
   WString mediaLengthText;
   if(mediaProperties && mediaProperties->duration() > 0) {
-    mediaLengthText = WString::tr("mediabrowser.medialength").arg( WTime(0,0,0).addSecs(mediaProperties->duration()).toString() );
+    mediaLengthText = wtr("mediabrowser.medialength").arg( WTime(0,0,0).addSecs(mediaProperties->duration()).toString() );
     popover.text += "<br />" + mediaLengthText;
   }
   
@@ -152,14 +152,14 @@ void MediaCollectionBrowserPrivate::addMedia(Media &media)
       mediaLength->setSelectable(false); mediaLength->setDisabled(true);
     }
     
-    WPopupMenuItem* play = menu->addItem(WString::tr("mediabrowser.play"));
-    WPopupMenuItem* queue = menu->addItem(WString::tr("mediabrowser.queue"));
-    WPopupMenuItem* close = menu->addItem(WString::tr("mediabrowser.cancelpopup"));
+    WPopupMenuItem* play = menu->addItem(wtr("mediabrowser.play"));
+    WPopupMenuItem* queue = menu->addItem(wtr("mediabrowser.queue"));
+    WPopupMenuItem* close = menu->addItem(wtr("mediabrowser.cancelpopup"));
     WPopupMenuItem* clearThumbs = 0;
     WPopupMenuItem* setTitle = 0;
     if(userRole == AuthorizedUser::Admin) {
-      clearThumbs = menu->addItem(WString::tr("mediabrowser.admin.deletepreview"));
-      setTitle = menu->addItem(WString::tr("mediabrowser.admin.settitle"));
+      clearThumbs = menu->addItem(wtr("mediabrowser.admin.deletepreview"));
+      setTitle = menu->addItem(wtr("mediabrowser.admin.settitle"));
     }
     
     menu->aboutToHide().connect([=](_n6){
@@ -200,10 +200,10 @@ void MediaCollectionBrowserPrivate::setTitleFor(Media media)
   MediaPropertiesPtr properties = session->find<MediaProperties>().where("media_id = ?").bind(media.uid());
   if(!properties) {
     t.rollback();
-    WMessageBox::show(WString::tr("mediabrowser.admin.settitle.missingproperties.caption"), WString::tr("mediabrowser.admin.settitle.missingproperties.body"), StandardButton::Ok);
+    WMessageBox::show(wtr("mediabrowser.admin.settitle.missingproperties.caption"), wtr("mediabrowser.admin.settitle.missingproperties.body"), StandardButton::Ok);
     return;
   }
-  WDialog *setTitleDialog = new WDialog(WString::tr("mediabrowser.admin.settitle"));
+  WDialog *setTitleDialog = new WDialog(wtr("mediabrowser.admin.settitle"));
   setTitleDialog->contents()->addStyleClass("form-inline");
   WLineEdit *titleEdit = new WLineEdit(properties->title().empty() ? media.filename() : properties->title());
   WPushButton* okButton = WW(WPushButton, "Ok").onClick([=](WMouseEvent) { setTitleDialog->accept(); } ).css("btn");

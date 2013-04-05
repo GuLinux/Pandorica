@@ -135,10 +135,10 @@ WLink Settings::linkFor(filesystem::path p)
   if(wApp->readConfigurationProperty("videos-deploy-dir", videosDeployDir )) {
     string relpath = p.string();
     boost::replace_all(relpath, videosDir(), videosDeployDir);
-    return WLink(relpath);
+    return relpath;
   }
 
-   WLink link = WLink(new WFileResource(p.string(), wApp));
+   WLink link{new WFileResource(p.string(), wApp)};
    wApp->log("notice") << "Generated url: " << link.url();
    return link;
 }
@@ -152,7 +152,7 @@ WLink SettingsPrivate::lightySecDownloadLinkFor(string secDownloadPrefix, string
     string secDownloadUrl = secDownloadPrefix + token + "/" + hexTime + filePath;
     wApp->log("notice") << "****** secDownload: filename= " << filePath;
     wApp->log("notice") << "****** secDownload: url= " << secDownloadUrl;
-    return WLink(secDownloadUrl);
+    return secDownloadUrl;
 }
 
 WLink SettingsPrivate::nginxSecLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p)
@@ -167,6 +167,6 @@ WLink SettingsPrivate::nginxSecLinkFor(string secDownloadPrefix, string secDownl
     string secDownloadUrl = (boost::format("%s%s?st=%s&e=%d") % secDownloadPrefix % filePath % token % expireTime).str();
     wApp->log("notice") << "****** secDownload: filename= " << filePath;
     wApp->log("notice") << "****** secDownload: url= " << secDownloadUrl;
-    return WLink(secDownloadUrl);
+    return secDownloadUrl;
 }
 
