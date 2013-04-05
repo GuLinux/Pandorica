@@ -228,7 +228,7 @@ StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(
   addMetaHeader("viewport", "width=device-width, initial-scale=1, maximum-scale=1");
   
   d->authContainer = new WContainerWidget();
-  d->authContainer->addWidget(WW(WText, WString("<h1 style=\"text-align: center;\">{1}</h1>").arg(wtr("site-title"))));
+  d->authContainer->addWidget(WW<WText>(WString("<h1 style=\"text-align: center;\">{1}</h1>").arg(wtr("site-title"))));
   root()->addWidget(d->authContainer);
   AuthWidgetCustom* authWidget = new AuthWidgetCustom(Session::auth(), d->session.users(), d->session.login());
   authWidget->model()->addPasswordAuth(&Session::passwordAuth());
@@ -259,12 +259,12 @@ void StreamingApp::authEvent()
   log("notice") << "User logged in";
 //   changeSessionId();
   Auth::User user = d->session.login().user();
-  WPushButton *refreshButton = WW(WPushButton, "Retry").css("btn btn-link").onClick([this](WMouseEvent) {
+  WPushButton *refreshButton = WW<WPushButton>("Retry").css("btn btn-link").onClick([this](WMouseEvent) {
     authEvent();
   }).setAttribute("data-dismiss", "alert");
   if(user.email().empty()) {
     log("notice") << "User email empty, unconfirmed?";
-    Message *message = WW(Message, "You need to verify your email address before logging in.<br />\
+    Message *message = WW<Message>("You need to verify your email address before logging in.<br />\
     Please check your inbox.<br />${refresh}").addCss("alert-block");
     message->bindWidget("refresh", refreshButton);
     d->messagesContainer->addWidget(message);
@@ -274,7 +274,7 @@ void StreamingApp::authEvent()
   Dbo::Transaction t(d->session);
   AuthorizedUserPtr authUser = d->session.find<AuthorizedUser>().where("email = ?").bind(user.email());
   if(!authUser) {
-    Message *message = WW(Message, "Your user is not yet authorized for viewing videos.<br />\
+    Message *message = WW<Message>("Your user is not yet authorized for viewing videos.<br />\
     If you think this is an error, contact me at marco.gulino (at) gmail.com<br />${refresh}").addCss("alert-block");
     if(!d->mailSent) {
       d->mailForUnauthorizedUser(user.email(), user.identity(Auth::Identity::LoginName));
@@ -324,8 +324,8 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   filesListMenuItem = new WText(wtr("menu.videoslist"));
   WText *latestCommentsMenuItem = new WText(wtr("menu.latest.comments"));
   
-  WContainerWidget* latestCommentsBody = WW(WContainerWidget).css("modal-body");
-  WContainerWidget* latestCommentsContainer = WW(WContainerWidget).css("modal fade hide comments-modal").add(latestCommentsBody);
+  WContainerWidget* latestCommentsBody = WW<WContainerWidget>().css("modal-body");
+  WContainerWidget* latestCommentsContainer = WW<WContainerWidget>().css("modal fade hide comments-modal").add(latestCommentsBody);
   
   
   latestCommentsMenuItem->clicked().connect([latestCommentsMenuItem,latestCommentsContainer,latestCommentsBody,this](WMouseEvent){
@@ -336,14 +336,14 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
       WContainerWidget* commentWidget = new WContainerWidget;
       Media media = collection->media(comment->videoId());
       
-      WContainerWidget *header = WW(WContainerWidget);
+      WContainerWidget *header = WW<WContainerWidget>();
       header->setContentAlignment(AlignCenter);
       
       WAnchor *videoLink = new WAnchor("#", media.title(&session));
       videoLink->setStyleClass("label label-info comment-box-element");
       header->addWidget(videoLink);
       Dbo::ptr<Auth::Dbo::AuthInfo<User>> authInfo = session.find<Auth::Dbo::AuthInfo<User>>().where("user_id = ?").bind(comment->user().id());
-      header->addWidget(WW(WText,WString("{1} ({2})").arg(authInfo->identity("loginname")).arg(comment->lastUpdated().toString()))
+      header->addWidget(WW<WText>(WString("{1} ({2})").arg(authInfo->identity("loginname")).arg(comment->lastUpdated().toString()))
         .css("label label-success comment-box-element"));
       commentWidget->addWidget(header);
       videoLink->clicked().connect([=](WMouseEvent){
@@ -351,8 +351,8 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
         latestCommentsMenuItem->doJavaScript(hidejs);
         queueAndPlay(media);
       });
-      commentWidget->addWidget(WW(WText, WString::fromUTF8(comment->content())).css("well comment-text comment-box-element").setInline(false));
-      latestCommentsBody->addWidget(WW(WContainerWidget).css("comment-text").add(commentWidget));
+      commentWidget->addWidget(WW<WText>(WString::fromUTF8(comment->content())).css("well comment-text comment-box-element").setInline(false));
+      latestCommentsBody->addWidget(WW<WContainerWidget>().css("comment-text").add(commentWidget));
     }
   });
   wApp->root()->addWidget(latestCommentsContainer);
@@ -371,7 +371,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   settingsPage->addStyleClass("modal fade hide");
   q->root()->addWidget(settingsPage);
   
-  topBarTemplate->bindWidget("settings", WW(WText, wtr("menu.settings")).onClick([settingsPage,this](WMouseEvent) {
+  topBarTemplate->bindWidget("settings", WW<WText>(wtr("menu.settings")).onClick([settingsPage,this](WMouseEvent) {
     string togglejs = (boost::format(JS( $('#%s').modal('toggle'); )) % settingsPage->id()).str();
     wApp->doJavaScript(togglejs);
   }));
@@ -512,10 +512,10 @@ void StreamingApp::setupGui()
   d->playlist->setList(true);
   d->playlist->addStyleClass("accordion-inner");
   
-  WContainerWidget *playlistAccordion = WW(WContainerWidget).css("accordion-body collapse").add(d->playlist);
+  WContainerWidget *playlistAccordion = WW<WContainerWidget>().css("accordion-body collapse").add(d->playlist);
   
-  WContainerWidget *playlistContainer = WW(WContainerWidget).css("accordion-group playlist").setContentAlignment(AlignCenter);
-  playlistContainer->addWidget(WW(WContainerWidget).css("accordion-heading").add(WW(WAnchor, string("#") + playlistAccordion->id(), wtr("playlist.accordion"))
+  WContainerWidget *playlistContainer = WW<WContainerWidget>().css("accordion-group playlist").setContentAlignment(AlignCenter);
+  playlistContainer->addWidget(WW<WContainerWidget>().css("accordion-heading").add(WW<WAnchor>(string("#") + playlistAccordion->id(), wtr("playlist.accordion"))
     .setAttribute("data-toggle", "collapse").setAttribute("data-parent",string("#") + contentWidget->id()).css("accordion-toggle")));
   playlistContainer->addWidget(playlistAccordion);
   
@@ -665,9 +665,9 @@ void StreamingAppPrivate::play ( Media media ) {
   */
   WLink shareLink(wApp->bookmarkUrl("/") + string("?file=") + fileId);
   infoBox->addWidget(new WBreak );
-  infoBox->addWidget(WW(WAnchor, shareLink, wtr("player.sharelink")).css("btn btn-success btn-mini"));
+  infoBox->addWidget(WW<WAnchor>(shareLink, wtr("player.sharelink")).css("btn btn-success btn-mini"));
   infoBox->addWidget(new WText{" "});
-  WAnchor *downloadLink = WW(WAnchor, mediaLink, wtr("player.downloadlink")).css("btn btn-success btn-mini");
+  WAnchor *downloadLink = WW<WAnchor>(mediaLink, wtr("player.downloadlink")).css("btn btn-success btn-mini");
   downloadLink->setTarget(Wt::TargetNewWindow);
   downloadLink->setAttributeValue("data-toggle","tooltip");
   downloadLink->setAttributeValue("title", wtr("player.downloadlink.tooltip"));

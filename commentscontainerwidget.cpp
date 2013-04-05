@@ -67,11 +67,11 @@ CommentView::CommentView(CommentTuple data, WContainerWidget* parent): WContaine
   WDateTime commentTime = WDateTime::fromTime_t(data.get<1>());
   string commentText = data.get<0>();
   setContentAlignment(AlignLeft);
-  addWidget(WW(WContainerWidget).css("span3 label label-success comment-header")
-    .add(WW(WText, username).setInline(false))
+  addWidget(WW<WContainerWidget>().css("span3 label label-success comment-header")
+    .add(WW<WText>(username).setInline(false))
 //     .add(WW(WText, email).setInline(false))
-    .add(WW(WText, commentTime.toString()).setInline(false)));
-  addWidget(WW(WText,WString::fromUTF8(commentText)).css("span8 well comment-text") );
+    .add(WW<WText>(commentTime.toString()).setInline(false)));
+  addWidget(WW<WText>(WString::fromUTF8(commentText)).css("span8 well comment-text") );
 }
 
 
@@ -90,13 +90,13 @@ CommentsContainerWidget::CommentsContainerWidget(string videoId, Session* sessio
   query.where("video_id = ?").bind(videoId);
   query.where("auth_identity.provider = 'loginname'");
   query.orderBy("last_updated DESC");
-  addWidget(WW(WText, wtr("comments.label")).css("label").setInline(false));
+  addWidget(WW<WText>(wtr("comments.label")).css("label").setInline(false));
   
   WTextArea* newCommentContent = new WTextArea();
   newCommentContent->setRows(3);
   newCommentContent->setWidth(500);
   newCommentContent->setInline(false);
-  WPushButton* insertComment = WW(WPushButton, wtr("comments.addcomment.button")).css("btn btn-primary btn-small").onClick([=](WMouseEvent){
+  WPushButton* insertComment = WW<WPushButton>(wtr("comments.addcomment.button")).css("btn btn-primary btn-small").onClick([=](WMouseEvent){
     if(newCommentContent->text().empty())
       return;
     Comment *comment = new Comment(videoId, d->session->user(), newCommentContent->text().toUTF8());
@@ -111,9 +111,9 @@ CommentsContainerWidget::CommentsContainerWidget(string videoId, Session* sessio
   });
   insertComment->setEnabled(false);
   
-  addWidget(WW(WContainerWidget).css("add-comment-box").add(newCommentContent).add(insertComment).setContentAlignment(AlignCenter));
+  addWidget(WW<WContainerWidget>().css("add-comment-box").add(newCommentContent).add(insertComment).setContentAlignment(AlignCenter));
   
-  addWidget(d->commentsContainer = WW(WContainerWidget).css("container") );
+  addWidget(d->commentsContainer = WW<WContainerWidget>().css("container") );
 
   Dbo::Transaction t(*d->session);
   for(CommentTuple comment : query.resultList())
