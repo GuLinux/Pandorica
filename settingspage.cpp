@@ -28,15 +28,15 @@ ComboPairModel::ComboPairModel(vector<string> items, WObject* parent)
 
 SettingsPage::SettingsPage(Settings* settings, WContainerWidget* parent): WContainerWidget(parent), settings(settings)
 {
-  addWidget(WW(WContainerWidget).css("modal-header").add(new WText(wtr("settings.header"))));
-  content = WW(WContainerWidget).css("modal-body form-horizontal");
+  addWidget(WW<WContainerWidget>().css("modal-header").add(new WText(wtr("settings.header"))));
+  content = WW<WContainerWidget>().css("modal-body form-horizontal");
   addWidget(content);
   addSetting(Settings::mediaAutoplay, createCombo(Settings::mediaAutoplay, { "autoplay_never", "autoplay_audio_only", "autoplay_video_only", "autoplay_always" }));
   
   addSetting(Settings::preferredPlayer, createCombo(Settings::preferredPlayer, { "html5", "jplayer"} ) );
   addSetting(Settings::downloadSource, createCombo(Settings::downloadSource, {"lighttpd", "nginx"}) );
   addSetting(Settings::guiLanguage, createCombo(Settings::guiLanguage, {"<browserdefault>", "en", "it"}) );
-  addWidget(WW(WContainerWidget).css("modal-footer").add(new WText(wtr("settings.footer"))));
+  addWidget(WW<WContainerWidget>().css("modal-footer").add(new WText{wtr("settings.footer")}));
 }
 
 WComboBox* SettingsPage::createCombo(string name, vector<string> values)
@@ -61,13 +61,13 @@ void SettingsPage::addSetting(const string& settingName, WFormWidget* widget)
   WString label = wtr(settingName + ".label");
   WString helpText = wtr(settingName + ".description");
   
-  WLabel *labelWidget = WW(WLabel, label).css("control-label");
+  WLabel *labelWidget = WW<WLabel>(label).css("control-label");
   labelWidget->setBuddy(widget);
-  WContainerWidget *control = WW(WContainerWidget).css("controls").add(widget);
+  WContainerWidget *control = WW<WContainerWidget>().css("controls").add(widget);
   if(!helpText.empty()) {
-    control->addWidget(WW(WText, helpText).css("help-block") );
+    control->addWidget(WW<WText>(helpText).css("help-block") );
   }
-  content->addWidget(WW(WContainerWidget).css("control-group")
+  content->addWidget(WW<WContainerWidget>().css("control-group")
     .add(labelWidget)
     .add( control ));
 }

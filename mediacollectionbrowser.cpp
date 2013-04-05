@@ -63,9 +63,9 @@ private:
 MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Settings* settings, Session* session, WContainerWidget* parent)
   : WContainerWidget(parent), d(new MediaCollectionBrowserPrivate(collection, settings, session, this))
 {
-  d->breadcrumb = WW(WContainerWidget).css("breadcrumb");
+  d->breadcrumb = WW<WContainerWidget>().css("breadcrumb");
   d->breadcrumb->setList(true);
-  d->browser = WW(WContainerWidget).css("thumbnails").setMargin(WLength::Auto, Left).setMargin(WLength::Auto, Right);
+  d->browser = WW<WContainerWidget>().css("thumbnails").setMargin(WLength::Auto, Left).setMargin(WLength::Auto, Right);
   d->browser->setList(true);
   addWidget(d->breadcrumb);
   addWidget(d->browser);
@@ -206,7 +206,7 @@ void MediaCollectionBrowserPrivate::setTitleFor(Media media)
   WDialog *setTitleDialog = new WDialog(wtr("mediabrowser.admin.settitle"));
   setTitleDialog->contents()->addStyleClass("form-inline");
   WLineEdit *titleEdit = new WLineEdit(properties->title().empty() ? media.filename() : properties->title());
-  WPushButton* okButton = WW(WPushButton, "Ok").onClick([=](WMouseEvent) { setTitleDialog->accept(); } ).css("btn");
+  WPushButton* okButton = WW<WPushButton>("Ok").onClick([=](WMouseEvent) { setTitleDialog->accept(); } ).css("btn");
   auto editIsEnabled = [=] {
     return !titleEdit->text().empty() && titleEdit->text().toUTF8() != media.filename() && titleEdit->text().toUTF8() != properties->title();
   };
@@ -237,11 +237,11 @@ void MediaCollectionBrowserPrivate::setTitleFor(Media media)
 
 WContainerWidget* MediaCollectionBrowserPrivate::addIcon(WString filename, GetIconF icon, MouseEventListener onClick, Popover popover)
 {
-    WContainerWidget *item = WW(WContainerWidget).css("span3 media-icon-container");
+    WContainerWidget *item = WW<WContainerWidget>().css("span3 media-icon-container");
     item->setContentAlignment(AlignmentFlag::AlignCenter);
-    WAnchor *link = WW(WAnchor, "javascript:false").css("thumbnail filesystem-item");
+    WAnchor *link = WW<WAnchor>("javascript:false").css("thumbnail filesystem-item");
     link->setImage(new WImage(icon(item) ));
-    link->addWidget(WW(WText, filename).css("filesystem-item-label"));
+    link->addWidget(WW<WText>(filename).css("filesystem-item-label"));
     item->addWidget(link);
     link->clicked().connect(onClick);
     if(popover.isValid()) {
@@ -299,8 +299,8 @@ void MediaCollectionBrowserPrivate::rebuildBreadcrumb()
   for(fs::path p: paths) {
     WContainerWidget *item = new WContainerWidget;
     if(breadcrumb->count())
-      item->addWidget(WW(WText, "/").css("divider"));
-    item->addWidget( WW(WAnchor, "javascript:false", p.filename().string()).onClick([=](WMouseEvent){
+      item->addWidget(WW<WText>("/").css("divider"));
+    item->addWidget( WW<WAnchor>("javascript:false", p.filename().string()).onClick([=](WMouseEvent){
       browse(p);
     }) );
     breadcrumb->addWidget(item);
