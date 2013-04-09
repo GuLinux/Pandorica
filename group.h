@@ -11,6 +11,8 @@ namespace dbo = Wt::Dbo;
 class Group
 {
 public:
+  Group() = default;
+  Group(std::string groupName, bool isAdmin = false);
   template<class Action>
   void persist(Action& a) {
     dbo::hasMany(a, users, dbo::ManyToMany, "groups_users");
