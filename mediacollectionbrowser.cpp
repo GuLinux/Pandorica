@@ -239,7 +239,7 @@ WContainerWidget* MediaCollectionBrowserPrivate::addIcon(WString filename, GetIc
 {
     WContainerWidget *item = WW<WContainerWidget>().css("span3 media-icon-container");
     item->setContentAlignment(AlignmentFlag::AlignCenter);
-    WAnchor *link = WW<WAnchor>("javascript:false").css("thumbnail filesystem-item");
+    WAnchor *link = WW<WAnchor>("").css("thumbnail filesystem-item link-hand");
     link->setImage(new WImage(icon(item) ));
     link->addWidget(WW<WText>(filename).css("filesystem-item-label"));
     item->addWidget(link);
@@ -300,7 +300,7 @@ void MediaCollectionBrowserPrivate::rebuildBreadcrumb()
     WContainerWidget *item = new WContainerWidget;
     if(breadcrumb->count())
       item->addWidget(WW<WText>("/").css("divider"));
-    item->addWidget( WW<WAnchor>("javascript:false", p.filename().string()).onClick([=](WMouseEvent){
+    item->addWidget( WW<WAnchor>("", p.filename().string()).css("link-hand").onClick([=](WMouseEvent){
       browse(p);
     }) );
     breadcrumb->addWidget(item);

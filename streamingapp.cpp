@@ -339,8 +339,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
       WContainerWidget *header = WW<WContainerWidget>();
       header->setContentAlignment(AlignCenter);
       
-      WAnchor *videoLink = new WAnchor("#", media.title(&session));
-      videoLink->setStyleClass("label label-info comment-box-element");
+      WAnchor *videoLink = WW<WAnchor>("", media.title(&session)).css("link-hand label label-info comment-box-element");
       header->addWidget(videoLink);
       Dbo::ptr<Auth::Dbo::AuthInfo<User>> authInfo = session.find<Auth::Dbo::AuthInfo<User>>().where("user_id = ?").bind(comment->user().id());
       header->addWidget(WW<WText>(WString("{1} ({2})").arg(authInfo->identity("loginname")).arg(comment->lastUpdated().toString()))
@@ -516,7 +515,7 @@ void StreamingApp::setupGui()
   
   WContainerWidget *playlistContainer = WW<WContainerWidget>().css("accordion-group playlist").setContentAlignment(AlignCenter);
   playlistContainer->addWidget(WW<WContainerWidget>().css("accordion-heading").add(WW<WAnchor>(string("#") + playlistAccordion->id(), wtr("playlist.accordion"))
-    .setAttribute("data-toggle", "collapse").setAttribute("data-parent",string("#") + contentWidget->id()).css("accordion-toggle")));
+    .setAttribute("data-toggle", "collapse").setAttribute("data-parent",string("#") + contentWidget->id()).css("link-hand accordion-toggle")));
   playlistContainer->addWidget(playlistAccordion);
   
   
