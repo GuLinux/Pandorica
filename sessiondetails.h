@@ -7,7 +7,6 @@
 #include <Wt/WGlobal>
 #include <Wt/WDateTime>
 #include <boost/filesystem/path.hpp>
-#include "authorizeduser.h"
 
 class SessionInfo;
 class SessionDetails {

@@ -25,6 +25,8 @@
 namespace Wt {
   class WAbstractItemModel;
 }
+
+/*
 class RoleItemDelegate : public Wt::WItemDelegate
 {
 
@@ -34,6 +36,7 @@ public:
 private:
   Wt::WAbstractItemModel *model;
 };
+*/
 
 class DateTimeDelegate : public Wt::WItemDelegate {
 public:

@@ -69,7 +69,7 @@ private:
   ColumnValue columnValue;
 };
 
-typedef boost::tuple<string,string,long,long,string,string,string,int,long> LoggedUserEntry;
+typedef boost::tuple<string,string,long,long,string,string,string,long> LoggedUserEntry;
 LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   : WDialog(), session(session)
 {
@@ -83,12 +83,11 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
     (select filename from session_details WHERE session_info.session_id = session_details.session_info_session_id ORDER BY play_started DESC LIMIT 1) as filewatching,\
     auth_info.email as email,\
     auth_identity.identity as identity,\
-    authorized_users.role as role,\
     session_info.user_id as user_id\
     from session_info\
     inner join auth_info on session_info.user_id = auth_info.user_id\
     inner join auth_identity on auth_info.id = auth_identity.auth_info_id\
-    inner join authorized_users on authorized_users.email = auth_info.email");
+    ");
   if(!showAll)
     query.where("session_ended = 0");
   query.where("auth_identity.provider = 'loginname'");
@@ -98,7 +97,6 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   model->addColumn("identity", "UserName");
   model->addColumn("ip", "IP");
   model->addColumn("email", "Email");
-  model->addColumn("role", "Role");
   model->addColumn("filewatching", "Last File Played");
   model->addColumn("session_started", "Started");
   WTableView *table = new WTableView();
@@ -113,21 +111,20 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
       return authInfo->user().id();
     },
     [](string s) { return s; }));
-  table->setItemDelegateForColumn(4, new RoleItemDelegate(model));
+//   table->setItemDelegateForColumn(4, new RoleItemDelegate(model));
   table->setColumn1Fixed(false);
   table->setColumnWidth(0, 50);
   table->setColumnWidth(1, 120);
   table->setColumnWidth(2, 90);
   table->setColumnWidth(3, 200);
-  table->setColumnWidth(4, 70);
-  table->setColumnWidth(5, 300);
-  table->setColumnWidth(6, 110);
+  table->setColumnWidth(4, 300);
+  table->setColumnWidth(5, 110);
   table->setHeight(470);
-  table->setItemDelegateForColumn(6, new DateTimeDelegate(model));
+  table->setItemDelegateForColumn(5, new DateTimeDelegate(model));
   if(showAll) {
     model->addColumn("session_ended", "Ended");
-    table->setItemDelegateForColumn(7, new DateTimeDelegate(model));
-    table->setColumnWidth(7, 110);
+    table->setItemDelegateForColumn(6, new DateTimeDelegate(model));
+    table->setColumnWidth(6, 110);
     setWidth(1140);
   }
   table->setModel(model);

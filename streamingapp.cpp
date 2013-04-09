@@ -44,12 +44,10 @@
 #include <Wt/Mail/Client>
 #include <Wt/Mail/Mailbox>
 #include <Wt/Mail/Message>
-#include "authorizeduser.h"
 #include "comment.h"
 
 #include "playlist.h"
 #include "session.h"
-#include "adduserdialog.h"
 #include "sessioninfo.h"
 #include "loggedusersdialog.h"
 #include "Wt-Commons/wt_helpers.h"
@@ -93,7 +91,7 @@ public:
   Playlist *playlist;
   WContainerWidget* playerContainerWidget;
   void mailForUnauthorizedUser(string email, WString identity);
-  void setupMenus(AuthorizedUser::Role role);
+  void setupMenus(bool isAdmin);
   void setupAdminMenus();
   Session session;
   SessionInfoPtr sessionInfo;
@@ -234,9 +232,10 @@ StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(
   authWidget->model()->addPasswordAuth(&Session::passwordAuth());
   authWidget->model()->addOAuth(Session::oAuth());
   authWidget->setRegistrationEnabled(true);
-  authWidget->processEnvironment();
   d->authContainer->addWidget(authWidget);
   d->authContainer->addWidget(d->messagesContainer = new WContainerWidget());
+  authWidget->processEnvironment();
+
 }
 
 
@@ -272,8 +271,7 @@ void StreamingApp::authEvent()
   }
   log("notice") << "User email confirmed";
   Dbo::Transaction t(d->session);
-  AuthorizedUserPtr authUser = d->session.find<AuthorizedUser>().where("email = ?").bind(user.email());
-  if(!authUser) {
+  if(d->session.user()->groups.size() <= 0) {
     Message *message = WW<Message>("Your user is not yet authorized for viewing videos.<br />\
     If you think this is an error, contact me at marco.gulino (at) gmail.com<br />${refresh}").addCss("alert-block");
     if(!d->mailSent) {
@@ -295,8 +293,8 @@ void StreamingApp::authEvent()
     oldSessionInfo.flush();
   }
   d->sessionInfo = d->session.add(sessionInfo);
+  d->setupMenus(d->session.user()->isAdmin());
   t.commit();
-  d->setupMenus(authUser->role());
   setupGui();
   auto sessionAddedCallback = [this](StreamingAppSession newSession) {
     WTimer::singleShot(2000, [this,newSession](WMouseEvent) {
@@ -316,7 +314,7 @@ void StreamingApp::authEvent()
 }
 
 
-void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
+void StreamingAppPrivate::setupMenus(bool isAdmin)
 {
   wApp->log("notice") << "Setting up topbar links";
   topBarTemplate = new WTemplate(wtr("navbar"));
@@ -381,7 +379,7 @@ void StreamingAppPrivate::setupMenus(AuthorizedUser::Role role)
   sessionAdded.connect(setLoggedUsersTitle);
   sessionRemoved.connect(setLoggedUsersTitle);
   
-  if(role == AuthorizedUser::Admin) {
+  if(isAdmin) {
     wApp->setCookie("download_src", "lighttpd", WDateTime::currentDateTime().addDays(365));
     setupAdminMenus();
   }
@@ -469,7 +467,7 @@ void StreamingAppPrivate::setupAdminMenus()
   displayAddUserDialog = [=](WMouseEvent){
     const string *addUserParameter = wApp->environment().getParameter("add_user_email");
     string addUserEmail =  addUserParameter? *addUserParameter: string();
-    (new AddUserDialog{&session, addUserEmail})->show();
+//     (new AddUserDialog{&session, addUserEmail})->show(); TODO: gestione groups
   };
   
   if(wApp->environment().getParameter("add_user_email"))

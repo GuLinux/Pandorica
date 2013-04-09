@@ -19,7 +19,6 @@
 
 
 #include "customitemdelegates.h"
-#include "authorizeduser.h"
 #include <Wt/WAbstractItemModel>
 #include <Wt/WText>
 #include <Wt/WDateTime>
@@ -28,6 +27,7 @@ using namespace Wt;
 using namespace boost;
 using namespace std;
 
+/*
 RoleItemDelegate::RoleItemDelegate(Wt::WAbstractItemModel* model, Wt::WObject* parent): WItemDelegate(parent), model(model)
 {
 }
@@ -46,6 +46,8 @@ Wt::WWidget* RoleItemDelegate::update(Wt::WWidget* widget, const Wt::WModelIndex
   ((WText*)widget)->setText(roleLabel);
   return widget;
 }
+
+*/
 
 
 

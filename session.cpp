@@ -5,7 +5,6 @@
  */
 
 #include "session.h"
-#include "authorizeduser.h"
 #include "sessioninfo.h"
 #include "sessiondetails.h"
 #include "Wt/Auth/AuthService"
@@ -26,7 +25,6 @@
 #include "mediaattachment.h"
 
 namespace {
-
   class MyOAuth : public std::vector<const Wt::Auth::OAuthService *>
   {
   public:
@@ -79,7 +77,6 @@ Session::Session()
   mapClass<SessionInfo>("session_info");
   mapClass<SessionDetails>("session_details");
   mapClass<Comment>("comment");
-  mapClass<AuthorizedUser>("authorized_users");
   mapClass<AuthInfo::AuthIdentityType>("auth_identity");
   mapClass<AuthInfo::AuthTokenType>("auth_token");
   mapClass<MediaProperties>("media_properties");
