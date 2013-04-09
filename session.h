@@ -17,6 +17,7 @@
 #include <Wt/Auth/AuthService>
 
 #include "user.h"
+#include "group.h"
 
 namespace dbo = Wt::Dbo;
 

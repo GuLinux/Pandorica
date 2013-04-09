@@ -74,6 +74,7 @@ Session::Session()
   setConnection(*connection_);
 
   mapClass<User>("user");
+  mapClass<Group>("group");
   mapClass<AuthInfo>("auth_info");
   mapClass<SessionInfo>("session_info");
   mapClass<SessionDetails>("session_details");
