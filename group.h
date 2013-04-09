@@ -28,4 +28,6 @@ private:
   bool _isAdmin;
 };
 
+typedef dbo::ptr<Group> GroupPtr;
+
 #endif // GROUP_H

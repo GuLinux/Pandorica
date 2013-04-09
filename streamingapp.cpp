@@ -61,6 +61,7 @@
 #include "settings.h"
 #include "mediaattachment.h"
 #include "settingspage.h"
+#include "groupsdialog.h"
 
 
 #include <Wt/WOverlayLoadingIndicator>
@@ -113,7 +114,6 @@ public:
   JSignal<string> queueSignal;
   Settings settings;
   MediaCollectionBrowser* mediaCollectionBrowser;
-  std::function<void(WMouseEvent)> displayAddUserDialog;
 private:
   void setupUserMenus();
   WText* activeUsersMenuItem;
@@ -458,29 +458,18 @@ void StreamingAppPrivate::setupAdminMenus()
 {
   topBarTemplate->setCondition("is-user", false);
   topBarTemplate->setCondition("is-admin", true);
-  WText *allLog = new WText{"Users Log"};
-  WText *addUserMenu = new WText{"Add User"};
+  WText *allLog = WW<WText>("Users Log").onClick([=](WMouseEvent){
+    (new LoggedUsersDialog{&session, true})->show();
+  });
+  
+  WText *groupsDialog = WW<WText>("Groups").onClick([=](WMouseEvent) {
+    (new GroupsDialog(&session))->show();
+  });
   topBarTemplate->bindWidget("users.log", allLog);
-  topBarTemplate->bindWidget("users.add", addUserMenu);
+  topBarTemplate->bindWidget("groups.dialog", groupsDialog);
   
-  
-  displayAddUserDialog = [=](WMouseEvent){
-    const string *addUserParameter = wApp->environment().getParameter("add_user_email");
-    string addUserEmail =  addUserParameter? *addUserParameter: string();
-//     (new AddUserDialog{&session, addUserEmail})->show(); TODO: gestione groups
-  };
-  
-  if(wApp->environment().getParameter("add_user_email"))
-    WTimer::singleShot(1000, displayAddUserDialog);
-
   activeUsersMenuItem->clicked().connect([=](WMouseEvent){
     (new LoggedUsersDialog{&session})->show();
-  });
-  addUserMenu->clicked().connect([=](WMouseEvent){
-      displayAddUserDialog(WMouseEvent());
-  });
-  allLog->clicked().connect([=](WMouseEvent){
-    (new LoggedUsersDialog{&session, true})->show();
   });
 }
 
@@ -558,8 +547,6 @@ void StreamingApp::refresh() {
   d->parseFileParameter();
   if(d->player)
     d->player->refresh();
-  if(wApp->environment().getParameter("add_user_email"))
-    WTimer::singleShot(1000, d->displayAddUserDialog);
 }
 
 
