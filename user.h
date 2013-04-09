@@ -11,6 +11,7 @@
 #include <Wt/Dbo/Types>
 #include <Wt/WGlobal>
 
+class Group;
 class SessionInfo;
 class Comment;
 namespace dbo = Wt::Dbo;
@@ -27,10 +28,12 @@ public:
   {
     dbo::hasMany(a, _sessionInfos, dbo::ManyToOne, "user");
     dbo::hasMany(a, _comments, dbo::ManyToOne, "user");
+    dbo::hasMany(a, _groups, dbo::ManyToMany, "groups_users");
   }
 private:
   dbo::collection<dbo::ptr<SessionInfo>> _sessionInfos;
   dbo::collection<dbo::ptr<Comment>> _comments;
+  dbo::collection< dbo::ptr<Group> > _groups;
 };
 
 
