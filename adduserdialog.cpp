@@ -1,6 +1,5 @@
 #include "adduserdialog.h"
 #include "session.h"
-#include "authorizeduser.h"
 #include "customitemdelegates.h"
 #include <Wt/Dbo/QueryModel>
 #include <Wt/WTableView>

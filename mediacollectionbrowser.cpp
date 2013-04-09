@@ -9,7 +9,9 @@
 #include "settings.h"
 #include "mediaattachment.h"
 #include "session.h"
-#include "authorizeduser.h"
+#include "sessioninfo.h"
+#include "sessiondetails.h"
+#include "comment.h"
 #include <boost/format.hpp>
 #include <algorithm>
 #include <Wt/Dbo/Transaction>
@@ -40,7 +42,7 @@ public:
     void rebuildBreadcrumb();
     void browse(filesystem::path currentPath);
 public:
-  AuthorizedUser::Role userRole;
+  bool isAdmin = false;
   MediaCollection *const collection;
   Settings *settings;
   Session *session;
@@ -128,8 +130,7 @@ void MediaCollectionBrowserPrivate::addMedia(Media &media)
   if(!roleWasFetched) {
     roleWasFetched = true;
     Dbo::Transaction t(*session);
-    AuthorizedUserPtr authUser = session->find<AuthorizedUser>().where("email = ?").bind( session->login().user().email() );
-    userRole = authUser ? authUser->role() : AuthorizedUser::NormalUser;
+    isAdmin = session->user()->isAdmin();
   }
   
   MediaPropertiesPtr mediaProperties = session->find<MediaProperties>().where("media_id = ?").bind(media.uid());
@@ -157,7 +158,7 @@ void MediaCollectionBrowserPrivate::addMedia(Media &media)
     WPopupMenuItem* close = menu->addItem(wtr("mediabrowser.cancelpopup"));
     WPopupMenuItem* clearThumbs = 0;
     WPopupMenuItem* setTitle = 0;
-    if(userRole == AuthorizedUser::Admin) {
+    if(isAdmin) {
       clearThumbs = menu->addItem(wtr("mediabrowser.admin.deletepreview"));
       setTitle = menu->addItem(wtr("mediabrowser.admin.settitle"));
     }

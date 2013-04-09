@@ -6,7 +6,6 @@
 #include <Wt/Dbo/ptr>
 #include <Wt/WGlobal>
 #include <Wt/WDateTime>
-#include "authorizeduser.h"
 
 class User;
 class SessionDetails;

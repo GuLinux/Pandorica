@@ -26,14 +26,16 @@ public:
   template<class Action>
   void persist(Action& a)
   {
-    dbo::hasMany(a, _sessionInfos, dbo::ManyToOne, "user");
-    dbo::hasMany(a, _comments, dbo::ManyToOne, "user");
-    dbo::hasMany(a, _groups, dbo::ManyToMany, "groups_users");
+    dbo::hasMany(a, sessionInfos, dbo::ManyToOne, "user");
+    dbo::hasMany(a, comments, dbo::ManyToOne, "user");
+    dbo::hasMany(a, groups, dbo::ManyToMany, "groups_users");
   }
-private:
-  dbo::collection<dbo::ptr<SessionInfo>> _sessionInfos;
-  dbo::collection<dbo::ptr<Comment>> _comments;
-  dbo::collection< dbo::ptr<Group> > _groups;
+  
+  bool isAdmin() const;
+  
+  dbo::collection<dbo::ptr<SessionInfo>> sessionInfos;
+  dbo::collection<dbo::ptr<Comment>> comments;
+  dbo::collection< dbo::ptr<Group> > groups;
 };
 
 
