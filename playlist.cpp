@@ -2,6 +2,7 @@
 #include "session.h"
 #include <Wt/WApplication>
 #include <Wt/WAnchor>
+#include "Wt-Commons/wt_helpers.h"
 
 using namespace Wt;
 using namespace std;
@@ -59,7 +60,7 @@ void Playlist::reset()
 
 void Playlist::queue(Media media)
 {
-  WAnchor* playlistEntry = new WAnchor("javascript:false", media.title(session));
+  WAnchor* playlistEntry = WW<WAnchor>("", media.title(session)).css("link-hand");
   playlistEntry->addWidget(new WBreak());
   playlistEntry->clicked().connect([this,media, playlistEntry](WMouseEvent&){ nextItem(playlistEntry); });
   addWidget(playlistEntry);
