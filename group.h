@@ -39,6 +39,7 @@ public:
   inline std::string groupName() const { return _groupName; }
   inline void setGroupName(const std::string &groupName) { _groupName = groupName; }
   inline bool isAdmin() const { return _isAdmin; }
+  std::list< std::string > allowedPaths() const;
   
   dbo::collection< dbo::ptr<User> > users;
   dbo::collection< dbo::ptr<GroupPath> > groupPaths;
