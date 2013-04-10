@@ -38,5 +38,6 @@ public:
   dbo::collection< dbo::ptr<Group> > groups;
 };
 
+typedef dbo::ptr<User> UserPtr;
 
 #endif // USER_H_

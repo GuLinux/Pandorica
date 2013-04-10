@@ -69,6 +69,12 @@
   <message id="gui_language.label">Language</message>
   <message id="gui_language.description"></message>
   
+  <!-- groups dialog -->
+  <message id="delete.group.title">Delete Group</message>
+  <message id="delete.group.text">Are you sure to delete the group "<b>{1}</b>"?</message>
+  <message id="delete.user.title">Delete User</message>
+  <message id="delete.user.text">Are you sure to delete the user "<b>{1}</b>" from group "<b>{2}</b>"?</message>
+  
   <message id="Wt.Auth.confirmmail.body">
 Hello {1},
 
