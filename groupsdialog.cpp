@@ -52,7 +52,7 @@ GroupsDialog::GroupsDialog(Session *session): WDialog(), session(session)
   setResizable(true);
   setWindowTitle("Groups");
   
-  WLineEdit *newGroupName = WW<WLineEdit>().css("input-medium").setMargin(10);
+  WLineEdit *newGroupName = WW<WLineEdit>().css("input-medium").setAttribute("placeholder", "New Group Name").setMargin(10);
   WTemplate *adminLabel = new WTemplate("<label class=\"checkbox\">${check.admin}${check.admin.label}</label>");
   adminLabel->setInline(true);
   WCheckBox *isAdmin = WW<WCheckBox>();
@@ -112,7 +112,9 @@ void GroupsDialog::populateGroups()
       if(WMessageBox::show(wtr("delete.group.title"), wtr("delete.group.text").arg(group->groupName()), Yes | No) != Yes) return;
       Dbo::Transaction t(*session);
       GroupPtr groupToDelete = session->find<Group>().where("id = ?").bind(group.id());
-//       groupToDelete.modify()->users.clear(); TODO
+      for(UserPtr user: groupToDelete->users)
+        groupToDelete.modify()->users.erase(user);
+      groupToDelete.flush();
       groupToDelete.remove();
       t.commit();
       populateGroups();
