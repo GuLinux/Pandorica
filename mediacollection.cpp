@@ -1,4 +1,5 @@
 #include "mediacollection.h"
+#include "session.h"
 #include <Wt/Utils>
 #include <Wt/WApplication>
 
@@ -10,27 +11,41 @@ namespace fs = boost::filesystem;
 
 class MediaCollectionPrivate {
 public:
-  MediaCollectionPrivate(string basePath) : basePath(basePath) {}
+  MediaCollectionPrivate(string basePath, Session *session) : basePath(basePath), session(session) {}
     void listDirectory(filesystem::path path);
-  
+    bool isAllowed(filesystem::path path);
 public:
   fs::path basePath;
   map<string,Media> collection;
   Signal<Media> added;
   Signal<> scanned;
+  Session *session;
+  list< string > allowedPaths;
 };
 
-MediaCollection::MediaCollection(string basePath, WObject* parent)
-  : WObject(parent), d(new MediaCollectionPrivate(basePath))
+MediaCollection::MediaCollection(string basePath, Session* session, WObject* parent)
+  : WObject(parent), d(new MediaCollectionPrivate(basePath, session))
 {
 }
 
 void MediaCollection::rescan()
 {
+  Dbo::Transaction t(*d->session);
+  d->allowedPaths = d->session->user()->allowedPaths();
   d->collection.clear();
   d->listDirectory(d->basePath);
   d->scanned.emit();
 }
+
+bool MediaCollectionPrivate::isAllowed(filesystem::path path)
+{
+  for(string p: allowedPaths) {
+    if(path.string().find(p) != string::npos)
+      return true;
+  }
+  return false;
+}
+
 
 void MediaCollectionPrivate::listDirectory(filesystem::path path)
 {
@@ -42,7 +57,7 @@ void MediaCollectionPrivate::listDirectory(filesystem::path path)
       listDirectory(path);
     else {
       Media media{path};
-      if(media.mimetype() != "UNSUPPORTED") {
+      if(media.mimetype() != "UNSUPPORTED" && isAllowed(path)) {
         collection[media.uid()] = media;
         added.emit(media);
       }

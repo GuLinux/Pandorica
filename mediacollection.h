@@ -6,11 +6,12 @@
 #include <boost/filesystem.hpp>
 #include "media.h"
 
+class Session;
 class MediaCollectionPrivate;
 class MediaCollection : public Wt::WObject
 {
 public:
-    MediaCollection(std::string basePath, Wt::WObject* parent = 0);
+  MediaCollection(std::string basePath, Session *session, Wt::WObject* parent = 0);
     virtual ~MediaCollection();
     void rescan();
     std::map<std::string,Media> collection() const;

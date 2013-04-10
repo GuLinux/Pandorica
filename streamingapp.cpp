@@ -222,7 +222,7 @@ StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(
   combinedLocalizedStrings->add(xmlResourcesBundle);
   setLocalizedStrings(combinedLocalizedStrings);
 
-  d->collection = new MediaCollection(d->settings.videosDir(), this);
+  d->collection = new MediaCollection(d->settings.videosDir(), &d->session, this);
   addMetaHeader("viewport", "width=device-width, initial-scale=1, maximum-scale=1");
   
   d->authContainer = new WContainerWidget();

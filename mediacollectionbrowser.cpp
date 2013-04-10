@@ -289,6 +289,10 @@ string MediaCollectionBrowserPrivate::formatFileSize(long size)
 void MediaCollectionBrowserPrivate::rebuildBreadcrumb()
 {
   breadcrumb->clear();
+  breadcrumb->addWidget(WW<WPushButton>("Refresh").css("btn btn-small").onClick([=](WMouseEvent) {
+    collection->rescan();
+    browse(collection->rootPath());
+  }));
   list<fs::path> paths;
   fs::path p = currentPath;
   while(p != collection->rootPath()) {

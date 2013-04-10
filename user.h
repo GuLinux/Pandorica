@@ -32,6 +32,7 @@ public:
   }
   
   bool isAdmin() const;
+  std::list<std::string> allowedPaths() const;
   
   dbo::collection<dbo::ptr<SessionInfo>> sessionInfos;
   dbo::collection<dbo::ptr<Comment>> comments;
