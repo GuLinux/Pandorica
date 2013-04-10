@@ -31,13 +31,6 @@ class WTable;
 
 class Session;
 
-class UsersInGroupDialog : public Wt::WDialog {
-public:
-  UsersInGroupDialog(Wt::Dbo::ptr<Group> group, Session *session);
-private:
-  Wt::Signal<> dataChanged;
-};
-
 class GroupsDialog : public Wt::WDialog
 {
 public:

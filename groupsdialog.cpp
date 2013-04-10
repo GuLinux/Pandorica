@@ -41,9 +41,25 @@
 #include <Wt/WMessageBox>
 #include <Wt/Auth/Dbo/AuthInfo>
 #include <Wt/WComboBox>
+#include <Wt/WTreeView>
+#include <Wt/WStandardItemModel>
+#include <Wt/WStandardItem>
 
 using namespace Wt;
 using namespace std;
+
+class UsersInGroupDialog : public Wt::WDialog {
+public:
+  UsersInGroupDialog(Wt::Dbo::ptr<Group> group, Session *session);
+private:
+  Wt::Signal<> dataChanged;
+};
+
+
+class GroupDirectoriesDialog : public Wt::WDialog {
+public:
+  GroupDirectoriesDialog(Wt::Dbo::ptr<Group> group, Session *session);
+};
 
 GroupsDialog::GroupsDialog(Session *session): WDialog(), session(session)
 {
@@ -107,7 +123,9 @@ void GroupsDialog::populateGroups()
     currentGroups->elementAt(row, 1)->addWidget(WW<WPushButton>("Users").css("btn btn-small btn-primary").onClick([=](WMouseEvent) {
      (new UsersInGroupDialog{group, session})->show(); 
     }));
-    currentGroups->elementAt(row, 2)->addWidget(WW<WPushButton>("Paths").css("btn btn-small btn-info"));
+    currentGroups->elementAt(row, 2)->addWidget(WW<WPushButton>("Paths").css("btn btn-small btn-info").onClick([=](WMouseEvent) {
+        (new GroupDirectoriesDialog{group, session})->show();
+    }));
     currentGroups->elementAt(row, 3)->addWidget(WW<WPushButton>("Remove").css("btn btn-small btn-danger").onClick([=](WMouseEvent) {
       if(WMessageBox::show(wtr("delete.group.title"), wtr("delete.group.text").arg(group->groupName()), Yes | No) != Yes) return;
       Dbo::Transaction t(*session);
@@ -198,6 +216,25 @@ UsersInGroupDialog::UsersInGroupDialog(GroupPtr group, Session* session): WDialo
   contents()->addWidget(usersTable);
 }
 
+GroupDirectoriesDialog::GroupDirectoriesDialog(Dbo::ptr< Group > group, Session* session): WDialog()
+{
+  setTitleBarEnabled(true);
+  setClosable(true);
+  setResizable(true);
+  setWindowTitle(WString("Allowed directories for {1}").arg(group->groupName()));
+  WTreeView *tree = new WTreeView();
+  WStandardItemModel *model = new WStandardItemModel(this);
+  tree->setModel(model);
+  tree->resize(600, 400);
+  WStandardItem *a = new WStandardItem("a");
+  a->appendRow(new WStandardItem{"1"});
+  WStandardItem *b = new WStandardItem("b");
+  WStandardItem *c = new WStandardItem("c");
+  model->appendRow(a);
+  model->appendRow(b);
+  model->appendRow(c);
+  contents()->addWidget(tree);
+}
 
 
 
