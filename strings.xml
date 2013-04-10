@@ -24,6 +24,7 @@
   <message id="mediabrowser.medialength">Length: {1}</message>
   <message id="mediabrowser.admin.settitle.missingproperties.caption">Error: Media Properties Missing</message>
   <message id="mediabrowser.admin.settitle.missingproperties.body">The media properties are not stored in the current database<br />You probably want to run the "generateFileData" script first.</message>
+  <message id="mediacollection.reload">Reload</message>
   
   <!-- comments -->
   <message id="comments.label">Comments</message>
