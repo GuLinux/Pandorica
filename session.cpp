@@ -73,6 +73,7 @@ Session::Session()
 
   mapClass<User>("user");
   mapClass<Group>("group");
+  mapClass<GroupPath>("group_path");
   mapClass<AuthInfo>("auth_info");
   mapClass<SessionInfo>("session_info");
   mapClass<SessionDetails>("session_details");
