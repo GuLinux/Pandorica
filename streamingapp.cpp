@@ -463,7 +463,7 @@ void StreamingAppPrivate::setupAdminMenus()
   });
   
   WText *groupsDialog = WW<WText>("Groups").onClick([=](WMouseEvent) {
-    (new GroupsDialog(&session))->show();
+    (new GroupsDialog(&session, &settings))->show();
   });
   topBarTemplate->bindWidget("users.log", allLog);
   topBarTemplate->bindWidget("groups.dialog", groupsDialog);

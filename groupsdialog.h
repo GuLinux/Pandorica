@@ -24,6 +24,7 @@
 #include <Wt/WDialog>
 #include <Wt/Dbo/ptr>
 
+class Settings;
 class Group;
 namespace Wt {
 class WTable;
@@ -34,11 +35,9 @@ class Session;
 class GroupsDialog : public Wt::WDialog
 {
 public:
-    GroupsDialog(Session *session);
+  GroupsDialog(Session *session, Settings *settings);
 private:
-  void populateGroups();
-  Session *session;
-  Wt::WTable *currentGroups;
+  Wt::Signal<> dataChanged;
 };
 
 #endif // GROUPSDIALOG_H

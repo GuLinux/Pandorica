@@ -33,6 +33,7 @@
 #include "user.h"
 #include "sessiondetails.h"
 #include "comment.h"
+#include "settings.h"
 
 #include <Wt/Dbo/Dbo>
 #include <Wt/Dbo/QueryModel>
@@ -44,6 +45,7 @@
 #include <Wt/WTreeView>
 #include <Wt/WStandardItemModel>
 #include <Wt/WStandardItem>
+#include <boost/filesystem.hpp>
 
 using namespace Wt;
 using namespace std;
@@ -58,10 +60,10 @@ private:
 
 class GroupDirectoriesDialog : public Wt::WDialog {
 public:
-  GroupDirectoriesDialog(Wt::Dbo::ptr<Group> group, Session *session);
+  GroupDirectoriesDialog(Dbo::ptr< Group > group, Session* session, Settings* settings);
 };
 
-GroupsDialog::GroupsDialog(Session *session): WDialog(), session(session)
+GroupsDialog::GroupsDialog(Session* session, Settings* settings): WDialog()
 {
   setTitleBarEnabled(true);
   setClosable(true);
@@ -82,7 +84,7 @@ GroupsDialog::GroupsDialog(Session *session): WDialog(), session(session)
   };
   enableAddGroupButton();
   
-  currentGroups = WW<WTable>().css("table table-striped table-bordered table-hover");
+  WTable *currentGroups = WW<WTable>().css("table table-striped table-bordered table-hover");
   
   auto saveNewGroup = [=] {
     Dbo::Transaction t(*session);
@@ -91,7 +93,7 @@ GroupsDialog::GroupsDialog(Session *session): WDialog(), session(session)
     t.commit();
     isAdmin->setCheckState(Wt::Unchecked);
     newGroupName->setText("");
-    populateGroups();
+    dataChanged.emit();
   };
   
   newGroupName->keyWentUp().connect([=](WKeyEvent k) {
@@ -105,42 +107,44 @@ GroupsDialog::GroupsDialog(Session *session): WDialog(), session(session)
     WW<WContainerWidget>().css("form-inline").add(newGroupName).add(adminLabel).add(addGroup)
   );
   
+  auto populateGroups = [=] {
+    currentGroups->clear();
+    Dbo::Transaction t(*session);
+    Dbo::collection<GroupPtr> groups = session->find<Group>();
+    int row{0};
+    for(GroupPtr group: groups) {
+      currentGroups->elementAt(row, 0)->addWidget(WW<WText>(group->groupName()));
+      currentGroups->elementAt(row, 0)->setContentAlignment(AlignMiddle);
+      currentGroups->elementAt(row, 1)->addWidget(WW<WPushButton>("Users").css("btn btn-small btn-primary").onClick([=](WMouseEvent) {
+        (new UsersInGroupDialog{group, session})->show(); 
+      }));
+      currentGroups->elementAt(row, 2)->addWidget(WW<WPushButton>("Paths").css("btn btn-small btn-info").onClick([=](WMouseEvent) {
+        (new GroupDirectoriesDialog{group, session, settings})->show();
+      }));
+      currentGroups->elementAt(row, 3)->addWidget(WW<WPushButton>("Remove").css("btn btn-small btn-danger").onClick([=](WMouseEvent) {
+        if(WMessageBox::show(wtr("delete.group.title"), wtr("delete.group.text").arg(group->groupName()), Yes | No) != Yes) return;
+        Dbo::Transaction t(*session);
+        GroupPtr groupToDelete = session->find<Group>().where("id = ?").bind(group.id());
+        for(UserPtr user: groupToDelete->users)
+          groupToDelete.modify()->users.erase(user);
+        groupToDelete.flush();
+        groupToDelete.remove();
+        t.commit();
+        dataChanged.emit();
+      }));
+      for(int i=1; i<4; i++) currentGroups->elementAt(row, i)->setStyleClass("span1");
+      row++;
+    }
+  };
   
+  dataChanged.connect([=](_n6) {
+    populateGroups();
+  });
 
   contents()->addWidget(currentGroups);
   populateGroups();
 }
 
-void GroupsDialog::populateGroups()
-{
-  currentGroups->clear();
-  Dbo::Transaction t(*session);
-  Dbo::collection<GroupPtr> groups = session->find<Group>();
-  int row{0};
-  for(GroupPtr group: groups) {
-    currentGroups->elementAt(row, 0)->addWidget(WW<WText>(group->groupName()));
-    currentGroups->elementAt(row, 0)->setContentAlignment(AlignMiddle);
-    currentGroups->elementAt(row, 1)->addWidget(WW<WPushButton>("Users").css("btn btn-small btn-primary").onClick([=](WMouseEvent) {
-     (new UsersInGroupDialog{group, session})->show(); 
-    }));
-    currentGroups->elementAt(row, 2)->addWidget(WW<WPushButton>("Paths").css("btn btn-small btn-info").onClick([=](WMouseEvent) {
-        (new GroupDirectoriesDialog{group, session})->show();
-    }));
-    currentGroups->elementAt(row, 3)->addWidget(WW<WPushButton>("Remove").css("btn btn-small btn-danger").onClick([=](WMouseEvent) {
-      if(WMessageBox::show(wtr("delete.group.title"), wtr("delete.group.text").arg(group->groupName()), Yes | No) != Yes) return;
-      Dbo::Transaction t(*session);
-      GroupPtr groupToDelete = session->find<Group>().where("id = ?").bind(group.id());
-      for(UserPtr user: groupToDelete->users)
-        groupToDelete.modify()->users.erase(user);
-      groupToDelete.flush();
-      groupToDelete.remove();
-      t.commit();
-      populateGroups();
-    }));
-    for(int i=1; i<4; i++) currentGroups->elementAt(row, i)->setStyleClass("span1");
-    row++;
-  }
-}
 
 #define SQL(...) #__VA_ARGS__
 
@@ -216,7 +220,8 @@ UsersInGroupDialog::UsersInGroupDialog(GroupPtr group, Session* session): WDialo
   contents()->addWidget(usersTable);
 }
 
-GroupDirectoriesDialog::GroupDirectoriesDialog(Dbo::ptr< Group > group, Session* session): WDialog()
+using namespace boost::filesystem;
+GroupDirectoriesDialog::GroupDirectoriesDialog(Dbo::ptr< Group > group, Session* session, Settings *settings): WDialog()
 {
   setTitleBarEnabled(true);
   setClosable(true);
@@ -226,14 +231,55 @@ GroupDirectoriesDialog::GroupDirectoriesDialog(Dbo::ptr< Group > group, Session*
   WStandardItemModel *model = new WStandardItemModel(this);
   tree->setModel(model);
   tree->resize(600, 400);
-  WStandardItem *a = new WStandardItem("a");
-  a->appendRow(new WStandardItem{"1"});
-  WStandardItem *b = new WStandardItem("b");
-  WStandardItem *c = new WStandardItem("c");
-  model->appendRow(a);
-  model->appendRow(b);
-  model->appendRow(c);
   contents()->addWidget(tree);
+  resize(610, 400);
+  
+  auto folderItem = [=] (path p) {
+    Dbo::Transaction t(*session);
+    string folderName{p.filename().string()};
+    WStandardItem* item = new WStandardItem{"http://gulinux.net/css/fs_icons/directory-small.png", folderName};
+    item->setCheckable(true);
+    for(Dbo::ptr<GroupPath> groupPath: group->groupPaths)
+      if(groupPath->path() == p.string())
+        item->setChecked(true);
+    item->setData(p);
+    return item;
+  };
+  
+  auto populateTree = [=] {
+    model->clear();
+    path videosDir{settings->videosDir()};
+    map<path, WStandardItem*> items{
+      {videosDir, folderItem(videosDir)}
+    };
+    model->appendRow(items[videosDir]);
+    recursive_directory_iterator it{videosDir, symlink_option::recurse};
+    while(it != recursive_directory_iterator() ) {
+      if(is_directory(*it)) {
+        WStandardItem *item = folderItem(*it);
+        items[it->path()] = item;
+        items[it->path().parent_path()]->appendRow(item);
+      }
+      it++;
+    }
+  };
+  model->itemChanged().connect([=](WStandardItem *item, _n5) {
+    Dbo::Transaction t(*session);
+    bool itemChecked = (item->checkState() == Wt::Checked);
+    string itemPath = boost::any_cast<path>(item->data()).string();
+    if(itemChecked) {
+      group.modify()->groupPaths.insert(new GroupPath{itemPath});
+    } else {
+      for(Dbo::ptr<GroupPath> groupPath: group->groupPaths) {
+        if(groupPath->path() == itemPath) {
+          groupPath.remove();
+        }
+      }
+    }
+    t.commit();
+  });
+  
+  populateTree();
 }
 
 

@@ -11,6 +11,8 @@ namespace dbo = Wt::Dbo;
 
 class GroupPath {
 public:
+  GroupPath() = default;
+  GroupPath(std::string path) : _path(path) {}
   template<class Action>
   void persist(Action& a) {
     dbo::field(a, _path, "path");
