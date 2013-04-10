@@ -239,6 +239,7 @@ GroupDirectoriesDialog::GroupDirectoriesDialog(Dbo::ptr< Group > group, Session*
     string folderName{p.filename().string()};
     WStandardItem* item = new WStandardItem{"http://gulinux.net/css/fs_icons/directory-small.png", folderName};
     item->setCheckable(true);
+    item->setStyleClass("tree-directory-item");
     for(Dbo::ptr<GroupPath> groupPath: group->groupPaths)
       if(groupPath->path() == p.string())
         item->setChecked(true);
@@ -262,6 +263,7 @@ GroupDirectoriesDialog::GroupDirectoriesDialog(Dbo::ptr< Group > group, Session*
       }
       it++;
     }
+    tree->expandToDepth(1);
   };
   model->itemChanged().connect([=](WStandardItem *item, _n5) {
     Dbo::Transaction t(*session);
