@@ -73,6 +73,8 @@
 #include <Wt/WStringListModel>
 #include <Wt/WSortFilterProxyModel>
 #include <Wt/WMemoryResource>
+#include <Wt/WBootstrapTheme>
+#include <Wt/WNavigationBar>
 
 using namespace Wt;
 using namespace std;
@@ -118,6 +120,7 @@ private:
   void setupUserMenus();
   WText* activeUsersMenuItem;
   WText* filesListMenuItem;
+  WNavigationBar* navigationBar;
 };
 
 class Message : public WTemplate {
@@ -201,16 +204,33 @@ void StreamingAppSessions::unregisterSession(string sessionId)
 
 StreamingAppSessions streamingAppSessions;
 
+class BootstrapTheme : public WBootstrapTheme {
+public:
+  BootstrapTheme(WObject* parent = 0) : WBootstrapTheme(parent) {}
+  virtual vector< WCssStyleSheet > styleSheets() const;
+};
+
+vector<WCssStyleSheet> BootstrapTheme::styleSheets() const
+{
+  return { {"http://gulinux.net/css/bootstrap/css/bootstrap.css"},
+    {"http://gulinux.net/css/bootstrap/css/bootstrap-responsive.css"},
+    { wApp->resourcesUrl() + "wt.css" }
+  };
+}
+
+
 StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(environment), d(new StreamingAppPrivate(this)) {
   useStyleSheet("http://gulinux.net/css/videostreaming.css");
   requireJQuery("http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js");
+//   useStyleSheet("http://vjs.zencdn.net/c/video-js.css");
+//   require("http://vjs.zencdn.net/c/video.js");
   useStyleSheet("http://gulinux.net/css/bootstrap/css/bootstrap.css");
   useStyleSheet("http://gulinux.net/css/bootstrap/css/bootstrap-responsive.css");
   require("http://gulinux.net/css/bootstrap/js/bootstrap.js");
-//   useStyleSheet("http://vjs.zencdn.net/c/video-js.css");
-//   require("http://vjs.zencdn.net/c/video.js");
+
   require("http://gulinux.net/css/mediaelement/mediaelement-and-player.js");
   useStyleSheet("http://gulinux.net/css/mediaelement/mediaelementplayer.css");
+  setTheme(new WBootstrapTheme(this));
   enableUpdates(true);
   d->session.login().changed().connect(this, &StreamingApp::authEvent);
   WMessageResourceBundle *xmlResourcesBundle = new WMessageResourceBundle;
@@ -318,16 +338,41 @@ void StreamingApp::authEvent()
 void StreamingAppPrivate::setupMenus(bool isAdmin)
 {
   wApp->log("notice") << "Setting up topbar links";
-  topBarTemplate = new WTemplate(wtr("navbar"));
-  topBarTemplate->addFunction("tr", &WTemplate::Functions::tr);
-  filesListMenuItem = new WText(wtr("menu.videoslist"));
-  WText *latestCommentsMenuItem = new WText(wtr("menu.latest.comments"));
+  navigationBar = new WNavigationBar();
+  navigationBar->addStyleClass("navbar-static-top navbar-inverse");
+  navigationBar->setTitle(wtr("site-title"));
+  navigationBar->setResponsive(true);
+  
+  WMenu *items = new WMenu();
+  WMenuItem *mediaListMenuItem = items->addItem(wtr("menu.videoslist"));
+  WMenuItem *settingsMenuItem = items->addItem(wtr("menu.settings"));
+  WMenuItem *commentsMenuItem = items->addItem(wtr("menu.latest.comments"));
+  
+  navigationBar->addMenu(items);
+  
+  mainWidget->addWidget(navigationBar);
+  
+  auto resetSelection = [=] { WTimer::singleShot(200, [=](WMouseEvent) { items->select(-1); }); };
+  
+  mediaListMenuItem->triggered().connect([=](WMenuItem*, _n5){
+    if(widgetsStack->currentIndex()) {
+      mediaListMenuItem->setText(wtr("menu.videoslist"));
+      widgetsStack->setCurrentIndex(0);
+    } else {
+      mediaListMenuItem->setText(wtr("menu.back.to.video"));
+      widgetsStack->setCurrentIndex(1);
+      mediaCollectionBrowser->reload();
+    }
+    resetSelection();
+  });
+  
+  
   
   WContainerWidget* latestCommentsBody = WW<WContainerWidget>().css("modal-body");
   WContainerWidget* latestCommentsContainer = WW<WContainerWidget>().css("modal fade hide comments-modal").add(latestCommentsBody);
   
   
-  latestCommentsMenuItem->clicked().connect([latestCommentsMenuItem,latestCommentsContainer,latestCommentsBody,this](WMouseEvent){
+  commentsMenuItem->triggered().connect([=](WMenuItem*, _n5){
     latestCommentsBody->clear();
     Dbo::Transaction t(session);
     Dbo::collection<CommentPtr> latestComments = session.find<Comment>().orderBy("last_updated desc").limit(5);
@@ -346,7 +391,7 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
       commentWidget->addWidget(header);
       videoLink->clicked().connect([=](WMouseEvent){
         string hidejs = (boost::format(JS( $('#%s').modal('hide'); )) % latestCommentsContainer->id()).str();
-        latestCommentsMenuItem->doJavaScript(hidejs);
+        commentsMenuItem->doJavaScript(hidejs);
         queueAndPlay(media);
       });
       commentWidget->addWidget(WW<WText>(WString::fromUTF8(comment->content())).css("well comment-text comment-box-element").setInline(false));
@@ -355,28 +400,33 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   });
   wApp->root()->addWidget(latestCommentsContainer);
   
-  latestCommentsMenuItem->clicked().connect([=](WMouseEvent){
+  commentsMenuItem->triggered().connect([=](WMenuItem*, _n5){
     string togglejs = (boost::format(JS( $('#%s').modal('toggle'); )) % latestCommentsContainer->id()).str();
-    latestCommentsMenuItem->doJavaScript(togglejs);
+    commentsMenuItem->doJavaScript(togglejs);
+    resetSelection();
   });
+  
+  SettingsPage* settingsPage = new SettingsPage(&settings);
+  settingsPage->addStyleClass("modal fade hide");
+  q->root()->addWidget(settingsPage);
+  
+  settingsMenuItem->triggered().connect([=](WMenuItem*, _n5) {
+    string togglejs = (boost::format(JS( $('#%s').modal('toggle'); )) % settingsPage->id()).str();
+    wApp->doJavaScript(togglejs);
+    resetSelection();
+  });
+  
+  
+  return;
   activeUsersMenuItem = new WText(wtr("menu.users").arg(""));
   
   auto setLoggedUsersTitle = [this](StreamingAppSession, _n5){
     activeUsersMenuItem->setText(wtr("menu.users").arg(streamingAppSessions.sessionCount()));
   };
   
-  SettingsPage* settingsPage = new SettingsPage(&settings);
-  settingsPage->addStyleClass("modal fade hide");
-  q->root()->addWidget(settingsPage);
+
   
-  topBarTemplate->bindWidget("settings", WW<WText>(wtr("menu.settings")).onClick([settingsPage,this](WMouseEvent) {
-    string togglejs = (boost::format(JS( $('#%s').modal('toggle'); )) % settingsPage->id()).str();
-    wApp->doJavaScript(togglejs);
-  }));
-  topBarTemplate->bindWidget("latest.comments", latestCommentsMenuItem);
-  topBarTemplate->bindWidget("users.count", activeUsersMenuItem);
-  topBarTemplate->bindWidget("media.list", filesListMenuItem);
-  
+
   sessionAdded.connect(setLoggedUsersTitle);
   sessionRemoved.connect(setLoggedUsersTitle);
   
@@ -387,13 +437,7 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   else {
     setupUserMenus();
   }
-  
-  string serverStatusUrl; // TODO
-  if(false || wApp->readConfigurationProperty("server-status-url", serverStatusUrl)) {
-    WText *bwStatsItem = new WText();
-    new ReadBWStats(bwStatsItem, serverStatusUrl, q);
-  }
-  
+
   WText *logout = new WText(wtr("menu.logout"));
   topBarTemplate->bindWidget("logout", logout);
   
@@ -402,23 +446,12 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
     wApp->quit();
     wApp->redirect(wApp->bookmarkUrl("/")); 
   });
-  filesListMenuItem->clicked().connect([=](WMouseEvent){
-    if(widgetsStack->currentIndex()) {
-      filesListMenuItem->setText(wtr("menu.videoslist"));
-      widgetsStack->setCurrentIndex(0);
-    } else {
-      filesListMenuItem->setText(wtr("menu.back.to.video"));
-      widgetsStack->setCurrentIndex(1);
-      mediaCollectionBrowser->reload();
-    }
-  });
-  
 
   WLineEdit *searchBox = new WLineEdit();
   searchBox->setStyleClass("search-query");
   searchBox->setAttributeValue("placeholder", wtr("menu.search"));
   topBarTemplate->bindWidget("search", searchBox);
-  mainWidget->addWidget(topBarTemplate);
+  // mainWidget->addWidget(topBarTemplate);
   
   string jsMatcher = JS( function (editElement) {
     return function(suggestion) {
