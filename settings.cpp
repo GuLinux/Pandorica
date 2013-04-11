@@ -170,3 +170,16 @@ WLink SettingsPrivate::nginxSecLinkFor(string secDownloadPrefix, string secDownl
     return secDownloadUrl;
 }
 
+map<Settings::Icons,string> iconsMap {
+  {Settings::FolderBig, "http://gulinux.net/css/fs_icons/default/directory-big.png"},
+  {Settings::FolderSmall, "http://gulinux.net/css/fs_icons/default/directory-small.png"},
+  {Settings::VideoFile, "http://gulinux.net/css/fs_icons/default/video.png"},
+  {Settings::AudioFile, "http://gulinux.net/css/fs_icons/default/audio.png"}
+};
+
+string Settings::icon(Settings::Icons icon)
+{
+  return iconsMap[icon];
+}
+
+

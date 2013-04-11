@@ -216,7 +216,6 @@ StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(
   WMessageResourceBundle *xmlResourcesBundle = new WMessageResourceBundle;
   xmlResourcesBundle->use("strings");
   setLocale(d->settings.locale());
-  log("notice") << "Default locale: " << locale();
   WCombinedLocalizedStrings* combinedLocalizedStrings = new WCombinedLocalizedStrings();
   combinedLocalizedStrings->add(new WHTMLTemplatesLocalizedStrings("html_templates"));
   combinedLocalizedStrings->add(xmlResourcesBundle);
