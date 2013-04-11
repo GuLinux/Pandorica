@@ -237,7 +237,7 @@ GroupDirectoriesDialog::GroupDirectoriesDialog(Dbo::ptr< Group > group, Session*
   auto folderItem = [=] (path p) {
     Dbo::Transaction t(*session);
     string folderName{p.filename().string()};
-    WStandardItem* item = new WStandardItem{"http://gulinux.net/css/fs_icons/directory-small.png", folderName};
+    WStandardItem* item = new WStandardItem{Settings::icon(Settings::FolderSmall), folderName};
     item->setCheckable(true);
     item->setStyleClass("tree-directory-item");
     for(Dbo::ptr<GroupPath> groupPath: group->groupPaths)

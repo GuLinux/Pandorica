@@ -116,7 +116,7 @@ void MediaCollectionBrowserPrivate::addDirectory(filesystem::path directory)
   auto onClick = [=](WMouseEvent){
     browse(directory);
   };
-  addIcon(directory.filename().string(), [](WObject*){ return "http://gulinux.net/css/fs_icons/inode-directory.png"; }, onClick);
+  addIcon(directory.filename().string(), [](WObject*){ return Settings::icon(Settings::FolderBig); }, onClick);
 }
 
 void MediaCollectionBrowserPrivate::addMedia(Media &media)
@@ -177,9 +177,9 @@ void MediaCollectionBrowserPrivate::addMedia(Media &media)
     });
     menu->popup(e);
   };
-  GetIconF icon = [](WObject *){ return "http://gulinux.net/css/fs_icons/video-x-generic.png"; };
+  GetIconF icon = [](WObject *){ return Settings::icon(Settings::VideoFile); };
   if(media.mimetype().find("audio") != string::npos)
-    icon = [](WObject *){ return "http://gulinux.net/css/fs_icons/audio-x-generic.png"; };
+    icon = [](WObject *){ return Settings::icon(Settings::AudioFile); };
   Dbo::ptr<MediaAttachment> preview = media.preview(session, Media::PreviewThumb);
   if(preview)
     icon = [=](WObject *parent){ return (new WMemoryResource(preview->mimetype(), preview->data(), parent))->url(); };
