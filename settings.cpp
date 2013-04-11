@@ -171,15 +171,16 @@ WLink SettingsPrivate::nginxSecLinkFor(string secDownloadPrefix, string secDownl
 }
 
 map<Settings::Icons,string> iconsMap {
-  {Settings::FolderBig, "http://gulinux.net/css/fs_icons/default/directory-big.png"},
-  {Settings::FolderSmall, "http://gulinux.net/css/fs_icons/default/directory-small.png"},
-  {Settings::VideoFile, "http://gulinux.net/css/fs_icons/default/video.png"},
-  {Settings::AudioFile, "http://gulinux.net/css/fs_icons/default/audio.png"}
+  {Settings::FolderBig, "http://gulinux.net/css/fs_icons/%s/directory-big.png"},
+  {Settings::FolderSmall, "http://gulinux.net/css/fs_icons/%s/directory-small.png"},
+  {Settings::VideoFile, "http://gulinux.net/css/fs_icons/%s/video.png"},
+  {Settings::AudioFile, "http://gulinux.net/css/fs_icons/%s/audio.png"}
 };
 
 string Settings::icon(Settings::Icons icon)
 {
-  return iconsMap[icon];
+  string theme {"devine"};
+  return (boost::format(iconsMap[icon]) % theme).str();
 }
 
 
