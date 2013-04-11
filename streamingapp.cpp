@@ -212,9 +212,11 @@ public:
 
 vector<WCssStyleSheet> BootstrapTheme::styleSheets() const
 {
-  return { {"http://gulinux.net/css/bootstrap/css/bootstrap.css"},
+  return {
+    { wApp->resourcesUrl() + "wt.css" },
+    { wApp->resourcesUrl() + "form.css" },
+    {"http://gulinux.net/css/bootstrap/css/bootstrap.css"},
     {"http://gulinux.net/css/bootstrap/css/bootstrap-responsive.css"},
-    { wApp->resourcesUrl() + "wt.css" }
   };
 }
 
@@ -224,8 +226,8 @@ StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(
   requireJQuery("http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js");
 //   useStyleSheet("http://vjs.zencdn.net/c/video-js.css");
 //   require("http://vjs.zencdn.net/c/video.js");
-  useStyleSheet("http://gulinux.net/css/bootstrap/css/bootstrap.css");
-  useStyleSheet("http://gulinux.net/css/bootstrap/css/bootstrap-responsive.css");
+//  useStyleSheet("http://gulinux.net/css/bootstrap/css/bootstrap.css");
+//  useStyleSheet("http://gulinux.net/css/bootstrap/css/bootstrap-responsive.css");
   require("http://gulinux.net/css/bootstrap/js/bootstrap.js");
 
   require("http://gulinux.net/css/mediaelement/mediaelement-and-player.js");
