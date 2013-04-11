@@ -105,7 +105,6 @@ public:
   WContainerWidget *authContainer;
   WContainerWidget *messagesContainer;
   WTemplate* topBarTemplate;
-  MediaCollection *collection;
   WStackedWidget* widgetsStack;
   void queue(Media media, bool autoplay = true);
   void queueAndPlay(Media media);
@@ -114,6 +113,7 @@ public:
   JSignal<string> queueSignal;
   Settings settings;
   MediaCollectionBrowser* mediaCollectionBrowser;
+  MediaCollection* mediaCollection;
 private:
   void setupUserMenus();
   WText* activeUsersMenuItem;
@@ -134,10 +134,10 @@ Message::Message(WString text, WContainerWidget* parent): WTemplate(parent)
 
 StreamingAppPrivate::StreamingAppPrivate(StreamingApp *q) : q(q), playSignal(q, "playSignal"), queueSignal(q, "queueSignal") {
   playSignal.connect([=](string uid, _n5){
-    queueAndPlay(collection->media(uid));
+    queueAndPlay(mediaCollection->media(uid));
   });
   queueSignal.connect([=](string uid, _n5){
-    queue(collection->media(uid));
+    queue(mediaCollection->media(uid));
   });
 }
 
@@ -221,7 +221,6 @@ StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(
   combinedLocalizedStrings->add(xmlResourcesBundle);
   setLocalizedStrings(combinedLocalizedStrings);
 
-  d->collection = new MediaCollection(d->settings.videosDir(), &d->session, this);
   addMetaHeader("viewport", "width=device-width, initial-scale=1, maximum-scale=1");
   
   d->authContainer = new WContainerWidget();
@@ -251,7 +250,7 @@ void StreamingApp::authEvent()
   if(!d->session.login().loggedIn()) {
     streamingAppSessions.unregisterSession(wApp->sessionId());
     d->clearContent();
-    d->authContainer->show();
+    d->authContainer->setStyleClass("");
     return;
   }
   log("notice") << "User logged in";
@@ -282,7 +281,8 @@ void StreamingApp::authEvent()
     return;
   }
   log("notice") << "Clearing root and creating widgets";
-  d->authContainer->hide();
+  d->authContainer->setStyleClass("hidden"); // workaround: for wt 3.3.x hide() doesn't seem to work...
+
   root()->addWidget(d->mainWidget = new WContainerWidget() );
   auto myUser = d->session.user();
   SessionInfo* sessionInfo = new SessionInfo(myUser, sessionId(), wApp->environment().clientAddress());
@@ -292,6 +292,8 @@ void StreamingApp::authEvent()
     oldSessionInfo.flush();
   }
   d->sessionInfo = d->session.add(sessionInfo);
+  d->mediaCollection = new MediaCollection(d->settings.videosDir(), &d->session, this);
+
   d->setupMenus(d->session.user()->isAdmin());
   t.commit();
   setupGui();
@@ -331,7 +333,7 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
     Dbo::collection<CommentPtr> latestComments = session.find<Comment>().orderBy("last_updated desc").limit(5);
     for(CommentPtr comment: latestComments) {
       WContainerWidget* commentWidget = new WContainerWidget;
-      Media media = collection->media(comment->videoId());
+      Media media = mediaCollection->media(comment->videoId());
       
       WContainerWidget *header = WW<WContainerWidget>();
       header->setContentAlignment(AlignCenter);
@@ -432,7 +434,7 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   
   WSuggestionPopup* suggestions = new WSuggestionPopup(jsMatcher, jsReplace, wApp->root());
   auto addSuggestions = [=](_n6) {
-    for(pair<string,Media> media: collection->collection()) {
+    for(pair<string,Media> media: mediaCollection->collection()) {
       WString title{media.second.title(&session)};
       suggestions->addSuggestion(title, media.first);
       if(title.toUTF8() != media.second.filename())
@@ -442,7 +444,7 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   };
   
   
-  collection->scanned().connect(addSuggestions );
+  mediaCollection->scanned().connect(addSuggestions );
   
 }
 
@@ -509,7 +511,7 @@ void StreamingApp::setupGui()
   contentWidget->addWidget(playlistContainer);
   contentWidget->addWidget(d->playerContainerWidget);
   
-  d->mediaCollectionBrowser = new MediaCollectionBrowser{d->collection, &d->settings, &d->session};
+  d->mediaCollectionBrowser = new MediaCollectionBrowser{d->mediaCollection, &d->settings, &d->session};
   d->mediaCollectionBrowser->play().connect([=](Media media, _n5){
     d->queueAndPlay(media.path());
   });
@@ -526,7 +528,7 @@ void StreamingApp::setupGui()
   d->parseFileParameter();
   
   d->playlist->next().connect(d, &StreamingAppPrivate::play);
-  WTimer::singleShot(500, [=](WMouseEvent) {   d->collection->rescan(); });
+  WTimer::singleShot(500, [=](WMouseEvent) {   d->mediaCollection->rescan(); });
 }
 
 
@@ -535,7 +537,7 @@ void StreamingAppPrivate::parseFileParameter() {
     log("notice") << "Got parameter file: " << *wApp->environment().getParameter("file");
     WTimer::singleShot(1000, [=](WMouseEvent&) {
       string fileHash = * wApp->environment().getParameter("file");
-      queue(collection->media(fileHash).path());
+      queue(mediaCollection->media(fileHash).path());
     });
   }    
 }

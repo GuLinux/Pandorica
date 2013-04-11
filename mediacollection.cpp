@@ -17,7 +17,6 @@ public:
 public:
   fs::path basePath;
   map<string,Media> collection;
-  Signal<Media> added;
   Signal<> scanned;
   Session *session;
   list< string > allowedPaths;
@@ -59,7 +58,6 @@ void MediaCollectionPrivate::listDirectory(filesystem::path path)
       Media media{path};
       if(media.mimetype() != "UNSUPPORTED" && isAllowed(path)) {
         collection[media.uid()] = media;
-        added.emit(media);
       }
     }
   }
@@ -73,11 +71,6 @@ map< string, Media > MediaCollection::collection() const
 Media MediaCollection::media(string uid) const
 {
   return d->collection[uid];
-}
-
-Wt::Signal< Media >& MediaCollection::added()
-{
-  return d->added;
 }
 
 Signal<>& MediaCollection::scanned()
