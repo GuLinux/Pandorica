@@ -233,7 +233,7 @@ StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(
 
   require("http://gulinux.net/css/mediaelement/mediaelement-and-player.js");
   useStyleSheet("http://gulinux.net/css/mediaelement/mediaelementplayer.css");
-  setTheme(new WBootstrapTheme(this));
+  setTheme(new BootstrapTheme(this));
   enableUpdates(true);
   d->session.login().changed().connect(this, &StreamingApp::authEvent);
   WMessageResourceBundle *xmlResourcesBundle = new WMessageResourceBundle;
