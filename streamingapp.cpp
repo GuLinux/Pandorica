@@ -75,6 +75,7 @@
 #include <Wt/WMemoryResource>
 #include <Wt/WBootstrapTheme>
 #include <Wt/WNavigationBar>
+#include <Wt/WPopupMenu>
 
 using namespace Wt;
 using namespace std;
@@ -95,7 +96,7 @@ public:
   WContainerWidget* playerContainerWidget;
   void mailForUnauthorizedUser(string email, WString identity);
   void setupMenus(bool isAdmin);
-  void setupAdminMenus();
+  void setupAdminMenus(WMenu* mainMenu);
   Session session;
   SessionInfoPtr sessionInfo;
   bool mailSent;
@@ -117,10 +118,10 @@ public:
   MediaCollectionBrowser* mediaCollectionBrowser;
   MediaCollection* mediaCollection;
 private:
-  void setupUserMenus();
-  WText* activeUsersMenuItem;
-  WText* filesListMenuItem;
+  void setupUserMenus(WMenu* mainMenu);
+  WMenuItem* activeUsersMenuItem;
   WNavigationBar* navigationBar;
+    WMenuItem* mediaListMenuItem;
 };
 
 class Message : public WTemplate {
@@ -346,7 +347,7 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   navigationBar->setResponsive(true);
   
   WMenu *items = new WMenu();
-  WMenuItem *mediaListMenuItem = items->addItem(wtr("menu.videoslist"));
+  mediaListMenuItem = items->addItem(wtr("menu.videoslist"));
   WMenuItem *settingsMenuItem = items->addItem(wtr("menu.settings"));
   WMenuItem *commentsMenuItem = items->addItem(wtr("menu.latest.comments"));
   
@@ -418,32 +419,24 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
     resetSelection();
   });
   
-  
-  return;
-  activeUsersMenuItem = new WText(wtr("menu.users").arg(""));
+  activeUsersMenuItem = new WMenuItem(wtr("menu.users").arg(""));
   
   auto setLoggedUsersTitle = [this](StreamingAppSession, _n5){
     activeUsersMenuItem->setText(wtr("menu.users").arg(streamingAppSessions.sessionCount()));
   };
   
-
-  
-
   sessionAdded.connect(setLoggedUsersTitle);
   sessionRemoved.connect(setLoggedUsersTitle);
   
   if(isAdmin) {
-    wApp->setCookie("download_src", "lighttpd", WDateTime::currentDateTime().addDays(365));
-    setupAdminMenus();
+    setupAdminMenus(items);
   }
   else {
-    setupUserMenus();
+    setupUserMenus(items);
   }
-
-  WText *logout = new WText(wtr("menu.logout"));
-  topBarTemplate->bindWidget("logout", logout);
+  WMenuItem *logout = items->addItem(wtr("menu.logout"));
   
-  logout->clicked().connect([=](WMouseEvent) {
+  logout->triggered().connect([=](WMenuItem*, _n5) {
     session.login().logout();
     wApp->quit();
     wApp->redirect(wApp->bookmarkUrl("/")); 
@@ -452,8 +445,8 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   WLineEdit *searchBox = new WLineEdit();
   searchBox->setStyleClass("search-query");
   searchBox->setAttributeValue("placeholder", wtr("menu.search"));
-  topBarTemplate->bindWidget("search", searchBox);
-  // mainWidget->addWidget(topBarTemplate);
+
+  navigationBar->addSearch(searchBox, Wt::AlignRight);
   
   string jsMatcher = JS( function (editElement) {
     return function(suggestion) {
@@ -483,30 +476,34 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   
 }
 
-void StreamingAppPrivate::setupUserMenus()
+void StreamingAppPrivate::setupUserMenus(WMenu *mainMenu)
 {
-  topBarTemplate->setCondition("is-user", true);
-  topBarTemplate->setCondition("is-admin", false);
+  mainMenu->addItem(activeUsersMenuItem);
 }
 
 
-void StreamingAppPrivate::setupAdminMenus()
+void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
 {
-  topBarTemplate->setCondition("is-user", false);
-  topBarTemplate->setCondition("is-admin", true);
-  WText *allLog = WW<WText>("Users Log").onClick([=](WMouseEvent){
+  WPopupMenu *adminMenu = new WPopupMenu();
+  adminMenu->addItem(activeUsersMenuItem);
+  
+  WMenuItem *allLog = adminMenu->addItem("Users Log");
+  WMenuItem *groupsDialog = adminMenu->addItem("Groups");
+  
+  allLog->triggered().connect([=](WMenuItem*, _n5){
     (new LoggedUsersDialog{&session, true})->show();
   });
   
-  WText *groupsDialog = WW<WText>("Groups").onClick([=](WMouseEvent) {
+  groupsDialog->triggered().connect([=](WMenuItem*, _n5) {
     (new GroupsDialog(&session, &settings))->show();
   });
-  topBarTemplate->bindWidget("users.log", allLog);
-  topBarTemplate->bindWidget("groups.dialog", groupsDialog);
   
-  activeUsersMenuItem->clicked().connect([=](WMouseEvent){
+  
+  activeUsersMenuItem->triggered().connect([=](WMenuItem*, _n5){
     (new LoggedUsersDialog{&session})->show();
   });
+  WMenuItem *adminMenuItem = mainMenu->addItem("Admin");
+  adminMenuItem->setMenu(adminMenu);
 }
 
 
@@ -634,7 +631,7 @@ std::string defaultLabelFor(string language) {
 
 
 void StreamingAppPrivate::play ( Media media ) {
-  filesListMenuItem->setText(wtr("menu.videoslist"));
+  mediaListMenuItem->setText(wtr("menu.videoslist"));
   widgetsStack->setCurrentIndex(0);
   log("notice") << "Playing file " << media.path();
   if(player) {
