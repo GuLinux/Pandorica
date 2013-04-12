@@ -62,6 +62,7 @@
 #include "mediaattachment.h"
 #include "settingspage.h"
 #include "groupsdialog.h"
+#include "latestcommentsdialog.h"
 
 
 #include <Wt/WOverlayLoadingIndicator>
@@ -374,38 +375,11 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   WContainerWidget* latestCommentsBody = WW<WContainerWidget>().css("modal-body");
   WContainerWidget* latestCommentsContainer = WW<WContainerWidget>().css("modal fade hide comments-modal").add(latestCommentsBody);
   
-  
   commentsMenuItem->triggered().connect([=](WMenuItem*, _n5){
-    latestCommentsBody->clear();
-    Dbo::Transaction t(session);
-    Dbo::collection<CommentPtr> latestComments = session.find<Comment>().orderBy("last_updated desc").limit(5);
-    for(CommentPtr comment: latestComments) {
-      WContainerWidget* commentWidget = new WContainerWidget;
-      Media media = mediaCollection->media(comment->videoId());
-      
-      WContainerWidget *header = WW<WContainerWidget>();
-      header->setContentAlignment(AlignCenter);
-      
-      WAnchor *videoLink = WW<WAnchor>("", media.title(&session)).css("link-hand label label-info comment-box-element");
-      header->addWidget(videoLink);
-      Dbo::ptr<Auth::Dbo::AuthInfo<User>> authInfo = session.find<Auth::Dbo::AuthInfo<User>>().where("user_id = ?").bind(comment->user().id());
-      header->addWidget(WW<WText>(WString("{1} ({2})").arg(authInfo->identity("loginname")).arg(comment->lastUpdated().toString()))
-        .css("label label-success comment-box-element"));
-      commentWidget->addWidget(header);
-      videoLink->clicked().connect([=](WMouseEvent){
-        string hidejs = (boost::format(JS( $('#%s').modal('hide'); )) % latestCommentsContainer->id()).str();
-        commentsMenuItem->doJavaScript(hidejs);
-        queueAndPlay(media);
-      });
-      commentWidget->addWidget(WW<WText>(WString::fromUTF8(comment->content())).css("well comment-text comment-box-element").setInline(false));
-      latestCommentsBody->addWidget(WW<WContainerWidget>().css("comment-text").add(commentWidget));
-    }
-  });
-  wApp->root()->addWidget(latestCommentsContainer);
-  
-  commentsMenuItem->triggered().connect([=](WMenuItem*, _n5){
-    string togglejs = (boost::format(JS( $('#%s').modal('toggle'); )) % latestCommentsContainer->id()).str();
-    commentsMenuItem->doJavaScript(togglejs);
+    LatestCommentsDialog *dialog = new LatestCommentsDialog(&session, mediaCollection, q);
+    dialog->setAnchorWidget(commentsMenuItem);
+    dialog->animateShow({WAnimation::Fade|WAnimation::SlideInFromTop});
+    dialog->mediaClicked().connect([=](Media media, _n5) { queueAndPlay(media);});
     resetSelection();
   });
   
