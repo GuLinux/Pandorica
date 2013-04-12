@@ -66,9 +66,10 @@ public:
 GroupsDialog::GroupsDialog(Session* session, Settings* settings): WDialog()
 {
   setTitleBarEnabled(true);
-  setClosable(true);
   setResizable(true);
   setWindowTitle("Groups");
+  footer()->addWidget(WW<WPushButton>(wtr("close-button")).css("btn btn-primary").onClick([=](WMouseEvent){ accept(); }));
+
   
   WLineEdit *newGroupName = WW<WLineEdit>().css("input-medium").setAttribute("placeholder", "New Group Name").setMargin(10);
   WTemplate *adminLabel = new WTemplate("<label class=\"checkbox\">${check.admin}${check.admin.label}</label>");
