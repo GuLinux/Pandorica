@@ -8,6 +8,8 @@
 #include <Wt/WTableView>
 #include <Wt/WApplication>
 #include <Wt/WTimer>
+#include <Wt/WPushButton>
+#include <Wt-Commons/wt_helpers.h>
 
 using namespace std;
 using namespace Wt;
@@ -39,7 +41,6 @@ SessionDetailsDialog::SessionDetailsDialog(const Dbo::Query< SessionDetailsTuple
   setTitleBarEnabled(true);
   setCaption("Session Details");
   resize(1020, 480);
-  setClosable(true);
   setResizable(true);
   model->setQuery(query);
   model->addColumn("filename", "File");
@@ -57,7 +58,8 @@ SessionDetailsDialog::SessionDetailsDialog(const Dbo::Query< SessionDetailsTuple
   table->setModel(model);
   table->setHeight(440);
   contents()->addWidget(table);
-  
+  footer()->addWidget(WW<WPushButton>(wtr("close-button")).css("btn btn-primary").onClick([=](WMouseEvent){ accept(); }));
+
   WTimer *timer = new WTimer(this);
   timer->setInterval(10000);
   timer->timeout().connect([model](WMouseEvent) {

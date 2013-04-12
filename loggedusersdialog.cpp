@@ -37,6 +37,7 @@
 #include <Wt/WItemDelegate>
 #include <Wt/WAnchor>
 #include <Wt/Auth/Dbo/AuthInfo>
+#include <Wt-Commons/wt_helpers.h>
 
 using namespace Wt;
 using namespace std;
@@ -53,7 +54,7 @@ public:
       if(!widget) {
 	WPushButton* button = new WPushButton(columnValue(any_cast<ColumnType>(model->data(index))));
 	IdType id = idColumn(model,index);
-	button->setStyleClass("btn btn-link");
+	button->setStyleClass("btn btn-link btn-mini");
 	button->clicked().connect([id,this](WMouseEvent){
 	  WDialog *dialog = new SessionDetailsDialog(id, session);
 	  dialog->show();
@@ -75,8 +76,7 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
 {
   setTitleBarEnabled(true);
   setCaption("Logged Users");
-  resize(1020, 510);
-  setClosable(true);
+//   resize(1020, 610);
   setResizable(true);
   Dbo::QueryModel< LoggedUserEntry >* model = new Dbo::QueryModel<LoggedUserEntry>();
   auto query = session->query<LoggedUserEntry>("select distinct session_id,ip,session_started,session_ended,\
@@ -96,38 +96,45 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   model->addColumn("session_id", "");
   model->addColumn("identity", "UserName");
   model->addColumn("ip", "IP");
-  model->addColumn("email", "Email");
   model->addColumn("filewatching", "Last File Played");
   model->addColumn("session_started", "Started");
+  model->addColumn("user_id", "User Id");
+  model->addColumn("email", "Email");
   WTableView *table = new WTableView();
+  table->setModel(model);
+
+  table->setAlternatingRowColors(true);
+  table->setRowHeight(28);
+  table->setHeaderHeight(28);
+  table->setEditTriggers(Wt::WAbstractItemView::NoEditTrigger);
+  
   table->setItemDelegateForColumn(0, new DetailsButtonDelegate<string, string>(model, session,
     [](WAbstractItemModel *model, const WModelIndex &index) { return any_cast<string>(model->data(index.row(), 0)); },
     [](string) { return "Details"; }));
   table->setItemDelegateForColumn(1, new DetailsButtonDelegate<long, string>(model, session,
     [session](WAbstractItemModel *model, const WModelIndex &index) {
       Dbo::Transaction t(*session);
-      string email = any_cast<string>(model->data(index.row(), 3));
-      auto authInfo = session->find<AuthInfo>().where("email = ?").bind(email).resultValue();
+      long userId = any_cast<long>(model->data(index.row(), 5));
+      auto authInfo = session->find<AuthInfo>().where("user_id = ?").bind(userId).resultValue();
       return authInfo->user().id();
     },
     [](string s) { return s; }));
-//   table->setItemDelegateForColumn(4, new RoleItemDelegate(model));
   table->setColumn1Fixed(false);
-  table->setColumnWidth(0, 50);
-  table->setColumnWidth(1, 120);
-  table->setColumnWidth(2, 90);
-  table->setColumnWidth(3, 200);
-  table->setColumnWidth(4, 300);
-  table->setColumnWidth(5, 110);
-  table->setHeight(470);
-  table->setItemDelegateForColumn(5, new DateTimeDelegate(model));
+  int columns{0};
+  table->setColumnWidth(columns++, 40);
+  table->setColumnWidth(columns++, 50);
+  table->setColumnWidth(columns++, 60);
+//   table->setColumnWidth(columns++, 300);
+  table->setColumnWidth(columns++, 300);
+  table->setColumnWidth(columns, 110);
+  table->setItemDelegateForColumn(columns++, new DateTimeDelegate(model));
   if(showAll) {
     model->addColumn("session_ended", "Ended");
-    table->setItemDelegateForColumn(6, new DateTimeDelegate(model));
-    table->setColumnWidth(6, 110);
-    setWidth(1140);
+    table->setItemDelegateForColumn(columns, new DateTimeDelegate(model));
+    table->setColumnWidth(columns++, 110);
+//     setWidth(1140);
   }
-  table->setModel(model);
+  table->setMaximumSize(WLength::Auto, 550);
   contents()->addWidget(table);
   
   WTimer *timer = new WTimer(this);
@@ -136,6 +143,7 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
     model->reload();
   });
   timer->start();
+  footer()->addWidget(WW<WPushButton>(wtr("close-button")).css("btn btn-primary").onClick([=](WMouseEvent){ accept(); }));
 }
 
 LoggedUsersDialog::~LoggedUsersDialog()
