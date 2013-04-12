@@ -101,6 +101,8 @@
   <message id="media_autoplay.description"></message>
   <message id="gui_language.label">Lingua</message>
   
+  <message id="close-button">Chiudi</message>
+
   
   <message id="Wt.Auth.confirmmail.body">
 Hello {1},

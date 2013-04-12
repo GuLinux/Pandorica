@@ -31,6 +31,7 @@
   <message id="comments.addcomment.button">Add Comment</message>
   
   
+  
   <!-- player -->
   <message id="player.sharelink">Share link</message>
   <message id="player.downloadlink">Download</message>
@@ -76,6 +77,9 @@
   <message id="delete.user.title">Delete User</message>
   <message id="delete.user.text">Are you sure to delete the user "<b>{1}</b>" from group "<b>{2}</b>"?</message>
   
+  
+  <message id="close-button">Close</message>
+
   <message id="Wt.Auth.confirmmail.body">
 Hello {1},
 

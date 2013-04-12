@@ -107,7 +107,7 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
     [session](WAbstractItemModel *model, const WModelIndex &index) {
       Dbo::Transaction t(*session);
       string email = any_cast<string>(model->data(index.row(), 3));
-      auto authInfo = session->find<Auth::Dbo::AuthInfo<User>>().where("email = ?").bind(email).resultValue();
+      auto authInfo = session->find<AuthInfo>().where("email = ?").bind(email).resultValue();
       return authInfo->user().id();
     },
     [](string s) { return s; }));
