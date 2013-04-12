@@ -5,6 +5,7 @@
 #include <Wt/WComboBox>
 #include <Wt/WLabel>
 #include <Wt/WAbstractListModel>
+#include <Wt/WPushButton>
 
 using namespace Wt;
 using namespace std;
@@ -26,20 +27,22 @@ ComboPairModel::ComboPairModel(vector<string> items, WObject* parent)
 
 
 
-SettingsPage::SettingsPage(Settings* settings, WContainerWidget* parent): WContainerWidget(parent), settings(settings)
+SettingsDialog::SettingsDialog(Settings* settings, WObject* parent): WDialog(parent), settings(settings)
 {
-  addWidget(WW<WContainerWidget>().css("modal-header").add(new WText(wtr("settings.header"))));
-  content = WW<WContainerWidget>().css("modal-body form-horizontal");
-  addWidget(content);
+  setWindowTitle(wtr("settings.header"));
+  setMaximumSize(700, WLength::Auto);
+  content = WW<WContainerWidget>().css("form-horizontal");
+  contents()->addWidget(content);
   addSetting(Settings::mediaAutoplay, createCombo(Settings::mediaAutoplay, { "autoplay_never", "autoplay_audio_only", "autoplay_video_only", "autoplay_always" }));
   
   addSetting(Settings::preferredPlayer, createCombo(Settings::preferredPlayer, { "html5", "jplayer"} ) );
   addSetting(Settings::downloadSource, createCombo(Settings::downloadSource, {"lighttpd", "nginx"}) );
   addSetting(Settings::guiLanguage, createCombo(Settings::guiLanguage, {"<browserdefault>", "en", "it"}) );
-  addWidget(WW<WContainerWidget>().css("modal-footer").add(new WText{wtr("settings.footer")}));
+  contents()->addWidget(new WText{wtr("settings.footer")});
+  footer()->addWidget(WW<WPushButton>(wtr("close-button")).css("btn btn-primary").onClick([=](WMouseEvent){ accept(); }));
 }
 
-WComboBox* SettingsPage::createCombo(string name, vector<string> values)
+WComboBox* SettingsDialog::createCombo(string name, vector<string> values)
 {
   string defaultValue = settings->value(name);
   WComboBox *combo = new WComboBox();
@@ -56,7 +59,7 @@ WComboBox* SettingsPage::createCombo(string name, vector<string> values)
 }
 
 
-void SettingsPage::addSetting(const string& settingName, WFormWidget* widget)
+void SettingsDialog::addSetting(const string& settingName, WFormWidget* widget)
 {
   WString label = wtr(settingName + ".label");
   WString helpText = wtr(settingName + ".description");
@@ -73,7 +76,7 @@ void SettingsPage::addSetting(const string& settingName, WFormWidget* widget)
 }
 
 
-SettingsPage::~SettingsPage()
+SettingsDialog::~SettingsDialog()
 {
 
 }

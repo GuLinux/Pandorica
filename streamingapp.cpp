@@ -383,13 +383,11 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
     resetSelection();
   });
   
-  SettingsPage* settingsPage = new SettingsPage(&settings);
-  settingsPage->addStyleClass("modal fade hide");
-  q->root()->addWidget(settingsPage);
   
   settingsMenuItem->triggered().connect([=](WMenuItem*, _n5) {
-    string togglejs = (boost::format(JS( $('#%s').modal('toggle'); )) % settingsPage->id()).str();
-    wApp->doJavaScript(togglejs);
+    SettingsDialog* settingsDialog = new SettingsDialog(&settings);
+    settingsDialog->setAnchorWidget(commentsMenuItem);
+    settingsDialog->animateShow({WAnimation::Fade|WAnimation::SlideInFromTop});
     resetSelection();
   });
   
