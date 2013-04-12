@@ -22,7 +22,7 @@ LatestCommentsDialog::LatestCommentsDialog(Session* session, MediaCollection *me
   setWindowTitle(wtr("menu.latest.comments"));
   setClosable(false);
   setTransient(true);
-  setMaximumSize(600, WLength::Auto);
+  setMaximumSize(700, WLength::Auto);
   Dbo::Transaction t(*session);
   Dbo::collection<CommentPtr> latestComments = session->find<Comment>().orderBy("last_updated desc").limit(5);
   for(CommentPtr comment: latestComments) {

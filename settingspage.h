@@ -1,19 +1,19 @@
 #ifndef SETTINGSPAGE_H
 #define SETTINGSPAGE_H
 
-#include <Wt/WContainerWidget>
+#include <Wt/WDialog>
 
 class Settings;
 namespace Wt {
   class WComboBox;
 }
 
-class SettingsPage : public Wt::WContainerWidget
+class SettingsDialog : public Wt::WDialog
 {
 
 public:
-    SettingsPage(Settings *settings, Wt::WContainerWidget* parent = 0);
-    virtual ~SettingsPage();
+    SettingsDialog(Settings *settings, Wt::WObject* parent = 0);
+    virtual ~SettingsDialog();
 private:
   void addSetting(const std::string& settingName, Wt::WFormWidget* widget);
   Wt::WComboBox *createCombo(std::string name, std::vector<std::string> values);
