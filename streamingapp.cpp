@@ -506,8 +506,11 @@ void StreamingApp::setupGui()
   WContainerWidget *playlistAccordion = WW<WContainerWidget>().css("accordion-body collapse").add(d->playlist);
   
   WContainerWidget *playlistContainer = WW<WContainerWidget>().css("accordion-group playlist").setContentAlignment(AlignCenter);
-  playlistContainer->addWidget(WW<WContainerWidget>().css("accordion-heading").add(WW<WAnchor>(string("#") + playlistAccordion->id(), wtr("playlist.accordion"))
-    .setAttribute("data-toggle", "collapse").setAttribute("data-parent",string("#") + contentWidget->id()).css("link-hand accordion-toggle")));
+  WAnchor *playlistLink = WW<WAnchor>(string("#") + playlistAccordion->id(), wtr("playlist.accordion"))
+    .setAttribute("data-toggle", "collapse")
+    .setAttribute("data-parent",string("#") + contentWidget->id())
+    .css("link-hand accordion-toggle");
+  playlistContainer->addWidget(WW<WContainerWidget>().css("accordion-heading").add(playlistLink));
   playlistContainer->addWidget(playlistAccordion);
   
   
