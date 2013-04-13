@@ -13,6 +13,8 @@
   <message id="menu.settings">Settings</message>
   <message id="menu.logout">Logout</message>
   <message id="menu.search">Search</message>
+  <message id="menu.admin">Admin</message>
+  <message id="menu.groups">Groups</message>
   
   <!-- media browser -->
   <message id="mediabrowser.play">Play</message>

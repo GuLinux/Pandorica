@@ -459,8 +459,8 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
   WPopupMenu *adminMenu = new WPopupMenu();
   adminMenu->addItem(activeUsersMenuItem);
   
-  WMenuItem *allLog = adminMenu->addItem("Users Log");
-  WMenuItem *groupsDialog = adminMenu->addItem("Groups");
+  WMenuItem *allLog = adminMenu->addItem(wtr("users.history.title"));
+  WMenuItem *groupsDialog = adminMenu->addItem(wtr("menu.groups"));
   
   allLog->triggered().connect([=](WMenuItem*, _n5){
     (new LoggedUsersDialog{&session, true})->show();
@@ -474,7 +474,8 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
   activeUsersMenuItem->triggered().connect([=](WMenuItem*, _n5){
     (new LoggedUsersDialog{&session})->show();
   });
-  WMenuItem *adminMenuItem = mainMenu->addItem("Admin");
+  WMenuItem *adminMenuItem = mainMenu->addItem(wtr("menu.admin"));
+  adminMenuItem->addStyleClass("hidden-phone");
   adminMenuItem->setMenu(adminMenu);
 }
 
