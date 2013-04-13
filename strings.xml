@@ -79,6 +79,9 @@
   
   
   <message id="close-button">Close</message>
+  <message id="users.current.title">Logged Users</message>
+  <message id="users.history.title">Users History</message>
+  
 
   <message id="Wt.Auth.confirmmail.body">
 Hello {1},
