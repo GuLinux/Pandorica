@@ -56,10 +56,10 @@ SessionDetailsDialog::SessionDetailsDialog(const Dbo::Query< SessionDetailsTuple
   table->setColumnWidth(2, 110);
   table->setColumnWidth(3, 440);
   table->setModel(model);
-  table->setHeight(440);
+  table->setMaximumSize(WLength::Auto, 350);
   contents()->addWidget(table);
   footer()->addWidget(WW<WPushButton>(wtr("close-button")).css("btn btn-primary").onClick([=](WMouseEvent){ accept(); }));
-
+  
   WTimer *timer = new WTimer(this);
   timer->setInterval(10000);
   timer->timeout().connect([model](WMouseEvent) {

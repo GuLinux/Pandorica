@@ -54,7 +54,7 @@ public:
       if(!widget) {
 	WPushButton* button = new WPushButton(columnValue(any_cast<ColumnType>(model->data(index))));
 	IdType id = idColumn(model,index);
-	button->setStyleClass("btn btn-link btn-mini");
+        button->setStyleClass("btn btn-link btn-small");
 	button->clicked().connect([id,this](WMouseEvent){
 	  WDialog *dialog = new SessionDetailsDialog(id, session);
 	  dialog->show();
@@ -75,8 +75,7 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   : WDialog(), session(session)
 {
   setTitleBarEnabled(true);
-  setCaption("Logged Users");
-//   resize(1020, 610);
+  setCaption(wtr("users.current.title"));
   setResizable(true);
   Dbo::QueryModel< LoggedUserEntry >* model = new Dbo::QueryModel<LoggedUserEntry>();
   auto query = session->query<LoggedUserEntry>("select distinct session_id,ip,session_started,session_ended,\
@@ -105,7 +104,7 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
 
   table->setAlternatingRowColors(true);
   table->setRowHeight(28);
-  table->setHeaderHeight(28);
+//   table->setHeaderHeight(28);
   table->setEditTriggers(Wt::WAbstractItemView::NoEditTrigger);
   
   table->setItemDelegateForColumn(0, new DetailsButtonDelegate<string, string>(model, session,
@@ -119,22 +118,24 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
       return authInfo->user().id();
     },
     [](string s) { return s; }));
-  table->setColumn1Fixed(false);
   int columns{0};
-  table->setColumnWidth(columns++, 40);
   table->setColumnWidth(columns++, 50);
+  table->setColumnWidth(columns++, 60);
   table->setColumnWidth(columns++, 60);
 //   table->setColumnWidth(columns++, 300);
   table->setColumnWidth(columns++, 300);
   table->setColumnWidth(columns, 110);
   table->setItemDelegateForColumn(columns++, new DateTimeDelegate(model));
   if(showAll) {
+    setWindowTitle(wtr("users.history.title"));
     model->addColumn("session_ended", "Ended");
     table->setItemDelegateForColumn(columns, new DateTimeDelegate(model));
     table->setColumnWidth(columns++, 110);
 //     setWidth(1140);
   }
-  table->setMaximumSize(WLength::Auto, 550);
+  table->setColumnHidden(columns++, true);
+  table->setColumnHidden(columns++, true);
+  table->setMaximumSize(WLength::Auto, 350);
   contents()->addWidget(table);
   
   WTimer *timer = new WTimer(this);
