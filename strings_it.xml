@@ -67,6 +67,7 @@
   <!-- comments -->
   <message id="comments.label">Commenti</message>
   <message id="comments.addcomment.button">Aggiungi Commento</message>
+  <message id="comments.empty">Non ci sono ancora commenti!</message>
   
   <!-- player -->
   <message id="player.sharelink">Link per la condivisione</message>

@@ -25,6 +25,8 @@ LatestCommentsDialog::LatestCommentsDialog(Session* session, MediaCollection *me
   setMaximumSize(700, WLength::Auto);
   Dbo::Transaction t(*session);
   Dbo::collection<CommentPtr> latestComments = session->find<Comment>().orderBy("last_updated desc").limit(5);
+  if(!latestComments.size())
+    contents()->addWidget(new WText{wtr("comments.empty")});
   for(CommentPtr comment: latestComments) {
     WContainerWidget* commentWidget = new WContainerWidget;
     Media media = mediaCollection->media(comment->videoId());
