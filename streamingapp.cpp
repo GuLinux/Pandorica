@@ -400,13 +400,13 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   sessionAdded.connect(setLoggedUsersTitle);
   sessionRemoved.connect(setLoggedUsersTitle);
   
+  WMenuItem *logout = items->addItem(wtr("menu.logout"));
   if(isAdmin) {
     setupAdminMenus(items);
   }
   else {
     setupUserMenus(items);
   }
-  WMenuItem *logout = items->addItem(wtr("menu.logout"));
   
   logout->triggered().connect([=](WMenuItem*, _n5) {
     session.login().logout();
@@ -476,6 +476,15 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
   });
   WMenuItem *adminMenuItem = mainMenu->addItem(wtr("menu.admin"));
   adminMenuItem->addStyleClass("hidden-phone");
+  adminMenuItem->clicked().connect([=](WMouseEvent) {
+    WTimer::singleShot(100, [=](WMouseEvent){
+      if(!adminMenuItem->widget(0)->hasStyleClass("active")) {
+      wApp->log("notice") << "trying to reset menu";
+      mainMenu->removeItem(adminMenuItem);
+      setupAdminMenus(mainMenu);
+      }
+    });
+  });
   adminMenuItem->setMenu(adminMenu);
 }
 
