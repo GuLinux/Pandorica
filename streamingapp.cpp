@@ -349,8 +349,8 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   
   WMenu *items = new WMenu();
   mediaListMenuItem = items->addItem(wtr("menu.videoslist"));
-  WMenuItem *settingsMenuItem = items->addItem(wtr("menu.settings"));
   WMenuItem *commentsMenuItem = items->addItem(wtr("menu.latest.comments"));
+  WMenuItem *settingsMenuItem = items->addItem(wtr("menu.settings"));
   
   navigationBar->addMenu(items);
   
