@@ -40,7 +40,7 @@ SessionDetailsDialog::SessionDetailsDialog(const Dbo::Query< SessionDetailsTuple
   Dbo::QueryModel< SessionDetailsTuple >* model = new Dbo::QueryModel<SessionDetailsTuple>();
   setTitleBarEnabled(true);
   setCaption("Session Details");
-  resize(1020, 480);
+//   resize(1020, 480);
   setResizable(true);
   model->setQuery(query);
   model->addColumn("filename", "File");
