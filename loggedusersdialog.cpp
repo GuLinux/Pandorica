@@ -120,8 +120,8 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
     [](string s) { return s; }));
   int columns{0};
   table->setColumnWidth(columns++, 50);
-  table->setColumnWidth(columns++, 60);
-  table->setColumnWidth(columns++, 60);
+  table->setColumnWidth(columns++, 90);
+  table->setColumnWidth(columns++, 80);
 //   table->setColumnWidth(columns++, 300);
   table->setColumnWidth(columns++, 300);
   table->setColumnWidth(columns, 110);
