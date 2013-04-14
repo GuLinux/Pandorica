@@ -97,6 +97,7 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   model->addColumn("ip", "IP");
   model->addColumn("filewatching", "Last File Played");
   model->addColumn("session_started", "Started");
+  model->addColumn("session_ended", "Ended");
   model->addColumn("user_id", "User Id");
   model->addColumn("email", "Email");
   WTableView *table = new WTableView();
@@ -121,14 +122,15 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   int columns{0};
   table->setColumnWidth(columns++, 50);
   table->setColumnWidth(columns++, 110);
-  table->setColumnWidth(columns++, 90);
+  table->setColumnWidth(columns++, 110);
 //   table->setColumnWidth(columns++, 300);
-  table->setColumnWidth(columns++, 300);
+  table->setColumnWidth(columns++, 350);
   table->setColumnWidth(columns, 110);
   table->setItemDelegateForColumn(columns++, new DateTimeDelegate(model));
+  table->setColumnHidden(columns, true);
   if(showAll) {
+    table->setColumnHidden(columns, false);
     setWindowTitle(wtr("users.history.title"));
-    model->addColumn("session_ended", "Ended");
     table->setItemDelegateForColumn(columns, new DateTimeDelegate(model));
     table->setColumnWidth(columns++, 110);
 //     setWidth(1140);
