@@ -114,7 +114,7 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   table->setItemDelegateForColumn(1, new DetailsButtonDelegate<long, string>(model, session,
     [session](WAbstractItemModel *model, const WModelIndex &index) {
       Dbo::Transaction t(*session);
-      long userId = any_cast<long>(model->data(index.row(), 5));
+      long userId = any_cast<long>(model->data(index.row(), 6));
       auto authInfo = session->find<AuthInfo>().where("user_id = ?").bind(userId).resultValue();
       return authInfo->user().id();
     },
