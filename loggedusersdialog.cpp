@@ -121,10 +121,10 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
     [](string s) { return s; }));
   int columns{0};
   table->setColumnWidth(columns++, 50);
-  table->setColumnWidth(columns++, 110);
-  table->setColumnWidth(columns++, 110);
+  table->setColumnWidth(columns++, 120);
+  table->setColumnWidth(columns++, 120);
 //   table->setColumnWidth(columns++, 300);
-  table->setColumnWidth(columns++, 350);
+  table->setColumnWidth(columns++, 450);
   table->setColumnWidth(columns, 110);
   table->setItemDelegateForColumn(columns++, new DateTimeDelegate(model));
   table->setColumnHidden(columns, true);
