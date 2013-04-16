@@ -471,7 +471,7 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
   });
   
   
-  activeUsersMenuItem->triggered().connect([=](WMenuItem*, _n5){
+  auto activeUsersConnection = activeUsersMenuItem->triggered().connect([=](WMenuItem*, _n5){
     (new LoggedUsersDialog{&session})->show();
   });
   WMenuItem *adminMenuItem = mainMenu->addItem(wtr("menu.admin"));
@@ -481,6 +481,7 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
       if(!adminMenuItem->widget(0)->hasStyleClass("active")) {
       wApp->log("notice") << "trying to reset menu";
       mainMenu->removeItem(adminMenuItem);
+      activeUsersConnection.disconnect();
       setupAdminMenus(mainMenu);
       }
     });
