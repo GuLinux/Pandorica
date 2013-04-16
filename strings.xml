@@ -77,14 +77,25 @@
   <!-- groups dialog -->
   <message id="delete.group.title">Delete Group</message>
   <message id="delete.group.text">Are you sure to delete the group "<b>{1}</b>"?</message>
-  <message id="delete.user.title">Delete User</message>
-  <message id="delete.user.text">Are you sure to delete the user "<b>{1}</b>" from group "<b>{2}</b>"?</message>
+  <message id="delete.user.title">Remove User</message>
+  <message id="delete.user.text">Are you sure to remove the user "<b>{1}</b>" from group "<b>{2}</b>"?</message>
+  <message id="groups.new.placeholder">New Group Name</message>
+  <message id="groups.users">Users</message>
+  <message id="groups.paths">Paths</message>
+  <message id="group.is.admin">is admin</message>
+  <message id="users.in.group.title">Users for "<b>{1}</b>"</message>
+  <message id="groups.dialog.title">Groups</message>
+  <message id="directories.for.group.dialog.title">Allowed paths for "<b>{1}</b>"</message>
+  
+  <message id="button.add">Add</message>
+  <message id="button.remove">Remove</message>
   
   
   <message id="close-button">Close</message>
   <message id="users.current.title">Logged Users</message>
   <message id="users.history.title">Users History</message>
   
+  <message id="tree.double.click.to.expand">Double click to expand or collapse</message>
 
   <message id="Wt.Auth.confirmmail.body">
 Hello {1},

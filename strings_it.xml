@@ -107,6 +107,24 @@
   <message id="users.current.title">Utenti Collegati</message>
   <message id="users.history.title">Cronologia Utenti</message>
   
+  <message id="tree.double.click.to.expand">Doppio click per espandere o contrarre</message>
+  
+    <!-- groups dialog -->
+  <message id="delete.group.title">Cancella Gruppo</message>
+  <message id="delete.group.text">Sei sicuro di voler cancellare il gruppo "<b>{1}</b>"?</message>
+  <message id="delete.user.title">Rimuovi Utente</message>
+  <message id="delete.user.text">Sei sicuro di voler rimuovere l'utente "<b>{1}</b>" dal gruppo "<b>{2}</b>"?</message>
+  <message id="groups.new.placeholder">Nuovo Gruppo</message>
+  <message id="groups.users">Utenti</message>
+  <message id="groups.paths">Percorsi</message>
+  <message id="group.is.admin">amministratore</message>
+  <message id="users.in.group.title">Utenti per "<b>{1}</b>"</message>
+  <message id="groups.dialog.title">Gruppi</message>
+  <message id="directories.for.group.dialog.title">Percorsi consentiti per "<b>{1}</b>"</message>
+  
+  <message id="button.add">Aggiungi</message>
+  <message id="button.remove">Rimuovi</message>
+  
   <message id="Wt.Auth.confirmmail.body">
 Hello {1},
 

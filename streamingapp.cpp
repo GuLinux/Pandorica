@@ -206,35 +206,17 @@ void StreamingAppSessions::unregisterSession(string sessionId)
 
 StreamingAppSessions streamingAppSessions;
 
-class BootstrapTheme : public WBootstrapTheme {
-public:
-  BootstrapTheme(WObject* parent = 0) : WBootstrapTheme(parent) {}
-  virtual vector< WCssStyleSheet > styleSheets() const;
-};
-
-vector<WCssStyleSheet> BootstrapTheme::styleSheets() const
-{
-  return {
-    { wApp->resourcesUrl() + "wt.css" },
-    { wApp->resourcesUrl() + "form.css" },
-    {"http://gulinux.net/css/bootstrap/css/bootstrap.css"},
-    {"http://gulinux.net/css/bootstrap/css/bootstrap-responsive.css"},
-  };
-}
-
-
 StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(environment), d(new StreamingAppPrivate(this)) {
+  useStyleSheet( wApp->resourcesUrl() + "form.css");
   useStyleSheet("http://gulinux.net/css/videostreaming.css");
   requireJQuery("http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js");
-//   useStyleSheet("http://vjs.zencdn.net/c/video-js.css");
-//   require("http://vjs.zencdn.net/c/video.js");
 //  useStyleSheet("http://gulinux.net/css/bootstrap/css/bootstrap.css");
 //  useStyleSheet("http://gulinux.net/css/bootstrap/css/bootstrap-responsive.css");
   require("http://gulinux.net/css/bootstrap/js/bootstrap.js");
 
   require("http://gulinux.net/css/mediaelement/mediaelement-and-player.js");
   useStyleSheet("http://gulinux.net/css/mediaelement/mediaelementplayer.css");
-  setTheme(new BootstrapTheme(this));
+  setTheme(new WBootstrapTheme(this));
   enableUpdates(true);
   d->session.login().changed().connect(this, &StreamingApp::authEvent);
   WMessageResourceBundle *xmlResourcesBundle = new WMessageResourceBundle;

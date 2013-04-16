@@ -67,18 +67,17 @@ GroupsDialog::GroupsDialog(Session* session, Settings* settings): WDialog()
 {
   setTitleBarEnabled(true);
   setResizable(true);
-  setWindowTitle("Groups");
-  footer()->addWidget(WW<WPushButton>(wtr("close-button")).css("btn btn-primary").onClick([=](WMouseEvent){ accept(); }));
-
+  setClosable(true);
+  setWindowTitle(wtr("groups.dialog.title"));
   
-  WLineEdit *newGroupName = WW<WLineEdit>().css("input-medium").setAttribute("placeholder", "New Group Name").setMargin(10);
+  WLineEdit *newGroupName = WW<WLineEdit>().css("input-medium").setAttribute("placeholder", wtr("groups.new.placeholder").toUTF8()).setMargin(10);
   WTemplate *adminLabel = new WTemplate("<label class=\"checkbox\">${check.admin}${check.admin.label}</label>");
   adminLabel->setInline(true);
   WCheckBox *isAdmin = WW<WCheckBox>();
   
   adminLabel->bindWidget("check.admin", isAdmin);
-  adminLabel->bindString("check.admin.label", "Admin");
-  WPushButton *addGroup = WW<WPushButton>("Add").css("btn btn-primary").setMargin(10);
+  adminLabel->bindString("check.admin.label", wtr("group.is.admin"));
+  WPushButton *addGroup = WW<WPushButton>(wtr("button.add")).css("btn btn-primary").setMargin(10);
   
   auto enableAddGroupButton = [=] {
     addGroup->setEnabled(!newGroupName->text().empty());
@@ -116,13 +115,13 @@ GroupsDialog::GroupsDialog(Session* session, Settings* settings): WDialog()
     for(GroupPtr group: groups) {
       currentGroups->elementAt(row, 0)->addWidget(WW<WText>(group->groupName()));
       currentGroups->elementAt(row, 0)->setContentAlignment(AlignMiddle);
-      currentGroups->elementAt(row, 1)->addWidget(WW<WPushButton>("Users").css("btn btn-small btn-primary").onClick([=](WMouseEvent) {
+      currentGroups->elementAt(row, 1)->addWidget(WW<WPushButton>(wtr("groups.users")).css("btn btn-small btn-primary").onClick([=](WMouseEvent) {
         (new UsersInGroupDialog{group, session})->show(); 
       }));
-      currentGroups->elementAt(row, 2)->addWidget(WW<WPushButton>("Paths").css("btn btn-small btn-info").onClick([=](WMouseEvent) {
+      currentGroups->elementAt(row, 2)->addWidget(WW<WPushButton>(wtr("groups.paths")).css("btn btn-small btn-info").onClick([=](WMouseEvent) {
         (new GroupDirectoriesDialog{group, session, settings})->show();
       }));
-      currentGroups->elementAt(row, 3)->addWidget(WW<WPushButton>("Remove").css("btn btn-small btn-danger").onClick([=](WMouseEvent) {
+      currentGroups->elementAt(row, 3)->addWidget(WW<WPushButton>(wtr("button.remove")).css("btn btn-small btn-danger").onClick([=](WMouseEvent) {
         if(WMessageBox::show(wtr("delete.group.title"), wtr("delete.group.text").arg(group->groupName()), Yes | No) != Yes) return;
         Dbo::Transaction t(*session);
         GroupPtr groupToDelete = session->find<Group>().where("id = ?").bind(group.id());
@@ -157,10 +156,10 @@ UsersInGroupDialog::UsersInGroupDialog(GroupPtr group, Session* session): WDialo
   setTitleBarEnabled(true);
   setClosable(true);
   setResizable(true);
-  setWindowTitle(WString("Users for {1}").arg(group->groupName()));
+  setWindowTitle(wtr("users.in.group.title").arg(group->groupName()));
   WTable *usersTable = WW<WTable>().css("table table-striped table-bordered table-hover");
   
-  WPushButton *addButton = WW<WPushButton>("Add").css("btn btn-small btn-primary").setMargin(10, Side::Left);
+  WPushButton *addButton = WW<WPushButton>(wtr("button.add")).css("btn btn-small btn-primary").setMargin(10, Side::Left);
   WComboBox *usersSelect = WW<WComboBox>().css("span4");
   auto enableAddbutton = [=] {
     addButton->setEnabled(usersSelect->count());
@@ -199,7 +198,7 @@ UsersInGroupDialog::UsersInGroupDialog(GroupPtr group, Session* session): WDialo
       Dbo::ptr<AuthInfo> authInfo = session->find<AuthInfo>().where("user_id = ?").bind(user.id());
       usersTable->elementAt(row, 0)->addWidget(new WText{authInfo->identity("loginname")});
       usersTable->elementAt(row, 1)->addWidget(new WText{authInfo->email()});
-      usersTable->elementAt(row, 2)->addWidget(WW<WPushButton>("Remove").css("btn btn-danger").onClick([=](WMouseEvent) {
+      usersTable->elementAt(row, 2)->addWidget(WW<WPushButton>(wtr("button.remove")).css("btn btn-danger").onClick([=](WMouseEvent) {
         Dbo::Transaction t(*session);
         if(WMessageBox::show(wtr("delete.user.title"), wtr("delete.user.text")
           .arg(authInfo->identity("loginname")).arg(group->groupName()), Yes | No) != Yes) return;
@@ -225,22 +224,30 @@ using namespace boost::filesystem;
 GroupDirectoriesDialog::GroupDirectoriesDialog(Dbo::ptr< Group > group, Session* session, Settings *settings): WDialog()
 {
   setTitleBarEnabled(true);
-  setClosable(true);
   setResizable(true);
-  setWindowTitle(WString("Allowed directories for {1}").arg(group->groupName()));
+  setClosable(true);
+  setWindowTitle(wtr("directories.for.group.dialog.title").arg(group->groupName()));
   WTreeView *tree = new WTreeView();
+  setHeight(400);
   WStandardItemModel *model = new WStandardItemModel(this);
+  tree->setMinimumSize(400, WLength::Auto);
   tree->setModel(model);
-  tree->resize(600, 400);
+  tree->setHeight(320);
   contents()->addWidget(tree);
-  resize(610, 400);
+  tree->setRootIsDecorated(false);
   
+  tree->doubleClicked().connect([=](WModelIndex index, WMouseEvent, _n4){
+    tree->setExpanded(index, !tree->isExpanded(index));
+  });
+    
   auto folderItem = [=] (path p) {
     Dbo::Transaction t(*session);
     string folderName{p.filename().string()};
     WStandardItem* item = new WStandardItem{Settings::icon(Settings::FolderSmall), folderName};
     item->setCheckable(true);
-    item->setStyleClass("tree-directory-item");
+    item->setStyleClass("tree-directory-item link-hand");
+    item->setLink("");
+    item->setToolTip(wtr("tree.double.click.to.expand"));
     for(Dbo::ptr<GroupPath> groupPath: group->groupPaths)
       if(groupPath->path() == p.string())
         item->setChecked(true);
