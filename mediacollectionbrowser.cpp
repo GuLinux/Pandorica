@@ -182,7 +182,11 @@ void MediaCollectionBrowserPrivate::addMedia(Media &media)
     icon = [](WObject *){ return Settings::icon(Settings::AudioFile); };
   Dbo::ptr<MediaAttachment> preview = media.preview(session, Media::PreviewThumb);
   if(preview)
-    icon = [=](WObject *parent){ return (new WMemoryResource(preview->mimetype(), preview->data(), parent))->url(); };
+    icon = [=](WObject *parent) {
+      auto resource = new WMemoryResource(preview->mimetype(), preview->data(), parent);
+      resource->setInternalPath(wApp->sessionId() + "-preview-" + media.uid());
+      return resource->url();
+    };
   addIcon(media.title(session), icon, onClick, popover);
 }
 
