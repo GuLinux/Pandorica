@@ -122,6 +122,19 @@
   <message id="groups.dialog.title">Gruppi</message>
   <message id="directories.for.group.dialog.title">Percorsi consentiti per "<b>{1}</b>"</message>
   
+    <!-- session dialog -->
+  <message id="session.details.filename">File</message>
+  <message id="session.details.started">Inizio</message>
+  <message id="session.details.ended">Fine</message>
+  <message id="session.details.fullpath">Percorso Completo File</message>
+  
+  <message id="session.username">Utente</message>
+  <message id="session.ip.address">IP</message>
+  <message id="session.file.last">Ultimo file riprodotto</message>
+  <message id="session.started">Inizio</message>
+  <message id="session.ended">Fine</message>
+  <message id="session.details">Dettagli</message>
+  
   <message id="button.add">Aggiungi</message>
   <message id="button.remove">Rimuovi</message>
   
