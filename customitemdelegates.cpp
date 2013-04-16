@@ -54,7 +54,7 @@ Wt::WWidget* RoleItemDelegate::update(Wt::WWidget* widget, const Wt::WModelIndex
 WWidget* DateTimeDelegate::update(WWidget* widget, const WModelIndex& index, WFlags< ViewItemRenderFlag > flags)
 {
   long timeT = any_cast<long>(model->data(index));
-  string label = timeT ? WDateTime::fromTime_t(timeT).toString("dd/M/yyyy HH:mm").toUTF8() : "Active Session";
+  string label = timeT ? WDateTime::fromTime_t(timeT).toString("dd/M/yyyy HH:mm").toUTF8() : "-";
   if(!widget) {
     WText* labelWidget = new WText(label);
     labelWidget->setStyleClass("small-text");

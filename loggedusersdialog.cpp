@@ -120,19 +120,24 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
     },
     [](string s) { return s; }));
   int columns{0};
+  
+  auto fixColumnSize = [=](int col, int width) {
+    table->setColumnWidth(col, width);
+  };
+  
   table->setSortingEnabled(columns, false);
-  table->setColumnWidth(columns++, 50);
-  table->setColumnWidth(columns++, 110);
-  table->setColumnWidth(columns++, 110);
-//   table->setColumnWidth(columns++, 300);
-  table->setColumnWidth(columns++, 450);
-  table->setColumnWidth(columns, 110);
+  fixColumnSize(columns++, 70);
+  fixColumnSize(columns++, 110);
+  fixColumnSize(columns++, 110);
+//   fixColumnSize(columns++, 300);
+  fixColumnSize(columns++, 450);
+  fixColumnSize(columns, 110);
   table->setItemDelegateForColumn(columns++, new DateTimeDelegate(model));
   if(showAll) {
     table->setColumnHidden(columns, false);
     setWindowTitle(wtr("users.history.title"));
     table->setItemDelegateForColumn(columns, new DateTimeDelegate(model));
-    table->setColumnWidth(columns++, 110);
+    fixColumnSize(columns++, 110);
 //     setWidth(1140);
   } else {
     table->setColumnHidden(columns++, true);
@@ -145,7 +150,7 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   WTimer *timer = new WTimer(this);
   timer->setInterval(10000);
   timer->timeout().connect([model](WMouseEvent) {
-    //model->reload();
+    model->reload();
   });
   timer->start();
 }

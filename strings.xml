@@ -93,7 +93,7 @@
   <message id="session.details.ended">Ended</message>
   <message id="session.details.fullpath">File Path</message>
   
-  <message id="session.username">User Name</message>
+  <message id="session.username">User</message>
   <message id="session.ip.address">IP</message>
   <message id="session.file.last">Last played file</message>
   <message id="session.started">Started</message>
