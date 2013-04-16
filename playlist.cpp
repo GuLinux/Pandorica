@@ -12,7 +12,8 @@ namespace fs = boost::filesystem;
 
 Playlist::Playlist(Session* session, WContainerWidget* parent): WContainerWidget(parent), session(session)
 {
-
+  setList(true);
+  addStyleClass("nav nav-pills nav-stacked");
 }
 
 Playlist::~Playlist()
@@ -63,6 +64,6 @@ void Playlist::queue(Media media)
   WAnchor* playlistEntry = WW<WAnchor>("", media.title(session)).css("link-hand");
   playlistEntry->addWidget(new WBreak());
   playlistEntry->clicked().connect([this,media, playlistEntry](WMouseEvent&){ nextItem(playlistEntry); });
-  addWidget(playlistEntry);
+  addWidget(WW<WContainerWidget>().add(playlistEntry));
   internalQueue.push_back(QueueItem(playlistEntry, media));
 }
