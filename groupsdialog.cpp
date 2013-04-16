@@ -224,7 +224,7 @@ using namespace boost::filesystem;
 GroupDirectoriesDialog::GroupDirectoriesDialog(Dbo::ptr< Group > group, Session* session, Settings *settings): WDialog()
 {
   setTitleBarEnabled(true);
-  setResizable(true);
+  setResizable(false);
   setClosable(true);
   setWindowTitle(wtr("directories.for.group.dialog.title").arg(group->groupName()));
   WTreeView *tree = new WTreeView();

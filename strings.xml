@@ -87,11 +87,24 @@
   <message id="groups.dialog.title">Groups</message>
   <message id="directories.for.group.dialog.title">Allowed paths for "<b>{1}</b>"</message>
   
+  <!-- session dialog -->
+  <message id="session.details.filename">File Name</message>
+  <message id="session.details.started">Started</message>
+  <message id="session.details.ended">Ended</message>
+  <message id="session.details.fullpath">File Path</message>
+  
+  <message id="session.username">User Name</message>
+  <message id="session.ip.address">IP</message>
+  <message id="session.file.last">Last played file</message>
+  <message id="session.started">Started</message>
+  <message id="session.ended">Ended</message>
+  <message id="session.details">Details</message>
+  
+  
   <message id="button.add">Add</message>
   <message id="button.remove">Remove</message>
-  
-  
   <message id="close-button">Close</message>
+
   <message id="users.current.title">Logged Users</message>
   <message id="users.history.title">Users History</message>
   

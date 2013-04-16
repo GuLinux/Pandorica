@@ -52,14 +52,14 @@ public:
       : WItemDelegate(parent), model(model), session(session), idColumn(idColumn), columnValue(columnValue) {}
     virtual WWidget* update(WWidget* widget, const WModelIndex& index, WFlags< ViewItemRenderFlag > flags) {
       if(!widget) {
-	WPushButton* button = new WPushButton(columnValue(any_cast<ColumnType>(model->data(index))));
+	WAnchor* link = new WAnchor("", columnValue(any_cast<ColumnType>(model->data(index))));
 	IdType id = idColumn(model,index);
-        button->setStyleClass("btn btn-link btn-small");
-	button->clicked().connect([id,this](WMouseEvent){
+    link->setStyleClass("link-hand");
+    link->clicked().connect([id,this](WMouseEvent){
 	  WDialog *dialog = new SessionDetailsDialog(id, session);
 	  dialog->show();
 	});
-	return button;
+	return link;
       }
       return widget;
     }
@@ -75,8 +75,9 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   : WDialog(), session(session)
 {
   setTitleBarEnabled(true);
+  setClosable(true);
   setCaption(wtr("users.current.title"));
-  setResizable(true);
+  setResizable(false);
   Dbo::QueryModel< LoggedUserEntry >* model = new Dbo::QueryModel<LoggedUserEntry>();
   auto query = session->query<LoggedUserEntry>("select distinct session_id,ip,session_started,session_ended,\
     (select filename from session_details WHERE session_info.session_id = session_details.session_info_session_id ORDER BY play_started DESC LIMIT 1) as filewatching,\
@@ -93,24 +94,23 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   query.orderBy("session_started desc");
   model->setQuery(query);
   model->addColumn("session_id", "");
-  model->addColumn("identity", "UserName");
-  model->addColumn("ip", "IP");
-  model->addColumn("filewatching", "Last File Played");
-  model->addColumn("session_started", "Started");
-  model->addColumn("session_ended", "Ended");
-  model->addColumn("user_id", "User Id");
-  model->addColumn("email", "Email");
+  model->addColumn("identity", wtr("session.username"));
+  model->addColumn("ip", wtr("session.ip.address"));
+  model->addColumn("filewatching", wtr("session.file.last"));
+  model->addColumn("session_started", wtr("session.started"));
+  model->addColumn("session_ended", wtr("session.ended"));
+  model->addColumn("user_id", "");
+  model->addColumn("email", "");
   WTableView *table = new WTableView();
   table->setModel(model);
 
-  table->setAlternatingRowColors(true);
   table->setRowHeight(28);
-//   table->setHeaderHeight(28);
+  table->setHeaderHeight(28);
   table->setEditTriggers(Wt::WAbstractItemView::NoEditTrigger);
   
   table->setItemDelegateForColumn(0, new DetailsButtonDelegate<string, string>(model, session,
     [](WAbstractItemModel *model, const WModelIndex &index) { return any_cast<string>(model->data(index.row(), 0)); },
-    [](string) { return "Details"; }));
+    [](string) { return wtr("session.details").toUTF8(); }));
   table->setItemDelegateForColumn(1, new DetailsButtonDelegate<long, string>(model, session,
     [session](WAbstractItemModel *model, const WModelIndex &index) {
       Dbo::Transaction t(*session);
@@ -120,6 +120,7 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
     },
     [](string s) { return s; }));
   int columns{0};
+  table->setSortingEnabled(columns, false);
   table->setColumnWidth(columns++, 50);
   table->setColumnWidth(columns++, 110);
   table->setColumnWidth(columns++, 110);
@@ -127,13 +128,14 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   table->setColumnWidth(columns++, 450);
   table->setColumnWidth(columns, 110);
   table->setItemDelegateForColumn(columns++, new DateTimeDelegate(model));
-  table->setColumnHidden(columns, true);
   if(showAll) {
     table->setColumnHidden(columns, false);
     setWindowTitle(wtr("users.history.title"));
     table->setItemDelegateForColumn(columns, new DateTimeDelegate(model));
     table->setColumnWidth(columns++, 110);
 //     setWidth(1140);
+  } else {
+    table->setColumnHidden(columns++, true);
   }
   table->setColumnHidden(columns++, true);
   table->setColumnHidden(columns++, true);
@@ -143,10 +145,9 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   WTimer *timer = new WTimer(this);
   timer->setInterval(10000);
   timer->timeout().connect([model](WMouseEvent) {
-    model->reload();
+    //model->reload();
   });
   timer->start();
-  footer()->addWidget(WW<WPushButton>(wtr("close-button")).css("btn btn-primary").onClick([=](WMouseEvent){ accept(); }));
 }
 
 LoggedUsersDialog::~LoggedUsersDialog()
