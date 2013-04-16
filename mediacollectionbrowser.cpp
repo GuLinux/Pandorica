@@ -184,7 +184,7 @@ void MediaCollectionBrowserPrivate::addMedia(Media &media)
   if(preview)
     icon = [=](WObject *parent) {
       auto resource = new WMemoryResource(preview->mimetype(), preview->data(), parent);
-      resource->setInternalPath(wApp->sessionId() + "-preview-" + media.uid());
+//       resource->setInternalPath(wApp->sessionId() + "-preview-" + media.uid());
       return resource->url();
     };
   addIcon(media.title(session), icon, onClick, popover);
