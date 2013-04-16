@@ -20,7 +20,7 @@ LatestCommentsDialog::LatestCommentsDialog(Session* session, MediaCollection *me
 {
   setResizable(true);
   setWindowTitle(wtr("menu.latest.comments"));
-  setClosable(false);
+  setClosable(true);
   setTransient(true);
   setMaximumSize(700, WLength::Auto);
   Dbo::Transaction t(*session);
@@ -47,7 +47,6 @@ LatestCommentsDialog::LatestCommentsDialog(Session* session, MediaCollection *me
     commentWidget->addWidget(WW<WText>(WString::fromUTF8(comment->content())).css("well comment-text comment-box-element").setInline(false));
     contents()->addWidget(WW<WContainerWidget>().css("comment-text").add(commentWidget));
   }
-  footer()->addWidget(WW<WPushButton>(wtr("close-button")).css("btn btn-primary").onClick([=](WMouseEvent){ accept(); }));
 }
 
 LatestCommentsDialog::~LatestCommentsDialog()

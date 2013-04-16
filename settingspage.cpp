@@ -30,6 +30,8 @@ ComboPairModel::ComboPairModel(vector<string> items, WObject* parent)
 SettingsDialog::SettingsDialog(Settings* settings, WObject* parent): WDialog(parent), settings(settings)
 {
   setWindowTitle(wtr("settings.header"));
+  setClosable(true);
+  setResizable(true);
   setMaximumSize(700, WLength::Auto);
   content = WW<WContainerWidget>().css("form-horizontal");
   contents()->addWidget(content);
@@ -39,7 +41,6 @@ SettingsDialog::SettingsDialog(Settings* settings, WObject* parent): WDialog(par
   addSetting(Settings::downloadSource, createCombo(Settings::downloadSource, {"lighttpd", "nginx"}) );
   addSetting(Settings::guiLanguage, createCombo(Settings::guiLanguage, {"<browserdefault>", "en", "it"}) );
   contents()->addWidget(new WText{wtr("settings.footer")});
-  footer()->addWidget(WW<WPushButton>(wtr("close-button")).css("btn btn-primary").onClick([=](WMouseEvent){ accept(); }));
 }
 
 WComboBox* SettingsDialog::createCombo(string name, vector<string> values)
