@@ -614,7 +614,7 @@ void StreamingAppPrivate::play ( Media media ) {
   auto preview = media.preview(&session, Media::PreviewPlayer);
   if(preview) {
     auto resource = new WMemoryResource{preview->mimetype(), preview->data(), q};
-    resource->setInternalPath(wApp->sessionId() + "-preview-big-" + media.uid());
+//     resource->setInternalPath(wApp->sessionId() + "-preview-big-" + media.uid());
     player->setPoster(resource->url());
   }
   WContainerWidget *container = new WContainerWidget;
