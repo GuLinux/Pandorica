@@ -331,8 +331,11 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   
   WMenu *items = new WMenu();
   mediaListMenuItem = items->addItem(wtr("menu.videoslist"));
+  mediaListMenuItem->addStyleClass("menu-media-list");
   WMenuItem *commentsMenuItem = items->addItem(wtr("menu.latest.comments"));
+  commentsMenuItem->addStyleClass("menu-comments");
   WMenuItem *settingsMenuItem = items->addItem(wtr("menu.settings"));
+  settingsMenuItem->addStyleClass("menu-settings");
   
   navigationBar->addMenu(items);
   
@@ -374,6 +377,7 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   });
   
   activeUsersMenuItem = new WMenuItem(wtr("menu.users").arg(""));
+  activeUsersMenuItem->addStyleClass("menu-loggedusers");
   
   auto setLoggedUsersTitle = [this](StreamingAppSession, _n5){
     activeUsersMenuItem->setText(wtr("menu.users").arg(streamingAppSessions.sessionCount()));
@@ -383,6 +387,7 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   sessionRemoved.connect(setLoggedUsersTitle);
   
   WMenuItem *logout = items->addItem(wtr("menu.logout"));
+  logout->addStyleClass("menu-logout");
   if(isAdmin) {
     setupAdminMenus(items);
   }
@@ -442,7 +447,9 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
   adminMenu->addItem(activeUsersMenuItem);
   
   WMenuItem *allLog = adminMenu->addItem(wtr("users.history.title"));
+  allLog->addStyleClass("menu-users-log");
   WMenuItem *groupsDialog = adminMenu->addItem(wtr("menu.groups"));
+  groupsDialog->addStyleClass("menu-groups");
   
   allLog->triggered().connect([=](WMenuItem*, _n5){
     (new LoggedUsersDialog{&session, true})->show();
@@ -469,6 +476,7 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
     });
   });
   adminMenuItem->setMenu(adminMenu);
+  adminMenuItem->addStyleClass("menu-admin");
 }
 
 
