@@ -179,7 +179,7 @@ map<Settings::Icons,string> iconsMap {
 
 string Settings::icon(Settings::Icons icon)
 {
-  string theme {"devine"};
+  string theme {"humano2"};
   return (boost::format(iconsMap[icon]) % theme).str();
 }
 
