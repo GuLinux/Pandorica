@@ -137,7 +137,7 @@ function createThumbnail() {
   set +x
   if ! [ -r "$WORKDIR/preview.png" ]; then return; fi
   convert "$WORKDIR/preview.png" -scale 640x264 "$WORKDIR/preview_player.png"
-  convert "$WORKDIR/preview.png" -scale 128x128 "$WORKDIR/preview_thumb.png"
+  convert "$WORKDIR/preview.png" -scale 260x260 "$WORKDIR/preview_thumb.png"
   echo "INSERT INTO media_attachment(version,media_id,type,name,mimetype,value,data) VALUES
   (1,'$(idFor "$1")', 'preview', 'full', 'image/png', '', $(file_to_$sqlDriver "$WORKDIR/preview.png") );" >> "$SQLFILE"
   echo "INSERT INTO media_attachment(version,media_id,type,name,mimetype,value,data) VALUES
