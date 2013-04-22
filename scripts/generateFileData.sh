@@ -1,6 +1,8 @@
 #!/bin/bash
 #set -x
 
+source "$( dirname "$( readlink -f "$0")" )/sql_common.sh"
+
 WORKDIR="/tmp/$( basename "$0").work"
 INFO_FILE="$WORKDIR/media_info.flat"
 
@@ -46,14 +48,6 @@ function file_to_sqlite() {
 
 function file_to_psql() {
   echo "E'\\\\x$(file_to_hex "$1" )'"
-}
-
-function doSql_sqlite() {
-  sqlite3  "${SQLITE_FILE-build/videostreaming.sqlite}"
-}
-
-function doSql_psql() {
-  psql -A -t -h localhost -p 5432 videostreaming videostreaming
 }
 
 function extractSubtitles() {
