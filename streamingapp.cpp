@@ -85,8 +85,6 @@ namespace fs = boost::filesystem;
 
 typedef std::function<void(filesystem::path)> RunOnPath;
 
-typedef pair<Dbo::ptr<User>, StreamingApp*> StreamingAppSession;
-
 class StreamingAppPrivate {
 public:
   StreamingAppPrivate(StreamingApp* q);
@@ -102,8 +100,6 @@ public:
   SessionInfoPtr sessionInfo;
   bool mailSent;
   StreamingApp *q;
-  Signal<StreamingAppSession> sessionAdded;
-  Signal<StreamingAppSession> sessionRemoved;
   void clearContent();
   WContainerWidget *mainWidget = 0;
   WContainerWidget *authContainer;
@@ -159,52 +155,6 @@ protected:
     }
 };
 
-typedef boost::function<void(StreamingAppSession)> SessionCallback;
-struct StreamingAppSessionInfo {
-  SessionCallback sessionAdded;
-  SessionCallback sessionRemoved;
-  StreamingAppSession session;
-  static StreamingAppSessionInfo from(SessionCallback sessionAdded, SessionCallback sessionRemoved, StreamingAppSession session) {
-    StreamingAppSessionInfo ret;
-    ret.sessionAdded=sessionAdded;
-    ret.sessionRemoved=sessionRemoved;
-    ret.session=session;
-    return ret;
-  }
-};
-
-class StreamingAppSessions {
-public:
-  void registerSession(string sessionId, SessionCallback onSessionAdded, SessionCallback onSessionRemoved, StreamingAppSession newSession);
-  void unregisterSession(string sessionId);
-  ulong sessionCount();
-private:
-  map<string,StreamingAppSessionInfo> sessions;
-};
-
-ulong StreamingAppSessions::sessionCount()
-{
-  return sessions.size();
-}
-
-
-void StreamingAppSessions::registerSession(string sessionId, SessionCallback onSessionAdded, SessionCallback onSessionRemoved, StreamingAppSession newSession)
-{
-  sessions[sessionId] = StreamingAppSessionInfo::from(onSessionAdded, onSessionRemoved, newSession);
-  for(pair<string,StreamingAppSessionInfo> session: sessions)
-    WServer::instance()->post(session.first, boost::bind(session.second.sessionAdded, newSession));
-}
-
-void StreamingAppSessions::unregisterSession(string sessionId)
-{
-  StreamingAppSessionInfo oldSession = sessions[sessionId];
-  sessions.erase(sessionId);
-  for(pair<string,StreamingAppSessionInfo> session: sessions)
-    if(sessionId != session.first)
-      WServer::instance()->post(session.first, boost::bind(session.second.sessionRemoved, oldSession.session));
-}
-
-StreamingAppSessions streamingAppSessions;
 
 StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(environment), d(new StreamingAppPrivate(this)) {
   useStyleSheet( wApp->resourcesUrl() + "form.css");
@@ -239,7 +189,6 @@ StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(
   d->authContainer->addWidget(authWidget);
   d->authContainer->addWidget(d->messagesContainer = new WContainerWidget());
   authWidget->processEnvironment();
-
 }
 
 
@@ -254,7 +203,6 @@ void StreamingAppPrivate::clearContent()
 void StreamingApp::authEvent()
 {
   if(!d->session.login().loggedIn()) {
-    streamingAppSessions.unregisterSession(wApp->sessionId());
     d->clearContent();
     d->authContainer->setStyleClass("");
     return;
@@ -293,7 +241,9 @@ void StreamingApp::authEvent()
   auto myUser = d->session.user();
   SessionInfo* sessionInfo = new SessionInfo(myUser, sessionId(), wApp->environment().clientAddress());
   Dbo::collection<SessionInfoPtr> oldSessions = d->session.find<SessionInfo>().where("user_id = ? and session_ended = 0").bind(myUser.id());
+  wApp->log("notice") << "Searching for old sessions for this user: " << oldSessions.size();
   for(SessionInfoPtr oldSessionInfo: oldSessions) {
+    wApp->log("notice") << "Found stale session " << oldSessionInfo->sessionId() << ", started " << oldSessionInfo->sessionStarted().toString();
     oldSessionInfo.modify()->end();
     oldSessionInfo.flush();
   }
@@ -303,21 +253,6 @@ void StreamingApp::authEvent()
   d->setupMenus(d->session.user()->isAdmin());
   t.commit();
   setupGui();
-  auto sessionAddedCallback = [this](StreamingAppSession newSession) {
-    WTimer::singleShot(2000, [this,newSession](WMouseEvent) {
-      d->sessionAdded.emit(newSession);
-      wApp->triggerUpdate(); 
-      wApp->log("notice") << "*** Session added (userId=" << newSession.first.id() << ")";
-    });
-  };
-  auto sessionRemovedCallback = [this](StreamingAppSession sessionRemoved) {
-    WTimer::singleShot(2000, [this,sessionRemoved](WMouseEvent){
-      d->sessionRemoved.emit(sessionRemoved);
-      wApp->triggerUpdate();
-      wApp->log("notice") << "*** Session removed (userId=" << sessionRemoved.first.id() << ")";
-    });
-  };
-  streamingAppSessions.registerSession(sessionId(), sessionAddedCallback, sessionRemovedCallback, {myUser,this} );
 }
 
 
@@ -379,12 +314,12 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   activeUsersMenuItem = new WMenuItem(wtr("menu.users").arg(""));
   activeUsersMenuItem->addStyleClass("menu-loggedusers");
   
-  auto setLoggedUsersTitle = [this](StreamingAppSession, _n5){
-    activeUsersMenuItem->setText(wtr("menu.users").arg(streamingAppSessions.sessionCount()));
-  };
-  
-  sessionAdded.connect(setLoggedUsersTitle);
-  sessionRemoved.connect(setLoggedUsersTitle);
+  WTimer::singleShot(5000, [=](WMouseEvent) {
+    string query = "SELECT COUNT(*) from session_info WHERE session_ended = 0";
+    Dbo::Transaction t(session);
+    long sessionsCount = session.query<long>(query);
+    activeUsersMenuItem->setText(wtr("menu.users").arg(sessionsCount));
+  });
   
   WMenuItem *logout = items->addItem(wtr("menu.logout"));
   logout->addStyleClass("menu-logout");
@@ -686,7 +621,6 @@ StreamingApp::~StreamingApp() {
       detail.modify()->ended();
     t.commit();
   }
-    streamingAppSessions.unregisterSession(sessionId());
   delete d;
 }
 
