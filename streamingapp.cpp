@@ -313,13 +313,18 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   
   activeUsersMenuItem = new WMenuItem(wtr("menu.users").arg(""));
   activeUsersMenuItem->addStyleClass("menu-loggedusers");
-  
-  WTimer::singleShot(5000, [=](WMouseEvent) {
+  auto updateUsersCount = [=](WMouseEvent) {
     string query = "SELECT COUNT(*) from session_info WHERE session_ended = 0";
     Dbo::Transaction t(session);
     long sessionsCount = session.query<long>(query);
     activeUsersMenuItem->setText(wtr("menu.users").arg(sessionsCount));
-  });
+  };
+  
+  WTimer *updateUsersCountTimer = new WTimer{q};
+  updateUsersCountTimer->setInterval(5000);
+  updateUsersCountTimer->timeout().connect(updateUsersCount);
+  WTimer::singleShot(1500, updateUsersCount);
+  updateUsersCountTimer->start();
   
   WMenuItem *logout = items->addItem(wtr("menu.logout"));
   logout->addStyleClass("menu-logout");
