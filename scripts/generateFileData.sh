@@ -156,9 +156,6 @@ function do_Help() {
   exit 0
 }
 
-filename="$1"; shift
-if ! [ -r "$filename" ]; then do_Help; fi
-
 rm -rf "$WORKDIR"
 mkdir -p "$WORKDIR"
 
@@ -198,11 +195,19 @@ while test "x$1" != "x"; do
     skip_cleanup="true"
     ;;
     *)
-    do_Help
+    if test "x$filename" == "x" && [ -r "$1" ]; then
+      filename="$1"
+    else
+      do_Help
+    fi
     ;;
   esac
   shift
 done
+
+if test "x$filename" == "x"; then
+  do_Help
+fi
 
 if test "x$directory_mode" == "xtrue"; then
   find_cmd="find -L \"$filename\" \("
