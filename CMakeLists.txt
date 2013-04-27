@@ -22,7 +22,7 @@ STRING(REGEX MATCH ".*Zerogoki.*" HOST_IS_ZEROGOKI "${HOSTNAME}")
 SET(INSTALL_DIR "/home/www-data/data/videostreaming" CACHE STRING "Install directory for Wt Applications and files")
 
 
-add_executable(videostreaming latestcommentsdialog.cpp groupsdialog.cpp user.cpp group.cpp settingspage.cpp settings.cpp media.cpp mediacollectionbrowser.cpp mediacollection.cpp Wt-Commons/whtmltemplateslocalizedstrings.cpp player/html5player.cpp 
+add_executable(videostreaming mediacollectionmanagerdialog.cpp ffmpegmedia.cpp latestcommentsdialog.cpp groupsdialog.cpp user.cpp group.cpp settingspage.cpp settings.cpp media.cpp mediacollectionbrowser.cpp mediacollection.cpp Wt-Commons/whtmltemplateslocalizedstrings.cpp player/html5player.cpp 
 readbwstats.cpp commentscontainerwidget.cpp sessiondetailsdialog.cpp customitemdelegates.cpp loggedusersdialog.cpp playlist.cpp session.cpp 
 player/videojs.cpp player/wmediaplayerwrapper.cpp streamingapp.cpp main.cpp)
 
@@ -40,10 +40,12 @@ SET(BOOST_LIBS
 -lboost_signals
 -lboost_system
 -lboost_filesystem
+-lboost_thread
 )
 
-target_link_libraries(videostreaming ${BOOST_LIBS} ${WT_LINK_LIBS} )
+target_link_libraries(videostreaming -lavformat -lavcodec ${BOOST_LIBS} ${WT_LINK_LIBS} )
 install(TARGETS videostreaming RUNTIME DESTINATION ${INSTALL_DIR}/bin)
 set(TRANSLATION_FILES strings.xml strings_it.xml )
 INSTALL(FILES ${TRANSLATION_FILES} DESTINATION ${INSTALL_DIR} )
 INSTALL(DIRECTORY html_templates DESTINATION ${INSTALL_DIR} FILES_MATCHING PATTERN "*.html" )
+

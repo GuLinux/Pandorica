@@ -63,6 +63,7 @@
 #include "settingspage.h"
 #include "groupsdialog.h"
 #include "latestcommentsdialog.h"
+#include "mediacollectionmanagerdialog.h"
 
 
 #include <Wt/WOverlayLoadingIndicator>
@@ -77,6 +78,7 @@
 #include <Wt/WBootstrapTheme>
 #include <Wt/WNavigationBar>
 #include <Wt/WPopupMenu>
+#include <Wt/WProgressBar>
 
 using namespace Wt;
 using namespace std;
@@ -314,6 +316,7 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   activeUsersMenuItem = new WMenuItem(wtr("menu.users").arg(""));
   activeUsersMenuItem->addStyleClass("menu-loggedusers");
   auto updateUsersCount = [=](WMouseEvent) {
+    wApp->log("notice") << "refreshing users count";
     string query = "SELECT COUNT(*) from session_info WHERE session_ended = 0";
     Dbo::Transaction t(session);
     long sessionsCount = session.query<long>(query);
@@ -389,6 +392,7 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
   WMenuItem *allLog = adminMenu->addItem(wtr("users.history.title"));
   allLog->addStyleClass("menu-users-log");
   WMenuItem *groupsDialog = adminMenu->addItem(wtr("menu.groups"));
+  WMenuItem *mediaCollectionScanner = adminMenu->addItem(wtr("menu.mediacollection.adminscan"));
   groupsDialog->addStyleClass("menu-groups");
   
   allLog->triggered().connect([=](WMenuItem*, _n5){
@@ -399,6 +403,10 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
     (new GroupsDialog(&session, &settings))->show();
   });
   
+  mediaCollectionScanner->triggered().connect([=](WMenuItem*, _n5) {
+    auto dialog = new MediaCollectionManagerDialog(&session, mediaCollection, q);
+    dialog->run();
+  });
   
   auto activeUsersConnection = activeUsersMenuItem->triggered().connect([=](WMenuItem*, _n5){
     (new LoggedUsersDialog{&session})->show();
@@ -485,15 +493,6 @@ void StreamingAppPrivate::parseFileParameter() {
     log("notice") << "Got parameter file: " << *wApp->environment().getParameter("media");
     WTimer::singleShot(1000, [=](WMouseEvent&) {
       string fileHash = * wApp->environment().getParameter("media");
-      queue(mediaCollection->media(fileHash).path());
-    });
-  }
-  
-  // backward compat: to remove
-  if(wApp->environment().getParameter("file")) {
-    log("notice") << "Got parameter file: " << *wApp->environment().getParameter("file");
-    WTimer::singleShot(5000, [=](WMouseEvent&) {
-      string fileHash = * wApp->environment().getParameter("file");
       queue(mediaCollection->media(fileHash).path());
     });
   }
