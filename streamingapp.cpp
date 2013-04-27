@@ -492,7 +492,7 @@ void StreamingAppPrivate::parseFileParameter() {
   // backward compat: to remove
   if(wApp->environment().getParameter("file")) {
     log("notice") << "Got parameter file: " << *wApp->environment().getParameter("file");
-    WTimer::singleShot(1000, [=](WMouseEvent&) {
+    WTimer::singleShot(5000, [=](WMouseEvent&) {
       string fileHash = * wApp->environment().getParameter("file");
       queue(mediaCollection->media(fileHash).path());
     });
