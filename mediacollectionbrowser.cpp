@@ -156,6 +156,7 @@ void MediaCollectionBrowserPrivate::addMedia(Media &media)
     WPopupMenuItem* play = menu->addItem(wtr("mediabrowser.play"));
     WPopupMenuItem* queue = menu->addItem(wtr("mediabrowser.queue"));
     WPopupMenuItem* close = menu->addItem(wtr("mediabrowser.cancelpopup"));
+    WPopupMenuItem* share = menu->addItem(wtr("mediabrowser.share"));
     WPopupMenuItem* clearThumbs = 0;
     WPopupMenuItem* setTitle = 0;
     if(isAdmin) {
@@ -170,6 +171,9 @@ void MediaCollectionBrowserPrivate::addMedia(Media &media)
         queueSignal.emit(media);
       if(clearThumbs && menu->result() == clearThumbs) {
         clearThumbnailsFor(media);
+      }
+      if(menu->result() == share) {
+        WMessageBox::show(wtr("mediabrowser.share"), wtr("mediabrowser.share.dialog").arg(media.title(session)).arg(settings->shareLink(media.uid()).url()), StandardButton::Ok);
       }
       if(setTitle && menu->result() == setTitle) {
         setTitleFor(media);
