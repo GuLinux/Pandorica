@@ -119,6 +119,7 @@ void MediaCollectionBrowserPrivate::addDirectory(filesystem::path directory)
   addIcon(directory.filename().string(), [](WObject*){ return Settings::icon(Settings::FolderBig); }, onClick);
 }
 
+
 void MediaCollectionBrowserPrivate::addMedia(Media &media)
 {
   wApp->log("notice") << "adding media " << media.path();

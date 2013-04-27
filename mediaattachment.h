@@ -20,18 +20,20 @@ public:
   inline std::string mediaId() const { return _mediaId; }
   inline std::string title() const { return _title; }
   inline std::string filename() const { return _filename; }
-  inline long duration() const { return _duration; }
-  inline long size() const { return _size; }
+  inline int64_t duration() const { return _duration; }
+  inline int64_t size() const { return _size; }
   inline int width() const { return _width; }
   inline int height() const { return _height; }
   void setTitle(std::string title) { _title = title; }
-  
+  MediaProperties() = default;
+  MediaProperties(std::string mediaId, std::string title, std::string filename, int64_t duration, int64_t size, int width, int height)
+    : _mediaId(mediaId), _title(title), _filename(filename), _duration(duration), _size(size), _width(width), _height(height) {}
 private:
   std::string _mediaId;
   std::string _title;
   std::string _filename;
-  long _duration;
-  long _size;
+  int64_t _duration;
+  int64_t _size;
   int _width;
   int _height;
 };

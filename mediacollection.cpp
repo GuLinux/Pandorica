@@ -79,8 +79,6 @@ Signal<>& MediaCollection::scanned()
 }
 
 
-
-
 MediaCollection::~MediaCollection()
 {
   delete d;
