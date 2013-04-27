@@ -143,6 +143,12 @@ WLink Settings::linkFor(filesystem::path p)
    return link;
 }
 
+WLink Settings::shareLink(string mediaId)
+{
+  return {wApp->makeAbsoluteUrl(wApp->bookmarkUrl("/") + string("?media=") + mediaId)};
+}
+
+
 WLink SettingsPrivate::lightySecDownloadLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p)
 {
     string filePath = p.string();

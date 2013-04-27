@@ -481,13 +481,22 @@ void StreamingApp::setupGui()
 
 
 void StreamingAppPrivate::parseFileParameter() {
+  if(wApp->environment().getParameter("media")) {
+    log("notice") << "Got parameter file: " << *wApp->environment().getParameter("media");
+    WTimer::singleShot(1000, [=](WMouseEvent&) {
+      string fileHash = * wApp->environment().getParameter("media");
+      queue(mediaCollection->media(fileHash).path());
+    });
+  }
+  
+  // backward compat: to remove
   if(wApp->environment().getParameter("file")) {
     log("notice") << "Got parameter file: " << *wApp->environment().getParameter("file");
     WTimer::singleShot(1000, [=](WMouseEvent&) {
       string fileHash = * wApp->environment().getParameter("file");
       queue(mediaCollection->media(fileHash).path());
     });
-  }    
+  }
 }
 
 
@@ -598,9 +607,8 @@ void StreamingAppPrivate::play ( Media media ) {
   WAnchor *resizeLarge = WW(WAnchor, "#", wtr("player.resizeLarge")).css("btn btn-info btn-mini").onClick([=](WMouseEvent){player->setPlayerSize(1420);});
   infoBox->addWidget(WW(WContainerWidget).add(resizeSmall).add(resizeMedium).add(resizeLarge));
   */
-  WLink shareLink(wApp->bookmarkUrl("/") + string("?file=") + fileId);
   infoBox->addWidget(new WBreak );
-  infoBox->addWidget(WW<WAnchor>(shareLink, wtr("player.sharelink")).css("btn btn-success btn-mini"));
+  infoBox->addWidget(WW<WAnchor>(settings.shareLink(fileId), wtr("player.sharelink")).css("btn btn-success btn-mini"));
   infoBox->addWidget(new WText{" "});
   WAnchor *downloadLink = WW<WAnchor>(mediaLink, wtr("player.downloadlink")).css("btn btn-success btn-mini");
   downloadLink->setTarget(Wt::TargetNewWindow);

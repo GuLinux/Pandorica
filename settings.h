@@ -19,6 +19,7 @@ public:
     std::string locale();
     void setValue(std::string settingName, std::string value);
     Wt::WLink linkFor(boost::filesystem::path p);
+    Wt::WLink shareLink(std::string mediaId);
     Player *newPlayer();
     bool autoplay(const Media &media);
     static const std::string guiLanguage;
