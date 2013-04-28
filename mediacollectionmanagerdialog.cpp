@@ -80,6 +80,7 @@ void MediaCollectionManagerDialog::run()
   auto startScanning = [=] (WMouseEvent) {
     progressBar->setMaximum(mediaCollection->collection().size());
     boost::thread t(boost::bind(&MediaCollectionManagerDialog::scanMediaProperties, this, wApp, [=](int progress, string file) {
+      customContent->clear();
       progressBar->setValue(progress);
       text->setText(file);
     }));
@@ -113,9 +114,11 @@ string titleHint(string filename) {
 #define guiRun(f) WServer::instance()->post(app->sessionId(), f)
 void MediaCollectionManagerDialog::scanMediaProperties(WApplication* app, UpdateGuiProgress updateGuiProgress)
 {
-  Dbo::Transaction t{*session};
   int current{0};
   for(auto media: mediaCollection->collection()) {
+    this->title = "";
+    this->secsRemaining = 10;
+    Dbo::Transaction t{*session};
     guiRun([=] { customContent->clear(); });
     
     current++;
@@ -135,17 +138,16 @@ void MediaCollectionManagerDialog::scanMediaProperties(WApplication* app, Update
       boost::this_thread::sleep(boost::posix_time::millisec(50));
     }
     pair<int, int> resolution = ffmpegMedia.resolution();
-    auto mediaProperties = new MediaProperties{media.first, title, media.second.fullPath(), ffmpegMedia.durationInSeconds(), boost::filesystem::file_size(media.second.path()), resolution.first, resolution.second};
+    auto mediaProperties = new MediaProperties{media.first, this->title, media.second.fullPath(), ffmpegMedia.durationInSeconds(), boost::filesystem::file_size(media.second.path()), resolution.first, resolution.second};
     session->add(mediaProperties);
+    t.commit();
   }
-  t.commit();
   guiRun([=] { setClosable(true);});
 }
 
 void MediaCollectionManagerDialog::editTitleWidgets(string suggestedTitle)
 {
   customContent->clear();
-  secsRemaining = 10;
   customContent->addWidget(editMediaTitle = new EditMediaTitle());
   editMediaTitle->editTitle->setText(suggestedTitle);
   
