@@ -40,8 +40,9 @@ private:
   MediaCollection* mediaCollection;
   Wt::WContainerWidget *customContent;
   EditMediaTitle *editMediaTitle = 0;
-  int secsRemaining = -1;
-    std::string title;
+  std::string title;
+  bool titleIsReady;
+    int secsRemaining;
 };
 
 #endif // MEDIACOLLECTIONMANAGERDIALOG_H
