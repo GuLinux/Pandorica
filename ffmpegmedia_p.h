@@ -24,6 +24,7 @@
 extern "C" {
   #include <libavcodec/avcodec.h>    // required headers
   #include <libavformat/avformat.h>
+  #include <libavutil/avutil.h>
 }
 
 class FFMPEGMediaPrivate
@@ -40,8 +41,11 @@ public:
     std::vector< AVStream* > streams;
     bool findInfoWasValid() const;
     bool openFileWasValid() const;
+    std::map<std::string,std::string> metadata;
+    void readMetadata();
 private:
     class FFMPEGMedia* const q;
 };
+
 
 #endif // FFMPEGMEDIAPRIVATE_H

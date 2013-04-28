@@ -25,6 +25,8 @@ class MediaCollection;
 class Session;
 typedef std::function<void(int,std::string)> UpdateGuiProgress;
 
+class EditMediaTitle;
+
 class MediaCollectionManagerDialog : public Wt::WDialog
 {
 public:
@@ -32,11 +34,14 @@ public:
   virtual ~MediaCollectionManagerDialog();
   void run();
 private:
-  void scanMediaProperties(Wt::WApplication* app, UpdateGuiProgress updateGuiProgress, Wt::WContainerWidget *customContent);
-  Wt::Signal<int, std::string> progress;
-  Wt::WIOService *service;
+  void scanMediaProperties(Wt::WApplication* app, UpdateGuiProgress updateGuiProgress);
+  void editTitleWidgets(std::string suggestedTitle);
   Session* session;
   MediaCollection* mediaCollection;
+  Wt::WContainerWidget *customContent;
+  EditMediaTitle *editMediaTitle = 0;
+  int secsRemaining = -1;
+    std::string title;
 };
 
 #endif // MEDIACOLLECTIONMANAGERDIALOG_H

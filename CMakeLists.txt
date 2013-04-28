@@ -41,9 +41,10 @@ SET(BOOST_LIBS
 -lboost_system
 -lboost_filesystem
 -lboost_thread
+-lboost_regex
 )
 
-target_link_libraries(videostreaming -lavformat -lavcodec ${BOOST_LIBS} ${WT_LINK_LIBS} )
+target_link_libraries(videostreaming -lavformat -lavcodec -lavutil ${BOOST_LIBS} ${WT_LINK_LIBS} )
 install(TARGETS videostreaming RUNTIME DESTINATION ${INSTALL_DIR}/bin)
 set(TRANSLATION_FILES strings.xml strings_it.xml )
 INSTALL(FILES ${TRANSLATION_FILES} DESTINATION ${INSTALL_DIR} )
