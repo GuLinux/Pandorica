@@ -121,29 +121,21 @@ string titleHint(string filename) {
   return filename;
 }
 
-Wt::WTime serverStarted = WTime::currentServerTime();
 
-#define timelog cerr << "elaps#" << ((double)WTime::currentServerTime().msecsTo(serverStarted)) / 1000.0 << " - "
 #define guiRun(f) WServer::instance()->post(app->sessionId(), f)
 void MediaCollectionManagerDialog::scanMediaProperties(WApplication* app, UpdateGuiProgress updateGuiProgress)
 {
   int current{0};
   for(auto media: mediaCollection->collection()) {
-    timelog << "Next file started\n";
     Dbo::Transaction t{*session};
-    timelog << "transaction created\n";
     guiRun([=] { customContent->clear(); wApp->triggerUpdate();});
-    timelog << "posted call to gui\n";
     current++;
     guiRun(boost::bind(updateGuiProgress, current, media.second.filename()));
-    timelog << "Updated progress\n";
     MediaPropertiesPtr mediaPropertiesPtr = session->find<MediaProperties>().where("media_id = ?").bind(media.first);
     if(mediaPropertiesPtr)
       continue;
     titleIsReady = false;
-    timelog << "about to get information from ffmpeg\n";
     FFMPEGMedia ffmpegMedia{media.second};
-    timelog << "got information from ffmpeg\n";
     string title = ffmpegMedia.metadata("title").empty() ? titleHint(media.second.filename()) : ffmpegMedia.metadata("title");
     guiRun([=] {
       editTitleWidgets(title);
@@ -153,14 +145,10 @@ void MediaCollectionManagerDialog::scanMediaProperties(WApplication* app, Update
     while(!titleIsReady) {
       boost::this_thread::sleep(boost::posix_time::millisec(50));
     }
-    timelog << "outside the sleep loop\n";
     pair<int, int> resolution = ffmpegMedia.resolution();
-    timelog << "creating mediaProperties\n";
     auto mediaProperties = new MediaProperties{media.first, this->title, media.second.fullPath(), ffmpegMedia.durationInSeconds(), boost::filesystem::file_size(media.second.path()), resolution.first, resolution.second};
     session->add(mediaProperties);
-    timelog << "Added mediaProperties to session\n";
     t.commit();
-    timelog << "Transaction committed\n";
   }
   guiRun([=] { setClosable(true); wApp->triggerUpdate();});
 }
@@ -176,12 +164,10 @@ void MediaCollectionManagerDialog::editTitleWidgets(string suggestedTitle)
   WTimer *timer = new WTimer(editMediaTitle);
   timer->setInterval(1000);
   auto okClicked = [=] {
-    timelog << "okClicked\n";
     timer->stop();
     title = editMediaTitle->editTitle->text().toUTF8();
     editMediaTitle->okButton->disable();
     titleIsReady = true;
-    timelog << "okClicked - end function\n";
   };
   timer->timeout().connect([=](WMouseEvent) {
     secsRemaining--;
