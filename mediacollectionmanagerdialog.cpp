@@ -50,6 +50,7 @@ public:
     addWidget(editTitle = WW<WLineEdit>().css("input-xxlarge"));
     label->setBuddy(editTitle);
     addWidget(okButton = WW<WPushButton>("OK").css("btn btn-primary"));
+    okButton->setMinimumSize(80, WLength::Auto);
     setStyleClass("form-inline");
   };
 };
@@ -72,9 +73,7 @@ void MediaCollectionManagerDialog::run()
   show();
   WProgressBar *progressBar = new WProgressBar();
   WText *text = new WText;
-  contents()->addWidget(text);
-  contents()->addWidget(new WBreak);
-  contents()->addWidget(progressBar);
+  contents()->addWidget(WW<WContainerWidget>().add(text).add(new WBreak).add(progressBar).setContentAlignment(AlignmentFlag::AlignCenter));
   customContent = new WContainerWidget();
   contents()->addWidget(customContent);
   auto startScanning = [=] (WMouseEvent) {
@@ -83,6 +82,7 @@ void MediaCollectionManagerDialog::run()
       customContent->clear();
       progressBar->setValue(progress);
       text->setText(file);
+      customContent->clear();
       wApp->triggerUpdate();
     }));
   };
@@ -128,7 +128,6 @@ void MediaCollectionManagerDialog::scanMediaProperties(WApplication* app, Update
   int current{0};
   for(auto media: mediaCollection->collection()) {
     Dbo::Transaction t{*session};
-    guiRun([=] { customContent->clear(); wApp->triggerUpdate();});
     current++;
     guiRun(boost::bind(updateGuiProgress, current, media.second.filename()));
     MediaPropertiesPtr mediaPropertiesPtr = session->find<MediaProperties>().where("media_id = ?").bind(media.first);
@@ -138,9 +137,12 @@ void MediaCollectionManagerDialog::scanMediaProperties(WApplication* app, Update
     FFMPEGMedia ffmpegMedia{media.second};
     string title = ffmpegMedia.metadata("title").empty() ? titleHint(media.second.filename()) : ffmpegMedia.metadata("title");
     guiRun([=] {
-      editTitleWidgets(title);
+      WTimer::singleShot(100, [=](WMouseEvent){
+        updateGuiProgress(current, media.second.filename());
+        editTitleWidgets(title);
+      });
     });
-    
+    cerr << "Current file: " << media.second.filename() << "; suggested title: " << title << "\n";
     
     while(!titleIsReady) {
       boost::this_thread::sleep(boost::posix_time::millisec(50));
@@ -150,7 +152,12 @@ void MediaCollectionManagerDialog::scanMediaProperties(WApplication* app, Update
     session->add(mediaProperties);
     t.commit();
   }
-  guiRun([=] { setClosable(true); wApp->triggerUpdate();});
+  guiRun([=] {
+    customContent->clear();
+    updateGuiProgress(current, "");
+    setClosable(true);
+    wApp->triggerUpdate();
+  });
 }
 
 void MediaCollectionManagerDialog::editTitleWidgets(string suggestedTitle)
