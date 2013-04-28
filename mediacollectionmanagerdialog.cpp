@@ -90,20 +90,29 @@ void MediaCollectionManagerDialog::run()
 
 list<pair<string,string>> filenameToTileHints {
   // Extensions
-  {"\\.mkv", ""},
-  {"\\.mp4", ""},
-  {"\\.m4v", ""},
-  {"\\.ogg", ""},
-  {"\\.mp3", ""},
-  {"\\.flv", ""},
-  {"\\.webm",""},
+  {"\\.mkv", ""}, {"\\.mp4", ""}, {"\\.m4v", ""}, {"\\.ogg", ""}, {"\\.mp3", ""}, {"\\.flv", ""}, {"\\.webm",""},
   // Other characters
   {"\\.", " "}, {"_", " "}, {"-", " "},
+  // Resolutions and codecs
+  {"\\b\\d{3,4}p\\b", "" }, {"[h|x]\\s{0,1}264", ""}, {"bluray", ""}, {"aac", ""}, {"ac3", ""}, {"dts", ""}, {"xvid", ""},
+  // Dates
+  {"\\b(19|20)\\d{2}\\b", "" },
+  // rippers
+  {"by \\w+", "" },
+  // track number
+  {"^\\s*\\d+", ""},
+  // langs
+  {"\\bita\\b", ""}, {"\\beng\\b", ""}, {"\\chd\\b", ""},  {"chs", ""},
+  // everything inside brackets
+  {"(\\(|\\[|\\{).*(\\)|\\]|\\})", ""},
+  // various
+  {"subs", ""}, {"chaps", ""}, {"chapters", ""},
+  {"extended", ""}, {"repack", ""},
 };
 
 string titleHint(string filename) {
   for(auto hint: filenameToTileHints) {
-    filename = boost::regex_replace(filename, boost::regex{hint.first}, hint.second);
+    filename = boost::regex_replace(filename, boost::regex{hint.first, boost::regex::icase}, hint.second);
   }
   while(filename.find("  ") != string::npos)
     boost::replace_all(filename, "  ", " ");
