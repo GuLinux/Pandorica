@@ -19,6 +19,7 @@
 #define MEDIACOLLECTIONMANAGERDIALOG_H
 
 #include <Wt/WDialog>
+#include <Wt/WTime>
 #include <boost/filesystem.hpp>
 
 class MediaCollection;
@@ -42,7 +43,7 @@ private:
   EditMediaTitle *editMediaTitle = 0;
   std::string title;
   bool titleIsReady;
-    int secsRemaining;
+  int secsRemaining;
 };
 
 #endif // MEDIACOLLECTIONMANAGERDIALOG_H
