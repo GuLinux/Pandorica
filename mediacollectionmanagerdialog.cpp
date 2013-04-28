@@ -116,8 +116,6 @@ void MediaCollectionManagerDialog::scanMediaProperties(WApplication* app, Update
 {
   int current{0};
   for(auto media: mediaCollection->collection()) {
-    this->title = "";
-    this->secsRemaining = 10;
     Dbo::Transaction t{*session};
     guiRun([=] { customContent->clear(); });
     
@@ -126,6 +124,7 @@ void MediaCollectionManagerDialog::scanMediaProperties(WApplication* app, Update
     MediaPropertiesPtr mediaPropertiesPtr = session->find<MediaProperties>().where("media_id = ?").bind(media.first);
     if(mediaPropertiesPtr)
       continue;
+    titleIsReady = false;
     
     FFMPEGMedia ffmpegMedia{media.second};
     string title = ffmpegMedia.metadata("title").empty() ? titleHint(media.second.filename()) : ffmpegMedia.metadata("title");
@@ -134,7 +133,7 @@ void MediaCollectionManagerDialog::scanMediaProperties(WApplication* app, Update
     });
     
     
-    while(secsRemaining != 0) {
+    while(!titleIsReady) {
       boost::this_thread::sleep(boost::posix_time::millisec(50));
     }
     pair<int, int> resolution = ffmpegMedia.resolution();
@@ -150,15 +149,15 @@ void MediaCollectionManagerDialog::editTitleWidgets(string suggestedTitle)
   customContent->clear();
   customContent->addWidget(editMediaTitle = new EditMediaTitle());
   editMediaTitle->editTitle->setText(suggestedTitle);
-  
+  secsRemaining = 10;
   
   WTimer *timer = new WTimer(editMediaTitle);
   timer->setInterval(1000);
   auto okClicked = [=] {
     timer->stop();
     title = editMediaTitle->editTitle->text().toUTF8();
-    secsRemaining = 0;
     editMediaTitle->okButton->disable();
+    titleIsReady = true;
   };
   timer->timeout().connect([=](WMouseEvent) {
     secsRemaining--;
@@ -174,7 +173,6 @@ void MediaCollectionManagerDialog::editTitleWidgets(string suggestedTitle)
   auto suspendTimer = [=] {
     timer->stop();
     editMediaTitle->okButton->setText("OK");
-    secsRemaining = -1;
   };
   
   editMediaTitle->editTitle->clicked().connect([=](WMouseEvent) { suspendTimer(); });
