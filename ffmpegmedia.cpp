@@ -62,13 +62,31 @@ FFMPEGMedia::FFMPEGMedia(const Media& media)
     return;
   for(int i=0; i<d->pFormatCtx->nb_streams; i++)
     d->streams.push_back(d->pFormatCtx->streams[i]);
+  d->readMetadata();
 }
+
+
+
+void FFMPEGMediaPrivate::readMetadata()
+{
+  AVDictionary *metadata = pFormatCtx->metadata;
+  AVDictionaryEntry *entry = NULL;
+  while (entry = av_dict_get(metadata, "", entry, AV_DICT_IGNORE_SUFFIX))
+    this->metadata[entry->key] = entry->value;
+}
+
 
 FFMPEGMedia::~FFMPEGMedia()
 {
   avformat_close_input(&d->pFormatCtx);
   delete d;
 }
+
+std::string FFMPEGMedia::metadata(std::string key) const
+{
+  return d->metadata[key];
+}
+
 
 bool FFMPEGMedia::isVideo()
 {

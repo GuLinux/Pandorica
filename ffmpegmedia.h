@@ -28,6 +28,7 @@ public:
   bool isVideo();
   std::pair<int,int> resolution();
   long durationInSeconds();
+  std::string metadata(std::string key) const;
 private:
     class FFMPEGMediaPrivate* const d;
 };
