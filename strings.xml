@@ -35,6 +35,7 @@
 
   <!-- Media Scanner -->
   <message id="mediascanner.title">Media Scanner</message>
+  <message id="mediascanner.media.title">Title</message>
 
   <!-- comments -->
   <message id="comments.label">Comments</message>

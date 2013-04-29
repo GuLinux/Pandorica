@@ -29,7 +29,7 @@ using namespace std;
 using namespace boost;
 
 HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
-  : WTemplate(parent), s_ended(this, "playbackEnded"), s_playing(this, "playbackStarted"), s_playerReady(this, "playbackReady")
+  : WTemplate(parent), s_ended(this, "playbackEnded"), s_playing(this, "playbackStarted"), s_playerReady(this, "playbackReady"), s_currentTime(this, "currentTime")
 {
   setTemplateText(wtr("html5player.mediatag"), Wt::XHTMLUnsafeText);
   addFunction("sources", [this](WTemplate *t, vector<WString> args, std::ostream &output) {
@@ -80,6 +80,10 @@ void HTML5Player::play()
 void HTML5Player::stop()
 {
   runJavascript("mediaPlayer.stop();");
+}
+void HTML5Player::pause()
+{
+  runJavascript("mediaPlayer.pause();");
 }
 
 Wt::JSignal<>& HTML5Player::ended()
@@ -185,4 +189,14 @@ string HTML5Player::playerId()
   return string("player_id") + id();
 }
 
+void HTML5Player::getCurrentTime(GetCurrentTimeCallback callback)
+{
+  s_currentTime.connect(callback);
+  string js = JS(
+    var mediaCurrentTime = mediaPlayer.currentTime;
+    var mediaTotalTime = mediaPlayer.duration;
+    %s ;
+  );
+  runJavascript( (boost::format(js) % s_currentTime.createCall("mediaCurrentTime", "mediaTotalTime")).str() );
+}
 

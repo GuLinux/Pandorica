@@ -24,6 +24,7 @@
 #include "player.h"
 #include <Wt/WTemplate>
 
+typedef std::function<void(double currentTime, double totalDuration, Wt::NoClass, Wt::NoClass, Wt::NoClass, Wt::NoClass)> GetCurrentTimeCallback;
 
 class HTML5Player : public Player, public Wt::WTemplate
 {
@@ -43,8 +44,10 @@ public:
     virtual void setPoster(const Wt::WLink& poster);
     virtual void addSubtitles(const Track& track);
     virtual void setAutoplay(bool autoplay);
-  virtual void setPlayerSize(int width, int height = -1);
+    virtual void setPlayerSize(int width, int height = -1);
     
+    virtual void pause();
+    void getCurrentTime(GetCurrentTimeCallback callback);
 protected:
   std::string playerId();
   virtual void runJavascript(std::string js);
@@ -54,6 +57,7 @@ private:
     Wt::JSignal<> s_ended;
     Wt::JSignal<> s_playing;
     Wt::JSignal<> s_playerReady;
+    Wt::JSignal<double, double> s_currentTime;
     std::map<std::string, std::vector<Track>> tracks;
     std::vector<Source> sources;
     bool isPlaying = false;

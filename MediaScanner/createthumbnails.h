@@ -15,22 +15,23 @@
  *
  */
 
-#ifndef MEDIASCANNERDIALOG_H
-#define MEDIASCANNERDIALOG_H
+#ifndef CREATETHUMBNAILS_H
+#define CREATETHUMBNAILS_H
 
-#include <Wt/WDialog>
+#include "MediaScanner/mediascannerpage.h"
 
 class Settings;
 class MediaCollection;
 class Session;
-class MediaScannerDialog : Wt::WDialog
+class CreateThumbnails : public MediaScannerPage
 {
 public:
-  MediaScannerDialog(Session *session, Settings *settings, MediaCollection *mediaCollection,Wt::WObject* parent);
-    virtual ~MediaScannerDialog();
-  void run();
+    ~CreateThumbnails();
+    virtual void run();
+    CreateThumbnails(Session* session,Settings* settings, MediaCollection* mediaCollection,  Wt::WContainerWidget* parent = 0);
+
 private:
-    class MediaScannerDialogPrivate* const d;
+    class CreateThumbnailsPrivate* const d;
 };
 
-#endif // MEDIASCANNERDIALOG_H
+#endif // CREATETHUMBNAILS_H
