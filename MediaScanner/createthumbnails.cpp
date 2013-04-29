@@ -27,6 +27,9 @@
 #include <Wt/WProgressBar>
 #include <Wt/WText>
 #include <Wt/WPushButton>
+#include <Wt/WTime>
+#include <Wt/WMemoryResource>
+#include <Wt/WImage>
 #include "Wt-Commons/wt_helpers.h"
 #include <mediacollection.h>
 #include <player/html5player.h>
@@ -86,6 +89,11 @@ void CreateThumbnailsPrivate::scanMedias(Wt::WApplication* app, UpdateGuiProgres
     
     guiRun([=]{
       updateGuiProgress(current, media.second.filename());
+    });
+    chooseRandomFrame(media.second, t, app);
+    continue;
+    guiRun([=]{
+      updateGuiProgress(current, media.second.filename());
       HTML5Player *player = new HTML5Player();
       contentForEachMedia->addWidget(player);
       player->addSource({settings->linkFor(media.second.path()).url(), media.second.mimetype() });
@@ -104,50 +112,12 @@ void CreateThumbnailsPrivate::scanMedias(Wt::WApplication* app, UpdateGuiProgres
       boost::this_thread::sleep(boost::posix_time::millisec(100));
     }
     
-    video_thumbnailer *thumbnailer = video_thumbnailer_create();
-    thumbnailer->overlay_film_strip = 1;
-    
-    if(((int) currentTime) > 0) {
-      int hours = currentTime / 3600;
-      int minutes = (int(currentTime)% 3600) / 60;
-      int seconds = ((int(currentTime) % 3600) % 60) /60;
-      string currentTimeStr = (boost::format("%.2d:%.2d:%.2d") %hours %minutes %seconds).str();
-      thumbnailer->seek_time = (char*)currentTimeStr.c_str();
-    } else
-      thumbnailer->seek_percentage = 20;
-    thumbnailer->thumbnail_image_type = Png;
-    
-    auto savePreview = [=] (string size, image_data *imageData) {
-      vector<unsigned char> data{imageData->image_data_ptr, imageData->image_data_ptr+ imageData->image_data_size};
+    auto savePreview = [=] (string size, const vector<uint8_t> &data) {
       session->add(new MediaAttachment{"preview", size, "", media.first, "image/png", data });
     };
-    
-    image_data *imageData = video_thumbnailer_create_image_data();
-    thumbnailer->thumbnail_image_quality = 8;
-    thumbnailer->thumbnail_size = 640;
-    video_thumbnailer_generate_thumbnail_to_buffer(thumbnailer, media.second.fullPath().c_str(), imageData);
-    savePreview("player", imageData);
-
-    
-    
-    thumbnailer->thumbnail_image_quality = 4;
-    thumbnailer->thumbnail_size = 260;
-    video_thumbnailer_generate_thumbnail_to_buffer(thumbnailer, media.second.fullPath().c_str(), imageData);
-    savePreview("thumbnail", imageData);
-    
-    video_thumbnailer_destroy(thumbnailer);
-    
-    /*
-    VideoThumbnailer thumbnailer;
-    thumbnailer.setThumbnailSize(640);
-    thumbnailer.setImageQuality(5);
-    thumbnailer.setWorkAroundIssues(true);
-    
-    thumbnailer.setSeekPercentage(currentTime / duration * 100);
-    thumbnailer.setSmartFrameSelection(true);
-    thumbnailer.generateThumbnail(media.second.fullPath(), Png, "/tmp/autopreview.png");
-    */
-    
+    savePreview("player", thumbnailFor(media.second, 640, ThumbnailPosition::from(currentTime)));
+    savePreview("thumbnail", thumbnailFor(media.second, 260, ThumbnailPosition::from(currentTime), 3));
+    t.commit();
   }
   guiRun([=] {
     contentForEachMedia->clear();
@@ -156,6 +126,88 @@ void CreateThumbnailsPrivate::scanMedias(Wt::WApplication* app, UpdateGuiProgres
     wApp->triggerUpdate();
   });
 }
+
+#define defaultThumbnails(position) thumbnailFor(media, 640, position), thumbnailFor(media, 260, position, 3)
+
+void CreateThumbnailsPrivate::chooseFromVideoPlayer(const Media& media, Dbo::Transaction& t, WApplication *app)
+{
+  
+}
+
+void CreateThumbnailsPrivate::chooseRandomFrame(const Media& media, Dbo::Transaction& t, WApplication *app)
+{
+  long range = randomEngine.max() - randomEngine.min();
+  int randomPercent = (double( randomEngine() - randomEngine.min()) / range * 100);
+  if(randomPercent < 10) randomPercent += 10;
+  if(randomPercent > 80) randomPercent -= 20;
+  delete thumbnail;
+  thumbnail = new WMemoryResource("image/png", thumbnailFor(media, 400, {randomPercent}), q);
+  guiRun([=]{
+    contentForEachMedia->clear();
+    
+    contentForEachMedia->addWidget(WW<WContainerWidget>().add(new WImage(thumbnail)).setContentAlignment(AlignCenter));
+    contentForEachMedia->addWidget(WW<WPushButton>("New Random Image").css("btn btn-primary").onClick([=](WMouseEvent) {
+      action = NewRandom;
+    }));
+    contentForEachMedia->addWidget(WW<WPushButton>("Accept").css("btn btn-success").onClick([=](WMouseEvent) {
+      action = Accept;
+    }));
+    wApp->triggerUpdate();
+  });
+  action = None;
+  while(action == None) {
+    boost::this_thread::sleep(boost::posix_time::millisec(100));
+  }
+  if(action == NewRandom) {
+    chooseRandomFrame(media, t, app);
+    return;
+  }
+  if(action == Accept) {
+    saveThumbnails(media.uid(), defaultThumbnails({randomPercent}), t);
+  }
+}
+
+void CreateThumbnailsPrivate::saveThumbnails(string mediaId, const std::vector<uint8_t> &forPlayer, const std::vector<uint8_t> &forThumbnail, Dbo::Transaction &t)
+{
+  session->add(new MediaAttachment{"preview", "thumbnail", "", mediaId, "image/png", forThumbnail });
+  session->add(new MediaAttachment{"preview", "player", "", mediaId, "image/png", forPlayer });
+  t.commit();
+}
+
+
+ThumbnailPosition ThumbnailPosition::from(int timeInSeconds)
+{
+  int hours = timeInSeconds / 3600;
+  int minutes = (int(timeInSeconds)% 3600) / 60;
+  int seconds = ((int(timeInSeconds) % 3600) % 60) /60;
+  string currentTimeStr = (boost::format("%.2d:%.2d:%.2d") %hours %minutes %seconds).str();
+  return {-1, currentTimeStr};
+}
+
+
+vector<uint8_t> CreateThumbnailsPrivate::thumbnailFor(const Media& media, int size, ThumbnailPosition position, int quality)
+{
+  video_thumbnailer *thumbnailer = video_thumbnailer_create();
+  thumbnailer->overlay_film_strip = media.mimetype().find("video") == string::npos ? 0 : 1;
+  
+  if(position.percent>0)
+    thumbnailer->seek_percentage = position.percent;
+  else
+    thumbnailer->seek_time = (char*)position.timing.c_str();;
+  
+  thumbnailer->thumbnail_image_type = Png;
+  
+  image_data *imageData = video_thumbnailer_create_image_data();
+  thumbnailer->thumbnail_image_quality = quality;
+  thumbnailer->thumbnail_size = size;
+  video_thumbnailer_generate_thumbnail_to_buffer(thumbnailer, media.fullPath().c_str(), imageData);
+  vector<uint8_t> data{imageData->image_data_ptr, imageData->image_data_ptr + imageData->image_data_size};
+  video_thumbnailer_destroy_image_data(imageData);
+  video_thumbnailer_destroy(thumbnailer);
+  return data;
+}
+
+
 
 
 CreateThumbnails::CreateThumbnails(Session* session, Settings *settings, MediaCollection* mediaCollection, WContainerWidget* parent)
