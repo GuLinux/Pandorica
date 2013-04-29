@@ -17,6 +17,12 @@
 
 #ifndef CREATETHUMBNAILSPRIVATE_H
 #define CREATETHUMBNAILSPRIVATE_H
+#include <sys/types.h>
+#include <stdint.h>
+#include <Wt/Dbo/Transaction>
+#include <Wt/WTime>
+#include <media.h>
+#include <random>
 
 class Settings;
 class MediaCollection;
@@ -25,8 +31,15 @@ namespace Wt {
 class WProgressBar;
 class WText;
 class WContainerWidget;
+class WMemoryResource;
 }
 typedef std::function<void(int,std::string)> UpdateGuiProgress;
+
+struct ThumbnailPosition {
+  int percent;
+  std::string timing;
+  static ThumbnailPosition from(int timeInSeconds);
+};
 
 class CreateThumbnailsPrivate
 {
@@ -40,11 +53,22 @@ public:
     Session* session;
     Settings* settings;
     void scanMedias(Wt::WApplication* app, UpdateGuiProgress updateGuiProgress);
+    std::vector<uint8_t> thumbnailFor(const Media &media, int size, ThumbnailPosition position, int quality = 8);
     
+    void saveThumbnails(std::string mediaId, const std::vector< uint8_t >& forPlayer, const std::vector< uint8_t >& forThumbnail, Wt::Dbo::Transaction& t);
+    void chooseRandomFrame(const Media& media, Wt::Dbo::Transaction& t, Wt::WApplication* app);
+    void chooseFromVideoPlayer(const Media& media, Wt::Dbo::Transaction& t, Wt::WApplication* app);
+    enum Action {
+      None, Accept, NewRandom, FromVideo
+    };
 private:
     class CreateThumbnails* const q;
     double currentTime;
     double duration;
+    Action action;
+    Wt::WMemoryResource *thumbnail = 0;
+    
+    std::default_random_engine randomEngine{Wt::WTime{Wt::WTime::currentServerTime()}.msecsTo({0,0,0})};
 };
-
 #endif // CREATETHUMBNAILSPRIVATE_H
+
