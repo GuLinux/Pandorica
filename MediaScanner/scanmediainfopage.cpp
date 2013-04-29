@@ -45,7 +45,7 @@ using namespace std;
 EditMediaTitle::EditMediaTitle(Wt::WContainerWidget* parent): WContainerWidget(parent)
 {
   setPadding(10);
-  WLabel *label = new WLabel("Title");
+  WLabel *label = new WLabel(wtr("mediascanner.media.title"));
   addWidget(editTitle = WW<WLineEdit>().css("span5"));
   label->setBuddy(editTitle);
   addWidget(okButton = WW<WPushButton>("OK").css("btn btn-primary"));
@@ -76,7 +76,6 @@ void ScanMediaInfoPage::run()
 {
   d->progressBar->setMaximum(d->mediaCollection->collection().size());
   boost::thread t(boost::bind(&ScanMediaInfoPagePrivate::scanMediaProperties, d, wApp, [=](int progress, string file) {
-    d->contentForEachMedia->clear();
     d->progressBar->setValue(progress);
     d->progressBarTitle->setText(file);
     d->contentForEachMedia->clear();
@@ -118,45 +117,32 @@ string titleHint(string filename) {
   return filename;
 }
 
-WTime serverStarted{WTime::currentServerTime()};
-#include <boost/format.hpp>
-#define timelog cerr << "timelog#" << boost::format("%.4f") % (((double)WTime::currentServerTime().msecsTo(serverStarted)) / 1000.0) << ": "
 #define guiRun(f) WServer::instance()->post(app->sessionId(), f)
 void ScanMediaInfoPagePrivate::scanMediaProperties(Wt::WApplication* app, UpdateGuiProgress updateGuiProgress)
 {
   int current{0};
   for(auto media: mediaCollection->collection()) {
-    timelog << "starting next file\n";
     Dbo::Transaction t{*session};
-    timelog << "init transaction\n";
-    current++;
-    guiRun(boost::bind(updateGuiProgress, current, media.second.filename()));
+    guiRun(boost::bind(updateGuiProgress, ++current, media.second.filename()));
     MediaPropertiesPtr mediaPropertiesPtr = session->find<MediaProperties>().where("media_id = ?").bind(media.first);
     if(mediaPropertiesPtr)
       continue;
     titleIsReady = false;
-    timelog << "ffmpeg decoding\n";
     FFMPEGMedia ffmpegMedia{media.second};
-    timelog << "ffmpeg decoded\n";
     string title = ffmpegMedia.metadata("title").empty() ? titleHint(media.second.filename()) : ffmpegMedia.metadata("title");
     guiRun([=] {
-      timelog << "updating gui\n";
       updateGuiProgress(current, media.second.filename());
       editTitleWidgets(title);
       wApp->triggerUpdate();
-      timelog << "gui updated\n";
     });
     
-    timelog << "entering loop\n";
     while(!titleIsReady) {
       boost::this_thread::sleep(boost::posix_time::millisec(100));
     }
-    timelog << "exited loop\n";
     pair<int, int> resolution = ffmpegMedia.resolution();
     auto mediaProperties = new MediaProperties{media.first, newTitle, media.second.fullPath(), ffmpegMedia.durationInSeconds(), boost::filesystem::file_size(media.second.path()), resolution.first, resolution.second};
     session->add(mediaProperties);
     t.commit();
-    timelog << "transaction committed\n";
   }
   guiRun([=] {
     contentForEachMedia->clear();

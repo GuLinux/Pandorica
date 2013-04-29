@@ -49,7 +49,10 @@ public:
     Wt::Dbo::field(a, _mimetype, "mimetype");
     Wt::Dbo::field(a, _data, "data");
   }
-  
+  MediaAttachment() = default;
+  MediaAttachment(std::string type, std::string name, std::string value, std::string mediaId, std::string mimetype, std::vector<unsigned char> data)
+    : _type(type), _name(name), _value(value), _mediaId(mediaId), _mimetype(mimetype), _data(data)
+  {}
   inline std::string type() const { return _type; }
   inline std::string name() const { return _name; }
   inline std::string value() const { return _value; }

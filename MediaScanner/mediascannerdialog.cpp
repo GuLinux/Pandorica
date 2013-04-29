@@ -18,11 +18,14 @@
 #include "MediaScanner/mediascannerdialog.h"
 #include "MediaScanner/mediascannerdialog_p.h"
 #include "scanmediainfopage.h"
+#include "createthumbnails.h"
 #include <session.h>
 #include <mediacollection.h>
 #include "Wt-Commons/wt_helpers.h"
+#include <settings.h>
 #include <Wt/WPushButton>
 #include <Wt/WStackedWidget>
+#include <Wt/WTimer>
 
 using namespace Wt;
 using namespace std;
@@ -34,11 +37,32 @@ MediaScannerDialogPrivate::~MediaScannerDialogPrivate()
 {
 }
 
-MediaScannerDialog::MediaScannerDialog(Session* session, MediaCollection* mediaCollection, Wt::WObject* parent)
+class FinalPage : public MediaScannerPage {
+public:
+  FinalPage(WContainerWidget* parent = 0);
+  virtual void run();
+};
+
+FinalPage::FinalPage(WContainerWidget* parent): MediaScannerPage(parent)
+{
+  addWidget(new WText("hello!"));
+}
+
+void FinalPage::run()
+{
+  WTimer::singleShot(5000, [=](WMouseEvent) {
+    finished().emit();
+  });
+}
+
+
+MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, MediaCollection* mediaCollection, WObject* parent)
     : d(new MediaScannerDialogPrivate(this))
 {
   d->pages = {
     new ScanMediaInfoPage{session, mediaCollection},
+    new CreateThumbnails{session, settings, mediaCollection},
+    new FinalPage()
   };
   setWidth(650);
   setWindowTitle(wtr("mediascanner.title"));
@@ -46,6 +70,7 @@ MediaScannerDialog::MediaScannerDialog(Session* session, MediaCollection* mediaC
   footer()->addWidget(d->buttonNext = WW<WPushButton>(wtr("button.next")).css("btn btn-primary").setEnabled(false).onClick([=](WMouseEvent) {
     d->buttonNext->disable();
     d->widgetsStack->setCurrentIndex(d->widgetsStack->currentIndex() + 1);
+    WTimer::singleShot(100, [=](WMouseEvent) { d->pages[d->widgetsStack->currentIndex()]->run(); });
   }));
   footer()->addWidget(d->buttonClose = WW<WPushButton>(wtr("button.close")).css("btn btn-success").onClick([=](WMouseEvent) { accept(); } ).setEnabled(false));
   contents()->addWidget(d->widgetsStack = new WStackedWidget());
