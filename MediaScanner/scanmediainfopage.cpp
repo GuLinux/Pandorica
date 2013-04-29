@@ -14,80 +14,77 @@
  * limitations under the License.
  *
  */
-#include "session.h"
-#include "mediacollectionmanagerdialog.h"
+
+#include "MediaScanner/scanmediainfopage.h"
+#include "MediaScanner/scanmediainfopage_p.h"
+#include <Wt/WProgressBar>
 #include <Wt/WText>
 #include <Wt/WApplication>
-#include <Wt/WProgressBar>
+#include <Wt/WPushButton>
+#include <Wt/WLineEdit>
+#include <Wt/WTimer>
+#include <Wt/WLabel>
+#include <Wt/WTime>
+#include <boost/thread.hpp>
 #include "Wt-Commons/wt_helpers.h"
-#include "mediacollection.h"
+#include <session.h>
+#include <mediacollection.h>
+#include <boost/regex.hpp>
+#include <boost/algorithm/string/trim.hpp>
+
 #include "ffmpegmedia.h"
 #include "mediaattachment.h"
 #include "session.h"
 #include "sessioninfo.h"
 #include "sessiondetails.h"
 #include "comment.h"
-#include <boost/thread.hpp>
-#include <boost/algorithm/string/trim.hpp>
-#include <Wt/WIOService>
-#include <Wt/WTimer>
-#include <Wt/WLineEdit>
-#include <Wt/WPushButton>
-#include <Wt/WLabel>
-#include <thread>
-#include <boost/regex.hpp>
 
-using namespace std;
 using namespace Wt;
+using namespace std;
 
-class EditMediaTitle : public WContainerWidget {
-public:
-  WPushButton *okButton;
-  WLineEdit *editTitle;
-  EditMediaTitle(WContainerWidget *parent = 0) : WContainerWidget(parent) {
-    setPadding(10);
-    WLabel *label = new WLabel("Title");
-    addWidget(editTitle = WW<WLineEdit>().css("input-xxlarge"));
-    label->setBuddy(editTitle);
-    addWidget(okButton = WW<WPushButton>("OK").css("btn btn-primary"));
-    okButton->setMinimumSize(80, WLength::Auto);
-    setStyleClass("form-inline");
-  };
-};
-
-
-MediaCollectionManagerDialog::MediaCollectionManagerDialog(Session *session, MediaCollection *mediaCollection, Wt::WObject* parent)
-  : WDialog(parent), session(session), mediaCollection(mediaCollection)
+EditMediaTitle::EditMediaTitle(Wt::WContainerWidget* parent): WContainerWidget(parent)
 {
-  setWindowTitle("Scanner");
-  setClosable(false);
-}
-
-MediaCollectionManagerDialog::~MediaCollectionManagerDialog()
-{
+  setPadding(10);
+  WLabel *label = new WLabel("Title");
+  addWidget(editTitle = WW<WLineEdit>().css("span5"));
+  label->setBuddy(editTitle);
+  addWidget(okButton = WW<WPushButton>("OK").css("btn btn-primary"));
+  okButton->setMinimumSize(80, WLength::Auto);
+  setStyleClass("form-inline");
 }
 
 
-void MediaCollectionManagerDialog::run()
+ScanMediaInfoPagePrivate::ScanMediaInfoPagePrivate(Session *session, MediaCollection *mediaCollection, ScanMediaInfoPage* q)
+  : session(session), mediaCollection(mediaCollection), q(q)
 {
-  show();
-  WProgressBar *progressBar = new WProgressBar();
-  WText *text = new WText;
-  contents()->addWidget(WW<WContainerWidget>().add(text).add(new WBreak).add(progressBar).setContentAlignment(AlignmentFlag::AlignCenter));
-  customContent = new WContainerWidget();
-  contents()->addWidget(customContent);
-  auto startScanning = [=] (WMouseEvent) {
-    progressBar->setMaximum(mediaCollection->collection().size());
-    boost::thread t(boost::bind(&MediaCollectionManagerDialog::scanMediaProperties, this, wApp, [=](int progress, string file) {
-      customContent->clear();
-      progressBar->setValue(progress);
-      text->setText(file);
-      customContent->clear();
-      wApp->triggerUpdate();
-    }));
-  };
-  WTimer::singleShot(100, startScanning);
 }
+ScanMediaInfoPagePrivate::~ScanMediaInfoPagePrivate()
+{
+}
+
+ScanMediaInfoPage::ScanMediaInfoPage(Session* session, MediaCollection* mediaCollection, WContainerWidget* parent)
+  : MediaScannerPage(parent), d(new ScanMediaInfoPagePrivate(session, mediaCollection, this))
+{
+  d->progressBar = new WProgressBar();
+  d->progressBarTitle = new WText;
+  addWidget(WW<WContainerWidget>().add(d->progressBarTitle).add(new WBreak).add(d->progressBar).setContentAlignment(AlignmentFlag::AlignCenter));
+  d->contentForEachMedia = new WContainerWidget();
+  addWidget(d->contentForEachMedia);
+}
+
+void ScanMediaInfoPage::run()
+{
+  d->progressBar->setMaximum(d->mediaCollection->collection().size());
+  boost::thread t(boost::bind(&ScanMediaInfoPagePrivate::scanMediaProperties, d, wApp, [=](int progress, string file) {
+    d->contentForEachMedia->clear();
+    d->progressBar->setValue(progress);
+    d->progressBarTitle->setText(file);
+    d->contentForEachMedia->clear();
+    wApp->triggerUpdate();
+  }));
+}
+
+
 
 list<pair<string,string>> filenameToTileHints {
   // Extensions
@@ -121,49 +118,59 @@ string titleHint(string filename) {
   return filename;
 }
 
-
+WTime serverStarted{WTime::currentServerTime()};
+#include <boost/format.hpp>
+#define timelog cerr << "timelog#" << boost::format("%.4f") % (((double)WTime::currentServerTime().msecsTo(serverStarted)) / 1000.0) << ": "
 #define guiRun(f) WServer::instance()->post(app->sessionId(), f)
-void MediaCollectionManagerDialog::scanMediaProperties(WApplication* app, UpdateGuiProgress updateGuiProgress)
+void ScanMediaInfoPagePrivate::scanMediaProperties(Wt::WApplication* app, UpdateGuiProgress updateGuiProgress)
 {
   int current{0};
   for(auto media: mediaCollection->collection()) {
+    timelog << "starting next file\n";
     Dbo::Transaction t{*session};
+    timelog << "init transaction\n";
     current++;
     guiRun(boost::bind(updateGuiProgress, current, media.second.filename()));
     MediaPropertiesPtr mediaPropertiesPtr = session->find<MediaProperties>().where("media_id = ?").bind(media.first);
     if(mediaPropertiesPtr)
       continue;
     titleIsReady = false;
+    timelog << "ffmpeg decoding\n";
     FFMPEGMedia ffmpegMedia{media.second};
+    timelog << "ffmpeg decoded\n";
     string title = ffmpegMedia.metadata("title").empty() ? titleHint(media.second.filename()) : ffmpegMedia.metadata("title");
     guiRun([=] {
-      WTimer::singleShot(100, [=](WMouseEvent){
-        updateGuiProgress(current, media.second.filename());
-        editTitleWidgets(title);
-      });
+      timelog << "updating gui\n";
+      updateGuiProgress(current, media.second.filename());
+      editTitleWidgets(title);
+      wApp->triggerUpdate();
+      timelog << "gui updated\n";
     });
-    cerr << "Current file: " << media.second.filename() << "; suggested title: " << title << "\n";
     
+    timelog << "entering loop\n";
     while(!titleIsReady) {
-      boost::this_thread::sleep(boost::posix_time::millisec(50));
+      boost::this_thread::sleep(boost::posix_time::millisec(100));
     }
+    timelog << "exited loop\n";
     pair<int, int> resolution = ffmpegMedia.resolution();
-    auto mediaProperties = new MediaProperties{media.first, this->title, media.second.fullPath(), ffmpegMedia.durationInSeconds(), boost::filesystem::file_size(media.second.path()), resolution.first, resolution.second};
+    auto mediaProperties = new MediaProperties{media.first, newTitle, media.second.fullPath(), ffmpegMedia.durationInSeconds(), boost::filesystem::file_size(media.second.path()), resolution.first, resolution.second};
     session->add(mediaProperties);
     t.commit();
+    timelog << "transaction committed\n";
   }
   guiRun([=] {
-    customContent->clear();
+    contentForEachMedia->clear();
     updateGuiProgress(current, "");
-    setClosable(true);
+    q->finished().emit();
     wApp->triggerUpdate();
   });
 }
 
-void MediaCollectionManagerDialog::editTitleWidgets(string suggestedTitle)
+
+void ScanMediaInfoPagePrivate::editTitleWidgets(std::string suggestedTitle)
 {
-  customContent->clear();
-  customContent->addWidget(editMediaTitle = new EditMediaTitle());
+  contentForEachMedia->clear();
+  contentForEachMedia->addWidget(editMediaTitle = new EditMediaTitle());
   editMediaTitle->editTitle->setText(suggestedTitle);
   secsRemaining = 10;
   editMediaTitle->okButton->setText(WString("OK ({1})").arg(secsRemaining));
@@ -172,7 +179,7 @@ void MediaCollectionManagerDialog::editTitleWidgets(string suggestedTitle)
   timer->setInterval(1000);
   auto okClicked = [=] {
     timer->stop();
-    title = editMediaTitle->editTitle->text().toUTF8();
+    newTitle = editMediaTitle->editTitle->text().toUTF8();
     editMediaTitle->okButton->disable();
     titleIsReady = true;
   };
@@ -202,7 +209,9 @@ void MediaCollectionManagerDialog::editTitleWidgets(string suggestedTitle)
   });
   
   timer->start();
-  wApp->triggerUpdate();
+  wApp->triggerUpdate(); 
 }
-
-
+ScanMediaInfoPage::~ScanMediaInfoPage()
+{
+  delete d;
+}

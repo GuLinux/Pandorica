@@ -63,7 +63,7 @@
 #include "settingspage.h"
 #include "groupsdialog.h"
 #include "latestcommentsdialog.h"
-#include "mediacollectionmanagerdialog.h"
+#include "MediaScanner/mediascannerdialog.h"
 
 
 #include <Wt/WOverlayLoadingIndicator>
@@ -392,7 +392,7 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
   WMenuItem *allLog = adminMenu->addItem(wtr("users.history.title"));
   allLog->addStyleClass("menu-users-log");
   WMenuItem *groupsDialog = adminMenu->addItem(wtr("menu.groups"));
-  WMenuItem *mediaCollectionScanner = adminMenu->addItem(wtr("menu.mediacollection.adminscan"));
+  WMenuItem *mediaCollectionScanner = adminMenu->addItem(wtr("mediascanner.title"));
   groupsDialog->addStyleClass("menu-groups");
   
   allLog->triggered().connect([=](WMenuItem*, _n5){
@@ -404,7 +404,7 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
   });
   
   mediaCollectionScanner->triggered().connect([=](WMenuItem*, _n5) {
-    auto dialog = new MediaCollectionManagerDialog(&session, mediaCollection, q);
+    auto dialog = new MediaScannerDialog(&session, mediaCollection, q);
     dialog->run();
   });
   
