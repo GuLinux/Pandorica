@@ -31,7 +31,10 @@
   <message id="mediabrowser.share.dialog">To share {1} just copy the link below.<br />
   Remember that who will receive the link must first be enabled by the administrator.<br />
   <a href="{2}">{2}</a>
-</message>
+  </message>
+
+  <!-- Media Scanner -->
+  <message id="mediascanner.title">Media Scanner</message>
 
   <!-- comments -->
   <message id="comments.label">Comments</message>
