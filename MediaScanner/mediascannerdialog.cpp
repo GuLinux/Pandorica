@@ -64,7 +64,7 @@ MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, Med
     new CreateThumbnails{session, settings, mediaCollection},
     new FinalPage()
   };
-  setWidth(650);
+  setWidth(700);
   setWindowTitle(wtr("mediascanner.title"));
   setClosable(false);
   footer()->addWidget(d->buttonNext = WW<WPushButton>(wtr("button.next")).css("btn btn-primary").setEnabled(false).onClick([=](WMouseEvent) {
