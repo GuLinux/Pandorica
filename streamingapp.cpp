@@ -481,10 +481,12 @@ void StreamingApp::setupGui()
   d->widgetsStack->addWidget(contentWidget);
   d->widgetsStack->addWidget(d->mediaCollectionBrowser);
 
-  d->parseFileParameter();
   
   d->playlist->next().connect(d, &StreamingAppPrivate::play);
-  WTimer::singleShot(500, [=](WMouseEvent) {   d->mediaCollection->rescan(); });
+  WTimer::singleShot(500, [=](WMouseEvent) { 
+    d->mediaCollection->rescan();
+    d->parseFileParameter();
+  });
 }
 
 

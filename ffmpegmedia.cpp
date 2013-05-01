@@ -56,7 +56,7 @@ FFMPEGMedia::FFMPEGMedia(const Media& media)
     : d(new FFMPEGMediaPrivate(media, this))
 {
   d->openInputResult = avformat_open_input(&d->pFormatCtx, d->filename, NULL, NULL); 
-  if(d->openInputResult)
+  if( d->openFileWasValid() )
     d->findInfoResult = avformat_find_stream_info(d->pFormatCtx, NULL);
   if(!d->findInfoWasValid())
     return;
