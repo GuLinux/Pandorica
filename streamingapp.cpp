@@ -493,16 +493,16 @@ void StreamingApp::setupGui()
 void StreamingAppPrivate::parseFileParameter() {
   if(wApp->environment().getParameter("media")) {
     log("notice") << "Got parameter file: " << *wApp->environment().getParameter("media");
-    WTimer::singleShot(1000, [=](WMouseEvent&) {
-      string fileHash = * wApp->environment().getParameter("media");
-      queue(mediaCollection->media(fileHash).path());
-    });
+    string fileHash = * wApp->environment().getParameter("media");
+    queue(mediaCollection->media(fileHash).path());
   }
 }
 
 
 void StreamingApp::refresh() {
   Wt::WApplication::refresh();
+  if(!d->session.login().loggedIn())
+    return;
   d->parseFileParameter();
   if(d->player)
     d->player->refresh();
