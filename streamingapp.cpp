@@ -628,13 +628,20 @@ void StreamingAppPrivate::play ( Media media ) {
 
 
 StreamingApp::~StreamingApp() {
+  WServer::instance()->log("notice") << "Destroying app";
   if(d->sessionInfo) {
+    WServer::instance()->log("notice") << "Ending session on database";
     Dbo::Transaction t(d->session);
+    WServer::instance()->log("notice") << "Transaction started";
     d->sessionInfo.modify()->end();
     for(auto detail : d->sessionInfo.modify()->sessionDetails())
       detail.modify()->ended();
+    WServer::instance()->log("notice") << "Committing transaction";
     t.commit();
+    WServer::instance()->log("notice") << "Committed transaction";
   }
+  WServer::instance()->log("notice") << "Deleting d-pointer";
   delete d;
+  WServer::instance()->log("notice") << "Deleted d-pointer";
 }
 
