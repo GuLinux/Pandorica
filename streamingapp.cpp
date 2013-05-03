@@ -79,6 +79,8 @@
 #include <Wt/WNavigationBar>
 #include <Wt/WPopupMenu>
 #include <Wt/WProgressBar>
+#include <Wt/WIOService>
+#include <Wt/WIOService>
 
 using namespace Wt;
 using namespace std;
@@ -630,18 +632,26 @@ void StreamingAppPrivate::play ( Media media ) {
 StreamingApp::~StreamingApp() {
   WServer::instance()->log("notice") << "Destroying app";
   if(d->sessionInfo) {
-    WServer::instance()->log("notice") << "Ending session on database";
-    Dbo::Transaction t(d->session);
-    WServer::instance()->log("notice") << "Transaction started";
-    d->sessionInfo.modify()->end();
-    for(auto detail : d->sessionInfo.modify()->sessionDetails())
-      detail.modify()->ended();
-    WServer::instance()->log("notice") << "Committing transaction";
-    t.commit();
-    WServer::instance()->log("notice") << "Committed transaction";
+    
+    std::function<void(long)> endSessionOnDatabase = [=] (long userId) {
+      Session session;
+      WServer::instance()->log("notice") << "Ending session on database";
+      Dbo::Transaction t(session);
+      WServer::instance()->log("notice") << "Transaction started";
+      Dbo::collection<SessionInfoPtr> sessionInfos = session.find<SessionInfo>().where("user_id = ? AND session_ended = 0").bind(userId);
+        for(SessionInfoPtr sessionInfo: sessionInfos) {
+        sessionInfo.modify()->end();
+        for(auto detail : sessionInfo.modify()->sessionDetails())
+          detail.modify()->ended();
+      }
+      WServer::instance()->log("notice") << "Committing transaction";
+      t.commit();
+      WServer::instance()->log("notice") << "Committed transaction";
+    };
+    WServer::instance()->ioService().post(boost::bind(endSessionOnDatabase, d->session.user().id()));
   }
   WServer::instance()->log("notice") << "Deleting d-pointer";
   delete d;
-  WServer::instance()->log("notice") << "Deleted d-pointer";
+  WServer::instance()->log("notice") << "Deletd-pointer";
 }
 
