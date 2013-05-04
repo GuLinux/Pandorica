@@ -63,6 +63,7 @@ std::list<std::pair<std::string,std::string>> filenameToTileHints {
   // various
   {"subs", ""}, {"chaps", ""}, {"chapters", ""},
   {"extended", ""}, {"repack", ""},
+  {"\\bhdtv\\b", ""}, {"\\bfov\\b", ""},
 };
 
 
