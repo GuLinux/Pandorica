@@ -18,18 +18,20 @@
 #ifndef CREATETHUMBNAILS_H
 #define CREATETHUMBNAILS_H
 
-#include "MediaScanner/mediascannerpage.h"
+#include "MediaScanner/mediascannerstep.h"
+
+namespace Wt {
+class WPushButton;
+}
 
 class Settings;
-class MediaCollection;
 class Session;
-class CreateThumbnails : public MediaScannerPage
+class CreateThumbnails : public MediaScannerStep, Wt::WObject
 {
 public:
     ~CreateThumbnails();
-    virtual void run();
-    CreateThumbnails(Session* session,Settings* settings, MediaCollection* mediaCollection,  Wt::WContainerWidget* parent = 0);
-
+    CreateThumbnails(Wt::WPushButton *nextButton, Wt::WPushButton *retryButton, Wt::WApplication *app, Session* session,Settings* settings, Wt::WObject* parent = 0);
+    virtual StepResult run(FFMPEGMedia* ffmpegMedia, Media* media, Wt::WContainerWidget* container);
 private:
     class CreateThumbnailsPrivate* const d;
 };

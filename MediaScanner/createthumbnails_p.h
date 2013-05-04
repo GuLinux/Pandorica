@@ -23,7 +23,6 @@
 #include <media.h>
 
 class Settings;
-class MediaCollection;
 class Session;
 namespace Wt {
 class WProgressBar;
@@ -42,28 +41,28 @@ struct ThumbnailPosition {
 class CreateThumbnailsPrivate
 {
 public:
-    CreateThumbnailsPrivate(Session* session, MediaCollection* mediaCollection, Settings* settings, CreateThumbnails* q);
+  CreateThumbnailsPrivate(Wt::WPushButton* nextButton, Wt::WPushButton* retryButton, Wt::WApplication* app, Session* session, Settings* settings, CreateThumbnails* q);
     virtual ~CreateThumbnailsPrivate();
-    Wt::WProgressBar* progressBar;
-    Wt::WText* progressBarTitle;
-    Wt::WContainerWidget* contentForEachMedia;
-    MediaCollection* mediaCollection;
     Session* session;
     Settings* settings;
-    void scanMedias(Wt::WApplication* app, UpdateGuiProgress updateGuiProgress);
-    std::vector<uint8_t> thumbnailFor(const Media &media, int size, ThumbnailPosition position, int quality = 8);
+    Wt::WPushButton* nextButton;
+    boost::signals::connection nextButtonConnection;
+    Wt::WPushButton* retryButton;
+    boost::signals::connection retryButtonConnection;
+    Wt::WApplication* app;
+    std::vector<uint8_t> thumbnailFor(Media *media, int size, ThumbnailPosition position, int quality = 8);
     
     void saveThumbnails(std::string mediaId, const std::vector< uint8_t >& forPlayer, const std::vector< uint8_t >& forThumbnail, Wt::Dbo::Transaction& t);
-    void chooseRandomFrame(const Media& media, Wt::Dbo::Transaction& t, Wt::WApplication* app);
+    int chooseRandomFrame(Media *media, Wt::Dbo::Transaction& t, Wt::WContainerWidget* container);
     void chooseFromVideoPlayer(const Media& media, Wt::Dbo::Transaction& t, Wt::WApplication* app);
     enum Action {
       None, Accept, NewRandom, FromVideo
     };
+    Action action;
 private:
     class CreateThumbnails* const q;
     double currentTime;
     double duration;
-    Action action;
     Wt::WMemoryResource *thumbnail = 0;
 };
 #endif // CREATETHUMBNAILSPRIVATE_H
