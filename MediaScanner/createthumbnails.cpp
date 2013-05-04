@@ -40,10 +40,17 @@
 #include <libffmpegthumbnailer/videothumbnailer.h>
 #include <libffmpegthumbnailer/videothumbnailerc.h>
 #include <libffmpegthumbnailer/imagetypes.h>
+#include <chrono>
+#include <random>
 
 using namespace Wt;
 using namespace std;
+using namespace std::chrono;
 using namespace ffmpegthumbnailer;
+
+
+time_point<high_resolution_clock> serverStartTimeForRandomSeeding{high_resolution_clock::now()};
+mt19937_64 randomEngine{(uint64_t) serverStartTimeForRandomSeeding.time_since_epoch().count()};
 
 CreateThumbnailsPrivate::CreateThumbnailsPrivate(Session *session, MediaCollection *mediaCollection, Settings *settings, CreateThumbnails* q)
   : session(session), mediaCollection(mediaCollection), settings(settings), q(q)
