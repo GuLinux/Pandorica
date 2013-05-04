@@ -81,7 +81,7 @@ MediaScannerStep::StepResult ScanMediaInfoStep::run(FFMPEGMedia* ffmpegMedia, Me
   if(mediaPropertiesPtr) return Skip;
   string titleSuggestion = ffmpegMedia->metadata("title").empty() ? ScanMediaInfoStepPrivate::titleHint(media->filename()) : ffmpegMedia->metadata("title");
   guiRun(d->app, boost::bind(&ScanMediaInfoStepPrivate::setupGui, d, container, titleSuggestion));
-  while(!d->titleIsReady && d->newTitle.empty())
+  while(!d->titleIsReady)
     this_thread::sleep_for(milliseconds(50));
   d->nextButtonConnection.disconnect();
   pair<int, int> resolution = ffmpegMedia->resolution();
@@ -98,6 +98,7 @@ void ScanMediaInfoStepPrivate::setupGui(Wt::WContainerWidget* container, std::st
   WLineEdit *editTitle = WW<WLineEdit>(titleSuggestion).css("span5");
   label->setBuddy(editTitle);
   auto accept = [=] {
+    if(editTitle->text().empty()) return;
     newTitle = editTitle->text().toUTF8();
     nextButton->disable();
     titleIsReady = true;
