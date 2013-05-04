@@ -144,7 +144,10 @@ void CreateThumbnailsPrivate::chooseFromVideoPlayer(const Media& media, Dbo::Tra
 void CreateThumbnailsPrivate::chooseRandomFrame(const Media& media, Dbo::Transaction& t, WApplication *app)
 {
   long range = randomEngine.max() - randomEngine.min();
-  int randomPercent = (double( randomEngine() - randomEngine.min()) / range * 100);
+  auto randomNumber = randomEngine();
+  cerr << "new random number: " << randomNumber << "; min=" << randomEngine.min() << "; max=" << randomEngine.max() << "\n";
+  int randomPercent = randomNumber % 100;
+  cerr << "resulting percent: " << randomPercent << "\n";
   if(randomPercent < 10) randomPercent += 10;
   if(randomPercent > 80) randomPercent -= 20;
   delete thumbnail;
