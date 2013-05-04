@@ -72,12 +72,14 @@ MediaScannerStep::StepResult SaveSubtitlesToDatabase::run(FFMPEGMedia* ffmpegMed
   if(subtitlesOnDb == subtitles.size())
     return Skip;
   d->session->execute("DELETE FROM media_attachment WHERE media_id = ? AND type = 'subtitles'").bind(media->uid());
+  int current{0};
   for(FFMPEG::Stream subtitle: subtitles) {
     string subtitleName = subtitle.metadata["title"];
     string subtitleLanguage = subtitle.metadata["language"];
+    current++;
     guiRun(d->app, [=] {
       container->clear();
-      container->addWidget(new WText{wtr("mediascannerdialog.subtitlesmessage").arg(subtitle.index).arg(subtitleName.empty() ? "N/A" : subtitleName).arg(subtitleLanguage)});
+      container->addWidget(new WText{wtr("mediascannerdialog.subtitlesmessage").arg(current).arg(subtitles.size()).arg(subtitle.index).arg(subtitleName.empty() ? "N/A" : subtitleName).arg(subtitleLanguage)});
       wApp->triggerUpdate();
     });
     time_point<high_resolution_clock> now{high_resolution_clock::now()};
