@@ -19,6 +19,7 @@
 #include "MediaScanner/mediascannerdialog_p.h"
 #include "scanmediainfostep.h"
 #include "createthumbnails.h"
+#include "savesubtitlestodatabase.h"
 #include <session.h>
 #include <mediacollection.h>
 #include "Wt-Commons/wt_helpers.h"
@@ -50,17 +51,21 @@ MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, Med
   setClosable(false);
   footer()->addWidget(d->buttonRetry = WW<WPushButton>(wtr("button.retry")).css("btn btn-warning").setEnabled(false));
   footer()->addWidget(d->buttonNext = WW<WPushButton>(wtr("button.next")).css("btn btn-primary").setEnabled(false));
-  footer()->addWidget(d->buttonClose = WW<WPushButton>(wtr("button.close")).css("btn btn-success").onClick([=](WMouseEvent) { accept(); } ).setEnabled(false));
+  footer()->addWidget(d->buttonClose = WW<WPushButton>(wtr("close-button")).css("btn btn-success").onClick([=](WMouseEvent) { accept(); } ).setEnabled(false));
 
   contents()->addWidget(WW<WContainerWidget>()
     .add(d->progressBarTitle = new WText)
     .add(new WBreak)
-    .add(d->progressBar = new WProgressBar));
+    .add(d->progressBar = new WProgressBar)
+    .padding(10)
+    .setContentAlignment(AlignCenter)
+  );
   
   contents()->addWidget( d->stepContent = new WContainerWidget);
   
   d->steps = {
     new ScanMediaInfoStep{d->buttonNext, session, wApp, this},
+    new SaveSubtitlesToDatabase{session, wApp, this},
     new CreateThumbnails{d->buttonNext, d->buttonRetry, wApp, session, settings, this},
   };
 }

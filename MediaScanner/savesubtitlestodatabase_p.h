@@ -15,36 +15,24 @@
  *
  */
 
-#ifndef FFMPEGMEDIA_H
-#define FFMPEGMEDIA_H
-#include "media.h"
-#include <map>
+#ifndef SAVESUBTITLESTODATABASEPRIVATE_H
+#define SAVESUBTITLESTODATABASEPRIVATE_H
 
 class Session;
-
-namespace FFMPEG {
-  enum StreamType { Video, Audio, Subtitles, Other };
-  struct Stream {
-    StreamType type;
-    int index;
-    std::string title;
-    std::pair<int,int> resolution;
-    std::map<std::string,std::string> metadata;
-  };
+namespace Wt {
+  class WApplication;
 };
 
-class FFMPEGMedia
+class SaveSubtitlesToDatabasePrivate
 {
 public:
-  FFMPEGMedia(const Media &media);
-  ~FFMPEGMedia();
-  bool isVideo();
-  std::pair<int,int> resolution();
-  long durationInSeconds();
-  std::string metadata(std::string key) const;
-  std::vector<FFMPEG::Stream> streams() const;
+  SaveSubtitlesToDatabasePrivate(Session* session, Wt::WApplication* app, SaveSubtitlesToDatabase* q);
+    virtual ~SaveSubtitlesToDatabasePrivate();
+    Session* session;
+    Wt::WApplication* app;
+
 private:
-    class FFMPEGMediaPrivate* const d;
+    class SaveSubtitlesToDatabase* const q;
 };
 
-#endif // FFMPEGMEDIA_H
+#endif // SAVESUBTITLESTODATABASEPRIVATE_H
