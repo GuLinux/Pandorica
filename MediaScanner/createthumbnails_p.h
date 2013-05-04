@@ -20,9 +20,7 @@
 #include <sys/types.h>
 #include <stdint.h>
 #include <Wt/Dbo/Transaction>
-#include <Wt/WTime>
 #include <media.h>
-#include <random>
 
 class Settings;
 class MediaCollection;
@@ -67,8 +65,6 @@ private:
     double duration;
     Action action;
     Wt::WMemoryResource *thumbnail = 0;
-    
-    std::default_random_engine randomEngine{Wt::WTime{Wt::WTime::currentServerTime()}.msecsTo({0,0,0})};
 };
 #endif // CREATETHUMBNAILSPRIVATE_H
 
