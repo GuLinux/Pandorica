@@ -76,7 +76,7 @@ CreateThumbnails::~CreateThumbnails()
 MediaScannerStep::StepResult CreateThumbnails::run(FFMPEGMedia* ffmpegMedia, Media* media, WContainerWidget* container)
 {
   Dbo::Transaction t(*d->session);
-  if(d->session->query<int>("SELECT COUNT(*) FROM media_attachment WHERE media_id = ? AND type = 'preview'").bind(media->uid()) > 0)
+  if(d->session->query<int>("SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'preview'").bind(media->uid()) > 0)
     return Skip;
   if(!ffmpegMedia->isVideo())
     return Skip;

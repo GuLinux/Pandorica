@@ -67,7 +67,7 @@ MediaScannerStep::StepResult SaveSubtitlesToDatabase::run(FFMPEGMedia* ffmpegMed
     return Skip;
   }
   Dbo::Transaction t(*d->session);
-  int subtitlesOnDb = d->session->query<int>("SELECT COUNT(*) FROM media_attachment WHERE media_id = ? AND type = 'subtitles'").bind(media->uid());
+  int subtitlesOnDb = d->session->query<int>("SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'subtitles'").bind(media->uid());
   cerr << "Media " << media->filename() << ": subtitles found=" << subtitles.size() << ", on db: " << subtitlesOnDb << "\n";
   if(subtitlesOnDb == subtitles.size())
     return Skip;
