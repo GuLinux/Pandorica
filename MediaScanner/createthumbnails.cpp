@@ -76,7 +76,7 @@ CreateThumbnails::~CreateThumbnails()
 MediaScannerStep::StepResult CreateThumbnails::run(FFMPEGMedia* ffmpegMedia, Media* media, WContainerWidget* container)
 {
   Dbo::Transaction t(*d->session);
-  if(d->session->query<int>("SELECT COUNT(*) FROM media_attachment WHERE media_id = ?").bind(media->uid()) > 0)
+  if(d->session->query<int>("SELECT COUNT(*) FROM media_attachment WHERE media_id = ? AND type = 'preview'").bind(media->uid()) > 0)
     return Skip;
   if(!ffmpegMedia->isVideo())
     return Skip;
@@ -114,7 +114,7 @@ int CreateThumbnailsPrivate::chooseRandomFrame(Media* media, Dbo::Transaction& t
   if(randomPercent < 10) randomPercent += 10;
   if(randomPercent > 80) randomPercent -= 20;
   delete thumbnail;
-  thumbnail = new WMemoryResource("image/png", thumbnailFor(media, 400, {randomPercent}), container);
+  thumbnail = new WMemoryResource("image/png", thumbnailFor(media, 550, {randomPercent}), container);
   guiRun(app, [=]{
     container->clear();
     

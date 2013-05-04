@@ -19,6 +19,7 @@
 #define FFMPEGMEDIAPRIVATE_H
 #include "media.h"
 #include "session.h"
+#include "ffmpegmedia.h"
 
 
 extern "C" {
@@ -38,14 +39,14 @@ public:
     const char *filename;
     int openInputResult = 0;
     int findInfoResult = 0;
-    std::vector< AVStream* > streams;
+    std::vector<FFMPEG::Stream> streams;
     bool findInfoWasValid() const;
     bool openFileWasValid() const;
     std::map<std::string,std::string> metadata;
-    void readMetadata();
+    std::map< std::string, std::string > readMetadata(AVDictionary* metadata);
+    FFMPEG::Stream streamFromAV(AVStream *stream);
 private:
     class FFMPEGMedia* const q;
 };
-
 
 #endif // FFMPEGMEDIAPRIVATE_H

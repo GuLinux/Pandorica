@@ -18,6 +18,9 @@
 #include "ffmpegmedia.h"
 #include "ffmpegmedia_p.h"
 
+using namespace std;
+using namespace FFMPEG;
+
 FFMPEGMediaPrivate::FFMPEGMediaPrivate(const Media& media, FFMPEGMedia* q) : media(media), q(q), filename(media.fullPath().c_str())
 {
 }
@@ -60,19 +63,42 @@ FFMPEGMedia::FFMPEGMedia(const Media& media)
     d->findInfoResult = avformat_find_stream_info(d->pFormatCtx, NULL);
   if(!d->findInfoWasValid())
     return;
-  for(int i=0; i<d->pFormatCtx->nb_streams; i++)
-    d->streams.push_back(d->pFormatCtx->streams[i]);
-  d->readMetadata();
+  for(int i=0; i<d->pFormatCtx->nb_streams; i++) {
+    d->streams.push_back(d->streamFromAV(d->pFormatCtx->streams[i]));
+  }
+  d->metadata = d->readMetadata(d->pFormatCtx->metadata);
 }
 
 
-
-void FFMPEGMediaPrivate::readMetadata()
+Stream FFMPEGMediaPrivate::streamFromAV(AVStream* stream)
 {
-  AVDictionary *metadata = pFormatCtx->metadata;
+  StreamType streamType;
+  switch(stream->codec->codec_type) {
+    case AVMEDIA_TYPE_VIDEO:
+      streamType = FFMPEG::Video;
+      break;
+    case AVMEDIA_TYPE_AUDIO:
+      streamType = FFMPEG::Audio;
+      break;
+    case AVMEDIA_TYPE_SUBTITLE:
+      streamType = FFMPEG::Subtitles;
+      break;
+    default:
+      streamType = FFMPEG::Other;
+  }
+  auto streamMetadata = readMetadata(stream->metadata);
+  pair<int,int> resolution = (streamType==FFMPEG::Video) ? pair<int,int>{stream->codec->width, stream->codec->height} : pair<int,int>{-1,-1};
+  return {streamType, stream->index, streamMetadata["title"], resolution, streamMetadata};
+}
+
+
+map<string,string> FFMPEGMediaPrivate::readMetadata(AVDictionary *metadata)
+{
   AVDictionaryEntry *entry = NULL;
+  map<string,string> result;
   while (entry = av_dict_get(metadata, "", entry, AV_DICT_IGNORE_SUFFIX))
-    this->metadata[entry->key] = entry->value;
+    result[entry->key] = entry->value;
+  return result;
 }
 
 
@@ -87,20 +113,25 @@ std::string FFMPEGMedia::metadata(std::string key) const
   return d->metadata[key];
 }
 
+std::vector<Stream> FFMPEGMedia::streams() const
+{
+  return d->streams;
+}
+
 
 bool FFMPEGMedia::isVideo()
 {
   for(auto stream: d->streams)
-    if(stream->codec->codec_type == AVMEDIA_TYPE_VIDEO)
+    if(stream.type == Video)
       return true;
   return false;
 }
 
-std::pair< int, int > FFMPEGMedia::resolution()
+std::pair<int,int> FFMPEGMedia::resolution()
 {
   if(!isVideo())
     return {-1, -1};
   for(auto stream: d->streams)
-    if(stream->codec->codec_type == AVMEDIA_TYPE_VIDEO)
-      return {stream->codec->width, stream->codec->height};
+    if(stream.type == Video)
+      return stream.resolution;
 }
