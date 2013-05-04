@@ -46,7 +46,7 @@ MediaScannerDialogPrivate::~MediaScannerDialogPrivate()
 MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, MediaCollection* mediaCollection, WObject* parent)
     : d(new MediaScannerDialogPrivate(this, mediaCollection, session, settings))
 {
-  resize(700, 500);
+  resize(700, 550);
   setWindowTitle(wtr("mediascanner.title"));
   setClosable(false);
   footer()->addWidget(d->buttonRetry = WW<WPushButton>(wtr("button.retry")).css("btn btn-warning").setEnabled(false));
@@ -54,10 +54,9 @@ MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, Med
   footer()->addWidget(d->buttonClose = WW<WPushButton>(wtr("close-button")).css("btn btn-success").onClick([=](WMouseEvent) { accept(); } ).setEnabled(false));
 
   contents()->addWidget(WW<WContainerWidget>()
-    .add(d->progressBarTitle = new WText)
-    .add(new WBreak)
+    .add(d->progressBarTitle = WW<WText>().css("mediascannerdialog-filename"))
     .add(d->progressBar = new WProgressBar)
-    .padding(10)
+    .padding(6)
     .setContentAlignment(AlignCenter)
   );
   
@@ -101,13 +100,13 @@ void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, UpdateGuiProgr
   uint current = 0;
   for(auto mediaPair: mediaCollection->collection()) {
     Media media = mediaPair.second;
-    this_thread::sleep_for(chrono::milliseconds{50});
+    this_thread::sleep_for(chrono::milliseconds{10});
     current++;
     guiRun(app, [=] { updateGuiProgress(current, media.filename()); });
     FFMPEGMedia ffmpegMedia{media};
     for(MediaScannerStep *step: steps) {
       while(step->run(&ffmpegMedia, &media, stepContent) == MediaScannerStep::ToRedo)
-        this_thread::sleep_for(chrono::milliseconds{50});
+        this_thread::sleep_for(chrono::milliseconds{10});
     }
   }
   this_thread::sleep_for(chrono::milliseconds{50});
