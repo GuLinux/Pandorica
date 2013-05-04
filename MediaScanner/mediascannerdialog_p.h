@@ -19,17 +19,39 @@
 #define MEDIASCANNERDIALOGPRIVATE_H
 #include <vector>
 
-class MediaScannerPage;
+class MediaScannerStep;
+class Session;
+class Settings;
+namespace Wt {
+class WProgressBar;
+class WText;
+class WApplication;
+class WPushButton;
+class WContainerWidget;
+}
+
+class MediaCollection;
+
+typedef std::function<void(int,std::string)> UpdateGuiProgress;
+typedef std::function<void()> OnScanFinish;
+
 class MediaScannerDialogPrivate
 {
 public:
-    MediaScannerDialogPrivate(MediaScannerDialog* q);
+    MediaScannerDialogPrivate(MediaScannerDialog* q, MediaCollection* mediaCollection, Session* session, Settings* settings);
     virtual ~MediaScannerDialogPrivate();
     Wt::WPushButton* buttonNext;
     Wt::WPushButton* buttonClose;
-    Wt::WStackedWidget* widgetsStack;
-    std::vector<MediaScannerPage*> pages;
-
+    std::vector<MediaScannerStep*> steps;
+    MediaCollection* mediaCollection;
+    Wt::WProgressBar* progressBar;
+    Wt::WText* progressBarTitle;
+    Settings* settings;
+    Session* session;
+    Wt::WContainerWidget* stepContent;
+    Wt::WPushButton* buttonRetry;
+    void scanMedias(Wt::WApplication* app, UpdateGuiProgress updateGuiProgress, OnScanFinish onScanFinish);
+    
 private:
     class MediaScannerDialog* const q;
 };

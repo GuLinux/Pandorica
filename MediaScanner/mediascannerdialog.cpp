@@ -17,72 +17,52 @@
 
 #include "MediaScanner/mediascannerdialog.h"
 #include "MediaScanner/mediascannerdialog_p.h"
-#include "scanmediainfopage.h"
+#include "scanmediainfostep.h"
 #include "createthumbnails.h"
 #include <session.h>
 #include <mediacollection.h>
 #include "Wt-Commons/wt_helpers.h"
 #include <settings.h>
+#include <ffmpegmedia.h>
 #include <Wt/WPushButton>
 #include <Wt/WStackedWidget>
 #include <Wt/WTimer>
+#include <Wt/WProgressBar>
+#include <thread>
+#include <boost/thread.hpp>
 
 using namespace Wt;
 using namespace std;
 
-MediaScannerDialogPrivate::MediaScannerDialogPrivate(MediaScannerDialog* q) : q(q)
+MediaScannerDialogPrivate::MediaScannerDialogPrivate(MediaScannerDialog* q, MediaCollection *mediaCollection, Session* session, Settings* settings)
+  : q(q), mediaCollection(mediaCollection), session(session), settings(settings)
 {
 }
 MediaScannerDialogPrivate::~MediaScannerDialogPrivate()
 {
 }
 
-class FinalPage : public MediaScannerPage {
-public:
-  FinalPage(WContainerWidget* parent = 0);
-  virtual void run();
-};
-
-FinalPage::FinalPage(WContainerWidget* parent): MediaScannerPage(parent)
-{
-  addWidget(new WText("hello!"));
-}
-
-void FinalPage::run()
-{
-  WTimer::singleShot(5000, [=](WMouseEvent) {
-    finished().emit();
-  });
-}
-
-
 MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, MediaCollection* mediaCollection, WObject* parent)
-    : d(new MediaScannerDialogPrivate(this))
+    : d(new MediaScannerDialogPrivate(this, mediaCollection, session, settings))
 {
-  d->pages = {
-    new ScanMediaInfoPage{session, mediaCollection},
-    new CreateThumbnails{session, settings, mediaCollection},
-    new FinalPage()
-  };
   resize(700, 500);
   setWindowTitle(wtr("mediascanner.title"));
   setClosable(false);
-  footer()->addWidget(d->buttonNext = WW<WPushButton>(wtr("button.next")).css("btn btn-primary").setEnabled(false).onClick([=](WMouseEvent) {
-    d->buttonNext->disable();
-    d->widgetsStack->setCurrentIndex(d->widgetsStack->currentIndex() + 1);
-    WTimer::singleShot(100, [=](WMouseEvent) { d->pages[d->widgetsStack->currentIndex()]->run(); });
-  }));
+  footer()->addWidget(d->buttonRetry = WW<WPushButton>(wtr("button.retry")).css("btn btn-warning").setEnabled(false));
+  footer()->addWidget(d->buttonNext = WW<WPushButton>(wtr("button.next")).css("btn btn-primary").setEnabled(false));
   footer()->addWidget(d->buttonClose = WW<WPushButton>(wtr("button.close")).css("btn btn-success").onClick([=](WMouseEvent) { accept(); } ).setEnabled(false));
-  contents()->addWidget(d->widgetsStack = new WStackedWidget());
-  for(auto page: d->pages) {
-    d->widgetsStack->addWidget(page);
-    page->finished().connect([=](_n6) {
-      if(d->widgetsStack->currentIndex() == d->pages.size()-1)
-        d->buttonClose->enable();
-      else
-        d->buttonNext->enable();
-    });
-  }
+
+  contents()->addWidget(WW<WContainerWidget>()
+    .add(d->progressBarTitle = new WText)
+    .add(new WBreak)
+    .add(d->progressBar = new WProgressBar));
+  
+  contents()->addWidget( d->stepContent = new WContainerWidget);
+  
+  d->steps = {
+    new ScanMediaInfoStep{d->buttonNext, session, wApp, this},
+    new CreateThumbnails{d->buttonNext, d->buttonRetry, wApp, session, settings, this},
+  };
 }
 
 MediaScannerDialog::~MediaScannerDialog()
@@ -94,6 +74,39 @@ MediaScannerDialog::~MediaScannerDialog()
 void MediaScannerDialog::run()
 {
   show();
-  d->pages[0]->run();
+  d->progressBar->setMaximum(d->mediaCollection->collection().size());
+  UpdateGuiProgress updateProgressBar = [=] (int progress, string text) {
+    d->progressBar->setValue(progress);
+    d->progressBarTitle->setText(text);
+    d->stepContent->clear();
+    
+    wApp->triggerUpdate();
+  };
+  OnScanFinish enableCloseButton = [=] {
+    d->buttonClose->enable();
+    d->progressBarTitle->setText("");
+    d->stepContent->clear();
+    wApp->triggerUpdate();
+  };
+  boost::thread t( boost::bind(&MediaScannerDialogPrivate::scanMedias, d, wApp, updateProgressBar, enableCloseButton) );
 }
+
+void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, UpdateGuiProgress updateGuiProgress, OnScanFinish onScanFinish)
+{
+  uint current = 0;
+  for(auto mediaPair: mediaCollection->collection()) {
+    Media media = mediaPair.second;
+    this_thread::sleep_for(chrono::milliseconds{50});
+    current++;
+    guiRun(app, [=] { updateGuiProgress(current, media.filename()); });
+    FFMPEGMedia ffmpegMedia{media};
+    for(MediaScannerStep *step: steps) {
+      while(step->run(&ffmpegMedia, &media, stepContent) == MediaScannerStep::ToRedo)
+        this_thread::sleep_for(chrono::milliseconds{50});
+    }
+  }
+  this_thread::sleep_for(chrono::milliseconds{50});
+  guiRun(app, [=] { onScanFinish(); });
+}
+
 

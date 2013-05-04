@@ -19,18 +19,18 @@
 #define SCANMEDIAINFOPAGE_H
 
 #include <Wt/WContainerWidget>
-#include "mediascannerpage.h"
+#include "mediascannerstep.h"
 
 class Session;
 class MediaCollection;
-class ScanMediaInfoPage : public MediaScannerPage
+class ScanMediaInfoStep : public MediaScannerStep, Wt::WObject
 {
 public:
-    ScanMediaInfoPage(Session *session, MediaCollection *mediaCollection, Wt::WContainerWidget* parent = 0);
-    virtual ~ScanMediaInfoPage();
-    virtual void run();
+  ScanMediaInfoStep(Wt::WPushButton *nextButton, Session *session, Wt::WApplication *app, Wt::WObject *parent = 0);
+  virtual ~ScanMediaInfoStep();
+    virtual StepResult run(FFMPEGMedia* ffmpegMedia, Media* media, Wt::WContainerWidget *container);
 private:
-    class ScanMediaInfoPagePrivate* const d;
+  class ScanMediaInfoStepPrivate* const d;
 };
 
 #endif // SCANMEDIAINFOPAGE_H
