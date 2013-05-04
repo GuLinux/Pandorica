@@ -71,7 +71,7 @@
   
   <!-- Media Scanner -->
   <message id="mediascanner.media.title">Titolo</message>
-  <message id="mediascannerdialog.subtitlesmessage">Estrazione sottotitoli (indice: {1}, titolo: {2}, lingua: {3})</message>
+  <message id="mediascannerdialog.subtitlesmessage">Estrazione sottotitoli: {1} di {2} (indice: {3}, titolo: {4}, lingua: {5})</message>
   
   <!-- comments -->
   <message id="comments.label">Commenti</message>
