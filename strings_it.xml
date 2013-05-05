@@ -1,4 +1,4 @@
-<messages>
+<messages nplurals="2" plural="n==1 ? 0 : 1">
   <!-- general -->
   <message id="Wt.WDate.3.Mon">Lun</message>
   <message id="Wt.WDate.3.Tue">Mar</message>
@@ -73,7 +73,10 @@
   <message id="mediascanner.media.title">Titolo</message>
   <message id="mediascannerdialog.subtitlesmessage">Estrazione sottotitoli: {1} di {2} (indice: {3}, titolo: {4}, lingua: {5})</message>
   <message id="mediascannerdialog.thumbnaillabel">Anteprima (clicca per ricrearla da posizione casuale)</message>
-  <message id="mediascannerdialog.subtitlesextracted">{1} sottotitoli estratti e pronti per il salvataggio.</message>
+  <message id="mediascannerdialog.subtitles_extracted">
+    <plural case="0">Un sottotitolo estratto e pronto per il salvataggio.</plural>
+    <plural case="1">{1} sottotitoli estratti e pronti per il salvataggio.</plural>
+  </message>
   
   <!-- comments -->
   <message id="comments.label">Commenti</message>
@@ -150,6 +153,7 @@
   <message id="button.remove">Rimuovi</message>
   <message id="button.retry">Riprova</message>
   <message id="button.next">Avanti</message>
+  <message id="button.cancel">Annulla</message>
   
   <message id="Wt.Auth.confirmmail.body">
 Hello {1},

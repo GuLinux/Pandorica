@@ -89,7 +89,8 @@ void SaveSubtitlesToDatabasePrivate::extractSubtitles(vector<FFMPEG::Stream> sub
     current++;
     guiRun(app, [=] {
       container->clear();
-      container->addWidget(new WText{wtr("mediascannerdialog.subtitlesmessage").arg(current).arg(subtitles.size()).arg(subtitle.index).arg(subtitleName.empty() ? "N/A" : subtitleName).arg(subtitleLanguage)});
+      WString text = wtr("mediascannerdialog.subtitlesmessage").arg(current).arg(subtitles.size()).arg(subtitle.index).arg(subtitleName.empty() ? "N/A" : subtitleName).arg(subtitleLanguage);
+      container->addWidget(WW<WText>(text).css("small-text"));
       wApp->triggerUpdate();
     });
     time_point<high_resolution_clock> now{high_resolution_clock::now()};
@@ -113,7 +114,7 @@ void SaveSubtitlesToDatabasePrivate::extractSubtitles(vector<FFMPEG::Stream> sub
   }
   guiRun(app, [=] {
     container->clear();
-    container->addWidget(new WText{wtr("mediascannerdialog.subtitlesextracted").arg(subtitlesToSave.size())});
+    container->addWidget(WW<WText>(WString::trn("mediascannerdialog.subtitles_extracted", subtitlesToSave.size()).arg(subtitlesToSave.size())).css("small-text"));
     wApp->triggerUpdate();
   });
   result = MediaScannerStep::Done;
