@@ -22,6 +22,7 @@
 #include <Wt/WContainerWidget>
 #include <Wt/WText>
 #include <boost/format.hpp>
+#include <boost/thread.hpp>
 #include "ffmpegmedia.h"
 #include "mediaattachment.h"
 #include "session.h"
@@ -53,31 +54,40 @@ SaveSubtitlesToDatabase::~SaveSubtitlesToDatabase()
 SaveSubtitlesToDatabase::SaveSubtitlesToDatabase(Session* session, WApplication* app, Wt::WObject* parent)
     : WObject(parent), d(new SaveSubtitlesToDatabasePrivate(session, app, this))
 {
-
 }
 
-MediaScannerStep::StepResult SaveSubtitlesToDatabase::run(FFMPEGMedia* ffmpegMedia, Media* media, Wt::WContainerWidget* container)
+void SaveSubtitlesToDatabase::run(FFMPEGMedia* ffmpegMedia, Media* media, WContainerWidget* container)
 {
+  d->result = Waiting;
   vector<FFMPEG::Stream> subtitles;
   auto allStreams = ffmpegMedia->streams();
   copy_if(allStreams.begin(), allStreams.end(), back_inserter(subtitles), [=](const FFMPEG::Stream &s) {
     return s.type == FFMPEG::Subtitles;
   });
   if(subtitles.size() == 0) {
-    return Skip;
+    d->result = Skip;
+    return;
   }
   Dbo::Transaction t(*d->session);
   int subtitlesOnDb = d->session->query<int>("SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'subtitles'").bind(media->uid());
   cerr << "Media " << media->filename() << ": subtitles found=" << subtitles.size() << ", on db: " << subtitlesOnDb << "\n";
-  if(subtitlesOnDb == subtitles.size())
-    return Skip;
+  if(subtitlesOnDb == subtitles.size()) {
+    d->result = Skip;
+    return;
+  }
   d->session->execute("DELETE FROM media_attachment WHERE media_id = ? AND type = 'subtitles'").bind(media->uid());
+  d->subtitlesToSave.clear();
+  boost::thread newThread(boost::bind(&SaveSubtitlesToDatabasePrivate::extractSubtitles, d, subtitles, media, container));
+}
+
+void SaveSubtitlesToDatabasePrivate::extractSubtitles(vector<FFMPEG::Stream> subtitles, Media *media, WContainerWidget *container)
+{
   int current{0};
   for(FFMPEG::Stream subtitle: subtitles) {
     string subtitleName = subtitle.metadata["title"];
     string subtitleLanguage = subtitle.metadata["language"];
     current++;
-    guiRun(d->app, [=] {
+    guiRun(app, [=] {
       container->clear();
       container->addWidget(new WText{wtr("mediascannerdialog.subtitlesmessage").arg(current).arg(subtitles.size()).arg(subtitle.index).arg(subtitleName.empty() ? "N/A" : subtitleName).arg(subtitleLanguage)});
       wApp->triggerUpdate();
@@ -90,7 +100,7 @@ MediaScannerStep::StepResult SaveSubtitlesToDatabase::run(FFMPEGMedia* ffmpegMed
     ifstream subfile(tempFile);
     if(!subfile.is_open())
       continue; // TODO: error?
-    stringstream s;
+      stringstream s;
     s << subfile.rdbuf();
     subfile.close();
     std::remove(tempFile.c_str());
@@ -99,8 +109,35 @@ MediaScannerStep::StepResult SaveSubtitlesToDatabase::run(FFMPEGMedia* ffmpegMed
       data.push_back(c);
     }
     MediaAttachment *subtitleAttachment = new MediaAttachment("subtitles", subtitleName, subtitleLanguage, media->uid(), "text/plain", data);
-    d->session->add(subtitleAttachment);
+    subtitlesToSave.push_back(subtitleAttachment);
   }
-  t.commit();
-  return Complete;
+  guiRun(app, [=] {
+    container->clear();
+    container->addWidget(new WText{wtr("mediascannerdialog.subtitlesextracted").arg(subtitlesToSave.size())});
+    wApp->triggerUpdate();
+  });
+  result = MediaScannerStep::Done;
 }
+
+
+MediaScannerStep::StepResult SaveSubtitlesToDatabase::result()
+{
+  return d->result;
+}
+
+
+void SaveSubtitlesToDatabase::save()
+{
+  if(d->result != Done)
+    return;
+  if(d->subtitlesToSave.empty()) {
+    d->result = Waiting;
+    return;
+  }
+  Dbo::Transaction t(*d->session);
+  for(MediaAttachment *subtitle: d->subtitlesToSave)
+    d->session->add(subtitle);
+  t.commit();
+  d->result = Waiting;
+}
+

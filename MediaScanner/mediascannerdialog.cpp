@@ -46,11 +46,10 @@ MediaScannerDialogPrivate::~MediaScannerDialogPrivate()
 MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, MediaCollection* mediaCollection, WObject* parent)
     : d(new MediaScannerDialogPrivate(this, mediaCollection, session, settings))
 {
-  resize(700, 550);
+  resize(700, 650);
   setWindowTitle(wtr("mediascanner.title"));
   setClosable(false);
-  footer()->addWidget(d->buttonRetry = WW<WPushButton>(wtr("button.retry")).css("btn btn-warning").setEnabled(false));
-  footer()->addWidget(d->buttonNext = WW<WPushButton>(wtr("button.next")).css("btn btn-primary").setEnabled(false));
+  footer()->addWidget(d->buttonNext = WW<WPushButton>(wtr("button.next")).css("btn btn-primary").setEnabled(false).onClick([=](WMouseEvent) { d->canContinue = true; }));
   footer()->addWidget(d->buttonClose = WW<WPushButton>(wtr("close-button")).css("btn btn-success").onClick([=](WMouseEvent) { accept(); } ).setEnabled(false));
 
   contents()->addWidget(WW<WContainerWidget>()
@@ -60,13 +59,20 @@ MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, Med
     .setContentAlignment(AlignCenter)
   );
   
-  contents()->addWidget( d->stepContent = new WContainerWidget);
-  
   d->steps = {
-    new ScanMediaInfoStep{d->buttonNext, session, wApp, this},
+    new ScanMediaInfoStep{session, wApp, this},
     new SaveSubtitlesToDatabase{session, wApp, this},
-    new CreateThumbnails{d->buttonNext, d->buttonRetry, wApp, session, settings, this},
+    new CreateThumbnails{wApp, session, settings, this},
   };
+  
+  WContainerWidget* stepsContainer = new WContainerWidget;
+  contents()->addWidget(stepsContainer);
+
+  for(auto step: d->steps) {
+    auto container = new WContainerWidget;
+    d->stepsContents[step] = container;
+    stepsContainer->addWidget(container);
+  }
 }
 
 MediaScannerDialog::~MediaScannerDialog()
@@ -82,14 +88,15 @@ void MediaScannerDialog::run()
   UpdateGuiProgress updateProgressBar = [=] (int progress, string text) {
     d->progressBar->setValue(progress);
     d->progressBarTitle->setText(text);
-    d->stepContent->clear();
-    
+    for(auto stepContainers : d->stepsContents)
+      stepContainers.second->clear();
     wApp->triggerUpdate();
   };
   OnScanFinish enableCloseButton = [=] {
     d->buttonClose->enable();
     d->progressBarTitle->setText("");
-    d->stepContent->clear();
+    for(auto stepContainers : d->stepsContents)
+      stepContainers.second->clear();
     wApp->triggerUpdate();
   };
   boost::thread t( boost::bind(&MediaScannerDialogPrivate::scanMedias, d, wApp, updateProgressBar, enableCloseButton) );
@@ -102,15 +109,46 @@ void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, UpdateGuiProgr
     Media media = mediaPair.second;
     this_thread::sleep_for(chrono::milliseconds{10});
     current++;
-    guiRun(app, [=] { updateGuiProgress(current, media.filename()); });
-    FFMPEGMedia ffmpegMedia{media};
-    for(MediaScannerStep *step: steps) {
-      while(step->run(&ffmpegMedia, &media, stepContent) == MediaScannerStep::ToRedo)
-        this_thread::sleep_for(chrono::milliseconds{10});
-    }
+    guiRun(app, [=] {
+      buttonNext->disable();
+      updateGuiProgress(current, media.filename());
+    });
+    runStepsFor(&media, app);
   }
   this_thread::sleep_for(chrono::milliseconds{50});
   guiRun(app, [=] { onScanFinish(); });
+}
+
+
+void MediaScannerDialogPrivate::runStepsFor(Media *media, WApplication* app)
+{
+  canContinue = false;
+  FFMPEGMedia ffmpegMedia{*media};
+  for(MediaScannerStep *step: steps) {
+    step->run(&ffmpegMedia, media, stepsContents[step]);
+  }
+  while(!canContinue) {
+    bool stepsAreSkipped = true;
+    bool stepsAreFinished = true;
+    
+    for(MediaScannerStep *step: steps) {
+      auto stepResult = step->result();
+      stepsAreSkipped &= stepResult == MediaScannerStep::Skip;
+      stepsAreFinished &= stepResult == MediaScannerStep::Skip || stepResult == MediaScannerStep::Done;
+      
+      if(stepResult == MediaScannerStep::Redo)
+        step->run(&ffmpegMedia, media, stepsContents[step]);
+    }
+    canContinue |= stepsAreSkipped;
+    this_thread::sleep_for(chrono::milliseconds{50});
+    guiRun(app, [=] {
+      buttonNext->setEnabled(stepsAreFinished);
+      wApp->triggerUpdate();
+    });
+  }
+  for(MediaScannerStep *step: steps) {
+    step->save();
+  }
 }
 
 

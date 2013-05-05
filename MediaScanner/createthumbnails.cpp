@@ -53,16 +53,16 @@ using namespace ffmpegthumbnailer;
 time_point<high_resolution_clock> serverStartTimeForRandomSeeding{high_resolution_clock::now()};
 mt19937_64 randomEngine{(uint64_t) serverStartTimeForRandomSeeding.time_since_epoch().count()};
 
-CreateThumbnailsPrivate::CreateThumbnailsPrivate(WPushButton* nextButton, WPushButton* retryButton, WApplication* app, Session* session, Settings* settings, CreateThumbnails* q)
-  : nextButton(nextButton), retryButton(retryButton), app(app), session(session), settings(settings), q(q)
+CreateThumbnailsPrivate::CreateThumbnailsPrivate(WApplication* app, Session* session, Settings* settings, CreateThumbnails* q)
+  : app(app), session(session), settings(settings), q(q)
 {
 }
 CreateThumbnailsPrivate::~CreateThumbnailsPrivate()
 {
 }
 
-CreateThumbnails::CreateThumbnails(WPushButton* nextButton, WPushButton* retryButton, WApplication* app, Session* session, Settings* settings, WObject* parent)
-  : WObject(parent), d(new CreateThumbnailsPrivate{nextButton, retryButton, app, session, settings, this})
+CreateThumbnails::CreateThumbnails(WApplication* app, Session* session, Settings* settings, WObject* parent)
+  : WObject(parent), d(new CreateThumbnailsPrivate{app, session, settings, this})
 {
 
 }
@@ -72,55 +72,39 @@ CreateThumbnails::~CreateThumbnails()
     delete d;
 }
 
-#define defaultThumbnails(position) d->thumbnailFor(media, 640, position), d->thumbnailFor(media, 260, position, 3)
-MediaScannerStep::StepResult CreateThumbnails::run(FFMPEGMedia* ffmpegMedia, Media* media, WContainerWidget* container)
+void CreateThumbnails::run(FFMPEGMedia* ffmpegMedia, Media* media, WContainerWidget* container)
 {
+  d->result = Waiting;
   Dbo::Transaction t(*d->session);
-  if(d->session->query<int>("SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'preview'").bind(media->uid()) > 0)
-    return Skip;
-  if(!ffmpegMedia->isVideo())
-    return Skip;
-  d->action = CreateThumbnailsPrivate::None;
-  ThumbnailPosition position = d->randomPosition(ffmpegMedia);
-  d->chooseRandomFrame(position, media, t, container);
-  while(d->action == CreateThumbnailsPrivate::None) {
-    this_thread::sleep_for(milliseconds(50));
+  if(d->session->query<int>("SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'preview'").bind(media->uid()) > 0) {
+    d->result = Skip;
+    return;
   }
-  guiRun(d->app, [=]{
-    d->nextButton->disable();
-    d->retryButton->disable();
-    d->retryButtonConnection.disconnect();
-    d->nextButtonConnection.disconnect();
-    d->app->triggerUpdate();
-  });
-  if(d->action == CreateThumbnailsPrivate::NewRandom) {
-    return ToRedo;
+  if(!ffmpegMedia->isVideo()) {
+    d->result = Skip;
+    return;
   }
-  if(d->action == CreateThumbnailsPrivate::Accept) {
-    d->saveThumbnails(media->uid(), defaultThumbnails(position), t);
-    return Complete;
-  }
-  return Skip; // impossible?
+  d->currentMedia = media;
+  d->currentPosition = d->randomPosition(ffmpegMedia);
+  d->chooseRandomFrame(media, t, container);
+  d->result = Done;
 }
 
 
 
-void CreateThumbnailsPrivate::chooseRandomFrame(ThumbnailPosition position, Media* media, Dbo::Transaction& t, WContainerWidget* container)
+void CreateThumbnailsPrivate::chooseRandomFrame(Media* media, Dbo::Transaction& t, WContainerWidget* container)
 {
   delete thumbnail;
-  thumbnail = new WMemoryResource("image/png", thumbnailFor(media, 550, position), container);
+  thumbnail = new WMemoryResource{"image/png", thumbnailFor(550), container};
   guiRun(app, [=]{
     container->clear();
-    
-    container->addWidget(WW<WContainerWidget>().add(new WImage(thumbnail)).setContentAlignment(AlignCenter));
-    retryButtonConnection = retryButton->clicked().connect([=](WMouseEvent) {
-      action = NewRandom;
-    });
-    nextButtonConnection = nextButton->clicked().connect([=](WMouseEvent) {
-      action = Accept;
-    });
-    nextButton->enable();
-    retryButton->enable();
+    WAnchor *reloadImage = new WAnchor("");
+    container->addWidget(WW<WContainerWidget>()
+      .add(WW<WText>(wtr("mediascannerdialog.thumbnaillabel")).css("small-text"))
+      .add(WW<WImage>(thumbnail).css("link-hand").onClick([=](WMouseEvent) {
+        result = MediaScannerStep::Redo;
+      }))
+      .setContentAlignment(AlignCenter));
     wApp->triggerUpdate();
   });
 }
@@ -158,29 +142,43 @@ ThumbnailPosition ThumbnailPosition::from(int timeInSeconds)
   return {-1, currentTimeStr};
 }
 
-void CreateThumbnailsPrivate::saveThumbnails(string mediaId, const std::vector<uint8_t> &forPlayer, const std::vector<uint8_t> &forThumbnail, Dbo::Transaction &t)
+
+MediaScannerStep::StepResult CreateThumbnails::result()
 {
-  session->add(new MediaAttachment{"preview", "thumbnail", "", mediaId, "image/png", forThumbnail });
-  session->add(new MediaAttachment{"preview", "player", "", mediaId, "image/png", forPlayer });
-  t.commit();
+  return d->result;
 }
 
-vector<uint8_t> CreateThumbnailsPrivate::thumbnailFor(Media* media, int size, ThumbnailPosition position, int quality)
+void CreateThumbnails::save()
+{
+  if(d->result != Done)
+    return;
+  Dbo::Transaction t(*d->session);
+  MediaAttachment *thumbnailAttachment = new MediaAttachment{"preview", "thumbnail", "", d->currentMedia->uid(), "image/png", d->thumbnailFor(260, 3) };
+  MediaAttachment *playerAttachment = new MediaAttachment{"preview", "player", "", d->currentMedia->uid(), "image/png", d->thumbnailFor(640) };
+  d->session->add(thumbnailAttachment);
+  d->session->add(playerAttachment);
+  t.commit();
+  d->currentMedia = 0;
+  d->result = Waiting;
+}
+
+
+vector<uint8_t> CreateThumbnailsPrivate::thumbnailFor(int size, int quality)
 {
   video_thumbnailer *thumbnailer = video_thumbnailer_create();
-  thumbnailer->overlay_film_strip = media->mimetype().find("video") == string::npos ? 0 : 1;
+  thumbnailer->overlay_film_strip = currentMedia->mimetype().find("video") == string::npos ? 0 : 1;
   
-  if(position.percent>0)
-    thumbnailer->seek_percentage = position.percent;
+  if(currentPosition.percent>0)
+    thumbnailer->seek_percentage = currentPosition.percent;
   else
-    thumbnailer->seek_time = (char*)position.timing.c_str();;
+    thumbnailer->seek_time = (char*)currentPosition.timing.c_str();;
   
   thumbnailer->thumbnail_image_type = Png;
   
   image_data *imageData = video_thumbnailer_create_image_data();
   thumbnailer->thumbnail_image_quality = quality;
   thumbnailer->thumbnail_size = size;
-  video_thumbnailer_generate_thumbnail_to_buffer(thumbnailer, media->fullPath().c_str(), imageData);
+  video_thumbnailer_generate_thumbnail_to_buffer(thumbnailer, currentMedia->fullPath().c_str(), imageData);
   vector<uint8_t> data{imageData->image_data_ptr, imageData->image_data_ptr + imageData->image_data_size};
   video_thumbnailer_destroy_image_data(imageData);
   video_thumbnailer_destroy(thumbnailer);

@@ -14,8 +14,10 @@ class WApplication;
 class MediaScannerStep
 {
 public:
-  enum StepResult { Complete, ToRedo, Skip };
-  virtual StepResult run(FFMPEGMedia *ffmpegMedia, Media *media, Wt::WContainerWidget *container) = 0;
+  enum StepResult { Waiting, Done, Skip, Redo };
+  virtual void run(FFMPEGMedia *ffmpegMedia, Media *media, Wt::WContainerWidget *container) = 0;
+  virtual StepResult result() = 0;
+  virtual void save() = 0;
 };
 
 #endif // MEDIASCANNERSTEP_H

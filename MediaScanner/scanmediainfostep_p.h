@@ -29,14 +29,15 @@ class Session;
 class ScanMediaInfoStepPrivate
 {
 public:
-  ScanMediaInfoStepPrivate(ScanMediaInfoStep* q, Wt::WPushButton* nextButton, Session* session, Wt::WApplication* app);
+  ScanMediaInfoStepPrivate(ScanMediaInfoStep* q, Session* session, Wt::WApplication* app);
   virtual ~ScanMediaInfoStepPrivate();
     Session* session;
     Wt::WApplication* app;
     std::string newTitle;
     bool titleIsReady;
-    Wt::WPushButton* nextButton;
-    boost::signals::connection nextButtonConnection;
+    MediaScannerStep::StepResult result;
+    FFMPEGMedia* ffmpegMedia;
+    Media* media;
     void setupGui(Wt::WContainerWidget *container, std::string titleSuggestion);
     static std::string titleHint(std::string filename);
 private:

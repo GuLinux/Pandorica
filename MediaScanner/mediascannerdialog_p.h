@@ -19,6 +19,7 @@
 #define MEDIASCANNERDIALOGPRIVATE_H
 #include <vector>
 
+class Media;
 class MediaScannerStep;
 class Session;
 class Settings;
@@ -48,12 +49,14 @@ public:
     Wt::WText* progressBarTitle;
     Settings* settings;
     Session* session;
-    Wt::WContainerWidget* stepContent;
+    std::map<MediaScannerStep*, Wt::WContainerWidget*> stepsContents;
     Wt::WPushButton* buttonRetry;
     void scanMedias(Wt::WApplication* app, UpdateGuiProgress updateGuiProgress, OnScanFinish onScanFinish);
+    bool canContinue;
     
 private:
     class MediaScannerDialog* const q;
+    void runStepsFor(Media *media, Wt::WApplication* app);
 };
 
 #endif // MEDIASCANNERDIALOGPRIVATE_H

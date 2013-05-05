@@ -42,25 +42,20 @@ struct ThumbnailPosition {
 class CreateThumbnailsPrivate
 {
 public:
-  CreateThumbnailsPrivate(Wt::WPushButton* nextButton, Wt::WPushButton* retryButton, Wt::WApplication* app, Session* session, Settings* settings, CreateThumbnails* q);
+  CreateThumbnailsPrivate(Wt::WApplication* app, Session* session, Settings* settings, CreateThumbnails* q);
     virtual ~CreateThumbnailsPrivate();
     Session* session;
     Settings* settings;
-    Wt::WPushButton* nextButton;
-    boost::signals::connection nextButtonConnection;
-    Wt::WPushButton* retryButton;
-    boost::signals::connection retryButtonConnection;
     Wt::WApplication* app;
-    std::vector<uint8_t> thumbnailFor(Media *media, int size, ThumbnailPosition position, int quality = 8);
+    std::vector<uint8_t> thumbnailFor(int size, int quality = 8);
     
-    void saveThumbnails(std::string mediaId, const std::vector< uint8_t >& forPlayer, const std::vector< uint8_t >& forThumbnail, Wt::Dbo::Transaction& t);
-    void chooseRandomFrame(ThumbnailPosition position, Media* media, Wt::Dbo::Transaction& t, Wt::WContainerWidget* container);
+    void chooseRandomFrame(Media* media, Wt::Dbo::Transaction& t, Wt::WContainerWidget* container);
     ThumbnailPosition randomPosition(FFMPEGMedia *ffmpegMedia);
     void chooseFromVideoPlayer(const Media& media, Wt::Dbo::Transaction& t, Wt::WApplication* app);
-    enum Action {
-      None, Accept, NewRandom, FromVideo
-    };
-    Action action;
+    
+    MediaScannerStep::StepResult result;
+    Media* currentMedia;
+    ThumbnailPosition currentPosition;
 private:
     class CreateThumbnails* const q;
     double currentTime;
