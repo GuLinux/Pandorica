@@ -38,8 +38,15 @@ namespace {
   Wt::Auth::AuthService myAuthService;
   Wt::Auth::PasswordService myPasswordService(myAuthService);
   MyOAuth myOAuthServices;
-
 }
+
+class SessionPrivate {
+public:
+  void createConnection();
+  dbo::SqlConnection *connection;
+  UserDatabase *users;
+  Wt::Auth::Login login;
+};
 
 using namespace std;
 using namespace Wt;
@@ -66,10 +73,11 @@ void Session::configureAuth()
 }
 
 Session::Session()
+  : d(new SessionPrivate)
 {
-  createConnection();
-  connection_->setProperty("show-queries", "false");
-  setConnection(*connection_);
+  d->createConnection();
+  d->connection->setProperty("show-queries", "false");
+  setConnection(*d->connection);
 
   mapClass<User>("user");
   mapClass<Group>("group");
@@ -94,35 +102,42 @@ Session::Session()
     std::cerr << "Using existing database";
   }
 
-  users_ = new UserDatabase(*this);
+  d->users = new UserDatabase(*this);
 }
 
-void Session::createConnection()
+Auth::Login& Session::login()
+{
+  return d->login;
+}
+
+
+void SessionPrivate::createConnection()
 {
   string psqlConnParameters = "";
   wApp->readConfigurationProperty("psql-connection", psqlConnParameters);
   if(!psqlConnParameters.empty()) {
-    connection_ = new dbo::backend::Postgres(psqlConnParameters);
+        connection = new dbo::backend::Postgres(psqlConnParameters);
     return;
   }
-  connection_ = new dbo::backend::Sqlite3("videostreaming.sqlite");
+    connection = new dbo::backend::Sqlite3("videostreaming.sqlite");
 }
 
 
 Session::~Session()
 {
-  delete users_;
+  delete d->users;
+  delete d;
 }
 
 Wt::Auth::AbstractUserDatabase& Session::users()
 {
-  return *users_;
+  return *d->users;
 }
 
 dbo::ptr<User> Session::user()
 {
-  if (login_.loggedIn()) {
-    dbo::ptr<AuthInfo> authInfo = users_->find(login_.user());
+  if (d->login.loggedIn()) {
+    dbo::ptr<AuthInfo> authInfo = d->users->find(d->login.user());
     dbo::ptr<User> user = authInfo->user();
     if(!user) {
       user = add(new User());
