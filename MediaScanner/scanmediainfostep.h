@@ -26,9 +26,11 @@ class MediaCollection;
 class ScanMediaInfoStep : public MediaScannerStep, Wt::WObject
 {
 public:
-  ScanMediaInfoStep(Wt::WPushButton *nextButton, Session *session, Wt::WApplication *app, Wt::WObject *parent = 0);
+  ScanMediaInfoStep(Session *session, Wt::WApplication *app, Wt::WObject *parent = 0);
   virtual ~ScanMediaInfoStep();
-    virtual StepResult run(FFMPEGMedia* ffmpegMedia, Media* media, Wt::WContainerWidget *container);
+  virtual void run(FFMPEGMedia* ffmpegMedia, Media* media, Wt::WContainerWidget *container);
+  virtual StepResult result();
+  virtual void save();
 private:
   class ScanMediaInfoStepPrivate* const d;
 };

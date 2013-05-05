@@ -72,6 +72,8 @@
   <!-- Media Scanner -->
   <message id="mediascanner.media.title">Titolo</message>
   <message id="mediascannerdialog.subtitlesmessage">Estrazione sottotitoli: {1} di {2} (indice: {3}, titolo: {4}, lingua: {5})</message>
+  <message id="mediascannerdialog.thumbnaillabel">Anteprima (clicca per ricrearla da posizione casuale)</message>
+  <message id="mediascannerdialog.subtitlesextracted">{1} sottotitoli estratti e pronti per il salvataggio.</message>
   
   <!-- comments -->
   <message id="comments.label">Commenti</message>

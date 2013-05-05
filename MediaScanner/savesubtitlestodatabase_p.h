@@ -17,7 +17,10 @@
 
 #ifndef SAVESUBTITLESTODATABASEPRIVATE_H
 #define SAVESUBTITLESTODATABASEPRIVATE_H
+#include <vector>
+#include <ffmpegmedia.h>
 
+class MediaAttachment;
 class Session;
 namespace Wt {
   class WApplication;
@@ -28,8 +31,11 @@ class SaveSubtitlesToDatabasePrivate
 public:
   SaveSubtitlesToDatabasePrivate(Session* session, Wt::WApplication* app, SaveSubtitlesToDatabase* q);
     virtual ~SaveSubtitlesToDatabasePrivate();
+    void extractSubtitles(std::vector< FFMPEG::Stream > subtitles, Media* media, Wt::WContainerWidget* container);
     Session* session;
     Wt::WApplication* app;
+    MediaScannerStep::StepResult result;
+    std::vector<MediaAttachment*> subtitlesToSave;
 
 private:
     class SaveSubtitlesToDatabase* const q;

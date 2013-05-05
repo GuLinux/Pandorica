@@ -45,8 +45,8 @@ using namespace std;
 using namespace std::chrono;
 namespace fs = boost::filesystem;
 
-ScanMediaInfoStepPrivate::ScanMediaInfoStepPrivate(ScanMediaInfoStep* q, WPushButton *nextButton, Session *session, WApplication *app)
-  : q(q), nextButton(nextButton), session(session), app(app)
+ScanMediaInfoStepPrivate::ScanMediaInfoStepPrivate(ScanMediaInfoStep* q, Session *session, WApplication *app)
+  : q(q), session(session), app(app)
 {
 }
 ScanMediaInfoStepPrivate::~ScanMediaInfoStepPrivate()
@@ -54,8 +54,8 @@ ScanMediaInfoStepPrivate::~ScanMediaInfoStepPrivate()
 }
 
 
-ScanMediaInfoStep::ScanMediaInfoStep(WPushButton* nextButton, Session* session, WApplication* app, WObject* parent)
-  : WObject(parent), d(new ScanMediaInfoStepPrivate(this, nextButton ,session, app))
+ScanMediaInfoStep::ScanMediaInfoStep(Session* session, WApplication* app, WObject* parent)
+  : WObject(parent), d(new ScanMediaInfoStepPrivate(this, session, app))
 {
 }
 
@@ -72,51 +72,50 @@ std::string ScanMediaInfoStepPrivate::titleHint(std::string filename)
 }
 
 
-MediaScannerStep::StepResult ScanMediaInfoStep::run(FFMPEGMedia* ffmpegMedia, Media* media, WContainerWidget* container)
+void ScanMediaInfoStep::run(FFMPEGMedia* ffmpegMedia, Media* media, WContainerWidget* container)
 {
-  d->titleIsReady = false;
-  d->newTitle = {};
+  d->result = Waiting;
   Dbo::Transaction transaction(*d->session);
   MediaPropertiesPtr mediaPropertiesPtr = d->session->find<MediaProperties>().where("media_id = ?").bind(media->uid());
-  if(mediaPropertiesPtr) return Skip;
+  if(mediaPropertiesPtr) {
+    d->result = Skip;
+    return;
+  }
   string titleSuggestion = ffmpegMedia->metadata("title").empty() ? ScanMediaInfoStepPrivate::titleHint(media->filename()) : ffmpegMedia->metadata("title");
+  d->newTitle = titleSuggestion;
+  d->ffmpegMedia = ffmpegMedia;
+  d->media = media;
   guiRun(d->app, boost::bind(&ScanMediaInfoStepPrivate::setupGui, d, container, titleSuggestion));
-  while(!d->titleIsReady)
-    this_thread::sleep_for(milliseconds(50));
-  d->nextButtonConnection.disconnect();
-  pair<int, int> resolution = ffmpegMedia->resolution();
-  auto mediaProperties = new MediaProperties{media->uid(), d->newTitle, media->fullPath(), ffmpegMedia->durationInSeconds(), fs::file_size(media->path()), resolution.first, resolution.second};
+  d->result = Done;
+}
+MediaScannerStep::StepResult ScanMediaInfoStep::result()
+{
+  return d->result;
+}
+
+void ScanMediaInfoStep::save()
+{
+  if(d->result != Done)
+    return;
+  Dbo::Transaction transaction(*d->session);
+  pair<int, int> resolution = d->ffmpegMedia->resolution();
+  auto mediaProperties = new MediaProperties{d->media->uid(), d->newTitle, d->media->fullPath(), d->ffmpegMedia->durationInSeconds(), fs::file_size(d->media->path()), resolution.first, resolution.second};
   d->session->add(mediaProperties);
   transaction.commit();
-  return Complete;
+  d->result = Waiting;
 }
+
 
 
 void ScanMediaInfoStepPrivate::setupGui(Wt::WContainerWidget* container, std::string titleSuggestion)
 {
   WLabel *label = new WLabel(wtr("mediascanner.media.title"));
   WLineEdit *editTitle = WW<WLineEdit>(titleSuggestion).css("span5");
-  label->setBuddy(editTitle);
-  auto accept = [=] {
-    if(editTitle->text().empty()) return;
+  editTitle->changed().connect([=](_n1) {
     newTitle = editTitle->text().toUTF8();
-    nextButton->disable();
-    titleIsReady = true;
-  };
-  editTitle->keyWentUp().connect([=](WKeyEvent e) {
-    if(editTitle->text().empty()) {
-      nextButton->disable();
-      return;
-    }
-    if(e.key() == Wt::Key_Enter) {
-      accept();
-      return;
-    }
-    nextButton->enable();
   });
+  label->setBuddy(editTitle);
   container->addWidget(WW<WContainerWidget>().css("form-inline").add(label).add(editTitle));
-  nextButton->setEnabled(!titleSuggestion.empty());
-  nextButtonConnection = nextButton->clicked().connect([=](WMouseEvent) { accept(); });
   app->triggerUpdate();
 }
 

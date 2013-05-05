@@ -30,8 +30,10 @@ class CreateThumbnails : public MediaScannerStep, Wt::WObject
 {
 public:
     ~CreateThumbnails();
-    CreateThumbnails(Wt::WPushButton *nextButton, Wt::WPushButton *retryButton, Wt::WApplication *app, Session* session,Settings* settings, Wt::WObject* parent = 0);
-    virtual StepResult run(FFMPEGMedia* ffmpegMedia, Media* media, Wt::WContainerWidget* container);
+    CreateThumbnails(Wt::WApplication *app, Session* session,Settings* settings, Wt::WObject* parent = 0);
+    void run(FFMPEGMedia* ffmpegMedia, Media* media, Wt::WContainerWidget* container);
+    virtual void save();
+    virtual StepResult result();
 private:
     class CreateThumbnailsPrivate* const d;
 };

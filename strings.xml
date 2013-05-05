@@ -36,7 +36,9 @@
   <!-- Media Scanner -->
   <message id="mediascanner.title">Media Scanner</message>
   <message id="mediascanner.media.title">Title</message>
+  <message id="mediascannerdialog.thumbnaillabel">Preview (click the image to change to a new random position)</message>
   <message id="mediascannerdialog.subtitlesmessage">Extracting subtitles: {1} of {2} (index: {3}, title: {4}, language: {5})</message>
+  <message id="mediascannerdialog.subtitlesextracted">{1} subtitles extracted and ready to be saved.</message>
   
   <!-- comments -->
   <message id="comments.label">Comments</message>
