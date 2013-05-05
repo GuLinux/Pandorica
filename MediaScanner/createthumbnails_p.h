@@ -22,6 +22,7 @@
 #include <Wt/Dbo/Transaction>
 #include <media.h>
 
+class FFMPEGMedia;
 class Settings;
 class Session;
 namespace Wt {
@@ -53,7 +54,8 @@ public:
     std::vector<uint8_t> thumbnailFor(Media *media, int size, ThumbnailPosition position, int quality = 8);
     
     void saveThumbnails(std::string mediaId, const std::vector< uint8_t >& forPlayer, const std::vector< uint8_t >& forThumbnail, Wt::Dbo::Transaction& t);
-    int chooseRandomFrame(Media *media, Wt::Dbo::Transaction& t, Wt::WContainerWidget* container);
+    void chooseRandomFrame(ThumbnailPosition position, Media* media, Wt::Dbo::Transaction& t, Wt::WContainerWidget* container);
+    ThumbnailPosition randomPosition(FFMPEGMedia *ffmpegMedia);
     void chooseFromVideoPlayer(const Media& media, Wt::Dbo::Transaction& t, Wt::WApplication* app);
     enum Action {
       None, Accept, NewRandom, FromVideo
@@ -65,5 +67,6 @@ private:
     double duration;
     Wt::WMemoryResource *thumbnail = 0;
 };
+
 #endif // CREATETHUMBNAILSPRIVATE_H
 
