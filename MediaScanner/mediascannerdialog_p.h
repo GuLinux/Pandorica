@@ -53,6 +53,8 @@ public:
     Wt::WPushButton* buttonRetry;
     void scanMedias(Wt::WApplication* app, UpdateGuiProgress updateGuiProgress, OnScanFinish onScanFinish);
     bool canContinue;
+    bool canceled;
+    Wt::WPushButton* buttonCancel;
     
 private:
     class MediaScannerDialog* const q;

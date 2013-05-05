@@ -49,6 +49,10 @@ MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, Med
   resize(700, 650);
   setWindowTitle(wtr("mediascanner.title"));
   setClosable(false);
+  footer()->addWidget(d->buttonCancel = WW<WPushButton>(wtr("button.cancel")).css("btn btn-danger").onClick([=](WMouseEvent) {
+    d->canceled = true;
+    reject();
+  }));
   footer()->addWidget(d->buttonNext = WW<WPushButton>(wtr("button.next")).css("btn btn-primary").setEnabled(false).onClick([=](WMouseEvent) { d->canContinue = true; }));
   footer()->addWidget(d->buttonClose = WW<WPushButton>(wtr("close-button")).css("btn btn-success").onClick([=](WMouseEvent) { accept(); } ).setEnabled(false));
 
@@ -72,6 +76,7 @@ MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, Med
     auto container = new WContainerWidget;
     d->stepsContents[step] = container;
     stepsContainer->addWidget(container);
+    container->setPadding(5);
   }
 }
 
@@ -94,6 +99,7 @@ void MediaScannerDialog::run()
   };
   OnScanFinish enableCloseButton = [=] {
     d->buttonClose->enable();
+    d->buttonCancel->disable();
     d->progressBarTitle->setText("");
     for(auto stepContainers : d->stepsContents)
       stepContainers.second->clear();
@@ -104,8 +110,11 @@ void MediaScannerDialog::run()
 
 void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, UpdateGuiProgress updateGuiProgress, OnScanFinish onScanFinish)
 {
+  canceled = false;
   uint current = 0;
   for(auto mediaPair: mediaCollection->collection()) {
+    if(canceled)
+      return;
     Media media = mediaPair.second;
     this_thread::sleep_for(chrono::milliseconds{10});
     current++;
@@ -127,7 +136,7 @@ void MediaScannerDialogPrivate::runStepsFor(Media *media, WApplication* app)
   for(MediaScannerStep *step: steps) {
     step->run(&ffmpegMedia, media, stepsContents[step]);
   }
-  while(!canContinue) {
+  while(!canContinue && !canceled) {
     bool stepsAreSkipped = true;
     bool stepsAreFinished = true;
     
@@ -142,10 +151,12 @@ void MediaScannerDialogPrivate::runStepsFor(Media *media, WApplication* app)
     canContinue |= stepsAreSkipped;
     this_thread::sleep_for(chrono::milliseconds{50});
     guiRun(app, [=] {
-      buttonNext->setEnabled(stepsAreFinished);
+      buttonNext->setEnabled(stepsAreFinished && ! stepsAreSkipped);
       wApp->triggerUpdate();
     });
   }
+  if(canceled)
+    return;
   for(MediaScannerStep *step: steps) {
     step->save();
   }

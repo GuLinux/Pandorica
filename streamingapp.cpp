@@ -177,8 +177,8 @@ StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(
   xmlResourcesBundle->use("strings");
   setLocale(d->settings.locale());
   WCombinedLocalizedStrings* combinedLocalizedStrings = new WCombinedLocalizedStrings();
-  combinedLocalizedStrings->add(new WHTMLTemplatesLocalizedStrings("html_templates"));
   combinedLocalizedStrings->add(xmlResourcesBundle);
+  combinedLocalizedStrings->add(new WHTMLTemplatesLocalizedStrings("html_templates"));
   setLocalizedStrings(combinedLocalizedStrings);
 
   addMetaHeader("viewport", "width=device-width, initial-scale=1, maximum-scale=1");

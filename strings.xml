@@ -1,4 +1,4 @@
-<messages>
+<messages nplurals="2" plural="n==1 ? 0 : 1">
   <!-- general, not retranslated -->
   <message id="site-title">Gulinux Streaming</message>
   <message id="auth-mail-sender-name">Gulinux Streaming</message>
@@ -39,6 +39,10 @@
   <message id="mediascannerdialog.thumbnaillabel">Preview (click the image to change to a new random position)</message>
   <message id="mediascannerdialog.subtitlesmessage">Extracting subtitles: {1} of {2} (index: {3}, title: {4}, language: {5})</message>
   <message id="mediascannerdialog.subtitlesextracted">{1} subtitles extracted and ready to be saved.</message>
+  <message id="mediascannerdialog.subtitles_extracted">
+    <plural case="0">One subtitle extracted and ready to be saved.</plural>
+    <plural case="1">{1} subtitles extracted and ready to be saved.</plural>
+  </message>
   
   <!-- comments -->
   <message id="comments.label">Comments</message>
@@ -118,7 +122,8 @@
   <message id="close-button">Close</message>
   <message id="button.retry">Retry</message>
   <message id="button.next">Next</message>
-
+  <message id="button.cancel">Cancel</message>
+  
   <message id="users.current.title">Logged Users</message>
   <message id="users.history.title">Users History</message>
   
