@@ -81,7 +81,8 @@ MediaScannerStep::StepResult CreateThumbnails::run(FFMPEGMedia* ffmpegMedia, Med
   if(!ffmpegMedia->isVideo())
     return Skip;
   d->action = CreateThumbnailsPrivate::None;
-  int randomPercent = d->chooseRandomFrame(media, t, container);
+  ThumbnailPosition position = d->randomPosition(ffmpegMedia);
+  d->chooseRandomFrame(position, media, t, container);
   while(d->action == CreateThumbnailsPrivate::None) {
     this_thread::sleep_for(milliseconds(50));
   }
@@ -96,7 +97,7 @@ MediaScannerStep::StepResult CreateThumbnails::run(FFMPEGMedia* ffmpegMedia, Med
     return ToRedo;
   }
   if(d->action == CreateThumbnailsPrivate::Accept) {
-    d->saveThumbnails(media->uid(), defaultThumbnails({randomPercent}), t);
+    d->saveThumbnails(media->uid(), defaultThumbnails(position), t);
     return Complete;
   }
   return Skip; // impossible?
@@ -104,17 +105,10 @@ MediaScannerStep::StepResult CreateThumbnails::run(FFMPEGMedia* ffmpegMedia, Med
 
 
 
-int CreateThumbnailsPrivate::chooseRandomFrame(Media* media, Dbo::Transaction& t, WContainerWidget* container)
+void CreateThumbnailsPrivate::chooseRandomFrame(ThumbnailPosition position, Media* media, Dbo::Transaction& t, WContainerWidget* container)
 {
-  long range = randomEngine.max() - randomEngine.min();
-  auto randomNumber = randomEngine();
-  cerr << "new random number: " << randomNumber << "; min=" << randomEngine.min() << "; max=" << randomEngine.max() << "\n";
-  int randomPercent = randomNumber % 100;
-  cerr << "resulting percent: " << randomPercent << "\n";
-  if(randomPercent < 10) randomPercent += 10;
-  if(randomPercent > 80) randomPercent -= 20;
   delete thumbnail;
-  thumbnail = new WMemoryResource("image/png", thumbnailFor(media, 550, {randomPercent}), container);
+  thumbnail = new WMemoryResource("image/png", thumbnailFor(media, 550, position), container);
   guiRun(app, [=]{
     container->clear();
     
@@ -129,7 +123,38 @@ int CreateThumbnailsPrivate::chooseRandomFrame(Media* media, Dbo::Transaction& t
     retryButton->enable();
     wApp->triggerUpdate();
   });
-  return randomPercent;
+}
+
+
+
+ThumbnailPosition CreateThumbnailsPrivate::randomPosition(FFMPEGMedia* ffmpegMedia)
+{
+  auto randomNumber = randomEngine();
+  
+  if(ffmpegMedia->durationInSeconds() < 200 ) {
+    int percent = randomNumber % 100;
+    if(percent < 10) percent += 10;
+    if(percent > 80) percent -= 20;
+    return {percent};
+  }
+  int percent{0};
+  int position{0};
+  while(percent < 10 || percent > 80) {
+    randomNumber = randomEngine();
+    position = randomNumber % ffmpegMedia->durationInSeconds();
+    percent = position * 100.0 / ffmpegMedia->durationInSeconds();
+    cerr << "randomNumber: " << randomNumber << "; position: " << position << "; totalDuration: " << ffmpegMedia->durationInSeconds() << "; percent: " << percent << "\n";
+  }
+  return ThumbnailPosition::from(position);
+}
+
+ThumbnailPosition ThumbnailPosition::from(int timeInSeconds)
+{
+  int hours = timeInSeconds / 3600;
+  int minutes = (int(timeInSeconds)% 3600) / 60;
+  int seconds = ((int(timeInSeconds) % 3600) % 60) /60;
+  string currentTimeStr = (boost::format("%.2d:%.2d:%.2d") %hours %minutes %seconds).str();
+  return {-1, currentTimeStr};
 }
 
 void CreateThumbnailsPrivate::saveThumbnails(string mediaId, const std::vector<uint8_t> &forPlayer, const std::vector<uint8_t> &forThumbnail, Dbo::Transaction &t)
