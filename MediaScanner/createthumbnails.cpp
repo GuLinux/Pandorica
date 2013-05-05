@@ -131,7 +131,7 @@ ThumbnailPosition CreateThumbnailsPrivate::randomPosition(FFMPEGMedia* ffmpegMed
 {
   auto randomNumber = randomEngine();
   
-  if(ffmpegMedia->durationInSeconds() < 200 ) {
+  if(ffmpegMedia->durationInSeconds() < 100 ) {
     int percent = randomNumber % 100;
     if(percent < 10) percent += 10;
     if(percent > 80) percent -= 20;
@@ -143,17 +143,18 @@ ThumbnailPosition CreateThumbnailsPrivate::randomPosition(FFMPEGMedia* ffmpegMed
     randomNumber = randomEngine();
     position = randomNumber % ffmpegMedia->durationInSeconds();
     percent = position * 100.0 / ffmpegMedia->durationInSeconds();
-    cerr << "randomNumber: " << randomNumber << "; position: " << position << "; totalDuration: " << ffmpegMedia->durationInSeconds() << "; percent: " << percent << "\n";
   }
-  return ThumbnailPosition::from(position);
+  return ThumbnailPosition::from(position);;
 }
 
 ThumbnailPosition ThumbnailPosition::from(int timeInSeconds)
 {
+  int remaining = 0;
   int hours = timeInSeconds / 3600;
-  int minutes = (int(timeInSeconds)% 3600) / 60;
-  int seconds = ((int(timeInSeconds) % 3600) % 60) /60;
-  string currentTimeStr = (boost::format("%.2d:%.2d:%.2d") %hours %minutes %seconds).str();
+  timeInSeconds %= 3600;
+  int minutes = timeInSeconds / 60;
+  timeInSeconds %= 60;
+  string currentTimeStr = (boost::format("%.2d:%.2d:%.2d") %hours %minutes %timeInSeconds).str();
   return {-1, currentTimeStr};
 }
 
