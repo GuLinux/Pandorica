@@ -12,6 +12,7 @@
 #include "sessioninfo.h"
 #include "sessiondetails.h"
 #include "comment.h"
+#include "utils.h"
 #include <boost/format.hpp>
 #include <algorithm>
 #include <Wt/Dbo/Transaction>
@@ -227,6 +228,12 @@ void MediaCollectionBrowserPrivate::setTitleFor(Media media)
       setTitleDialog->accept();
     okButton->setEnabled(editIsEnabled());
   });
+  setTitleDialog->contents()->addWidget(new WText{wtr("set.title.filename.hint")});
+  string titleHint = Utils::titleHintFromFilename(media.filename());
+  setTitleDialog->contents()->addWidget(WW<WAnchor>("", titleHint).css("link-hand").onClick([=](WMouseEvent){
+    titleEdit->setText(titleHint);
+  }));
+  setTitleDialog->contents()->addWidget(new WBreak);
   setTitleDialog->contents()->addWidget(titleEdit);
   setTitleDialog->contents()->addWidget(okButton);
   setTitleDialog->contents()->setPadding(10);

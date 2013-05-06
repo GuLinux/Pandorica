@@ -29,8 +29,6 @@
 #include "Wt-Commons/wt_helpers.h"
 #include <session.h>
 #include <mediacollection.h>
-#include <boost/regex.hpp>
-#include <boost/algorithm/string/trim.hpp>
 #include <thread>
 
 #include "ffmpegmedia.h"
@@ -39,10 +37,8 @@
 #include "sessioninfo.h"
 #include "sessiondetails.h"
 #include "comment.h"
-#include <fstream>
-#include <Wt/Json/Parser>
-#include <Wt/Json/Object>
-#include <Wt/Json/Array>
+#include "utils.h"
+
 
 using namespace Wt;
 using namespace std;
@@ -64,49 +60,6 @@ ScanMediaInfoStep::ScanMediaInfoStep(WApplication* app, WObject* parent)
 }
 
 
-vector< FindAndReplace > FindAndReplace::from(string filename)
-{
-  
-  ifstream subfile(filename);
-  if(!subfile.is_open()) {
-    WServer::instance()->log("notice") << "JSON Find/Replacement file " << filename << " missing, returning empty array";
-    return {};
-  }
-  stringstream json;
-  vector<FindAndReplace> parsedVector;
-  json << subfile.rdbuf();
-  subfile.close();
-  try {
-    Json::Value parsed;
-    Json::parse(json.str(), parsed);
-    Json::Array parsedArray = parsed.orIfNull(Json::Array{});
-    for(Json::Object value: parsedArray) {
-      parsedVector.push_back({value.get("regex_to_find").toString(), value.get("replacement").toString() });
-    }
-    return parsedVector;
-  } catch(Json::ParseError error) {
-    WServer::instance()->log("notice") << "Error parsing " << filename << ": " << error.what();
-    return {};
-  }
-}
-
-
-std::string ScanMediaInfoStepPrivate::titleHint(std::string filename)
-{
-  for(FindAndReplace hint: FindAndReplace::from("title_from_filename_replacements.json")) {
-    try {
-      filename = boost::regex_replace(filename, boost::regex{hint.regexToFind, boost::regex::icase}, hint.replacement);
-    } catch(runtime_error e) {
-      WServer::instance()->log("notice") << "exception parsing regex '" << hint.regexToFind << "': " << e.what();
-    }
-  }
-  while(filename.find("  ") != string::npos)
-    boost::replace_all(filename, "  ", " ");
-  boost::algorithm::trim(filename);
-  return filename;
-}
-
-
 void ScanMediaInfoStep::run(FFMPEGMedia* ffmpegMedia, Media* media, WContainerWidget* container, Dbo::Transaction* transaction)
 {
   d->result = Waiting;
@@ -115,7 +68,7 @@ void ScanMediaInfoStep::run(FFMPEGMedia* ffmpegMedia, Media* media, WContainerWi
     d->result = Skip;
     return;
   }
-  string titleSuggestion = ffmpegMedia->metadata("title").empty() ? ScanMediaInfoStepPrivate::titleHint(media->filename()) : ffmpegMedia->metadata("title");
+  string titleSuggestion = ffmpegMedia->metadata("title").empty() ? Utils::titleHintFromFilename(media->filename()) : ffmpegMedia->metadata("title");
   d->newTitle = titleSuggestion;
   d->ffmpegMedia = ffmpegMedia;
   d->media = media;
