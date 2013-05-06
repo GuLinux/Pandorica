@@ -49,16 +49,17 @@ MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, Med
   resize(700, 650);
   setWindowTitle(wtr("mediascanner.title"));
   setClosable(false);
+  d->progressBar = new WProgressBar;
+  d->progressBar->addStyleClass("pull-left");
+  footer()->addWidget(d->progressBar);
   footer()->addWidget(d->buttonCancel = WW<WPushButton>(wtr("button.cancel")).css("btn btn-danger").onClick([=](WMouseEvent) {
     d->canceled = true;
     reject();
   }));
   footer()->addWidget(d->buttonNext = WW<WPushButton>(wtr("button.next")).css("btn btn-primary").setEnabled(false).onClick([=](WMouseEvent) { d->canContinue = true; }));
   footer()->addWidget(d->buttonClose = WW<WPushButton>(wtr("close-button")).css("btn btn-success").onClick([=](WMouseEvent) { accept(); } ).setEnabled(false));
-
   contents()->addWidget(WW<WContainerWidget>()
     .add(d->progressBarTitle = WW<WText>().css("mediascannerdialog-filename"))
-    .add(d->progressBar = new WProgressBar)
     .padding(6)
     .setContentAlignment(AlignCenter)
   );
