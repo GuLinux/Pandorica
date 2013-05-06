@@ -256,7 +256,7 @@ void StreamingApp::authEvent()
   }
   if(d->session.user()->groups.size() <= 0) {
     Message *message = WW<Message>("Your user is not yet authorized for viewing videos.<br />\
-    The administrator should already have received an email and will add you when possible.").addCss("alert-block");
+    The administrator should already have received an email and will add you when possible.<br />${refresh}").addCss("alert-block");
     if(!d->mailSent) {
       Streaming::Utils::mailForUnauthorizedUser(user.email(), user.identity(Auth::Identity::LoginName));
       d->mailSent = true;
