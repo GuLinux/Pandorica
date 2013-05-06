@@ -154,6 +154,7 @@
   <message id="button.retry">Riprova</message>
   <message id="button.next">Avanti</message>
   <message id="button.cancel">Annulla</message>
+  <message id="set.title.filename.hint">Suggerimento da nome file: </message>
   
   <message id="Wt.Auth.confirmmail.body">
 Hello {1},

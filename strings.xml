@@ -128,6 +128,7 @@
   <message id="users.history.title">Users History</message>
   
   <message id="tree.double.click.to.expand">Double click to expand or collapse</message>
+  <message id="set.title.filename.hint">Hint from file name: </message>
 
   <message id="Wt.Auth.confirmmail.body">
 Hello {1},

@@ -38,15 +38,8 @@ public:
     FFMPEGMedia* ffmpegMedia;
     Media* media;
     void setupGui(Wt::WContainerWidget *container, std::string titleSuggestion);
-    static std::string titleHint(std::string filename);
 private:
   class ScanMediaInfoStep* const q;
-};
-
-struct FindAndReplace {
-  std::string regexToFind;
-  std::string replacement;
-  static std::vector<FindAndReplace> from(std::string filename);
 };
 
 #endif // SCANMEDIAINFOPAGEPRIVATE_H
