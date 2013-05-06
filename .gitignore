@@ -5,3 +5,4 @@ webroot/uploads
 *~
 *.db
 .directory
+wt_config*
