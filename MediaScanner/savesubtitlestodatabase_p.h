@@ -29,10 +29,9 @@ namespace Wt {
 class SaveSubtitlesToDatabasePrivate
 {
 public:
-  SaveSubtitlesToDatabasePrivate(Session* session, Wt::WApplication* app, SaveSubtitlesToDatabase* q);
+  SaveSubtitlesToDatabasePrivate(Wt::WApplication* app, SaveSubtitlesToDatabase* q);
     virtual ~SaveSubtitlesToDatabasePrivate();
     void extractSubtitles(std::vector< FFMPEG::Stream > subtitles, Media* media, Wt::WContainerWidget* container);
-    Session* session;
     Wt::WApplication* app;
     MediaScannerStep::StepResult result;
     std::vector<MediaAttachment*> subtitlesToSave;

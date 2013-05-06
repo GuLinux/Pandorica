@@ -19,12 +19,10 @@
 #define CREATETHUMBNAILSPRIVATE_H
 #include <sys/types.h>
 #include <stdint.h>
-#include <Wt/Dbo/Transaction>
 #include <media.h>
 
 class FFMPEGMedia;
 class Settings;
-class Session;
 namespace Wt {
 class WProgressBar;
 class WText;
@@ -42,16 +40,14 @@ struct ThumbnailPosition {
 class CreateThumbnailsPrivate
 {
 public:
-  CreateThumbnailsPrivate(Wt::WApplication* app, Session* session, Settings* settings, CreateThumbnails* q);
+  CreateThumbnailsPrivate(Wt::WApplication* app, Settings* settings, CreateThumbnails* q);
     virtual ~CreateThumbnailsPrivate();
-    Session* session;
     Settings* settings;
     Wt::WApplication* app;
     std::vector<uint8_t> thumbnailFor(int size, int quality = 8);
     
-    void chooseRandomFrame(Media* media, Wt::Dbo::Transaction& t, Wt::WContainerWidget* container);
+    void chooseRandomFrame(Media* media, Wt::WContainerWidget* container);
     ThumbnailPosition randomPosition(FFMPEGMedia *ffmpegMedia);
-    void chooseFromVideoPlayer(const Media& media, Wt::Dbo::Transaction& t, Wt::WApplication* app);
     
     MediaScannerStep::StepResult result;
     Media* currentMedia;

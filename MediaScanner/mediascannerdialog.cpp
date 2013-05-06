@@ -64,9 +64,9 @@ MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, Med
   );
   
   d->steps = {
-    new ScanMediaInfoStep{session, wApp, this},
-    new SaveSubtitlesToDatabase{session, wApp, this},
-    new CreateThumbnails{wApp, session, settings, this},
+    new ScanMediaInfoStep{wApp, this},
+    new SaveSubtitlesToDatabase{wApp, this},
+    new CreateThumbnails{wApp, settings, this},
   };
   
   WContainerWidget* stepsContainer = new WContainerWidget;
@@ -133,8 +133,9 @@ void MediaScannerDialogPrivate::runStepsFor(Media *media, WApplication* app)
 {
   canContinue = false;
   FFMPEGMedia ffmpegMedia{*media};
+  Dbo::Transaction t(*session);
   for(MediaScannerStep *step: steps) {
-    step->run(&ffmpegMedia, media, stepsContents[step]);
+    step->run(&ffmpegMedia, media, stepsContents[step], &t);
   }
   while(!canContinue && !canceled) {
     bool stepsAreSkipped = true;
@@ -146,7 +147,7 @@ void MediaScannerDialogPrivate::runStepsFor(Media *media, WApplication* app)
       stepsAreFinished &= stepResult == MediaScannerStep::Skip || stepResult == MediaScannerStep::Done;
       
       if(stepResult == MediaScannerStep::Redo)
-        step->run(&ffmpegMedia, media, stepsContents[step]);
+        step->run(&ffmpegMedia, media, stepsContents[step], &t);
     }
     canContinue |= stepsAreSkipped;
     this_thread::sleep_for(chrono::milliseconds{50});
@@ -158,8 +159,9 @@ void MediaScannerDialogPrivate::runStepsFor(Media *media, WApplication* app)
   if(canceled)
     return;
   for(MediaScannerStep *step: steps) {
-    step->save();
+    step->save(&t);
   }
+  t.commit();
 }
 
 

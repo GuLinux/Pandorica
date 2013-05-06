@@ -53,16 +53,16 @@ using namespace ffmpegthumbnailer;
 time_point<high_resolution_clock> serverStartTimeForRandomSeeding{high_resolution_clock::now()};
 mt19937_64 randomEngine{(uint64_t) serverStartTimeForRandomSeeding.time_since_epoch().count()};
 
-CreateThumbnailsPrivate::CreateThumbnailsPrivate(WApplication* app, Session* session, Settings* settings, CreateThumbnails* q)
-  : app(app), session(session), settings(settings), q(q)
+CreateThumbnailsPrivate::CreateThumbnailsPrivate(WApplication* app, Settings* settings, CreateThumbnails* q)
+  : app(app), settings(settings), q(q)
 {
 }
 CreateThumbnailsPrivate::~CreateThumbnailsPrivate()
 {
 }
 
-CreateThumbnails::CreateThumbnails(WApplication* app, Session* session, Settings* settings, WObject* parent)
-  : WObject(parent), d(new CreateThumbnailsPrivate{app, session, settings, this})
+CreateThumbnails::CreateThumbnails(WApplication* app, Settings* settings, WObject* parent)
+  : WObject(parent), d(new CreateThumbnailsPrivate{app, settings, this})
 {
 
 }
@@ -72,11 +72,10 @@ CreateThumbnails::~CreateThumbnails()
     delete d;
 }
 
-void CreateThumbnails::run(FFMPEGMedia* ffmpegMedia, Media* media, WContainerWidget* container)
+void CreateThumbnails::run(FFMPEGMedia* ffmpegMedia, Media* media, WContainerWidget* container, Dbo::Transaction* transaction)
 {
   d->result = Waiting;
-  Dbo::Transaction t(*d->session);
-  if(d->session->query<int>("SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'preview'").bind(media->uid()) > 0) {
+  if(transaction->session().query<int>("SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'preview'").bind(media->uid()) > 0) {
     d->result = Skip;
     return;
   }
@@ -86,13 +85,13 @@ void CreateThumbnails::run(FFMPEGMedia* ffmpegMedia, Media* media, WContainerWid
   }
   d->currentMedia = media;
   d->currentPosition = d->randomPosition(ffmpegMedia);
-  d->chooseRandomFrame(media, t, container);
+  d->chooseRandomFrame(media, container);
   d->result = Done;
 }
 
 
 
-void CreateThumbnailsPrivate::chooseRandomFrame(Media* media, Dbo::Transaction& t, WContainerWidget* container)
+void CreateThumbnailsPrivate::chooseRandomFrame(Media* media, WContainerWidget* container)
 {
   delete thumbnail;
   thumbnail = new WMemoryResource{"image/png", thumbnailFor(550), container};
@@ -148,16 +147,14 @@ MediaScannerStep::StepResult CreateThumbnails::result()
   return d->result;
 }
 
-void CreateThumbnails::save()
+void CreateThumbnails::save(Dbo::Transaction* transaction)
 {
   if(d->result != Done)
     return;
-  Dbo::Transaction t(*d->session);
   MediaAttachment *thumbnailAttachment = new MediaAttachment{"preview", "thumbnail", "", d->currentMedia->uid(), "image/png", d->thumbnailFor(260, 3) };
   MediaAttachment *playerAttachment = new MediaAttachment{"preview", "player", "", d->currentMedia->uid(), "image/png", d->thumbnailFor(640) };
-  d->session->add(thumbnailAttachment);
-  d->session->add(playerAttachment);
-  t.commit();
+  transaction->session().add(thumbnailAttachment);
+  transaction->session().add(playerAttachment);
   d->currentMedia = 0;
   d->result = Waiting;
 }

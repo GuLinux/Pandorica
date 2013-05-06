@@ -35,7 +35,7 @@
 
 #include "ffmpegmedia.h"
 #include "mediaattachment.h"
-#include "session.h"
+#include <Wt/Dbo/Session>
 #include "sessioninfo.h"
 #include "sessiondetails.h"
 #include "comment.h"
@@ -49,8 +49,8 @@ using namespace std;
 using namespace std::chrono;
 namespace fs = boost::filesystem;
 
-ScanMediaInfoStepPrivate::ScanMediaInfoStepPrivate(ScanMediaInfoStep* q, Session *session, WApplication *app)
-  : q(q), session(session), app(app)
+ScanMediaInfoStepPrivate::ScanMediaInfoStepPrivate(ScanMediaInfoStep* q, WApplication *app)
+  : q(q), app(app)
 {
 }
 ScanMediaInfoStepPrivate::~ScanMediaInfoStepPrivate()
@@ -58,8 +58,8 @@ ScanMediaInfoStepPrivate::~ScanMediaInfoStepPrivate()
 }
 
 
-ScanMediaInfoStep::ScanMediaInfoStep(Session* session, WApplication* app, WObject* parent)
-  : WObject(parent), d(new ScanMediaInfoStepPrivate(this, session, app))
+ScanMediaInfoStep::ScanMediaInfoStep(WApplication* app, WObject* parent)
+  : WObject(parent), d(new ScanMediaInfoStepPrivate(this, app))
 {
 }
 
@@ -107,11 +107,10 @@ std::string ScanMediaInfoStepPrivate::titleHint(std::string filename)
 }
 
 
-void ScanMediaInfoStep::run(FFMPEGMedia* ffmpegMedia, Media* media, WContainerWidget* container)
+void ScanMediaInfoStep::run(FFMPEGMedia* ffmpegMedia, Media* media, WContainerWidget* container, Dbo::Transaction* transaction)
 {
   d->result = Waiting;
-  Dbo::Transaction transaction(*d->session);
-  MediaPropertiesPtr mediaPropertiesPtr = d->session->find<MediaProperties>().where("media_id = ?").bind(media->uid());
+  MediaPropertiesPtr mediaPropertiesPtr = transaction->session().find<MediaProperties>().where("media_id = ?").bind(media->uid());
   if(mediaPropertiesPtr) {
     d->result = Skip;
     return;
@@ -128,15 +127,13 @@ MediaScannerStep::StepResult ScanMediaInfoStep::result()
   return d->result;
 }
 
-void ScanMediaInfoStep::save()
+void ScanMediaInfoStep::save(Dbo::Transaction* transaction)
 {
   if(d->result != Done)
     return;
-  Dbo::Transaction transaction(*d->session);
   pair<int, int> resolution = d->ffmpegMedia->resolution();
   auto mediaProperties = new MediaProperties{d->media->uid(), d->newTitle, d->media->fullPath(), d->ffmpegMedia->durationInSeconds(), fs::file_size(d->media->path()), resolution.first, resolution.second};
-  d->session->add(mediaProperties);
-  transaction.commit();
+  transaction->session().add(mediaProperties);
   d->result = Waiting;
 }
 

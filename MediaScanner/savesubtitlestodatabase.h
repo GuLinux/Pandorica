@@ -26,10 +26,10 @@ class SaveSubtitlesToDatabase :  Wt::WObject, public MediaScannerStep
 {
 public:
     ~SaveSubtitlesToDatabase();
-    SaveSubtitlesToDatabase(Session* session, Wt::WApplication* app, Wt::WObject* parent);
-    virtual void run(FFMPEGMedia* ffmpegMedia, Media* media, Wt::WContainerWidget* container);
+    SaveSubtitlesToDatabase(Wt::WApplication* app, Wt::WObject* parent);
+    virtual void run(FFMPEGMedia* ffmpegMedia, Media* media, Wt::WContainerWidget* container,  Wt::Dbo::Transaction *transaction);
     virtual StepResult result();
-    virtual void save();
+    virtual void save(Wt::Dbo::Transaction *transaction);
 private:
     class SaveSubtitlesToDatabasePrivate* const d;
 };

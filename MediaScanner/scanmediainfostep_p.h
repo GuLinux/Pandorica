@@ -29,9 +29,8 @@ class Session;
 class ScanMediaInfoStepPrivate
 {
 public:
-  ScanMediaInfoStepPrivate(ScanMediaInfoStep* q, Session* session, Wt::WApplication* app);
+  ScanMediaInfoStepPrivate(ScanMediaInfoStep* q, Wt::WApplication* app);
   virtual ~ScanMediaInfoStepPrivate();
-    Session* session;
     Wt::WApplication* app;
     std::string newTitle;
     bool titleIsReady;
