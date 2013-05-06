@@ -232,6 +232,7 @@ void MediaCollectionBrowserPrivate::setTitleFor(Media media)
   string titleHint = Utils::titleHintFromFilename(media.filename());
   setTitleDialog->contents()->addWidget(WW<WAnchor>("", titleHint).css("link-hand").onClick([=](WMouseEvent){
     titleEdit->setText(titleHint);
+    okButton->setEnabled(editIsEnabled());
   }));
   setTitleDialog->contents()->addWidget(new WBreak);
   setTitleDialog->contents()->addWidget(titleEdit);
