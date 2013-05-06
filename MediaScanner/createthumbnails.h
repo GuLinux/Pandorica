@@ -25,14 +25,13 @@ class WPushButton;
 }
 
 class Settings;
-class Session;
 class CreateThumbnails : public MediaScannerStep, Wt::WObject
 {
 public:
     ~CreateThumbnails();
-    CreateThumbnails(Wt::WApplication *app, Session* session,Settings* settings, Wt::WObject* parent = 0);
-    void run(FFMPEGMedia* ffmpegMedia, Media* media, Wt::WContainerWidget* container);
-    virtual void save();
+    CreateThumbnails(Wt::WApplication *app, Settings* settings, Wt::WObject* parent = 0);
+    void run(FFMPEGMedia* ffmpegMedia, Media* media, Wt::WContainerWidget* container, Wt::Dbo::Transaction *transaction);
+    virtual void save(Wt::Dbo::Transaction *transaction);
     virtual StepResult result();
 private:
     class CreateThumbnailsPrivate* const d;

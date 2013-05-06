@@ -37,8 +37,8 @@ using namespace Wt;
 using namespace std;
 using namespace std::chrono;
 
-SaveSubtitlesToDatabasePrivate::SaveSubtitlesToDatabasePrivate(Session* session,  Wt::WApplication* app, SaveSubtitlesToDatabase* q)
-  : session(session), app(app), q(q)
+SaveSubtitlesToDatabasePrivate::SaveSubtitlesToDatabasePrivate(Wt::WApplication* app, SaveSubtitlesToDatabase* q)
+  : app(app), q(q)
 {
 }
 SaveSubtitlesToDatabasePrivate::~SaveSubtitlesToDatabasePrivate()
@@ -51,12 +51,12 @@ SaveSubtitlesToDatabase::~SaveSubtitlesToDatabase()
 
 }
 
-SaveSubtitlesToDatabase::SaveSubtitlesToDatabase(Session* session, WApplication* app, Wt::WObject* parent)
-    : WObject(parent), d(new SaveSubtitlesToDatabasePrivate(session, app, this))
+SaveSubtitlesToDatabase::SaveSubtitlesToDatabase(WApplication* app, WObject* parent)
+    : WObject(parent), d(new SaveSubtitlesToDatabasePrivate(app, this))
 {
 }
 
-void SaveSubtitlesToDatabase::run(FFMPEGMedia* ffmpegMedia, Media* media, WContainerWidget* container)
+void SaveSubtitlesToDatabase::run(FFMPEGMedia* ffmpegMedia, Media* media, WContainerWidget* container, Dbo::Transaction* transaction)
 {
   d->result = Waiting;
   vector<FFMPEG::Stream> subtitles;
@@ -68,14 +68,13 @@ void SaveSubtitlesToDatabase::run(FFMPEGMedia* ffmpegMedia, Media* media, WConta
     d->result = Skip;
     return;
   }
-  Dbo::Transaction t(*d->session);
-  int subtitlesOnDb = d->session->query<int>("SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'subtitles'").bind(media->uid());
+  int subtitlesOnDb = transaction->session().query<int>("SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'subtitles'").bind(media->uid());
   cerr << "Media " << media->filename() << ": subtitles found=" << subtitles.size() << ", on db: " << subtitlesOnDb << "\n";
   if(subtitlesOnDb == subtitles.size()) {
     d->result = Skip;
     return;
   }
-  d->session->execute("DELETE FROM media_attachment WHERE media_id = ? AND type = 'subtitles'").bind(media->uid());
+  transaction->session().execute("DELETE FROM media_attachment WHERE media_id = ? AND type = 'subtitles'").bind(media->uid());
   d->subtitlesToSave.clear();
   boost::thread newThread(boost::bind(&SaveSubtitlesToDatabasePrivate::extractSubtitles, d, subtitles, media, container));
 }
@@ -127,7 +126,7 @@ MediaScannerStep::StepResult SaveSubtitlesToDatabase::result()
 }
 
 
-void SaveSubtitlesToDatabase::save()
+void SaveSubtitlesToDatabase::save(Dbo::Transaction* transaction)
 {
   if(d->result != Done)
     return;
@@ -135,10 +134,8 @@ void SaveSubtitlesToDatabase::save()
     d->result = Waiting;
     return;
   }
-  Dbo::Transaction t(*d->session);
   for(MediaAttachment *subtitle: d->subtitlesToSave)
-    d->session->add(subtitle);
-  t.commit();
+    transaction->session().add(subtitle);
   d->result = Waiting;
 }
 
