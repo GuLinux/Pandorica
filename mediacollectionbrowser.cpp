@@ -24,6 +24,7 @@
 using namespace Wt;
 using namespace std;
 using namespace boost;
+using namespace Streaming;
 
 namespace fs = boost::filesystem;
 

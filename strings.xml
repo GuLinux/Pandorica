@@ -123,12 +123,18 @@
   <message id="button.retry">Retry</message>
   <message id="button.next">Next</message>
   <message id="button.cancel">Cancel</message>
+  <message id="button.ok">Ok</message>
   
   <message id="users.current.title">Logged Users</message>
   <message id="users.history.title">Users History</message>
   
   <message id="tree.double.click.to.expand">Double click to expand or collapse</message>
   <message id="set.title.filename.hint">Hint from file name: </message>
+  
+  <message id="admin_missing_dialog_title">Setup Administration User</message>
+  <message id="admin_missing_dialog_text">Hello, {1}. This website doesn't have an administrator yet. We can add yourself to an admin group.</message>
+  <message id="admin_missing_dialog_default_groupname">Administrators</message>
+  <message id="admin_missing_dialog_groupname_label">Admin Group Name</message>
 
   <message id="Wt.Auth.confirmmail.body">
 Hello {1},

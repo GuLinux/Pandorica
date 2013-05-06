@@ -42,6 +42,7 @@
 
 using namespace Wt;
 using namespace std;
+using namespace Streaming;
 using namespace std::chrono;
 namespace fs = boost::filesystem;
 
