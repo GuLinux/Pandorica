@@ -156,6 +156,12 @@
   <message id="button.cancel">Annulla</message>
   <message id="set.title.filename.hint">Suggerimento da nome file: </message>
   
+  <message id="admin_missing_dialog_title">Configurazione Utenza Amministrazione</message>
+  <message id="admin_missing_dialog_text">Benvenuto, {1}. Questo sito web non ha ancora un amministratore. Possiamo aggiungere la tua utenza ad un gruppo di amministrazione.</message>
+  <message id="admin_missing_dialog_default_groupname">Amministratori</message>
+  <message id="admin_missing_dialog_groupname_label">Nome Gruppo Amministratori</message>
+  
+  
   <message id="Wt.Auth.confirmmail.body">
 Hello {1},
 

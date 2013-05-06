@@ -25,9 +25,13 @@
 #include <boost/regex.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/replace.hpp>
-
+#include <Wt/Mail/Client>
+#include <Wt/Mail/Mailbox>
+#include <Wt/Mail/Message>
 using namespace std;
 using namespace Wt;
+
+using namespace Streaming;
 
 UtilsPrivate::UtilsPrivate(Utils* q) : q(q)
 {
@@ -44,6 +48,32 @@ Utils::Utils()
 Utils::~Utils()
 {
     delete d;
+}
+
+void Utils::mailForNewAdmin(string email, WString identity)
+{
+  Mail::Client client;
+  Mail::Message message;
+  message.setFrom({"noreply@gulinux.net", "Videostreaming Gulinux"});
+  message.setSubject("VideoStreaming: unauthorized user login");
+  message.setBody(WString("The user {1} ({2}) was just added to the administrators list.").arg(identity).arg(email));
+  message.addRecipient(Mail::To, {"marco.gulino@gmail.com", "Marco Gulino"});
+  client.connect();
+  client.send(message);
+}
+
+void Utils::mailForUnauthorizedUser(string email, WString identity)
+{
+  Mail::Client client;
+  Mail::Message message;
+  message.setFrom({"noreply@gulinux.net", "Videostreaming Gulinux"});
+  message.setSubject("VideoStreaming: unauthorized user login");
+  message.setBody(WString("The user {1} ({2}) just tried to login.\n\
+  Since it doesn't appear to be in the authorized users list, it needs to be moderated.\n\
+  Visit {3} to do it.").arg(identity).arg(email).arg(wApp->makeAbsoluteUrl(wApp->bookmarkUrl("/"))));
+  message.addRecipient(Mail::To, {"marco.gulino@gmail.com", "Marco Gulino"});
+  client.connect();
+  client.send(message);
 }
 
 

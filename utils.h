@@ -19,15 +19,20 @@
 #define UTILS_H
 
 #include <string>
+#include <Wt/WString>
+namespace Streaming {
 class Utils
 {
 public:
     Utils();
     ~Utils();
     static std::string titleHintFromFilename(std::string filename);
+    static void mailForUnauthorizedUser(std::string email, Wt::WString identity);
+    static void mailForNewAdmin(std::string email, Wt::WString identity);
     
 private:
     class UtilsPrivate* const d;
 };
 
+}
 #endif // UTILS_H

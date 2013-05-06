@@ -41,9 +41,6 @@
 #include <functional>
 #include <iostream>
 #include <fstream>
-#include <Wt/Mail/Client>
-#include <Wt/Mail/Mailbox>
-#include <Wt/Mail/Message>
 #include "comment.h"
 
 #include "playlist.h"
@@ -64,6 +61,7 @@
 #include "groupsdialog.h"
 #include "latestcommentsdialog.h"
 #include "MediaScanner/mediascannerdialog.h"
+#include "utils.h"
 
 
 #include <Wt/WOverlayLoadingIndicator>
@@ -81,6 +79,7 @@
 #include <Wt/WProgressBar>
 #include <Wt/WIOService>
 #include <Wt/WIOService>
+#include <Wt/WLabel>
 
 using namespace Wt;
 using namespace std;
@@ -97,7 +96,6 @@ public:
   void parseFileParameter();
   Playlist *playlist;
   WContainerWidget* playerContainerWidget;
-  void mailForUnauthorizedUser(string email, WString identity);
   void setupMenus(bool isAdmin);
   void setupAdminMenus(WMenu* mainMenu);
   Session session;
@@ -227,11 +225,40 @@ void StreamingApp::authEvent()
   }
   log("notice") << "User email confirmed";
   Dbo::Transaction t(d->session);
+  Dbo::collection<GroupPtr> adminGroups = d->session.find<Group>().where("is_admin = ?").bind(true);
+  int adminUsersCount = 0;
+  for(auto group: adminGroups) {
+    adminUsersCount += group->users.size();
+  }
+  wApp->log("notice") << "adminUsersCount: " << adminUsersCount << ", admin groups: " << adminGroups.size();
+  if(adminGroups.size() == 0 || adminUsersCount == 0) {
+    t.rollback();
+    WDialog *addMyselfToAdmins = new WDialog{wtr("admin_missing_dialog_title")};
+    addMyselfToAdmins->contents()->addWidget(new WText{wtr("admin_missing_dialog_text").arg(user.identity("loginname")) });
+    WLineEdit *groupName = new WLineEdit;
+    groupName->setText(wtr("admin_missing_dialog_default_groupname"));
+    auto groupNameLabel = new WLabel(wtr("admin_missing_dialog_groupname_label"));
+    groupNameLabel->setBuddy(groupName);
+    WContainerWidget *formInline = WW<WContainerWidget>().css("form-inline").add(groupNameLabel).add(groupName).padding(5);
+    addMyselfToAdmins->contents()->addWidget(formInline);
+    addMyselfToAdmins->footer()->addWidget(WW<WPushButton>(wtr("button.cancel")).onClick([=](WMouseEvent){ addMyselfToAdmins->reject(); }).css("btn btn-danger"));
+    addMyselfToAdmins->footer()->addWidget(WW<WPushButton>(wtr("button.ok")).onClick([=](WMouseEvent){
+      Dbo::Transaction t(d->session);
+      GroupPtr newGroup = d->session.add(new Group{groupName->text().toUTF8(), true});
+      newGroup.modify()->users.insert(d->session.user());
+      t.commit();
+      Streaming::Utils::mailForNewAdmin(user.email(), user.identity("loginname"));
+      addMyselfToAdmins->accept();
+      authEvent();
+    }).css("btn btn-primary"));
+    addMyselfToAdmins->show();
+    return;
+  }
   if(d->session.user()->groups.size() <= 0) {
     Message *message = WW<Message>("Your user is not yet authorized for viewing videos.<br />\
-    If you think this is an error, contact me at marco.gulino (at) gmail.com<br />${refresh}").addCss("alert-block");
+    The administrator should already have received an email and will add you when possible.").addCss("alert-block");
     if(!d->mailSent) {
-      d->mailForUnauthorizedUser(user.email(), user.identity(Auth::Identity::LoginName));
+      Streaming::Utils::mailForUnauthorizedUser(user.email(), user.identity(Auth::Identity::LoginName));
       d->mailSent = true;
     }
     d->messagesContainer->addWidget(message);
@@ -429,20 +456,6 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
   adminMenuItem->addStyleClass("menu-admin");
 }
 
-
-void StreamingAppPrivate::mailForUnauthorizedUser(string email, WString identity)
-{
-  Mail::Client client;
-  Mail::Message message;
-  message.setFrom({"noreply@gulinux.net", "Videostreaming Gulinux"});
-  message.setSubject("VideoStreaming: unauthorized user login");
-  message.setBody(WString("The user {1} ({2}) just tried to login.\n\
-Since it doesn't appear to be in the authorized users list, it needs to be moderated.\n\
-Visit {3} to do it.").arg(identity).arg(email).arg(wApp->makeAbsoluteUrl(wApp->bookmarkUrl("/")) + "?add_user_email=" + email));
-  message.addRecipient(Mail::To, {"marco.gulino@gmail.com", "Marco Gulino"});
-  client.connect();
-  client.send(message);
-}
 
 void StreamingApp::setupGui()
 {
