@@ -47,4 +47,5 @@ target_link_libraries(videostreaming -lavformat -lavcodec -lavutil -lffmpegthumb
 install(TARGETS videostreaming RUNTIME DESTINATION ${INSTALL_DIR}/bin)
 set(TRANSLATION_FILES strings.xml strings_it.xml )
 INSTALL(FILES ${TRANSLATION_FILES} DESTINATION ${INSTALL_DIR} )
+INSTALL(FILES title_from_filename_replacements.json DESTINATION ${INSTALL_DIR})
 INSTALL(DIRECTORY html_templates DESTINATION ${INSTALL_DIR} FILES_MATCHING PATTERN "*.html" )
