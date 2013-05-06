@@ -44,28 +44,10 @@ private:
   class ScanMediaInfoStep* const q;
 };
 
-std::list<std::pair<std::string,std::string>> filenameToTileHints {
-  // Extensions
-  {"\\.mkv", ""}, {"\\.mp4", ""}, {"\\.m4v", ""}, {"\\.ogg", ""}, {"\\.mp3", ""}, {"\\.flv", ""}, {"\\.webm",""},
-  // Other characters
-  {"\\.", " "}, {"_", " "}, {"-", " "},
-  // Resolutions and codecs
-  {"\\b\\d{3,4}p\\b", "" }, {"[h|x]\\s{0,1}264", ""}, {"bluray", ""}, {"aac", ""}, {"ac3", ""}, {"dts", ""}, {"xvid", ""},
-  // Dates
-  {"\\b(19|20)\\d{2}\\b", "" },
-  // rippers
-  {"by \\w+", "" },
-  // track number
-  {"^\\s*\\d+", ""},
-  // langs
-  {"\\bita\\b", ""}, {"\\beng\\b", ""}, {"\\chd\\b", ""},  {"chs", ""},
-  // everything inside brackets
-  {"(\\(|\\[|\\{).*(\\)|\\]|\\})", ""},
-  // various
-  {"subs", ""}, {"chaps", ""}, {"chapters", ""},
-  {"extended", ""}, {"repack", ""},
-  {"\\bhdtv\\b", ""}, {"\\bfov\\b", ""},
+struct FindAndReplace {
+  std::string regexToFind;
+  std::string replacement;
+  static std::vector<FindAndReplace> from(std::string filename);
 };
-
 
 #endif // SCANMEDIAINFOPAGEPRIVATE_H
