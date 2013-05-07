@@ -34,7 +34,6 @@ int main(int argc, char **argv)
     boost::thread t([&server]{
       this_thread::sleep_for(chrono::milliseconds{30000});
       while(server.isRunning()) {
-        cerr << "Expiring sessions\n";
         server.expireSessions();
         this_thread::sleep_for(chrono::milliseconds{30000});
       }

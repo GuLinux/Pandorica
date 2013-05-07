@@ -99,7 +99,6 @@ public:
   void setupMenus(bool isAdmin);
   void setupAdminMenus(WMenu* mainMenu);
   Session session;
-  SessionInfoPtr sessionInfo;
   bool mailSent;
   StreamingApp *q;
   void clearContent();
@@ -278,7 +277,8 @@ void StreamingApp::authEvent()
     oldSessionInfo.modify()->end();
     oldSessionInfo.flush();
   }
-  d->sessionInfo = d->session.add(sessionInfo);
+  auto sessionInfoPtr = d->session.add(sessionInfo);
+  wApp->log("notice") << "created sessionInfo with sessionId=" << sessionInfoPtr->sessionId();
   d->mediaCollection = new MediaCollection(d->settings.videosDir(), &d->session, this);
 
   d->setupMenus(d->session.user()->isAdmin());
@@ -601,6 +601,7 @@ void StreamingAppPrivate::play ( Media media ) {
   }
   player->ended().connect([=,&t](_n6){
     Dbo::Transaction t(session);
+    SessionInfoPtr sessionInfo = session.find<SessionInfo>().where("session_id = ?").bind(q->sessionId());
     for(auto detail : sessionInfo.modify()->sessionDetails())
       detail.modify()->ended();
     sessionInfo.flush();
@@ -634,6 +635,7 @@ void StreamingAppPrivate::play ( Media media ) {
   infoBox->addWidget(downloadLink);
   wApp->setTitle( media.title(&session) );
   log("notice") << "using url " << mediaLink.url();
+  SessionInfoPtr sessionInfo = session.find<SessionInfo>().where("session_id = ?").bind(q->sessionId());
   for(auto detail : sessionInfo.modify()->sessionDetails())
     detail.modify()->ended();
   sessionInfo.modify()->sessionDetails().insert(new SessionDetails{media.path()});
@@ -641,37 +643,32 @@ void StreamingAppPrivate::play ( Media media ) {
   t.commit();
 }
 
-void endSessionOnDatabase(string sessionId) {
+void endSessionOnDatabase(string sessionId, long userId) {
   Session session;
-  int allSessions = session.query<int>("select count(*) from session_info");
-  WServer::instance()->log("notice") << "all sessions: " << allSessions;
-  WServer::instance()->log("notice") << "Ending session on database ( sessionId = " << sessionId << ")";
   Dbo::Transaction t(session);
-  WServer::instance()->log("notice") << "Transaction started";
+  WServer::instance()->log("notice") << "Ending session on database ( sessionId = " << sessionId << ")";
+
   SessionInfoPtr sessionInfo = session.find<SessionInfo>().where("session_id = ?").bind(sessionId);
   if(!sessionInfo) {
     WServer::instance()->log("notice") << "stale session not found";
     return;
   }
-  WServer::instance()->log("notice") << "ending session " << sessionInfo->sessionId();
+  WServer::instance()->log("notice") << "Session found, ending" << sessionInfo->sessionId();
   sessionInfo.modify()->end();
   for(auto detail : sessionInfo.modify()->sessionDetails()) {
     detail.modify()->ended();
     detail.flush();
   }
   sessionInfo.flush();
-  WServer::instance()->log("notice") << "Committing transaction";
   t.commit();
-  WServer::instance()->log("notice") << "Committed transaction";
 }
 
 StreamingApp::~StreamingApp() {
   WServer::instance()->log("notice") << "Destroying app";
-  if(d->sessionInfo) {
-    WServer::instance()->ioService().post(boost::bind(endSessionOnDatabase, sessionId()));
+  if(d->session.login().loggedIn()) {
+    WServer::instance()->ioService().post(boost::bind(endSessionOnDatabase, sessionId(), d->session.user().id()));
   }
-  WServer::instance()->log("notice") << "Deleting d-pointer";
   delete d;
-  WServer::instance()->log("notice") << "Deletd-pointer";
+  WServer::instance()->log("notice") << "Deleted-pointer";
 }
 

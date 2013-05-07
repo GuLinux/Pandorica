@@ -19,6 +19,7 @@
 #include <Wt/Dbo/backend/Postgres>
 #include <Wt/Dbo/backend/Sqlite3>
 #include <Wt/WApplication>
+#include <Wt/WServer>
 #include <iostream>
 #include <fstream>
 #include "comment.h"
@@ -76,7 +77,7 @@ Session::Session()
   : d(new SessionPrivate)
 {
   d->createConnection();
-  d->connection->setProperty("show-queries", "true");
+  d->connection->setProperty("show-queries", "false");
   setConnection(*d->connection);
 
   mapClass<User>("user");
@@ -114,11 +115,13 @@ Auth::Login& Session::login()
 void SessionPrivate::createConnection()
 {
   string psqlConnParameters = "";
-  wApp->readConfigurationProperty("psql-connection", psqlConnParameters);
+  WServer::instance()->readConfigurationProperty("psql-connection", psqlConnParameters);
   if(!psqlConnParameters.empty()) {
-        connection = new dbo::backend::Postgres(psqlConnParameters);
+    WServer::instance()->log("notice") << "Using postgresql connection";
+    connection = new dbo::backend::Postgres(psqlConnParameters);
     return;
   }
+    WServer::instance()->log("notice") << "Using sqlite3 connection";
     connection = new dbo::backend::Sqlite3("videostreaming.sqlite");
 }
 
