@@ -327,7 +327,7 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   WContainerWidget* latestCommentsContainer = WW<WContainerWidget>().css("modal fade hide comments-modal").add(latestCommentsBody);
   
   commentsMenuItem->triggered().connect([=](WMenuItem*, _n5){
-    LatestCommentsDialog *dialog = new LatestCommentsDialog(&session, mediaCollection, q);
+    LatestCommentsDialog *dialog = new LatestCommentsDialog{&session, mediaCollection};
     dialog->setAnchorWidget(commentsMenuItem);
     dialog->animateShow({WAnimation::Fade|WAnimation::SlideInFromTop});
     dialog->mediaClicked().connect([=](Media media, _n5) { queueAndPlay(media);});
@@ -336,7 +336,7 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   
   
   settingsMenuItem->triggered().connect([=](WMenuItem*, _n5) {
-    SettingsDialog* settingsDialog = new SettingsDialog(&settings);
+    SettingsDialog* settingsDialog = new SettingsDialog{&settings};
     settingsDialog->setAnchorWidget(commentsMenuItem);
     settingsDialog->animateShow({WAnimation::Fade|WAnimation::SlideInFromTop});
     resetSelection();
