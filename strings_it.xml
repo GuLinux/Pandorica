@@ -149,6 +149,9 @@
   <message id="session.ended">Fine</message>
   <message id="session.details">Dettagli</message>
   
+  <message id="session.filter.login">Filtra per nome utente</message>
+  <message id="session.filter.exclude.myself">Escludi le mie sessioni</message>
+  
   <message id="button.add">Aggiungi</message>
   <message id="button.remove">Rimuovi</message>
   <message id="button.retry">Riprova</message>

@@ -37,6 +37,7 @@
 #include <Wt/WItemDelegate>
 #include <Wt/WAnchor>
 #include <Wt/Auth/Dbo/AuthInfo>
+#include <Wt/WSortFilterProxyModel>
 #include <Wt-Commons/wt_helpers.h>
 
 using namespace Wt;
@@ -70,7 +71,27 @@ private:
   ColumnValue columnValue;
 };
 
+
 typedef boost::tuple<string,string,long,long,string,string,string,long> LoggedUserEntry;
+Dbo::Query<LoggedUserEntry> buildQuery(Session *session, bool showAll, string excludeLoginName) {
+  auto query = session->query<LoggedUserEntry>("select distinct session_id,ip,session_started,session_ended,\
+  (select filename from session_details WHERE session_info.session_id = session_details.session_info_session_id ORDER BY play_started DESC LIMIT 1) as filewatching,\
+  auth_info.email as email,\
+  auth_identity.identity as identity,\
+  session_info.user_id as user_id\
+  from session_info\
+  inner join auth_info on session_info.user_id = auth_info.user_id\
+  inner join auth_identity on auth_info.id = auth_identity.auth_info_id\
+  ");
+  if(!showAll)
+    query.where("session_ended = 0");
+  if(!excludeLoginName.empty())
+    query.where("identity <> ?").bind(excludeLoginName);
+  query.where("auth_identity.provider = 'loginname'");
+  query.orderBy("session_started desc");
+  return query;
+}
+
 LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   : WDialog(), session(session)
 {
@@ -79,20 +100,8 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   setCaption(wtr("users.current.title"));
   setResizable(false);
   Dbo::QueryModel< LoggedUserEntry >* model = new Dbo::QueryModel<LoggedUserEntry>();
-  auto query = session->query<LoggedUserEntry>("select distinct session_id,ip,session_started,session_ended,\
-    (select filename from session_details WHERE session_info.session_id = session_details.session_info_session_id ORDER BY play_started DESC LIMIT 1) as filewatching,\
-    auth_info.email as email,\
-    auth_identity.identity as identity,\
-    session_info.user_id as user_id\
-    from session_info\
-    inner join auth_info on session_info.user_id = auth_info.user_id\
-    inner join auth_identity on auth_info.id = auth_identity.auth_info_id\
-    ");
-  if(!showAll)
-    query.where("session_ended = 0");
-  query.where("auth_identity.provider = 'loginname'");
-  query.orderBy("session_started desc");
-  model->setQuery(query);
+
+  model->setQuery(buildQuery( session, showAll, string{}) );
   model->addColumn("session_id", "");
   model->addColumn("identity", wtr("session.username"));
   model->addColumn("ip", wtr("session.ip.address"));
@@ -102,7 +111,11 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   model->addColumn("user_id", "");
   model->addColumn("email", "");
   WTableView *table = new WTableView();
-  table->setModel(model);
+  WSortFilterProxyModel *filterModel = new WSortFilterProxyModel(this);
+  filterModel->setDynamicSortFilter(true);
+  filterModel->setSourceModel(model);
+  filterModel->setFilterKeyColumn(1);
+  table->setModel(filterModel);
 
   table->setRowHeight(28);
   table->setHeaderHeight(28);
@@ -132,11 +145,11 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
 //   fixColumnSize(columns++, 300);
   fixColumnSize(columns++, 450);
   fixColumnSize(columns, 110);
-  table->setItemDelegateForColumn(columns++, new DateTimeDelegate(model));
+  table->setItemDelegateForColumn(columns++, new DateTimeDelegate(filterModel));
   if(showAll) {
     table->setColumnHidden(columns, false);
     setWindowTitle(wtr("users.history.title"));
-    table->setItemDelegateForColumn(columns, new DateTimeDelegate(model));
+    table->setItemDelegateForColumn(columns, new DateTimeDelegate(filterModel));
     fixColumnSize(columns++, 110);
 //     setWidth(1140);
   } else {
@@ -145,6 +158,24 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   table->setColumnHidden(columns++, true);
   table->setColumnHidden(columns++, true);
   table->setMaximumSize(WLength::Auto, 350);
+  if(showAll) {
+    WCheckBox *excludeMyUser = new WCheckBox(wtr("session.filter.exclude.myself"));
+    excludeMyUser->changed().connect([=](_n1) {
+      string myUsername = session->login().user().identity("loginname").toUTF8();
+      model->setQuery(buildQuery(session, showAll, excludeMyUser->checkState() == Wt::Checked ? myUsername : ""));
+      model->reload();
+      table->refresh();
+    });
+    excludeMyUser->setMargin(10, Side::Left | Side::Right);
+    WLineEdit *searchUser = new WLineEdit();
+    searchUser->setEmptyText(wtr("session.filter.login"));
+    searchUser->addStyleClass("input-xlarge search-query");
+    searchUser->keyWentUp().connect([=](WKeyEvent) {
+      filterModel->setFilterRegExp(WString(".*{1}.*").arg(searchUser->text()));
+    });
+    contents()->addWidget(WW<WContainerWidget>().setMargin(10).css("form-inline").add(searchUser).add(excludeMyUser));
+    resize(1050, 500);
+  }
   contents()->addWidget(table);
   
   WTimer *timer = new WTimer(this);

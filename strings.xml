@@ -116,6 +116,9 @@
   <message id="session.ended">Ended</message>
   <message id="session.details">Details</message>
   
+  <message id="session.filter.login">Filter by username</message>
+  <message id="session.filter.exclude.myself">Exclude my sessions</message>
+  
   
   <message id="button.add">Add</message>
   <message id="button.remove">Remove</message>
