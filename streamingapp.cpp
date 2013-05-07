@@ -410,6 +410,11 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
 void StreamingAppPrivate::setupUserMenus(WMenu *mainMenu)
 {
   mainMenu->addItem(activeUsersMenuItem);
+  activeUsersMenuItem->triggered().connect([=](WMenuItem*, _n5) {
+    WTimer::singleShot(500, [=](WMouseEvent){
+      mainMenu->select(-1);
+    });
+  });
 }
 
 
