@@ -641,12 +641,12 @@ void StreamingAppPrivate::play ( Media media ) {
   t.commit();
 }
 
-void endSessionOnDatabase(long userId) {
+void endSessionOnDatabase(string sessionId) {
   Session session;
-  WServer::instance()->log("notice") << "Ending session on database ( user_id = " << userId << ")";
+  WServer::instance()->log("notice") << "Ending session on database ( sessionId = " << sessionId << ")";
   Dbo::Transaction t(session);
   WServer::instance()->log("notice") << "Transaction started";
-  Dbo::collection<SessionInfoPtr> sessionInfos = session.find<SessionInfo>().where("user_id = ? AND session_ended = 0").bind(userId);
+  Dbo::collection<SessionInfoPtr> sessionInfos = session.find<SessionInfo>().where("session_id = ?").bind(sessionId);
   WServer::instance()->log("notice") << "found " << sessionInfos.size() << " stale sessions";
   for(SessionInfoPtr sessionInfo: sessionInfos) {
     WServer::instance()->log("notice") << "ending session " << sessionInfo->sessionId();
@@ -665,7 +665,7 @@ void endSessionOnDatabase(long userId) {
 StreamingApp::~StreamingApp() {
   WServer::instance()->log("notice") << "Destroying app";
   if(d->sessionInfo) {
-    WServer::instance()->ioService().post(boost::bind(endSessionOnDatabase, d->session.user().id()));
+    WServer::instance()->ioService().post(boost::bind(endSessionOnDatabase, sessionId()));
   }
   WServer::instance()->log("notice") << "Deleting d-pointer";
   delete d;
