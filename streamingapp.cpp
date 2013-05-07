@@ -646,17 +646,18 @@ void endSessionOnDatabase(string sessionId) {
   WServer::instance()->log("notice") << "Ending session on database ( sessionId = " << sessionId << ")";
   Dbo::Transaction t(session);
   WServer::instance()->log("notice") << "Transaction started";
-  Dbo::collection<SessionInfoPtr> sessionInfos = session.find<SessionInfo>().where("session_id = ?").bind(sessionId);
-  WServer::instance()->log("notice") << "found " << sessionInfos.size() << " stale sessions";
-  for(SessionInfoPtr sessionInfo: sessionInfos) {
-    WServer::instance()->log("notice") << "ending session " << sessionInfo->sessionId();
-    sessionInfo.modify()->end();
-    for(auto detail : sessionInfo.modify()->sessionDetails()) {
-      detail.modify()->ended();
-      detail.flush();
-    }
-    sessionInfo.flush();
+  SessionInfoPtr sessionInfo = session.find<SessionInfo>().where("session_id = ?").bind(sessionId);
+  if(!sessionInfo) {
+    WServer::instance()->log("notice") << "stale session not found";
+    return;
   }
+  WServer::instance()->log("notice") << "ending session " << sessionInfo->sessionId();
+  sessionInfo.modify()->end();
+  for(auto detail : sessionInfo.modify()->sessionDetails()) {
+    detail.modify()->ended();
+    detail.flush();
+  }
+  sessionInfo.flush();
   WServer::instance()->log("notice") << "Committing transaction";
   t.commit();
   WServer::instance()->log("notice") << "Committed transaction";
