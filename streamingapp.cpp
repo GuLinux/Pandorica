@@ -643,6 +643,8 @@ void StreamingAppPrivate::play ( Media media ) {
 
 void endSessionOnDatabase(string sessionId) {
   Session session;
+  int allSessions = session.query<int>("select count(*) from session_info");
+  WServer::instance()->log("notice") << "all sessions: " << allSessions;
   WServer::instance()->log("notice") << "Ending session on database ( sessionId = " << sessionId << ")";
   Dbo::Transaction t(session);
   WServer::instance()->log("notice") << "Transaction started";
