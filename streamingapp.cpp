@@ -643,14 +643,19 @@ void StreamingAppPrivate::play ( Media media ) {
 
 void endSessionOnDatabase(long userId) {
   Session session;
-  WServer::instance()->log("notice") << "Ending session on database";
+  WServer::instance()->log("notice") << "Ending session on database ( user_id = " << userId << ")";
   Dbo::Transaction t(session);
   WServer::instance()->log("notice") << "Transaction started";
   Dbo::collection<SessionInfoPtr> sessionInfos = session.find<SessionInfo>().where("user_id = ? AND session_ended = 0").bind(userId);
+  WServer::instance()->log("notice") << "found " << sessionInfos.size() << " stale sessions";
   for(SessionInfoPtr sessionInfo: sessionInfos) {
+    WServer::instance()->log("notice") << "ending session " << sessionInfo->sessionId();
     sessionInfo.modify()->end();
-    for(auto detail : sessionInfo.modify()->sessionDetails())
+    for(auto detail : sessionInfo.modify()->sessionDetails()) {
       detail.modify()->ended();
+      detail.flush();
+    }
+    sessionInfo.flush();
   }
   WServer::instance()->log("notice") << "Committing transaction";
   t.commit();
