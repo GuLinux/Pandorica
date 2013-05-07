@@ -668,10 +668,6 @@ void endSessionOnDatabase(string sessionId, long userId) {
 
 StreamingApp::~StreamingApp() {
   WServer::instance()->log("notice") << "Destroying app";
-  for(int i=0; i<children().size(); i++) {
-    WObject *child = children()[i];
-    log("notice") << "child at " << i << ": " << child << ", " << typeid(*child).name();
-  }
   if(d->session.login().loggedIn()) {
     WServer::instance()->ioService().post(boost::bind(endSessionOnDatabase, sessionId(), d->session.user().id()));
   }
