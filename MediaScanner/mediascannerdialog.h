@@ -26,7 +26,7 @@ class Session;
 class MediaScannerDialog : Wt::WDialog
 {
 public:
-  MediaScannerDialog(Session *session, Settings *settings, MediaCollection *mediaCollection,Wt::WObject* parent);
+  MediaScannerDialog(Settings* settings, MediaCollection* mediaCollection, Wt::WObject* parent);
     virtual ~MediaScannerDialog();
   void run();
 private:
