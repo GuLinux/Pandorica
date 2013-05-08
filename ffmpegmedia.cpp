@@ -104,7 +104,8 @@ map<string,string> FFMPEGMediaPrivate::readMetadata(AVDictionary *metadata)
 
 FFMPEGMedia::~FFMPEGMedia()
 {
-  avformat_close_input(&d->pFormatCtx);
+  if(openFileWasValid())
+    avformat_close_input(&d->pFormatCtx);
   delete d;
 }
 
