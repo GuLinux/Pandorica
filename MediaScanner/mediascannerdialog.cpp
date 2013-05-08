@@ -119,7 +119,6 @@ void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, UpdateGuiProgr
     if(canceled)
       return;
     Media media = mediaPair.second;
-    this_thread::sleep_for(chrono::milliseconds{10});
     current++;
     guiRun(app, [=] {
       buttonNext->disable();
@@ -127,7 +126,7 @@ void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, UpdateGuiProgr
     });
     runStepsFor(&media, app, session);
   }
-  this_thread::sleep_for(chrono::milliseconds{50});
+  this_thread::sleep_for(chrono::milliseconds{10});
   guiRun(app, [=] { onScanFinish(); });
 }
 
@@ -153,11 +152,12 @@ void MediaScannerDialogPrivate::runStepsFor(Media *media, WApplication* app, Ses
         step->run(&ffmpegMedia, media, stepsContents[step], &t);
     }
     canContinue |= stepsAreSkipped;
-    this_thread::sleep_for(chrono::milliseconds{50});
     guiRun(app, [=] {
       buttonNext->setEnabled(stepsAreFinished && ! stepsAreSkipped);
       wApp->triggerUpdate();
     });
+    if(!canContinue && !canceled)
+      this_thread::sleep_for(chrono::milliseconds{50});
   }
   if(canceled)
     return;
