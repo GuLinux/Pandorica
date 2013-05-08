@@ -104,10 +104,16 @@ map<string,string> FFMPEGMediaPrivate::readMetadata(AVDictionary *metadata)
 
 FFMPEGMedia::~FFMPEGMedia()
 {
-  if(openFileWasValid())
+  if(d->openFileWasValid())
     avformat_close_input(&d->pFormatCtx);
   delete d;
 }
+
+bool FFMPEGMedia::valid()
+{
+  return d->openFileWasValid() && d->findInfoWasValid(); 
+}
+
 
 std::string FFMPEGMedia::metadata(std::string key) const
 {
