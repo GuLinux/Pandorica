@@ -115,16 +115,17 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   filterModel->setDynamicSortFilter(true);
   filterModel->setSourceModel(model);
   filterModel->setFilterKeyColumn(1);
+  filterModel->setFilterFlags(RegExpFlag::MatchCaseInsensitive);
   table->setModel(filterModel);
 
   table->setRowHeight(28);
   table->setHeaderHeight(28);
   table->setEditTriggers(Wt::WAbstractItemView::NoEditTrigger);
   
-  table->setItemDelegateForColumn(0, new DetailsButtonDelegate<string, string>(model, session,
+  table->setItemDelegateForColumn(0, new DetailsButtonDelegate<string, string>(filterModel, session,
     [](WAbstractItemModel *model, const WModelIndex &index) { return any_cast<string>(model->data(index.row(), 0)); },
     [](string) { return wtr("session.details").toUTF8(); }));
-  table->setItemDelegateForColumn(1, new DetailsButtonDelegate<long, string>(model, session,
+  table->setItemDelegateForColumn(1, new DetailsButtonDelegate<long, string>(filterModel, session,
     [session](WAbstractItemModel *model, const WModelIndex &index) {
       Dbo::Transaction t(*session);
       long userId = any_cast<long>(model->data(index.row(), 6));
@@ -172,6 +173,7 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
     searchUser->addStyleClass("input-xlarge search-query");
     searchUser->keyWentUp().connect([=](WKeyEvent) {
       filterModel->setFilterRegExp(WString(".*{1}.*").arg(searchUser->text()));
+      wApp->log("notice") << "new filter regex: " << filterModel->filterRegExp();
     });
     contents()->addWidget(WW<WContainerWidget>().setMargin(10).css("form-inline").add(searchUser).add(excludeMyUser));
     resize(1050, 500);
