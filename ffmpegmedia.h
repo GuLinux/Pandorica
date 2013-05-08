@@ -41,6 +41,7 @@ public:
   bool isVideo();
   std::pair<int,int> resolution();
   long durationInSeconds();
+  bool valid();
   std::string metadata(std::string key) const;
   std::vector<FFMPEG::Stream> streams() const;
 private:
