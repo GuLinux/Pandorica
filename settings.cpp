@@ -117,18 +117,17 @@ WLink Settings::linkFor(filesystem::path p)
   string secDownloadPrefix;
   string secDownloadSecret;
   
-  bool has_nginx = (wApp->readConfigurationProperty("seclink-prefix", secLinkPrefix)
-    && wApp->readConfigurationProperty("seclink-secret", secLinkSecret));
   bool has_lighttpd = (wApp->readConfigurationProperty("secdownload-prefix", secDownloadPrefix)
     && wApp->readConfigurationProperty("secdownload-secret", secDownloadSecret));
-  string downloadPreference = value(Settings::downloadSource);
-  
-  if(downloadPreference == "nginx" && has_nginx) {
-    return d->nginxSecLinkFor(secLinkPrefix, secLinkSecret, p);
-  }
+  bool has_nginx = (wApp->readConfigurationProperty("seclink-prefix", secLinkPrefix)
+    && wApp->readConfigurationProperty("seclink-secret", secLinkSecret));
 
   if(has_lighttpd) {
     return d->lightySecDownloadLinkFor(secDownloadPrefix, secDownloadSecret, p);
+  }
+  
+  if(has_nginx) {
+    return d->nginxSecLinkFor(secLinkPrefix, secLinkSecret, p);
   }
   
   
