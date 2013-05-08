@@ -1,4 +1,10 @@
 <messages nplurals="2" plural="n==1 ? 0 : 1">
+  <!-- login -->
+  <message id="oauth_login_with">Login with an existing account:</message>
+  <message id="auth.regular_login_accordion">Or use regular login</message>
+  <message id="Wt.Auth.oauth"></message>
+  
+  
   <!-- general, not retranslated -->
   <message id="site-title">Gulinux Streaming</message>
   <message id="auth-mail-sender-name">Gulinux Streaming</message>

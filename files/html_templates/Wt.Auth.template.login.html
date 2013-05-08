@@ -4,7 +4,7 @@
       ${<if:oauth>}
     <div style="text-align: center">
     <h3>
-    Login with:
+    ${tr:oauth_login_with}
     </h3>
     <div class="btn-group">
     ${icons}
@@ -12,7 +12,7 @@
       </div>
       ${</if:oauth>}
       <div style="padding: 10px; text-align: center;">
-    <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#login-form-collapsible">Regular Login</button>
+    <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#login-form-collapsible">${tr:auth.regular_login_accordion}</button>
       </div>
       <div id="login-form-collapsible" class="collapse">
       <div class="Wt-fields">

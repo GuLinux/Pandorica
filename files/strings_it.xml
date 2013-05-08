@@ -1,4 +1,54 @@
 <messages nplurals="2" plural="n==1 ? 0 : 1">
+  <message id="Wt.WMessageBox.Cancel">Annulla</message>
+  <!-- login -->
+  <message id="oauth_login_with">Entra con il tuo account:</message>
+  <message id="auth.regular_login_accordion">Oppure entra con le credenziali</message>
+  
+  <!-- Wt Auth Widget -->
+  <message id="Wt.Auth.login">Entra</message>
+  <message id="Wt.Auth.register">Registrati</message>
+  <message id="Wt.Auth.login-form-title">Login</message>
+  <message id="Wt.Auth.user-name">Nome Utente</message>
+  <message id="Wt.Auth.user-name-info">Inserisci il tuo nome utente</message>
+  <message id="Wt.Auth.user-name-invalid">Non Valido</message>
+  <message id="Wt.Auth.email">Indirizzo Email</message>
+  <message id="Wt.Auth.email-info">Inserisci il tuo indirizzo email</message>
+  <message id="Wt.Auth.password">Password</message>
+  <message id="Wt.Auth.password-info">Inserisci la tua password</message>
+  <message id="Wt.Auth.remember-me">Ricordami</message>
+  <message id="Wt.Auth.remember-me-info.days">Ricorda i miei dati per {1} giorni</message>
+  <message id="Wt.Auth.remember-me-info.weeks">Ricorda i miei dati per {1} settimane</message>
+  <message id="Wt.Auth.lost-password">Password dimenticata?</message>
+  
+  <message id="Wt.Auth.registration-form-title">Registrazione</message>
+  <message id="Wt.Auth.password-registration">Registrati con nome utente e password:</message>
+  <message id="Wt.Auth.or-oauth-registration">Oppure registrati usando un servizio di terze parti:</message>
+  <message id="Wt.Auth.registration-form-info">Compila le seguenti informazioni per registrarti.</message>
+  <message id="Wt.Auth.valid">Valido</message>
+  <message id="Wt.Auth.choose-password">Password</message>
+  <message id="Wt.Auth.choose-password-info">Scegli la tua password</message>
+  <message id="Wt.Auth.repeat-password">Ripeti Password</message>
+  <message id="Wt.Auth.repeat-password-info">Inserisci nuovamente la password</message>
+  <message id="Wt.Auth.email-invalid">Indirizzo email non valido</message>
+  <message id="Wt.Auth.email-exists">Indirizzo email già registrato</message>
+  <message id="Wt.Auth.user-name-exists">Nome utente già esistente</message>
+  <!--   <message id="Wt.Auth.confirm-is-you">User exists, is this you?</message> -->
+  <message id="Wt.Auth.user-name-tooshort">Minimo {1} caratteri</message>
+  <message id="Wt.Auth.password-tooshort">Minimo {1} caratteri</message>
+  <message id="Wt.Auth.passwords-dont-match">Le password non corrispondono</message>
+  <message id="Wt.Auth.registration">Registrazione</message>
+  <message id="Wt.Auth.register">Registrati</message>
+  <message id="Wt.Auth.error-user-invalid">Registrazione fallita.</message>
+  <message id="Wt.Auth.confirm-is-you">Utente già esistente, sei tu?</message>
+   
+    <!-- PasswordPromptDialog -->
+  <message id="Wt.Auth.enter-password">Inserici la tua password</message>
+  <message id="Wt.Auth.password-prompt-form-title">Inserisci la tua password</message>
+  <message id="Wt.Auth.password-invalid">Password errata</message>
+  
+  
+  
+  
   <!-- general -->
   <message id="Wt.WDate.3.Mon">Lun</message>
   <message id="Wt.WDate.3.Tue">Mar</message>
