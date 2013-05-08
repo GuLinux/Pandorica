@@ -51,7 +51,6 @@
 
 #include "sessiondetails.h"
 #include "commentscontainerwidget.h"
-#include "readbwstats.h"
 #include "Wt-Commons/whtmltemplateslocalizedstrings.h"
 #include "mediacollection.h"
 #include "mediacollectionbrowser.h"
