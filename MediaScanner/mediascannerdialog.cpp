@@ -29,22 +29,23 @@
 #include <Wt/WStackedWidget>
 #include <Wt/WTimer>
 #include <Wt/WProgressBar>
+#include <Wt/Dbo/backend/Postgres>
 #include <thread>
 #include <boost/thread.hpp>
 
 using namespace Wt;
 using namespace std;
 
-MediaScannerDialogPrivate::MediaScannerDialogPrivate(MediaScannerDialog* q, MediaCollection *mediaCollection, Session* session, Settings* settings)
-  : q(q), mediaCollection(mediaCollection), session(session), settings(settings)
+MediaScannerDialogPrivate::MediaScannerDialogPrivate(MediaScannerDialog* q, MediaCollection *mediaCollection, Settings* settings)
+  : q(q), mediaCollection(mediaCollection), settings(settings)
 {
 }
 MediaScannerDialogPrivate::~MediaScannerDialogPrivate()
 {
 }
 
-MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, MediaCollection* mediaCollection, WObject* parent)
-    : d(new MediaScannerDialogPrivate(this, mediaCollection, session, settings))
+MediaScannerDialog::MediaScannerDialog(Settings* settings, MediaCollection* mediaCollection, WObject* parent)
+    : d(new MediaScannerDialogPrivate(this, mediaCollection, settings))
 {
   resize(700, 650);
   setWindowTitle(wtr("mediascanner.title"));
@@ -113,6 +114,7 @@ void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, UpdateGuiProgr
 {
   canceled = false;
   uint current = 0;
+  Session session;
   for(auto mediaPair: mediaCollection->collection()) {
     if(canceled)
       return;
@@ -123,18 +125,18 @@ void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, UpdateGuiProgr
       buttonNext->disable();
       updateGuiProgress(current, media.filename());
     });
-    runStepsFor(&media, app);
+    runStepsFor(&media, app, session);
   }
   this_thread::sleep_for(chrono::milliseconds{50});
   guiRun(app, [=] { onScanFinish(); });
 }
 
 
-void MediaScannerDialogPrivate::runStepsFor(Media *media, WApplication* app)
+void MediaScannerDialogPrivate::runStepsFor(Media *media, WApplication* app, Session &session)
 {
   canContinue = false;
   FFMPEGMedia ffmpegMedia{*media};
-  Dbo::Transaction t(*session);
+  Dbo::Transaction t(session);
   for(MediaScannerStep *step: steps) {
     step->run(&ffmpegMedia, media, stepsContents[step], &t);
   }

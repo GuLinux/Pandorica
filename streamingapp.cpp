@@ -435,7 +435,7 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
   });
   
   mediaCollectionScanner->triggered().connect([=](WMenuItem*, _n5) {
-    auto dialog = new MediaScannerDialog(&session, &settings, mediaCollection, q);
+    auto dialog = new MediaScannerDialog(&settings, mediaCollection, q);
     dialog->run();
   });
   

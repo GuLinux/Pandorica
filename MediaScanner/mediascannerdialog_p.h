@@ -39,7 +39,7 @@ typedef std::function<void()> OnScanFinish;
 class MediaScannerDialogPrivate
 {
 public:
-    MediaScannerDialogPrivate(MediaScannerDialog* q, MediaCollection* mediaCollection, Session* session, Settings* settings);
+    MediaScannerDialogPrivate(MediaScannerDialog* q, MediaCollection* mediaCollection, Settings* settings);
     virtual ~MediaScannerDialogPrivate();
     Wt::WPushButton* buttonNext;
     Wt::WPushButton* buttonClose;
@@ -48,7 +48,6 @@ public:
     Wt::WProgressBar* progressBar;
     Wt::WText* progressBarTitle;
     Settings* settings;
-    Session* session;
     std::map<MediaScannerStep*, Wt::WContainerWidget*> stepsContents;
     Wt::WPushButton* buttonRetry;
     void scanMedias(Wt::WApplication* app, UpdateGuiProgress updateGuiProgress, OnScanFinish onScanFinish);
@@ -58,7 +57,7 @@ public:
     
 private:
     class MediaScannerDialog* const q;
-    void runStepsFor(Media *media, Wt::WApplication* app);
+    void runStepsFor(Media* media, Wt::WApplication* app, Session& session);
 };
 
 #endif // MEDIASCANNERDIALOGPRIVATE_H
