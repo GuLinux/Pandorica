@@ -7,8 +7,6 @@
   
   <!-- general, not retranslated -->
   <message id="site-title">Gulinux Streaming</message>
-  <message id="auth-mail-sender-name">Gulinux Streaming</message>
-  <message id="auth-mail-sender-address">marco@gulinux.net</message>
   <message id="playlist.accordion">Playlist</message>
 
  <!-- menu -->
@@ -154,31 +152,29 @@
   <message id="Wt.Auth.confirmmail.body">
 Hello {1},
 
-Thank you for joining my Videostreaming Application!
+Thank you for joining my Streaming Application!
 
 To complete your registration, please confirm your account by
-clicking on the following link or copying the URL into your browser.
- 
-Please click here to confirm your registration or copy and paste the
-following URL into your browser: (Note: be sure to copy the entire
-URL, including any part of it which goes onto a second line.)
-
+clicking on the following link or copying the URL into your browser:
 {3}
-
-Note that the server administrator needs to approve your p before you can start using it.
 </message>  
 
  <message id="Wt.Auth.confirmmail.htmlbody">
     <h3>Hello {1},</h3>
-    <p>Thank you for joining my Videostreaming Application!</p>
+    <p>Thank you for joining my Streaming Application!</p>
     <p>To complete your registration, please confirm your
     account by clicking on the following link or copying the URL into
     your browser.</p>
     <p>Please <a href="{3}">click here to confirm</a> your
     registration or copy and paste the following URL into your
-    browser: <i>(Note: be sure to copy the entire URL, including any
-    part of it which goes onto a second line.)</i></p>
-    <b>{3}</b>
-    <p>Note that the server administrator needs to approve your p before you can start using it.</p>
+      browser:</p>
+      <p><b>{3}</b></p>
   </message>
+  
+  <message id="unauthorized_user_login_subject">VideoStreaming: unauthorized user login</message>
+  <message id="unauthorized_user_login_body">The user {1} ({2}) just tried to login.
+    Since it doesn't appear to be in the authorized users list, it needs to be moderated.
+      Visit {3} to do it.</message>
+  <message id="new_admin_subject">VideoStreaming: new admin added</message>
+  <message id="new_admin_body">The user {1} ({2}) was just added to the administrators list.</message>
 </messages>

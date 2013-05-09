@@ -220,33 +220,28 @@
   L'amministratore ha ricevuto una mail riguardo la tua iscrizione, e ti abiliterà appena possibile.<br />${refresh}</message>
   
   <message id="Wt.Auth.confirmmail.body">
-Hello {1},
+Ciao {1},
 
-Thank you for joining my Videostreaming Application!
+Grazie per esserti registrato alla mia App Streaming!
 
-To complete your registration, please confirm your account by
-clicking on the following link or copying the URL into your browser.
- 
-Please click here to confirm your registration or copy and paste the
-following URL into your browser: (Note: be sure to copy the entire
-URL, including any part of it which goes onto a second line.)
-
+Per completare la tua registrazione, conferma il tuo account
+cliccando il link seguente o copiando l'URL nel tuo browser:
 {3}
-
-Note that the server administrator needs to approve your p before you can start using it.
 </message>  
 
  <message id="Wt.Auth.confirmmail.htmlbody">
-    <h3>Hello {1},</h3>
-    <p>Thank you for joining my Videostreaming Application!</p>
-    <p>To complete your registration, please confirm your
-    account by clicking on the following link or copying the URL into
-    your browser.</p>
-    <p>Please <a href="{3}">click here to confirm</a> your
-    registration or copy and paste the following URL into your
-    browser: <i>(Note: be sure to copy the entire URL, including any
-    part of it which goes onto a second line.)</i></p>
-    <b>{3}</b>
-    <p>Note that the server administrator needs to approve your p before you can start using it.</p>
+    <h3>Ciao {1},</h3>
+    <p>Grazie per esserti registrato alla mia App Streaming!</p>
+    <p>Per completare la tua registrazione, conferma il tuo account
+      cliccando il link seguente o copiando l'URL nel tuo browser.</p>
+    <p><a href="{3}">Clicca qui per confermare</a> la tua registrazione,
+      o copia e incolla l'URL seguente nel tuo browser:</p>
+      <p><b>{3}</b></p>
   </message>
+  <message id="unauthorized_user_login_subject">VideoStreaming: login utente non autorizzato</message>
+  <message id="unauthorized_user_login_body">L'utente {1} ({2}) ha appena provato a collegarsi.
+    Dato che non risulta presente nella lista di utenti abilitati, deve essere moderato.
+      Visita il sito {3}.</message>
+  <message id="new_admin_subject">VideoStreaming: nuovo amministratore aggiunto</message>
+  <message id="new_admin_body">L'utente {1} ({2}) è stato aggiunto alla lista di amministratori.</message>
 </messages>

@@ -54,10 +54,10 @@ void Utils::mailForNewAdmin(string email, WString identity)
 {
   Mail::Client client;
   Mail::Message message;
-  message.setFrom({"noreply@gulinux.net", "Videostreaming Gulinux"});
-  message.setSubject("VideoStreaming: unauthorized user login");
-  message.setBody(WString("The user {1} ({2}) was just added to the administrators list.").arg(identity).arg(email));
-  message.addRecipient(Mail::To, {"marco.gulino@gmail.com", "Marco Gulino"});
+  message.setFrom(UtilsPrivate::authMailbox());
+  message.setSubject(WString::tr("new_admin_subject"));
+  message.setBody(WString::tr("new_admin_body").arg(identity).arg(email));
+  message.addRecipient(Mail::To, UtilsPrivate::adminMailbox());
   client.connect();
   client.send(message);
 }
@@ -66,14 +66,37 @@ void Utils::mailForUnauthorizedUser(string email, WString identity)
 {
   Mail::Client client;
   Mail::Message message;
-  message.setFrom({"noreply@gulinux.net", "Videostreaming Gulinux"});
-  message.setSubject("VideoStreaming: unauthorized user login");
-  message.setBody(WString("The user {1} ({2}) just tried to login.\n\
-  Since it doesn't appear to be in the authorized users list, it needs to be moderated.\n\
-  Visit {3} to do it.").arg(identity).arg(email).arg(wApp->makeAbsoluteUrl(wApp->bookmarkUrl("/"))));
-  message.addRecipient(Mail::To, {"marco.gulino@gmail.com", "Marco Gulino"});
+  message.setFrom(UtilsPrivate::authMailbox());
+  message.setSubject(WString::tr("unauthorized_user_login_subject"));
+  message.setBody(WString::tr("unauthorized_user_login_body").arg(identity).arg(email).arg(wApp->makeAbsoluteUrl(wApp->bookmarkUrl("/"))));
+  message.addRecipient(Mail::To, UtilsPrivate::adminMailbox());
   client.connect();
   client.send(message);
+}
+
+
+Mail::Mailbox UtilsPrivate::adminMailbox()
+{
+  return mailboxFor("admin-mail-name", "admin-mail-address", {"admin@localhost"});
+}
+
+Mail::Mailbox UtilsPrivate::authMailbox()
+{
+  return mailboxFor("auth-mail-sender-name", "auth-mail-sender-address", {"noreply@localhost"});
+}
+
+
+Mail::Mailbox UtilsPrivate::mailboxFor(string nameProperty, string addressProperty, Mail::Mailbox defaultMailbox)
+{
+  string name, address;
+  WServer::instance()->readConfigurationProperty(nameProperty, name);
+  WServer::instance()->readConfigurationProperty(addressProperty, address);
+  if(name.empty() || address.empty()) {
+    Wt::log("warn") << "mailbox properties " << nameProperty << " or " << addressProperty << " are not configured correctly.";
+    Wt::log("warn") << "Please check your configuration file. returning a default address.";
+    return defaultMailbox;
+  }
+  return {address, name};
 }
 
 
