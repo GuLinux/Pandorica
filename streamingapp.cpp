@@ -79,47 +79,16 @@
 #include <Wt/WIOService>
 #include <Wt/WIOService>
 #include <Wt/WLabel>
+#include "streamingapp_p.h"
 
 using namespace Wt;
 using namespace std;
 using namespace boost;
+using namespace StreamingPrivate;
 namespace fs = boost::filesystem;
 
 typedef std::function<void(filesystem::path)> RunOnPath;
 
-class StreamingAppPrivate {
-public:
-  StreamingAppPrivate(StreamingApp* q);
-  Player *player = 0;
-  string extensionFor(filesystem::path p);
-  void parseFileParameter();
-  Playlist *playlist;
-  WContainerWidget* playerContainerWidget;
-  void setupMenus(bool isAdmin);
-  void setupAdminMenus(WMenu* mainMenu);
-  Session session;
-  bool mailSent;
-  StreamingApp *q;
-  void clearContent();
-  WContainerWidget *mainWidget = 0;
-  WContainerWidget *authContainer;
-  WContainerWidget *messagesContainer;
-  WTemplate* topBarTemplate;
-  WStackedWidget* widgetsStack;
-  void queue(Media media, bool autoplay = true);
-  void queueAndPlay(Media media);
-  void play(Media media);
-  JSignal<string> playSignal;
-  JSignal<string> queueSignal;
-  Settings settings;
-  MediaCollectionBrowser* mediaCollectionBrowser;
-  MediaCollection* mediaCollection;
-private:
-  void setupUserMenus(WMenu* mainMenu);
-  WMenuItem* activeUsersMenuItem;
-  WNavigationBar* navigationBar;
-    WMenuItem* mediaListMenuItem;
-};
 
 class Message : public WTemplate {
 public:
@@ -245,7 +214,7 @@ void StreamingApp::authEvent()
       GroupPtr newGroup = d->session.add(new Group{groupName->text().toUTF8(), true});
       newGroup.modify()->users.insert(d->session.user());
       t.commit();
-      Streaming::Utils::mailForNewAdmin(user.email(), user.identity("loginname"));
+      ::Utils::mailForNewAdmin(user.email(), user.identity("loginname"));
       addMyselfToAdmins->accept();
       authEvent();
     }).css("btn btn-primary"));
@@ -256,7 +225,7 @@ void StreamingApp::authEvent()
     Message *message = WW<Message>("Your user is not yet authorized for viewing videos.<br />\
     The administrator should already have received an email and will add you when possible.<br />${refresh}").addCss("alert-block");
     if(!d->mailSent) {
-      Streaming::Utils::mailForUnauthorizedUser(user.email(), user.identity(Auth::Identity::LoginName));
+      ::Utils::mailForUnauthorizedUser(user.email(), user.identity(Auth::Identity::LoginName));
       d->mailSent = true;
     }
     d->messagesContainer->addWidget(message);

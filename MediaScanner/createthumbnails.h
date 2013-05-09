@@ -23,6 +23,9 @@
 namespace Wt {
 class WPushButton;
 }
+namespace StreamingPrivate {
+  class CreateThumbnailsPrivate;
+}
 
 class Settings;
 class CreateThumbnails : public MediaScannerStep, Wt::WObject
@@ -34,7 +37,7 @@ public:
     virtual void save(Wt::Dbo::Transaction *transaction);
     virtual StepResult result();
 private:
-    class CreateThumbnailsPrivate* const d;
+  StreamingPrivate::CreateThumbnailsPrivate* const d;
 };
 
 #endif // CREATETHUMBNAILS_H

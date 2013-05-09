@@ -23,7 +23,9 @@ namespace dbo = Wt::Dbo;
 
 typedef Wt::Auth::Dbo::UserDatabase<AuthInfo> UserDatabase;
 
-class SessionPrivate;
+namespace StreamingPrivate {
+  class SessionPrivate;
+}
 class Session : public dbo::Session
 {
 public:
@@ -41,7 +43,7 @@ public:
   static const Wt::Auth::PasswordService& passwordAuth();
   static const std::vector<const Wt::Auth::OAuthService *>& oAuth();
 private:
-  SessionPrivate * const d;
+  StreamingPrivate::SessionPrivate * const d;
 };
 
 #endif // SESSION_H_

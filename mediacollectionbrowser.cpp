@@ -24,8 +24,7 @@
 using namespace Wt;
 using namespace std;
 using namespace boost;
-using namespace Streaming;
-
+using namespace StreamingPrivate;
 namespace fs = boost::filesystem;
 
 typedef pair<string,Media> MediaEntry;
@@ -37,7 +36,7 @@ struct Popover {
   bool isValid() const { return !title.empty() && !text.empty(); }
 };
 
-class MediaCollectionBrowserPrivate {
+class StreamingPrivate::MediaCollectionBrowserPrivate {
 public:
   MediaCollectionBrowserPrivate(MediaCollection *collection, Settings *settings, Session *session, MediaCollectionBrowser *q)
     : collection(collection) , settings(settings), session(session), q(q) {}

@@ -32,7 +32,7 @@ class WContainerWidget;
 }
 
 class MediaCollection;
-
+namespace StreamingPrivate{
 typedef std::function<void(int,std::string)> UpdateGuiProgress;
 typedef std::function<void()> OnScanFinish;
 
@@ -59,5 +59,5 @@ private:
     class MediaScannerDialog* const q;
     void runStepsFor(Media* media, Wt::WApplication* app, Session& session);
 };
-
+}
 #endif // MEDIASCANNERDIALOGPRIVATE_H

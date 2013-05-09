@@ -23,6 +23,9 @@
 
 class Session;
 class MediaCollection;
+namespace StreamingPrivate {
+  class ScanMediaInfoStepPrivate;
+}
 class ScanMediaInfoStep : public MediaScannerStep, Wt::WObject
 {
 public:
@@ -32,7 +35,7 @@ public:
   virtual StepResult result();
   virtual void save(Wt::Dbo::Transaction *transaction);
 private:
-  class ScanMediaInfoStepPrivate* const d;
+  StreamingPrivate::ScanMediaInfoStepPrivate* const d;
 };
 
 #endif // SCANMEDIAINFOPAGE_H

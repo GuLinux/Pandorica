@@ -29,7 +29,9 @@ namespace Wt {
   class WStandardItem;
   class WStandardItemModel;
 }
-class StreamingAppPrivate;
+namespace StreamingPrivate {
+  class StreamingAppPrivate;
+}
 class StreamingApp : public Wt::WApplication {
 
     public:
@@ -40,7 +42,7 @@ class StreamingApp : public Wt::WApplication {
     void authEvent();
     
     private:
-      StreamingAppPrivate *const d;
+      StreamingPrivate::StreamingAppPrivate *const d;
     private:
 };
 

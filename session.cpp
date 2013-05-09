@@ -24,6 +24,7 @@
 #include <fstream>
 #include "comment.h"
 #include "mediaattachment.h"
+#include "session_p.h"
 
 namespace {
   class MyOAuth : public std::vector<const Wt::Auth::OAuthService *>
@@ -41,16 +42,11 @@ namespace {
   MyOAuth myOAuthServices;
 }
 
-class SessionPrivate {
-public:
-  void createConnection();
-  dbo::SqlConnection *connection;
-  UserDatabase *users;
-  Wt::Auth::Login login;
-};
 
 using namespace std;
 using namespace Wt;
+using namespace StreamingPrivate;
+
 void Session::configureAuth()
 {
   myAuthService.setAuthTokensEnabled(true, "logincookie");

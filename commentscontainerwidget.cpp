@@ -17,6 +17,7 @@
 using namespace Wt;
 using namespace boost;
 using namespace std;
+using namespace StreamingPrivate;
 //                          content, last_updated, username, email
 typedef boost::tuple<string, long,         string,    string> CommentTuple;
 
@@ -43,7 +44,7 @@ void CommentViewers::commentAdded(string videoId, long int commentId)
 
 CommentViewers commentViewers;
 
-class CommentsContainerWidgetPrivate {
+class StreamingPrivate::CommentsContainerWidgetPrivate {
 public:
   string videoId;
   Session *session;

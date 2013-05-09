@@ -26,6 +26,7 @@ class WApplication;
 
 class Session;
 
+namespace StreamingPrivate {
 class ScanMediaInfoStepPrivate
 {
 public:
@@ -41,5 +42,5 @@ public:
 private:
   class ScanMediaInfoStep* const q;
 };
-
+}
 #endif // SCANMEDIAINFOPAGEPRIVATE_H

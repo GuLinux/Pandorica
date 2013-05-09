@@ -2,25 +2,15 @@
 #include "session.h"
 #include <Wt/Utils>
 #include <Wt/WApplication>
+#include "mediacollection_p.h"
 
 using namespace Wt;
 using namespace std;
 using namespace boost;
 using namespace Wt::Utils;
-namespace fs = boost::filesystem;
+using namespace StreamingPrivate;
 
-class MediaCollectionPrivate {
-public:
-  MediaCollectionPrivate(string basePath, Session *session) : basePath(basePath), session(session) {}
-    void listDirectory(filesystem::path path);
-    bool isAllowed(filesystem::path path);
-public:
-  fs::path basePath;
-  map<string,Media> collection;
-  Signal<> scanned;
-  Session *session;
-  list< string > allowedPaths;
-};
+namespace fs = boost::filesystem;
 
 MediaCollection::MediaCollection(string basePath, Session* session, WObject* parent)
   : WObject(parent), d(new MediaCollectionPrivate(basePath, session))

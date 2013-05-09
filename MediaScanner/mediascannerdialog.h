@@ -23,6 +23,9 @@
 class Settings;
 class MediaCollection;
 class Session;
+namespace StreamingPrivate {
+  class MediaScannerDialogPrivate;
+}
 class MediaScannerDialog : Wt::WDialog
 {
 public:
@@ -30,7 +33,7 @@ public:
     virtual ~MediaScannerDialog();
   void run();
 private:
-    class MediaScannerDialogPrivate* const d;
+  StreamingPrivate::MediaScannerDialogPrivate* const d;
 };
 
 #endif // MEDIASCANNERDIALOG_H

@@ -26,6 +26,7 @@ namespace Wt {
   class WApplication;
 };
 
+namespace StreamingPrivate {
 class SaveSubtitlesToDatabasePrivate
 {
 public:
@@ -39,5 +40,6 @@ public:
 private:
     class SaveSubtitlesToDatabase* const q;
 };
+}
 
 #endif // SAVESUBTITLESTODATABASEPRIVATE_H

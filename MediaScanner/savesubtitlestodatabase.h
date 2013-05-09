@@ -22,6 +22,9 @@
 #include "MediaScanner/mediascannerstep.h"
 
 class Session;
+namespace StreamingPrivate {
+  class SaveSubtitlesToDatabasePrivate;
+}
 class SaveSubtitlesToDatabase :  Wt::WObject, public MediaScannerStep
 {
 public:
@@ -31,7 +34,7 @@ public:
     virtual StepResult result();
     virtual void save(Wt::Dbo::Transaction *transaction);
 private:
-    class SaveSubtitlesToDatabasePrivate* const d;
+  StreamingPrivate::SaveSubtitlesToDatabasePrivate* const d;
 };
 
 #endif // SAVESUBTITLESTODATABASE_H
