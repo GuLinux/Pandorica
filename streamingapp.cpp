@@ -34,7 +34,6 @@
 #include <Wt/WText>
 #include <Wt/Utils>
 #include <Wt/Auth/AuthWidget>
-#include <Wt/Auth/RegistrationModel>
 #include <Wt/Auth/Dbo/AuthInfo>
 #include <Wt/WPushButton>
 #include <boost/algorithm/string.hpp>
@@ -80,6 +79,7 @@
 #include <Wt/WIOService>
 #include <Wt/WLabel>
 #include "private/streamingapp_p.h"
+#include "authpage.h"
 
 using namespace Wt;
 using namespace std;
@@ -88,18 +88,6 @@ using namespace StreamingPrivate;
 namespace fs = boost::filesystem;
 
 typedef std::function<void(filesystem::path)> RunOnPath;
-
-
-class Message : public WTemplate {
-public:
-  Message(WString text, WContainerWidget* parent = 0);
-};
-
-Message::Message(WString text, WContainerWidget* parent): WTemplate(parent)
-{
-  addStyleClass("alert");
-  setTemplateText(WString("<button type=\"button\" class=\"close\" data-dismiss=\"alert\">&times;</button>{1}").arg(text), Wt::XHTMLUnsafeText);
-}
 
 
 StreamingAppPrivate::StreamingAppPrivate(StreamingApp *q) : q(q), playSignal(q, "playSignal"), queueSignal(q, "queueSignal") {
@@ -112,32 +100,17 @@ StreamingAppPrivate::StreamingAppPrivate(StreamingApp *q) : q(q), playSignal(q, 
 }
 
 
-class AuthWidgetCustom : public Wt::Auth::AuthWidget {
-public:
-    AuthWidgetCustom(const Auth::AuthService& baseAuth, Auth::AbstractUserDatabase& users, Auth::Login& login, WContainerWidget* parent = 0)
-      : Auth::AuthWidget(baseAuth, users, login, parent) {}
-protected:
-    virtual Auth::RegistrationModel* createRegistrationModel() {
-      Auth::RegistrationModel *model = Auth::AuthWidget::createRegistrationModel();
-      model->setEmailPolicy(Auth::RegistrationModel::EmailMandatory);
-      return model;
-    }
-};
-
 
 StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(environment), d(new StreamingAppPrivate(this)) {
   useStyleSheet( wApp->resourcesUrl() + "form.css");
   useStyleSheet("http://gulinux.net/css/videostreaming.css");
   requireJQuery("http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js");
-//  useStyleSheet("http://gulinux.net/css/bootstrap/css/bootstrap.css");
-//  useStyleSheet("http://gulinux.net/css/bootstrap/css/bootstrap-responsive.css");
   require("http://gulinux.net/css/bootstrap/js/bootstrap.js");
 
   require("http://gulinux.net/css/mediaelement/mediaelement-and-player.js");
   useStyleSheet("http://gulinux.net/css/mediaelement/mediaelementplayer.css");
   setTheme(new WBootstrapTheme(this));
   enableUpdates(true);
-  d->session.login().changed().connect(this, &StreamingApp::authEvent);
   WMessageResourceBundle *xmlResourcesBundle = new WMessageResourceBundle;
   xmlResourcesBundle->use("strings");
   setLocale(d->settings.locale());
@@ -148,16 +121,9 @@ StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(
 
   addMetaHeader("viewport", "width=device-width, initial-scale=1, maximum-scale=1");
   
-  d->authContainer = new WContainerWidget();
-  d->authContainer->addWidget(WW<WText>(WString("<h1 style=\"text-align: center;\">{1}</h1>").arg(wtr("site-title"))));
-  root()->addWidget(d->authContainer);
-  AuthWidgetCustom* authWidget = new AuthWidgetCustom(Session::auth(), d->session.users(), d->session.login());
-  authWidget->model()->addPasswordAuth(&Session::passwordAuth());
-  authWidget->model()->addOAuth(Session::oAuth());
-  authWidget->setRegistrationEnabled(true);
-  d->authContainer->addWidget(authWidget);
-  d->authContainer->addWidget(d->messagesContainer = new WContainerWidget());
-  authWidget->processEnvironment();
+  root()->addWidget(d->authPage = new AuthPage(&d->session));
+  d->authPage->loggedIn().connect(this, &StreamingApp::authEvent);
+  d->authPage->loggedOut().connect(d, &StreamingAppPrivate::clearContent);
 }
 
 
@@ -165,76 +131,13 @@ void StreamingAppPrivate::clearContent()
 {
   delete mainWidget;
   mainWidget = 0;
-  messagesContainer->clear();
 }
 
 
 void StreamingApp::authEvent()
 {
-  if(!d->session.login().loggedIn()) {
-    d->clearContent();
-    d->authContainer->setStyleClass("");
-    return;
-  }
-  log("notice") << "User logged in";
-//   changeSessionId();
-  Auth::User user = d->session.login().user();
-  WPushButton *refreshButton = WW<WPushButton>("Retry").css("btn btn-link").onClick([this](WMouseEvent) {
-    authEvent();
-  }).setAttribute("data-dismiss", "alert");
-  if(user.email().empty()) {
-    log("notice") << "User email empty, unconfirmed?";
-    Message *message = WW<Message>("You need to verify your email address before logging in.<br />\
-    Please check your inbox.<br />${refresh}").addCss("alert-block");
-    message->bindWidget("refresh", refreshButton);
-    d->messagesContainer->addWidget(message);
-    return;
-  }
-  log("notice") << "User email confirmed";
   Dbo::Transaction t(d->session);
-  Dbo::collection<GroupPtr> adminGroups = d->session.find<Group>().where("is_admin = ?").bind(true);
-  int adminUsersCount = 0;
-  for(auto group: adminGroups) {
-    adminUsersCount += group->users.size();
-  }
-  wApp->log("notice") << "adminUsersCount: " << adminUsersCount << ", admin groups: " << adminGroups.size();
-  if(adminGroups.size() == 0 || adminUsersCount == 0) {
-    t.rollback();
-    WDialog *addMyselfToAdmins = new WDialog{wtr("admin_missing_dialog_title")};
-    addMyselfToAdmins->contents()->addWidget(new WText{wtr("admin_missing_dialog_text").arg(user.identity("loginname")) });
-    WLineEdit *groupName = new WLineEdit;
-    groupName->setText(wtr("admin_missing_dialog_default_groupname"));
-    auto groupNameLabel = new WLabel(wtr("admin_missing_dialog_groupname_label"));
-    groupNameLabel->setBuddy(groupName);
-    WContainerWidget *formInline = WW<WContainerWidget>().css("form-inline").add(groupNameLabel).add(groupName).padding(5);
-    addMyselfToAdmins->contents()->addWidget(formInline);
-    addMyselfToAdmins->footer()->addWidget(WW<WPushButton>(wtr("button.cancel")).onClick([=](WMouseEvent){ addMyselfToAdmins->reject(); }).css("btn btn-danger"));
-    addMyselfToAdmins->footer()->addWidget(WW<WPushButton>(wtr("button.ok")).onClick([=](WMouseEvent){
-      Dbo::Transaction t(d->session);
-      GroupPtr newGroup = d->session.add(new Group{groupName->text().toUTF8(), true});
-      newGroup.modify()->users.insert(d->session.user());
-      t.commit();
-      ::Utils::mailForNewAdmin(user.email(), user.identity("loginname"));
-      addMyselfToAdmins->accept();
-      authEvent();
-    }).css("btn btn-primary"));
-    addMyselfToAdmins->show();
-    return;
-  }
-  if(d->session.user()->groups.size() <= 0) {
-    Message *message = WW<Message>("Your user is not yet authorized for viewing videos.<br />\
-    The administrator should already have received an email and will add you when possible.<br />${refresh}").addCss("alert-block");
-    if(!d->mailSent) {
-      ::Utils::mailForUnauthorizedUser(user.email(), user.identity(Auth::Identity::LoginName));
-      d->mailSent = true;
-    }
-    d->messagesContainer->addWidget(message);
-    message->bindWidget("refresh", refreshButton);
-    return;
-  }
   log("notice") << "Clearing root and creating widgets";
-  d->authContainer->setStyleClass("hidden"); // workaround: for wt 3.3.x hide() doesn't seem to work...
-
   root()->addWidget(d->mainWidget = new WContainerWidget() );
   auto myUser = d->session.user();
   SessionInfo* sessionInfo = new SessionInfo(myUser, sessionId(), wApp->environment().clientAddress());
