@@ -24,7 +24,7 @@
 #include <fstream>
 #include "comment.h"
 #include "mediaattachment.h"
-#include "session_p.h"
+#include "private/session_p.h"
 
 namespace {
   class MyOAuth : public std::vector<const Wt::Auth::OAuthService *>

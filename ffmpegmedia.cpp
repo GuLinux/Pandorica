@@ -16,7 +16,7 @@
  */
 
 #include "ffmpegmedia.h"
-#include "ffmpegmedia_p.h"
+#include "private/ffmpegmedia_p.h"
 
 using namespace std;
 using namespace FFMPEG;
