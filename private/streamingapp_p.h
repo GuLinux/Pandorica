@@ -6,6 +6,7 @@
 #include <boost/filesystem.hpp>
 #include <Wt/WJavaScript>
 
+class AuthPage;
 class Playlist;
 
 
@@ -25,12 +26,10 @@ namespace StreamingPrivate {
     void setupMenus(bool isAdmin);
     void setupAdminMenus(Wt::WMenu* mainMenu);
     Session session;
-    bool mailSent;
     StreamingApp *q;
     void clearContent();
     Wt::WContainerWidget *mainWidget = 0;
-    Wt::WContainerWidget *authContainer;
-    Wt::WContainerWidget *messagesContainer;
+    AuthPage *authPage;
     Wt::WTemplate* topBarTemplate;
     Wt::WStackedWidget* widgetsStack;
     void queue(Media media, bool autoplay = true);
