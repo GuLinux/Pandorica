@@ -18,6 +18,7 @@
 #ifndef UTILSPRIVATE_H
 #define UTILSPRIVATE_H
 #include <vector>
+#include <Wt/Mail/Mailbox>
 
 class Utils;
 namespace StreamingPrivate {
@@ -27,7 +28,10 @@ class UtilsPrivate
 public:
     UtilsPrivate(::Utils* q);
     virtual ~UtilsPrivate();
-
+    
+    static Wt::Mail::Mailbox adminMailbox();
+    static Wt::Mail::Mailbox authMailbox();
+    static Wt::Mail::Mailbox mailboxFor(std::string nameProperty, std::string addressProperty, Wt::Mail::Mailbox defaultMailbox);
 private:
     class ::Utils* const q;
 };
@@ -39,4 +43,5 @@ struct FindAndReplace {
     static std::vector<FindAndReplace> from(std::string filename);
 };
 }
+
 #endif // UTILSPRIVATE_H
