@@ -145,6 +145,12 @@
   <message id="admin_missing_dialog_default_groupname">Administrators</message>
   <message id="admin_missing_dialog_groupname_label">Admin Group Name</message>
 
+  
+ <message id="user.need_mail_verification">You need to verify your email address before logging in.<br />
+ Please check you inbox.<br />${refresh}</message>
+ <message id="user.need_to_be_enabled">Your user needs to be authorized first.<br />
+ The administrator should already have received an email and will add you when possible.<br />${refresh}</message>
+ 
   <message id="Wt.Auth.confirmmail.body">
 Hello {1},
 

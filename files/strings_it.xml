@@ -214,6 +214,10 @@
   <message id="admin_missing_dialog_default_groupname">Amministratori</message>
   <message id="admin_missing_dialog_groupname_label">Nome Gruppo Amministratori</message>
   
+  <message id="user.need_mail_verification">Devi verificare il tuo indirizzo email prima di entrare.<br />
+    Controlla la tua casella email.<br />${refresh}</message>
+  <message id="user.need_to_be_enabled">Il tuo utente deve essere prima abilitato.<br />
+  L'amministratore ha ricevuto una mail riguardo la tua iscrizione, e ti abiliterà appena possibile.<br />${refresh}</message>
   
   <message id="Wt.Auth.confirmmail.body">
 Hello {1},

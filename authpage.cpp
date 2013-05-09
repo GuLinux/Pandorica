@@ -73,25 +73,43 @@ void AuthPagePrivate::authEvent() {
   if(!session->login().loggedIn()) {
     loggedOut.emit();
     messagesContainer->clear();
-    q->setStyleClass("");
+    q->removeStyleClass("hidden", true);
     return;
   }
   log("notice") << "User logged in";
   dbo::Transaction t(*session);
   //   changeSessionId();
   Auth::User user = session->login().user();
-  WPushButton *refreshButton = WW<WPushButton>("Retry").css("btn btn-link").onClick([this](WMouseEvent) {
+  WPushButton *refreshButton = WW<WPushButton>(wtr("button.retry")).css("btn btn-link").onClick([this](WMouseEvent) {
     authEvent();
   }).setAttribute("data-dismiss", "alert");
   if(user.email().empty()) {
     log("notice") << "User email empty, unconfirmed?";
-    Message *message = WW<Message>("You need to verify your email address before logging in.<br />\
-    Please check your inbox.<br />${refresh}").addCss("alert-block");
+    Message *message = WW<Message>(wtr("user.need_mail_verification")).addCss("alert-block");
     message->bindWidget("refresh", refreshButton);
     messagesContainer->addWidget(message);
     return;
   }
   log("notice") << "User email confirmed";
+
+  if(seedIfNoAdmins(t, user)) return;
+  
+  if(session->user()->groups.size() <= 0) {
+    Message *message = WW<Message>(wtr("user.need_to_be_enabled")).addCss("alert-block");
+    if(!mailSent) {
+      ::Utils::mailForUnauthorizedUser(user.email(), user.identity(Auth::Identity::LoginName));
+      mailSent = true;
+    }
+    messagesContainer->addWidget(message);
+    message->bindWidget("refresh", refreshButton);
+    return;
+  }
+  q->addStyleClass("hidden"); // workaround: for wt 3.3.x hide() doesn't seem to work...
+  loggedIn.emit();
+}
+
+bool AuthPagePrivate::seedIfNoAdmins(dbo::Transaction& transaction, Auth::User &user)
+{
   dbo::collection<GroupPtr> adminGroups = session->find<Group>().where("is_admin = ?").bind(true);
   int adminUsersCount = 0;
   for(auto group: adminGroups) {
@@ -99,7 +117,7 @@ void AuthPagePrivate::authEvent() {
   }
   wApp->log("notice") << "adminUsersCount: " << adminUsersCount << ", admin groups: " << adminGroups.size();
   if(adminGroups.size() == 0 || adminUsersCount == 0) {
-    t.rollback();
+    transaction.rollback();
     WDialog *addMyselfToAdmins = new WDialog{wtr("admin_missing_dialog_title")};
     addMyselfToAdmins->contents()->addWidget(new WText{wtr("admin_missing_dialog_text").arg(user.identity("loginname")) });
     WLineEdit *groupName = new WLineEdit;
@@ -119,22 +137,11 @@ void AuthPagePrivate::authEvent() {
       authEvent();
     }).css("btn btn-primary"));
     addMyselfToAdmins->show();
-    return;
+    return true;
   }
-  if(session->user()->groups.size() <= 0) {
-    Message *message = WW<Message>("Your user is not yet authorized for viewing videos.<br />\
-    The administrator should already have received an email and will add you when possible.<br />${refresh}").addCss("alert-block");
-    if(!mailSent) {
-      ::Utils::mailForUnauthorizedUser(user.email(), user.identity(Auth::Identity::LoginName));
-      mailSent = true;
-    }
-    messagesContainer->addWidget(message);
-    message->bindWidget("refresh", refreshButton);
-    return;
-  }
-  q->setStyleClass("hidden"); // workaround: for wt 3.3.x hide() doesn't seem to work...
-  loggedIn.emit();
+  return false;
 }
+
 
 AuthPage::~AuthPage()
 {

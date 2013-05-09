@@ -19,6 +19,7 @@
 #define AUTHPAGE_H
 
 #include <Wt/WContainerWidget>
+#include <Wt/Dbo/Transaction>
 
 class Session;
 namespace StreamingPrivate {

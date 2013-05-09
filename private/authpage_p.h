@@ -37,6 +37,7 @@ public:
     void authEvent();
 private:
     class AuthPage* const q;
+    bool seedIfNoAdmins(Wt::Dbo::Transaction& transaction, Wt::Auth::User& user);
 };
 
 class AuthWidgetCustom : public Wt::Auth::AuthWidget {
