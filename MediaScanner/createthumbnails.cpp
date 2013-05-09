@@ -16,7 +16,7 @@
  */
 
 #include "createthumbnails.h"
-#include "createthumbnails_p.h"
+#include "private/createthumbnails_p.h"
 
 #include "ffmpegmedia.h"
 #include "mediaattachment.h"

@@ -2,7 +2,7 @@
 #include "session.h"
 #include <Wt/Utils>
 #include <Wt/WApplication>
-#include "mediacollection_p.h"
+#include "private/mediacollection_p.h"
 
 using namespace Wt;
 using namespace std;

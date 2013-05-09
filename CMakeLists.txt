@@ -3,7 +3,7 @@ project(videostreaming)
 add_definitions(-std=gnu++11)
 
 find_package(Wt REQUIRED)
-include_directories(${Wt_INCLUDE_DIR} ${CMAKE_SOURCE_DIR} private)
+include_directories(${Wt_INCLUDE_DIR} ${CMAKE_SOURCE_DIR} )
 
 
 set(Wt_CONNECTOR_LIBRARY "${Wt_HTTP_LIBRARY}")

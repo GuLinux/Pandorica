@@ -16,7 +16,7 @@
  */
 
 #include "utils.h"
-#include "utils_p.h"
+#include "private/utils_p.h"
 #include <fstream>
 #include <Wt/Json/Parser>
 #include <Wt/Json/Object>

@@ -79,7 +79,7 @@
 #include <Wt/WIOService>
 #include <Wt/WIOService>
 #include <Wt/WLabel>
-#include "streamingapp_p.h"
+#include "private/streamingapp_p.h"
 
 using namespace Wt;
 using namespace std;

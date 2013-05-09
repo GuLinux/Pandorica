@@ -16,7 +16,7 @@
  */
 
 #include "MediaScanner/scanmediainfostep.h"
-#include "MediaScanner/scanmediainfostep_p.h"
+#include "private/scanmediainfostep_p.h"
 #include <Wt/WProgressBar>
 #include <Wt/WText>
 #include <Wt/WApplication>

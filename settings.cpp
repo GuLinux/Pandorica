@@ -9,7 +9,7 @@
 #include <boost/algorithm/string.hpp>
 #include "player/html5player.h"
 #include "player/wmediaplayerwrapper.h"
-#include "settings_p.h"
+#include "private/settings_p.h"
 
 using namespace std;
 using namespace Wt;

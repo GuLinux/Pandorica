@@ -16,7 +16,7 @@
  */
 
 #include "MediaScanner/mediascannerdialog.h"
-#include "MediaScanner/mediascannerdialog_p.h"
+#include "private/mediascannerdialog_p.h"
 #include "scanmediainfostep.h"
 #include "createthumbnails.h"
 #include "savesubtitlestodatabase.h"

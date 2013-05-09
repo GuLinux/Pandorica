@@ -16,7 +16,7 @@
  */
 
 #include "savesubtitlestodatabase.h"
-#include "savesubtitlestodatabase_p.h"
+#include "private/savesubtitlestodatabase_p.h"
 #include <ffmpegmedia.h>
 #include <chrono>
 #include <Wt/WContainerWidget>
