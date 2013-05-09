@@ -200,11 +200,17 @@ UsersInGroupDialog::UsersInGroupDialog(GroupPtr group, Session* session): WDialo
       usersTable->elementAt(row, 1)->addWidget(new WText{authInfo->email()});
       usersTable->elementAt(row, 2)->addWidget(WW<WPushButton>(wtr("button.remove")).css("btn btn-danger").onClick([=](WMouseEvent) {
         Dbo::Transaction t(*session);
-        if(WMessageBox::show(wtr("delete.user.title"), wtr("delete.user.text")
-          .arg(authInfo->identity("loginname")).arg(group->groupName()), Yes | No) != Yes) return;
-        group.modify()->users.erase(user);
-        t.commit();
-        dataChanged.emit();
+        WMessageBox *messageBox = new WMessageBox{wtr("delete.user.title"), wtr("delete.user.text")
+        .arg(authInfo->identity("loginname")).arg(group->groupName()), Question, Yes | No};
+        messageBox->button(StandardButton::Yes)->clicked().connect([=](WMouseEvent) {
+          Dbo::Transaction t(*session);
+          group.modify()->users.erase(user);
+          t.commit();
+          dataChanged.emit();
+          messageBox->accept();
+        });
+        messageBox->button(StandardButton::No)->clicked().connect(messageBox, &WMessageBox::reject);
+        messageBox->show();
       }));
       usersTable->elementAt(row, 2)->addStyleClass("span1");
       row++;

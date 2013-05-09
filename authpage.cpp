@@ -27,6 +27,7 @@
 #include "session.h"
 #include "utils.h"
 #include <Wt/Dbo/Transaction>
+#include <Wt/WTimer>
 
 #include "group.h"
 #include "user.h"
@@ -76,6 +77,7 @@ void AuthPagePrivate::authEvent() {
     return;
   }
   log("notice") << "User logged in";
+  dbo::Transaction t(*session);
   //   changeSessionId();
   Auth::User user = session->login().user();
   WPushButton *refreshButton = WW<WPushButton>("Retry").css("btn btn-link").onClick([this](WMouseEvent) {
@@ -90,7 +92,6 @@ void AuthPagePrivate::authEvent() {
     return;
   }
   log("notice") << "User email confirmed";
-  dbo::Transaction t(*session);
   dbo::collection<GroupPtr> adminGroups = session->find<Group>().where("is_admin = ?").bind(true);
   int adminUsersCount = 0;
   for(auto group: adminGroups) {

@@ -123,20 +123,19 @@ StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(
   
   root()->addWidget(d->authPage = new AuthPage(&d->session));
   d->authPage->loggedIn().connect(this, &StreamingApp::authEvent);
-  d->authPage->loggedOut().connect(d, &StreamingAppPrivate::clearContent);
-}
-
-
-void StreamingAppPrivate::clearContent()
-{
-  delete mainWidget;
-  mainWidget = 0;
+  d->authPage->loggedOut().connect([=](_n6) {
+    delete d->mainWidget;
+    d->mainWidget = 0;
+    d->userId = -1;
+  });
+  d->authPage->initAuth();
 }
 
 
 void StreamingApp::authEvent()
 {
   Dbo::Transaction t(d->session);
+  d->userId = d->session.user().id();
   log("notice") << "Clearing root and creating widgets";
   root()->addWidget(d->mainWidget = new WContainerWidget() );
   auto myUser = d->session.user();
@@ -488,8 +487,7 @@ void StreamingAppPrivate::play ( Media media ) {
   playerContainerWidget->addWidget(container);
   WContainerWidget* infoBox = new WContainerWidget;
   playerContainerWidget->addWidget(infoBox);
-  string fileId {Utils::hexEncode(Utils::md5(media.path().string()))};
-  playerContainerWidget->addWidget(new CommentsContainerWidget{fileId, &session});
+  playerContainerWidget->addWidget(new CommentsContainerWidget{media.uid(), &session});
   infoBox->addWidget(new WText{media.title(&session)});
   /** TODO: apparently unsupported :(
   infoBox->addWidget(new WBreak() );
@@ -499,7 +497,7 @@ void StreamingAppPrivate::play ( Media media ) {
   infoBox->addWidget(WW(WContainerWidget).add(resizeSmall).add(resizeMedium).add(resizeLarge));
   */
   infoBox->addWidget(new WBreak );
-  infoBox->addWidget(WW<WAnchor>(settings.shareLink(fileId), wtr("player.sharelink")).css("btn btn-success btn-mini"));
+  infoBox->addWidget(WW<WAnchor>(settings.shareLink(media.uid()), wtr("player.sharelink")).css("btn btn-success btn-mini"));
   infoBox->addWidget(new WText{" "});
   WAnchor *downloadLink = WW<WAnchor>(mediaLink, wtr("player.downloadlink")).css("btn btn-success btn-mini");
   downloadLink->setTarget(Wt::TargetNewWindow);
@@ -540,7 +538,7 @@ void endSessionOnDatabase(string sessionId, long userId) {
 StreamingApp::~StreamingApp() {
   WServer::instance()->log("notice") << "Destroying app";
   if(d->session.login().loggedIn()) {
-    WServer::instance()->ioService().post(boost::bind(endSessionOnDatabase, sessionId(), d->session.user().id()));
+    WServer::instance()->ioService().post(boost::bind(endSessionOnDatabase, sessionId(), d->userId));
   }
   delete d;
   WServer::instance()->log("notice") << "Deleted-pointer";
