@@ -27,7 +27,6 @@ namespace StreamingPrivate {
     void setupAdminMenus(Wt::WMenu* mainMenu);
     Session session;
     StreamingApp *q;
-    void clearContent();
     Wt::WContainerWidget *mainWidget = 0;
     AuthPage *authPage;
     Wt::WTemplate* topBarTemplate;
@@ -40,6 +39,7 @@ namespace StreamingPrivate {
     Settings settings;
     MediaCollectionBrowser* mediaCollectionBrowser;
     MediaCollection* mediaCollection;
+    long userId = -1;
   private:
     void setupUserMenus(Wt::WMenu* mainMenu);
     Wt::WMenuItem* activeUsersMenuItem;
