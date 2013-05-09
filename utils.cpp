@@ -31,7 +31,7 @@
 using namespace std;
 using namespace Wt;
 
-using namespace Streaming;
+using namespace StreamingPrivate;
 
 UtilsPrivate::UtilsPrivate(Utils* q) : q(q)
 {

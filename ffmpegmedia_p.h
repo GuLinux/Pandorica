@@ -28,6 +28,7 @@ extern "C" {
   #include <libavutil/avutil.h>
 }
 
+namespace StreamingPrivate {
 class FFMPEGMediaPrivate
 {
 public:
@@ -48,5 +49,5 @@ public:
 private:
     class FFMPEGMedia* const q;
 };
-
+}
 #endif // FFMPEGMEDIAPRIVATE_H

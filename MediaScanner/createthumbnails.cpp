@@ -49,6 +49,7 @@ using namespace std;
 using namespace std::chrono;
 using namespace ffmpegthumbnailer;
 
+using namespace StreamingPrivate;
 
 time_point<high_resolution_clock> serverStartTimeForRandomSeeding{high_resolution_clock::now()};
 mt19937_64 randomEngine{(uint64_t) serverStartTimeForRandomSeeding.time_since_epoch().count()};

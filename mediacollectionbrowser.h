@@ -5,7 +5,9 @@
 #include "mediacollection.h"
 
 class Session;
-class MediaCollectionBrowserPrivate;
+namespace StreamingPrivate {
+  class MediaCollectionBrowserPrivate;
+}
 class MediaCollection;
 class Settings;
 
@@ -19,7 +21,7 @@ public:
   Wt::Signal<Media> &play();
   void reload();
 private:
-  MediaCollectionBrowserPrivate *const d;
+  StreamingPrivate::MediaCollectionBrowserPrivate *const d;
 };
 
 #endif // MEDIACOLLECTIONBROWSER_H

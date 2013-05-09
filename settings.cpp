@@ -9,21 +9,15 @@
 #include <boost/algorithm/string.hpp>
 #include "player/html5player.h"
 #include "player/wmediaplayerwrapper.h"
+#include "settings_p.h"
 
 using namespace std;
 using namespace Wt;
 using namespace boost;
+using namespace StreamingPrivate;
 
 namespace fs=boost::filesystem;
 
-class SettingsPrivate {
-public:
-  SettingsPrivate(Settings *q) : q(q) {}
-  WLink lightySecDownloadLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p);
-  WLink nginxSecLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p);
-  Settings *q;
-  map<string,string> sessionSettings;
-};
 const std::string Settings::downloadSource = "download_src";
 const std::string Settings::mediaAutoplay = "media_autoplay";
 const std::string Settings::preferredPlayer = "player";

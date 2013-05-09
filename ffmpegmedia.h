@@ -32,6 +32,9 @@ namespace FFMPEG {
     std::map<std::string,std::string> metadata;
   };
 };
+namespace StreamingPrivate {
+  class FFMPEGMediaPrivate;
+}
 
 class FFMPEGMedia
 {
@@ -45,7 +48,7 @@ public:
   std::string metadata(std::string key) const;
   std::vector<FFMPEG::Stream> streams() const;
 private:
-    class FFMPEGMediaPrivate* const d;
+  StreamingPrivate::FFMPEGMediaPrivate* const d;
 };
 
 #endif // FFMPEGMEDIA_H

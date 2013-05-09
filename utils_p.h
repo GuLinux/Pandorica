@@ -19,25 +19,24 @@
 #define UTILSPRIVATE_H
 #include <vector>
 
-namespace Streaming {
-  class Utils;
-  
-  class UtilsPrivate
-  {
-  public:
-    UtilsPrivate(Streaming::Utils* q);
+class Utils;
+namespace StreamingPrivate {
+
+class UtilsPrivate
+{
+public:
+    UtilsPrivate(::Utils* q);
     virtual ~UtilsPrivate();
-    
-  private:
-    class Streaming::Utils* const q;
-  };
-  
-  
-  struct FindAndReplace {
+
+private:
+    class ::Utils* const q;
+};
+
+
+struct FindAndReplace {
     std::string regexToFind;
     std::string replacement;
     static std::vector<FindAndReplace> from(std::string filename);
-  };
-
+};
 }
 #endif // UTILSPRIVATE_H

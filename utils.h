@@ -20,7 +20,9 @@
 
 #include <string>
 #include <Wt/WString>
-namespace Streaming {
+namespace StreamingPrivate {
+  class UtilsPrivate;
+}
 class Utils
 {
 public:
@@ -31,8 +33,7 @@ public:
     static void mailForNewAdmin(std::string email, Wt::WString identity);
     
 private:
-    class UtilsPrivate* const d;
+  StreamingPrivate::UtilsPrivate* const d;
 };
 
-}
 #endif // UTILS_H

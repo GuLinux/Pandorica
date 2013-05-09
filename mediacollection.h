@@ -7,7 +7,9 @@
 #include "media.h"
 
 class Session;
-class MediaCollectionPrivate;
+namespace StreamingPrivate {
+  class MediaCollectionPrivate;
+}
 class MediaCollection : public Wt::WObject
 {
 public:
@@ -19,7 +21,7 @@ public:
     Media media(std::string uid) const;
     Wt::Signal<> &scanned();
 private:
-  MediaCollectionPrivate *const d;
+  StreamingPrivate::MediaCollectionPrivate *const d;
 };
 
 #endif // MEDIACOLLECTION_H

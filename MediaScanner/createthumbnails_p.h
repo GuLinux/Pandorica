@@ -29,6 +29,8 @@ class WText;
 class WContainerWidget;
 class WMemoryResource;
 }
+
+namespace StreamingPrivate {
 typedef std::function<void(int,std::string)> UpdateGuiProgress;
 
 struct ThumbnailPosition {
@@ -58,6 +60,6 @@ private:
     double duration;
     Wt::WMemoryResource *thumbnail = 0;
 };
-
+}
 #endif // CREATETHUMBNAILSPRIVATE_H
 

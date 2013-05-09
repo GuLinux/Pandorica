@@ -20,6 +20,7 @@
 
 using namespace std;
 using namespace FFMPEG;
+using namespace StreamingPrivate;
 
 FFMPEGMediaPrivate::FFMPEGMediaPrivate(const Media& media, FFMPEGMedia* q) : media(media), q(q), filename(media.fullPath().c_str())
 {

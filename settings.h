@@ -6,7 +6,9 @@
 #include "media.h"
 
 class Player;
-class SettingsPrivate;
+namespace StreamingPrivate {
+  class SettingsPrivate;
+}
 class Settings
 {
 
@@ -29,7 +31,7 @@ public:
     enum Icons { FolderBig, FolderSmall, VideoFile, AudioFile };
     static std::string icon(Icons icon);
 private:
-  SettingsPrivate *const d;
+  StreamingPrivate::SettingsPrivate *const d;
 };
 
 #endif // SETTINGS_H
