@@ -20,48 +20,13 @@
 #include <Wt/WMessageBox>
 #include <Wt/WLineEdit>
 #include <Wt/WPushButton>
+#include "private/mediacollectionbrowser_p.h"
 
 using namespace Wt;
 using namespace std;
 using namespace boost;
 using namespace StreamingPrivate;
 namespace fs = boost::filesystem;
-
-typedef pair<string,Media> MediaEntry;
-typedef std::function<string(WObject*)> GetIconF;
-
-struct Popover {
-  WString title;
-  WString text;
-  bool isValid() const { return !title.empty() && !text.empty(); }
-};
-
-class StreamingPrivate::MediaCollectionBrowserPrivate {
-public:
-  MediaCollectionBrowserPrivate(MediaCollection *collection, Settings *settings, Session *session, MediaCollectionBrowser *q)
-    : collection(collection) , settings(settings), session(session), q(q) {}
-    void rebuildBreadcrumb();
-    void browse(filesystem::path currentPath);
-public:
-  bool isAdmin = false;
-  MediaCollection *const collection;
-  Settings *settings;
-  Session *session;
-  filesystem::path currentPath;
-  WContainerWidget* breadcrumb;
-  WContainerWidget* browser;
-  Signal< Media > playSignal;
-  Signal< Media > queueSignal;
-  bool roleWasFetched = false;
-private:
-  void addDirectory(filesystem::path directory);
-  void addMedia(Media& media);
-  WContainerWidget* addIcon(WString filename, GetIconF icon, MouseEventListener onClick, Popover popover = Popover());
-  string formatFileSize(long size);
-    void setTitleFor(Media media);
-    void clearThumbnailsFor(Media media);
-  MediaCollectionBrowser* q;
-};
 
 MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Settings* settings, Session* session, WContainerWidget* parent)
   : WContainerWidget(parent), d(new MediaCollectionBrowserPrivate(collection, settings, session, this))
@@ -73,6 +38,7 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Sett
   addWidget(d->breadcrumb);
   addWidget(d->browser);
   d->currentPath = d->collection->rootPath();
+  collection->scanned().connect(this, &MediaCollectionBrowser::reload);
 }
 
 void MediaCollectionBrowser::reload()

@@ -4,11 +4,15 @@
 #include <Wt/WSignal>
 #include "media.h"
 
+namespace Wt {
+class WApplication;
+}
+
 class Session;
 namespace StreamingPrivate {
 class MediaCollectionPrivate {
 public:
-  MediaCollectionPrivate(std::string basePath, Session *session) : basePath(basePath), session(session) {}
+  MediaCollectionPrivate(std::string basePath, Session *session, Wt::WApplication *app) : basePath(basePath), session(session), app(app) {}
   void listDirectory(boost::filesystem::path path);
   bool isAllowed(boost::filesystem::path path);
 public:
@@ -17,6 +21,7 @@ public:
   Wt::Signal<> scanned;
   Session *session;
   std::list<std::string> allowedPaths;
+  Wt::WApplication *app;
 };
 }
 #endif
