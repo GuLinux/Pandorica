@@ -2,6 +2,8 @@
 #include "session.h"
 #include <Wt/Utils>
 #include <Wt/WApplication>
+#include <Wt/WServer>
+#include <thread>
 #include "private/mediacollection_p.h"
 
 using namespace Wt;
@@ -12,8 +14,8 @@ using namespace StreamingPrivate;
 
 namespace fs = boost::filesystem;
 
-MediaCollection::MediaCollection(string basePath, Session* session, WObject* parent)
-  : WObject(parent), d(new MediaCollectionPrivate(basePath, session))
+MediaCollection::MediaCollection(string basePath, Session* session, WApplication* parent)
+  : WObject(parent), d(new MediaCollectionPrivate(basePath, session, parent))
 {
 }
 
@@ -23,7 +25,11 @@ void MediaCollection::rescan()
   d->allowedPaths = d->session->user()->allowedPaths();
   d->collection.clear();
   d->listDirectory(d->basePath);
-  d->scanned.emit();
+  // TODO: muovere su nuovo thread, al momento pare non andare (eccezione postgres)
+//   WServer::instance()->post(d->app->sessionId(), [=] {
+    d->scanned.emit();
+//     wApp->triggerUpdate();
+//   });
 }
 
 bool MediaCollectionPrivate::isAllowed(filesystem::path path)

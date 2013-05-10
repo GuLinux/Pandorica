@@ -108,6 +108,8 @@ void MediaScannerDialog::run()
       stepContainers.second->clear();
     wApp->triggerUpdate();
   };
+  // TODO: muovere nel thread, appena MediaCollection::rescan() diventa thread safe
+  d->mediaCollection->rescan();
   boost::thread t( boost::bind(&MediaScannerDialogPrivate::scanMedias, d, wApp, updateProgressBar, enableCloseButton) );
 }
 
