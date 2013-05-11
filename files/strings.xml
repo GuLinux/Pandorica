@@ -63,7 +63,10 @@
   <message id="player.resizeMedium">Medium</message>
   <message id="player.resizeLarge">Large</message>
   
-  <message id="player.avg.ratings">Users rating: </message>
+  <message id="player.avg.ratings">
+    <plural case="0">Rating of one user: </plural>
+    <plural case="1">Rating of {1} users: </plural>
+  </message>
   <message id="player.do.rate">Rate</message>
   
   <!-- settings -->

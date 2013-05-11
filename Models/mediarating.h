@@ -7,6 +7,12 @@
 
 class Media;
 class User;
+
+struct Ratings {
+  long users;
+  int ratingAverage;
+};
+
 class MediaRating {
 
 public:
@@ -23,7 +29,7 @@ public:
   Wt::Dbo::ptr<User> user() { return _user; }
   std::string mediaId() const{ return _mediaId; }
   int rating() const { return _rating; }
-  static int ratingFor(const Media &media, Wt::Dbo::Transaction &transaction);
+  static Ratings ratingFor(const Media &media, Wt::Dbo::Transaction &transaction);
   void setRating(int newRating) { _rating = newRating; }
 private:
   Wt::Dbo::ptr<User> _user;

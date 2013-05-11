@@ -500,10 +500,10 @@ void StreamingAppPrivate::play ( Media media ) {
   
   auto populateRating = [=] (Dbo::Transaction &transaction) {
     avgRatingWidget->clear();
-    avgRatingWidget->addWidget(new WText(wtr("player.avg.ratings")));
-    int rating = MediaRating::ratingFor(media, transaction);
+    Ratings rating = MediaRating::ratingFor(media, transaction);
+    avgRatingWidget->addWidget(new WText( WString::trn("player.avg.ratings", rating.users).arg(rating.users) ));
     for(int i=1; i<=5; i++) {
-      avgRatingWidget->addWidget(WW<WImage>("http://gulinux.net/css/rating.png").css(rating<i ? "rating-unrated" : ""));
+      avgRatingWidget->addWidget(WW<WImage>("http://gulinux.net/css/rating.png").css(rating.ratingAverage <i ? "rating-unrated" : ""));
     }
   };
   auto setRating = [=] (int rating) {
