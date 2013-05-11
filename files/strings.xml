@@ -67,7 +67,7 @@
     <plural case="0">Rating of one user: </plural>
     <plural case="1">Rating of {1} users: </plural>
   </message>
-  <message id="player.do.rate">Rate</message>
+  <message id="player.do.rate">Rate: </message>
   
   <!-- settings -->
   <message id="settings.header"><h3>Settings</h3></message>
