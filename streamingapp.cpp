@@ -492,7 +492,6 @@ void StreamingAppPrivate::play ( Media media ) {
   WAnchor *resizeLarge = WW(WAnchor, "#", wtr("player.resizeLarge")).css("btn btn-info btn-mini").onClick([=](WMouseEvent){player->setPlayerSize(1420);});
   infoBox->addWidget(WW(WContainerWidget).add(resizeSmall).add(resizeMedium).add(resizeLarge));
   */
-  infoBox->addWidget(new WBreak);
   
   WContainerWidget *ratingWidget = WW<WContainerWidget>().css("rating-container");
   WContainerWidget *avgRatingWidget = WW<WContainerWidget>().css("rating-box");
@@ -526,7 +525,6 @@ void StreamingAppPrivate::play ( Media media ) {
   infoBox->addWidget(ratingWidget);
   
   
-  infoBox->addWidget(new WBreak );
   infoBox->addWidget(WW<WAnchor>(settings.shareLink(media.uid()), wtr("player.sharelink")).css("btn btn-success btn-mini"));
   infoBox->addWidget(new WText{" "});
   WAnchor *downloadLink = WW<WAnchor>(mediaLink, wtr("player.downloadlink")).css("btn btn-success btn-mini");
