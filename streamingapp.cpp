@@ -461,7 +461,7 @@ void StreamingAppPrivate::play ( Media media ) {
     if(media.mimetype().find("audio") == string::npos)
       player->setPoster(resource->url());
     else {
-      container->addWidget(new WImage{resource});
+      container->addWidget(WW<WImage>(resource).css("album-cover"));
     }
   }
   Dbo::Transaction t(session);
