@@ -3,7 +3,7 @@ project(videostreaming)
 add_definitions(-std=gnu++11)
 
 find_package(Wt REQUIRED)
-include_directories(${Wt_INCLUDE_DIR} ${CMAKE_SOURCE_DIR} )
+include_directories(${Wt_INCLUDE_DIR} ${CMAKE_SOURCE_DIR} Models )
 
 
 set(Wt_CONNECTOR_LIBRARY "${Wt_HTTP_LIBRARY}")
@@ -21,9 +21,40 @@ STRING(REGEX MATCH ".*Zerogoki.*" HOST_IS_ZEROGOKI "${HOSTNAME}")
 
 SET(INSTALL_DIR "/home/www-data/data/videostreaming" CACHE STRING "Install directory for Wt Applications and files")
 
-add_executable(videostreaming authpage.cpp utils.cpp MediaScanner/savesubtitlestodatabase.cpp MediaScanner/createthumbnails.cpp MediaScanner/scanmediainfostep.cpp MediaScanner/mediascannerdialog.cpp ffmpegmedia.cpp latestcommentsdialog.cpp groupsdialog.cpp user.cpp group.cpp settingspage.cpp settings.cpp media.cpp mediacollectionbrowser.cpp mediacollection.cpp Wt-Commons/whtmltemplateslocalizedstrings.cpp player/html5player.cpp 
- commentscontainerwidget.cpp sessiondetailsdialog.cpp customitemdelegates.cpp loggedusersdialog.cpp playlist.cpp session.cpp 
-player/videojs.cpp player/wmediaplayerwrapper.cpp streamingapp.cpp main.cpp)
+SET( models_srcs Models/group.cpp Models/user.cpp )
+SET( Wt_Commons_srcs Wt-Commons/whtmltemplateslocalizedstrings.cpp )
+SET( mediascanner_srcs
+    MediaScanner/savesubtitlestodatabase.cpp
+    MediaScanner/createthumbnails.cpp
+    MediaScanner/scanmediainfostep.cpp
+    MediaScanner/mediascannerdialog.cpp
+)
+SET( player_srcs
+    player/videojs.cpp
+    player/wmediaplayerwrapper.cpp
+    player/html5player.cpp
+)
+
+add_executable(videostreaming ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs} ${player_srcs}
+    authpage.cpp
+    utils.cpp
+    ffmpegmedia.cpp
+    latestcommentsdialog.cpp
+    groupsdialog.cpp
+    settingspage.cpp
+    settings.cpp
+    media.cpp
+    mediacollectionbrowser.cpp
+    mediacollection.cpp 
+    commentscontainerwidget.cpp
+    sessiondetailsdialog.cpp
+    customitemdelegates.cpp
+    loggedusersdialog.cpp
+    playlist.cpp
+    session.cpp 
+    streamingapp.cpp
+    main.cpp
+)
 
 
 string(TOLOWER ${CMAKE_BUILD_TYPE} build_type)
