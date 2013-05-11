@@ -258,11 +258,14 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   
   WSuggestionPopup* suggestions = new WSuggestionPopup(jsMatcher, jsReplace, wApp->root());
   auto addSuggestions = [=](_n6) {
+    suggestions->clearSuggestions();
     for(pair<string,Media> media: mediaCollection->collection()) {
       WString title{media.second.title(&session)};
       suggestions->addSuggestion(title, media.first);
+      /*
       if(title.toUTF8() != media.second.filename())
         suggestions->addSuggestion(media.second.filename(), media.first); // TODO check di consistenza
+        */
     }
     suggestions->forEdit(searchBox);
   };
