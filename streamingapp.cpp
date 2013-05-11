@@ -495,8 +495,8 @@ void StreamingAppPrivate::play ( Media media ) {
   infoBox->addWidget(new WBreak);
   
   WContainerWidget *ratingWidget = new WContainerWidget;
-  WContainerWidget *avgRatingWidget = new WContainerWidget;
-  WContainerWidget *myRating = new WContainerWidget;
+  WContainerWidget *avgRatingWidget = WW<WContainerWidget>().css("rating-box");
+  WContainerWidget *myRating = WW<WContainerWidget>().css("rating-box");
   
   auto populateRating = [=] (Dbo::Transaction &transaction) {
     avgRatingWidget->clear();
