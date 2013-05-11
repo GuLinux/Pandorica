@@ -494,7 +494,7 @@ void StreamingAppPrivate::play ( Media media ) {
   */
   infoBox->addWidget(new WBreak);
   
-  WContainerWidget *ratingWidget = new WContainerWidget;
+  WContainerWidget *ratingWidget = WW<WContainerWidget>().css("rating-container");
   WContainerWidget *avgRatingWidget = WW<WContainerWidget>().css("rating-box");
   WContainerWidget *myRating = WW<WContainerWidget>().css("rating-box");
   
