@@ -20,9 +20,6 @@
 
 #include "loggedusersdialog.h"
 #include "session.h"
-#include "sessioninfo.h"
-#include "comment.h"
-#include "sessiondetails.h"
 #include "customitemdelegates.h"
 #include "sessiondetailsdialog.h"
 #include <Wt/Dbo/QueryModel>
@@ -39,6 +36,8 @@
 #include <Wt/Auth/Dbo/AuthInfo>
 #include <Wt/WSortFilterProxyModel>
 #include <Wt-Commons/wt_helpers.h>
+
+#include "Models/models.h"
 
 using namespace Wt;
 using namespace std;

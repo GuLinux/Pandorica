@@ -63,6 +63,9 @@
   <message id="player.resizeMedium">Medium</message>
   <message id="player.resizeLarge">Large</message>
   
+  <message id="player.avg.ratings">Users rating: </message>
+  <message id="player.do.rate">Rate</message>
+  
   <!-- settings -->
   <message id="settings.header"><h3>Settings</h3></message>
   <message id="settings.footer">* Settings are stored in cookies, so be aware that they might reset if you delete them, or change your browser or computer.</message>

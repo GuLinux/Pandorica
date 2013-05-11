@@ -15,9 +15,9 @@
 #include <Wt/Dbo/backend/Sqlite3>
 #include <Wt/Auth/PasswordService>
 #include <Wt/Auth/AuthService>
+#include <Models/user.h>
 
-#include "user.h"
-#include "group.h"
+
 
 namespace dbo = Wt::Dbo;
 

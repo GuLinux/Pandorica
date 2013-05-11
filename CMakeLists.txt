@@ -3,7 +3,7 @@ project(videostreaming)
 add_definitions(-std=gnu++11)
 
 find_package(Wt REQUIRED)
-include_directories(${Wt_INCLUDE_DIR} ${CMAKE_SOURCE_DIR} Models )
+include_directories(${Wt_INCLUDE_DIR} ${CMAKE_SOURCE_DIR} )
 
 
 set(Wt_CONNECTOR_LIBRARY "${Wt_HTTP_LIBRARY}")
@@ -21,7 +21,7 @@ STRING(REGEX MATCH ".*Zerogoki.*" HOST_IS_ZEROGOKI "${HOSTNAME}")
 
 SET(INSTALL_DIR "/home/www-data/data/videostreaming" CACHE STRING "Install directory for Wt Applications and files")
 
-SET( models_srcs Models/group.cpp Models/user.cpp )
+SET( models_srcs Models/group.cpp Models/user.cpp Models/mediarating.cpp )
 SET( Wt_Commons_srcs Wt-Commons/whtmltemplateslocalizedstrings.cpp )
 SET( mediascanner_srcs
     MediaScanner/savesubtitlestodatabase.cpp

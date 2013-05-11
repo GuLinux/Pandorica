@@ -32,13 +32,11 @@
 #include <thread>
 
 #include "ffmpegmedia.h"
-#include "mediaattachment.h"
 #include <Wt/Dbo/Session>
-#include "sessioninfo.h"
-#include "sessiondetails.h"
-#include "comment.h"
+
 #include "utils.h"
 
+#include "Models/models.h"
 
 using namespace Wt;
 using namespace std;

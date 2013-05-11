@@ -136,6 +136,8 @@
   <!-- player -->
   <message id="player.sharelink">Link per la condivisione</message>
   <message id="player.downloadlink.tooltip">Per scaricare correttamente il file, clicca col tasto destro sul link e scegli "Salva con nome"</message>
+  <message id="player.avg.ratings">Voto degli utenti: </message>
+  <message id="player.do.rate">Vota</message>
   
   <message id="player.resizeSmall">Piccolo</message>
   <message id="player.resizeMedium">Medio</message>

@@ -11,6 +11,8 @@
 #include <Wt/Dbo/Types>
 #include <Wt/WGlobal>
 
+class Media;
+class MediaRating;
 class Group;
 class SessionInfo;
 class Comment;
@@ -29,14 +31,18 @@ public:
     dbo::hasMany(a, sessionInfos, dbo::ManyToOne, "user");
     dbo::hasMany(a, comments, dbo::ManyToOne, "user");
     dbo::hasMany(a, groups, dbo::ManyToMany, "groups_users");
+    dbo::hasMany(a, ratings, dbo::ManyToOne, "user");
   }
+  
+  static void rate(dbo::ptr<User> userPtr, const Media &media, int rating, Wt::Dbo::Transaction &transaction);
   
   bool isAdmin() const;
   std::list<std::string> allowedPaths() const;
   
   dbo::collection<dbo::ptr<SessionInfo>> sessionInfos;
   dbo::collection<dbo::ptr<Comment>> comments;
-  dbo::collection< dbo::ptr<Group> > groups;
+  dbo::collection< dbo::ptr<Group>> groups;
+  dbo::collection<dbo::ptr<MediaRating>> ratings;
 };
 
 typedef dbo::ptr<User> UserPtr;

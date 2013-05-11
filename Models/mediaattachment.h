@@ -26,6 +26,7 @@ public:
   inline int height() const { return _height; }
   void setTitle(std::string title) { _title = title; }
   MediaProperties() = default;
+  // TODO: int64_t => uint64_t
   MediaProperties(std::string mediaId, std::string title, std::string filename, int64_t duration, int64_t size, int width, int height)
     : _mediaId(mediaId), _title(title), _filename(filename), _duration(duration), _size(size), _width(width), _height(height) {}
 private:

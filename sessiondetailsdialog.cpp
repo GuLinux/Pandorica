@@ -1,8 +1,5 @@
 #include "sessiondetailsdialog.h"
 #include "session.h"
-#include "sessioninfo.h"
-#include "sessiondetails.h"
-#include "comment.h"
 #include "customitemdelegates.h"
 #include <Wt/Dbo/QueryModel>
 #include <Wt/WTableView>
@@ -10,6 +7,8 @@
 #include <Wt/WTimer>
 #include <Wt/WPushButton>
 #include <Wt-Commons/wt_helpers.h>
+
+#include "Models/models.h"
 
 using namespace std;
 using namespace Wt;
