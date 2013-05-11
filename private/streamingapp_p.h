@@ -42,6 +42,7 @@ namespace StreamingPrivate {
     long userId = -1;
   private:
     void setupUserMenus(Wt::WMenu* mainMenu);
+    void ratingFor(Media media, Wt::Dbo::Transaction t);
     Wt::WMenuItem* activeUsersMenuItem;
     Wt::WNavigationBar* navigationBar;
     Wt::WMenuItem* mediaListMenuItem;

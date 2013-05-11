@@ -1,6 +1,5 @@
 #include "commentscontainerwidget.h"
 #include "session.h"
-#include "comment.h"
 #include <Wt/Dbo/QueryModel>
 #include <Wt/WApplication>
 #include <Wt/WViewWidget>
@@ -10,9 +9,9 @@
 #include <boost/function.hpp>
 #include "Wt-Commons/wt_helpers.h"
 
-#include "sessioninfo.h"
-#include "sessiondetails.h"
 #include "streamingapp.h"
+
+#include "Models/models.h"
 
 using namespace Wt;
 using namespace boost;

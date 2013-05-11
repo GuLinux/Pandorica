@@ -22,15 +22,10 @@
 #include <map>
 #include "settings.h"
 #include "Wt/WApplication"
-#include "mediaattachment.h"
 #include "session.h"
-#include "group.h"
-#include "sessioninfo.h"
-#include "user.h"
-#include "sessiondetails.h"
-#include "comment.h"
 #include "settings.h"
 #include <boost/filesystem.hpp>
+#include "Models/models.h"
 
 using namespace Wt;
 using namespace std;

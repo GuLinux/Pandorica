@@ -29,11 +29,7 @@
 #include <Wt/Dbo/Transaction>
 #include <Wt/WTimer>
 
-#include "group.h"
-#include "user.h"
-#include "comment.h"
-#include "sessioninfo.h"
-#include "sessiondetails.h"
+#include "Models/models.h"
 
 using namespace StreamingPrivate;
 using namespace std;

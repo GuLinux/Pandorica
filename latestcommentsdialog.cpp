@@ -1,18 +1,15 @@
 #include "latestcommentsdialog.h"
 #include "session.h"
-#include "comment.h"
 
 #include "Wt-Commons/wt_helpers.h"
 #include "mediacollection.h"
 #include <Wt/Auth/Dbo/AuthInfo>
 
-#include "sessioninfo.h"
-#include "sessiondetails.h"
 #include <Wt/WText>
 #include <Wt/WAnchor>
 #include <Wt/WPushButton>
-#include "user.h"
 
+#include "Models/models.h"
 
 using namespace Wt;
 

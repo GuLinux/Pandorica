@@ -19,11 +19,7 @@
 #include "private/createthumbnails_p.h"
 
 #include "ffmpegmedia.h"
-#include "mediaattachment.h"
 #include "session.h"
-#include "sessioninfo.h"
-#include "sessiondetails.h"
-#include "comment.h"
 #include <Wt/WProgressBar>
 #include <Wt/WText>
 #include <Wt/WPushButton>
@@ -43,6 +39,8 @@
 #include <chrono>
 #include <random>
 #include <thread>
+
+#include "Models/models.h"
 
 using namespace Wt;
 using namespace std;

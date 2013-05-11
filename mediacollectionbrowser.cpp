@@ -7,11 +7,7 @@
 #include <Wt/WMemoryResource>
 #include "Wt-Commons/wt_helpers.h"
 #include "settings.h"
-#include "mediaattachment.h"
 #include "session.h"
-#include "sessioninfo.h"
-#include "sessiondetails.h"
-#include "comment.h"
 #include "utils.h"
 #include <boost/format.hpp>
 #include <algorithm>
@@ -21,6 +17,7 @@
 #include <Wt/WLineEdit>
 #include <Wt/WPushButton>
 #include "private/mediacollectionbrowser_p.h"
+#include "Models/models.h"
 
 using namespace Wt;
 using namespace std;

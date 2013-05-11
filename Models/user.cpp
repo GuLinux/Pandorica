@@ -1,11 +1,7 @@
-#include "user.h"
-#include "group.h"
 #include <Wt/Dbo/Dbo>
 #include "session.h"
-#include "sessioninfo.h"
-#include "sessiondetails.h"
-#include "comment.h"
-#include "mediaattachment.h"
+#include "Models/models.h"
+#include <media.h>
 
 using namespace std;
 
@@ -25,3 +21,15 @@ list<string> User::allowedPaths() const
   }
   return paths;
 }
+
+void User::rate(Wt::Dbo::ptr< User > userPtr, const Media& media, int rating, Wt::Dbo::Transaction& transaction) {
+  MediaRatingPtr previousRating = transaction.session().find<MediaRating>()
+    .where("user_id = ?").bind(userPtr.id())
+    .where("media_id = ?").bind(media.uid());
+  if(!previousRating) {
+    transaction.session().add(new MediaRating{userPtr, media.uid(), rating});
+    return;
+  }
+  previousRating.modify()->setRating(rating);
+}
+

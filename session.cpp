@@ -5,8 +5,7 @@
  */
 
 #include "session.h"
-#include "sessioninfo.h"
-#include "sessiondetails.h"
+
 #include "Wt/Auth/AuthService"
 #include "Wt/Auth/HashFunction"
 #include "Wt/Auth/PasswordService"
@@ -22,9 +21,9 @@
 #include <Wt/WServer>
 #include <iostream>
 #include <fstream>
-#include "comment.h"
-#include "mediaattachment.h"
 #include "private/session_p.h"
+
+#include "Models/models.h"
 
 namespace {
   class MyOAuth : public std::vector<const Wt::Auth::OAuthService *>
@@ -87,6 +86,7 @@ Session::Session()
   mapClass<AuthInfo::AuthTokenType>("auth_token");
   mapClass<MediaProperties>("media_properties");
   mapClass<MediaAttachment>("media_attachment");
+  mapClass<MediaRating>("media_rating");
   ofstream schema;
   schema.open("schema.sql");
   schema << tableCreationSql();

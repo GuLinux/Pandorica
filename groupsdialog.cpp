@@ -20,6 +20,7 @@
 
 #include "groupsdialog.h"
 #include "Wt-Commons/wt_helpers.h"
+#include "Models/models.h"
 #include "session.h"
 #include <Wt/WContainerWidget>
 #include <Wt/WLineEdit>
@@ -28,11 +29,6 @@
 #include <Wt/WText>
 #include <Wt/WTable>
 
-#include "group.h"
-#include "sessioninfo.h"
-#include "user.h"
-#include "sessiondetails.h"
-#include "comment.h"
 #include "settings.h"
 
 #include <Wt/Dbo/Dbo>

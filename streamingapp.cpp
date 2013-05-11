@@ -21,8 +21,6 @@
 #include "streamingapp.h"
 #include "player/player.h"
 #include <Wt/WTemplate>
-#include <Wt/WHBoxLayout>
-#include <Wt/WVBoxLayout>
 #include <Wt/WContainerWidget>
 #include <Wt/WAnchor>
 #include <Wt/WFileResource>
@@ -40,26 +38,23 @@
 #include <functional>
 #include <iostream>
 #include <fstream>
-#include "comment.h"
 
 #include "playlist.h"
 #include "session.h"
-#include "sessioninfo.h"
 #include "loggedusersdialog.h"
 #include "Wt-Commons/wt_helpers.h"
 
-#include "sessiondetails.h"
 #include "commentscontainerwidget.h"
 #include "Wt-Commons/whtmltemplateslocalizedstrings.h"
 #include "mediacollection.h"
 #include "mediacollectionbrowser.h"
 #include "settings.h"
-#include "mediaattachment.h"
 #include "settingspage.h"
 #include "groupsdialog.h"
 #include "latestcommentsdialog.h"
 #include "MediaScanner/mediascannerdialog.h"
 #include "utils.h"
+#include "Models/models.h"
 
 
 #include <Wt/WOverlayLoadingIndicator>
@@ -443,6 +438,7 @@ std::string defaultLabelFor(string language) {
   return defaultLabels[language];
 }
 
+#include <Wt/WSpinBox>
 
 void StreamingAppPrivate::play ( Media media ) {
   mediaListMenuItem->setText(wtr("menu.videoslist"));
@@ -496,6 +492,40 @@ void StreamingAppPrivate::play ( Media media ) {
   WAnchor *resizeLarge = WW(WAnchor, "#", wtr("player.resizeLarge")).css("btn btn-info btn-mini").onClick([=](WMouseEvent){player->setPlayerSize(1420);});
   infoBox->addWidget(WW(WContainerWidget).add(resizeSmall).add(resizeMedium).add(resizeLarge));
   */
+  infoBox->addWidget(new WBreak);
+  
+  WContainerWidget *ratingWidget = new WContainerWidget;
+  WContainerWidget *avgRatingWidget = new WContainerWidget;
+  WContainerWidget *myRating = new WContainerWidget;
+  
+  auto populateRating = [=] (Dbo::Transaction &transaction) {
+    avgRatingWidget->clear();
+    avgRatingWidget->addWidget(new WText(wtr("player.avg.ratings")));
+    int rating = MediaRating::ratingFor(media, transaction);
+    for(int i=1; i<=5; i++) {
+      avgRatingWidget->addWidget(WW<WImage>("http://gulinux.net/css/rating.png").css(rating<i ? "rating-unrated" : ""));
+    }
+  };
+  auto setRating = [=] (int rating) {
+    Dbo::Transaction t(session);
+    User::rate(session.user(), media, rating, t);
+    populateRating(t);
+    t.commit();
+  };
+  populateRating(t);
+  
+  myRating->addWidget(new WText(wtr("player.do.rate")));
+  for(int i=1; i<=5; i++) {
+    myRating->addWidget(WW<WImage>("http://gulinux.net/css/rating.png").css("rate-star link-hand").onClick([=](WMouseEvent) {
+      setRating(i);
+    }));
+  }
+  
+  ratingWidget->addWidget(avgRatingWidget);
+  ratingWidget->addWidget(myRating);
+  infoBox->addWidget(ratingWidget);
+  
+  
   infoBox->addWidget(new WBreak );
   infoBox->addWidget(WW<WAnchor>(settings.shareLink(media.uid()), wtr("player.sharelink")).css("btn btn-success btn-mini"));
   infoBox->addWidget(new WText{" "});

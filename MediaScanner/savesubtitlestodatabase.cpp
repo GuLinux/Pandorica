@@ -24,14 +24,11 @@
 #include <boost/format.hpp>
 #include <boost/thread.hpp>
 #include "ffmpegmedia.h"
-#include "mediaattachment.h"
 #include "session.h"
-#include "sessioninfo.h"
-#include "sessiondetails.h"
-#include "comment.h"
 #include <iostream>
 #include <fstream>
 #include "Wt-Commons/wt_helpers.h"
+#include "Models/models.h"
 
 using namespace Wt;
 using namespace std;

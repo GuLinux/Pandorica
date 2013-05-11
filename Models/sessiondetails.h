@@ -27,7 +27,7 @@ private:
   std::string _filepath;
   long _playStarted = 0;
   long _playEnded = 0;
-  dbo::ptr<SessionInfo> _sessionInfo;
+  Wt::Dbo::ptr<SessionInfo> _sessionInfo;
 public:
     template<class Action>
   void persist(Action& a)
