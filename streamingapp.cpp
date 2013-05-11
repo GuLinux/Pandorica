@@ -454,12 +454,16 @@ void StreamingAppPrivate::play ( Media media ) {
   player->addSource( {mediaLink.url(), media.mimetype()} );
   player->setAutoplay(settings.autoplay(media));
   auto preview = media.preview(&session, Media::PreviewPlayer);
+  WContainerWidget *container = new WContainerWidget;
   if(preview) {
     auto resource = new WMemoryResource{preview->mimetype(), preview->data(), q};
 //     resource->setInternalPath(wApp->sessionId() + "-preview-big-" + media.uid());
-    player->setPoster(resource->url());
+    if(media.mimetype().find("audio") == string::npos)
+      player->setPoster(resource->url());
+    else {
+      container->addWidget(new WImage{resource});
+    }
   }
-  WContainerWidget *container = new WContainerWidget;
   Dbo::Transaction t(session);
   for(MediaAttachmentPtr subtitle : media.subtitles(&t)) {
     string lang = threeLangCodeToTwo[subtitle->value()];
