@@ -140,7 +140,7 @@
     <plural case="0">Voto di un utente: </plural>
     <plural case="1">Voto di {1} utenti: </plural>
   </message>
-  <message id="player.do.rate">Vota</message>
+  <message id="player.do.rate">Vota: </message>
   
   <message id="player.resizeSmall">Piccolo</message>
   <message id="player.resizeMedium">Medio</message>
