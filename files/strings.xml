@@ -28,9 +28,13 @@
   <message id="mediabrowser.admin.settitle">Set Title</message>
   <message id="mediabrowser.filesize">File Size: {1}</message>
   <message id="mediabrowser.medialength">Length: {1}</message>
+  <message id="mediabrowser.admin.menu">Tool di Amministrazione</message>
+  <message id="mediabrowser.admin.setposter">Set Poster</message>
+  
   <message id="mediabrowser.admin.settitle.missingproperties.caption">Error: Media Properties Missing</message>
   <message id="mediabrowser.admin.settitle.missingproperties.body">The media properties are not stored in the current database<br />You probably want to run the "generateFileData" script first.</message>
   <message id="mediacollection.reload">Reload</message>
+  
   <message id="mediabrowser.share">Share</message>
   <message id="mediabrowser.share.dialog">To share {1} just copy the link below.<br />
   Remember that who will receive the link must first be enabled by the administrator.<br />
