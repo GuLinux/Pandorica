@@ -149,6 +149,7 @@ void copyTo(Magick::Image &image, vector<uint8_t> &out, int size) {
 void ImageUploader::uploaded() {
   vector<uint8_t> newVector;
   try {
+    log("notice") << "uploaded file to " << upload->spoolFileName();
     Magick::Image fullImage(upload->spoolFileName());
     imagesToSave.reset();
     copyTo(fullImage, imagesToSave.full, -1);
