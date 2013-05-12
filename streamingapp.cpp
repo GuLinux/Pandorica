@@ -254,6 +254,7 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
     }
   });
   string jsReplace = (boost::format(JS( function (editElement, suggestionText, suggestionValue) {
+    console.log("suggestionValue: " + suggestionValue);
     editElement.value = "";
     %s
   })) % playSignal.createCall("suggestionValue")).str();
@@ -262,7 +263,7 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   suggestionFilterModel->setFilterFlags(RegExpFlag::MatchCaseInsensitive);
   suggestionFilterModel->setFilterKeyColumn(0);
   suggestionFilterModel->setSourceModel(suggestionsModel);
-  suggestionFilterModel->setFilterRole(Wt::UserRole);
+  suggestionFilterModel->setFilterRole(Wt::UserRole+1);
   WSuggestionPopup* suggestions = new WSuggestionPopup(jsMatcher, jsReplace, wApp->root());
   suggestions->filterModel().connect([=](WString &filter, _n5) {
     WString filterRegex = WString(".*{1}.*").arg(filter);
@@ -276,7 +277,8 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
       int row = suggestionsModel->rowCount();
       WString title{media.second.title(&session)};
       suggestionsModel->addString(title);
-      suggestionsModel->setData(row, 0, media.second.filename() + ";;" + title, Wt::UserRole);
+      suggestionsModel->setData(row, 0, media.first, Wt::UserRole);
+      suggestionsModel->setData(row, 0, media.second.filename() + ";;" + title, Wt::UserRole+1);
     }
     suggestionsModel->sort(0);
     suggestions->setModel(suggestionFilterModel);
