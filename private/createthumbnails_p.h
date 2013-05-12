@@ -20,6 +20,7 @@
 #include <sys/types.h>
 #include <stdint.h>
 #include <Wt/WSignal>
+#include <Wt/WContainerWidget>
 #include <media.h>
 
 class FFMPEGMedia;
@@ -29,7 +30,12 @@ class WProgressBar;
 class WText;
 class WContainerWidget;
 class WMemoryResource;
+class WFileUpload;
 }
+
+#define IMAGE_SIZE_PREVIEW 550
+#define IMAGE_SIZE_THUMB 260
+#define IMAGE_SIZE_PLAYER 640
 
 namespace StreamingPrivate {
 typedef std::function<void(int,std::string)> UpdateGuiProgress;
@@ -40,6 +46,27 @@ struct ThumbnailPosition {
   static ThumbnailPosition from(int timeInSeconds);
 };
 
+struct ImagesToSave {
+  std::vector<uint8_t> full;
+  std::vector<uint8_t> thumb;
+  std::vector<uint8_t> player;
+  void reset();
+};
+
+class ImageUploader : public Wt::WContainerWidget {
+public:
+  ImageUploader(ImagesToSave &imagesToSave, WContainerWidget* parent = 0);
+  Wt::Signal<std::vector<uint8_t>> &previewImage() { return _previewImage; }
+private:
+  void uploaded();
+  void reset();
+  Wt::WFileUpload *upload;
+  ImagesToSave &imagesToSave;
+  Wt::Signal<std::vector<uint8_t>> _previewImage;
+    WContainerWidget* linkContainer;
+};
+
+
 class CreateThumbnailsPrivate
 {
 public:
@@ -48,6 +75,7 @@ public:
     Settings* settings;
     Wt::WApplication* app;
     std::vector<uint8_t> thumbnailFor(int size, int quality = 8);
+    ImagesToSave imagesToSave;
     
     void chooseRandomFrame(Media* media, Wt::WContainerWidget* container);
     ThumbnailPosition randomPosition(FFMPEGMedia *ffmpegMedia);
@@ -64,5 +92,6 @@ private:
     Wt::WMemoryResource *thumbnail = 0;
 };
 }
+
 #endif // CREATETHUMBNAILSPRIVATE_H
 

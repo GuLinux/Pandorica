@@ -3,7 +3,10 @@ project(videostreaming)
 add_definitions(-std=gnu++11)
 
 find_package(Wt REQUIRED)
-include_directories(${Wt_INCLUDE_DIR} ${CMAKE_SOURCE_DIR} )
+execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_magick_cmake_conf ${CMAKE_CURRENT_BINARY_DIR}/imagemagick.cmake )
+include(${CMAKE_CURRENT_BINARY_DIR}/imagemagick.cmake)
+
+include_directories(${Wt_INCLUDE_DIR} ${CMAKE_SOURCE_DIR} ${MAGICK_INCLUDES} )
 
 
 set(Wt_CONNECTOR_LIBRARY "${Wt_HTTP_LIBRARY}")
@@ -74,7 +77,7 @@ SET(BOOST_LIBS
 -lboost_regex
 )
 
-target_link_libraries(videostreaming -lavformat -lavcodec -lavutil -lffmpegthumbnailer ${BOOST_LIBS} ${WT_LINK_LIBS} )
+target_link_libraries(videostreaming -lavformat -lavcodec -lavutil -lffmpegthumbnailer ${BOOST_LIBS} ${WT_LINK_LIBS} ${MAGICK_LIBS})
 install(TARGETS videostreaming RUNTIME DESTINATION ${INSTALL_DIR}/bin)
 set(TRANSLATION_FILES files/strings.xml files/strings_it.xml )
 INSTALL(FILES ${TRANSLATION_FILES} DESTINATION ${INSTALL_DIR} )

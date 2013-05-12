@@ -1,0 +1,34 @@
+#!/bin/bash
+
+outfile="$1"
+
+function cfg() {
+	if test "x$outfile" == "x"; then
+		echo "$@"
+	else
+		echo "$@" >> "$outfile"
+	fi
+}
+
+if test "x$outfile" != "x" && [ -r "$outfile" ]; then rm "$outfile"; fi
+
+cppflags="$( Magick++-config --cppflags)"
+for definition in $cppflags; do
+	if echo "$definition" | grep "\-D" -q; then
+		cfg "add_definitions( $definition )"
+	fi
+	if echo "$definition" | grep "\-I" -q; then
+		MAGICK_INCLUDES="$MAGICK_INCLUDES $( echo "$definition" | sed 's/-I//g')" 
+	fi
+done
+
+cfg "set(MAGICK_INCLUDES $MAGICK_INCLUDES)"
+cfg "message(\"Found ImageMagick Includes: \${MAGICK_INCLUDES}\")"
+
+ldflags="$( Magick++-config --libs )"
+for lib in $ldflags; do
+	MAGICK_LIBS="$MAGICK_LIBS $( echo "$lib")"
+done
+cfg "set(MAGICK_LIBS $MAGICK_LIBS)"
+cfg "message(\"Found ImageMagick Libs: \${MAGICK_LIBS}\")"
+

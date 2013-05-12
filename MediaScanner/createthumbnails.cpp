@@ -39,8 +39,17 @@
 #include <chrono>
 #include <random>
 #include <thread>
+#include <Wt/WFileUpload>
+#include <algorithm>
+#include <iostream>
+#include <fstream>
+#include <iterator>
+#include <vector>
 
 #include "Models/models.h"
+
+#include <Magick++/Image.h>
+#include <Magick++/Geometry.h>
 
 using namespace Wt;
 using namespace std;
@@ -90,23 +99,99 @@ void CreateThumbnails::run(FFMPEGMedia* ffmpegMedia, Media* media, WContainerWid
 }
 
 
+ImageUploader::ImageUploader(ImagesToSave& imagesToSave, Wt::WContainerWidget* parent)
+  : WContainerWidget(parent), imagesToSave(imagesToSave)
+{
+  reset();
+}
+
+void ImageUploader::reset() {
+  clear();
+  WContainerWidget *hidden = new WContainerWidget();
+  linkContainer = WW<WContainerWidget>().setContentAlignment(AlignCenter);
+  WAnchor *uploadLink = new WAnchor("", wtr("mediascannerdialog.thumbnail.upload.label"));
+  uploadLink->clicked().connect([=](WMouseEvent) {
+    linkContainer->hide();
+    addWidget(hidden);
+  });
+  linkContainer->addWidget(uploadLink);
+  addWidget(linkContainer);
+  upload = new WFileUpload();
+  upload->setProgressBar(new WProgressBar());
+  hidden->addWidget(upload);
+  upload->uploaded().connect(this, &ImageUploader::uploaded);
+  WPushButton *uploadButton = WW<WPushButton>(wtr("button.upload")).onClick([=](WMouseEvent){
+    uploadButton->disable();
+    upload->upload();
+  });
+  uploadButton->disable();
+  upload->changed().connect([=](_n1){ uploadButton->setEnabled(upload->canUpload()); });
+  hidden->addWidget(uploadButton);
+  upload->fileTooLarge().connect([=](int64_t, _n5) {
+    reset();
+    linkContainer->addWidget(WW<WContainerWidget>().add(new WText{wtr("mediascannerdialog.thumbnail.upload.toobig")}).css("alert"));
+  });
+  setStyleClass("form-inline");
+}
+
+void copyTo(Magick::Image &image, vector<uint8_t> &out, int size) {
+  Magick::Blob blob;
+  if(size>0)
+    image.resize(Magick::Geometry(size, size));
+  image.write(&blob, "PNG");
+  char *data = (char*) blob.data();
+  for(int i=0; i<blob.length(); i++) {
+    out.push_back( data[i]);
+  }
+}
+
+void ImageUploader::uploaded() {
+  vector<uint8_t> newVector;
+  try {
+    Magick::Image fullImage(upload->spoolFileName());
+    imagesToSave.reset();
+    copyTo(fullImage, imagesToSave.full, -1);
+    copyTo(fullImage, imagesToSave.player, IMAGE_SIZE_PLAYER);
+    copyTo(fullImage, newVector, IMAGE_SIZE_PREVIEW);
+    copyTo(fullImage, imagesToSave.thumb, IMAGE_SIZE_THUMB);
+    _previewImage.emit( newVector);
+    reset();
+  } catch(std::exception &e) {
+    log("error") << "Error decoding image with imagemagick: " << e.what();
+    reset();
+    linkContainer->addWidget(WW<WContainerWidget>().add(new WText{wtr("mediascannerdialog.thumbnail.upload.error")}).css("alert alert-error"));
+  }
+}
 
 void CreateThumbnailsPrivate::chooseRandomFrame(Media* media, WContainerWidget* container)
 {
   delete thumbnail;
-  thumbnail = new WMemoryResource{"image/png", thumbnailFor(550), container};
+  thumbnail = new WMemoryResource{"image/png", thumbnailFor(IMAGE_SIZE_PREVIEW), container};
   guiRun(app, [=]{
     container->clear();
-    WAnchor *reloadImage = new WAnchor("");
+    ImageUploader *imageUploader = new ImageUploader{imagesToSave};
+
+    container->addWidget(imageUploader);
+    WImage *imagePreview = WW<WImage>(thumbnail).css("link-hand").onClick([=](WMouseEvent) {
+      result = MediaScannerStep::Redo;
+      redo.emit();
+    });
     container->addWidget(WW<WContainerWidget>()
       .add(WW<WText>(wtr("mediascannerdialog.thumbnaillabel")).css("small-text"))
-      .add(WW<WImage>(thumbnail).css("link-hand").onClick([=](WMouseEvent) {
-        result = MediaScannerStep::Redo;
-        redo.emit();
-      }))
+      .add(imagePreview)
       .setContentAlignment(AlignCenter));
+    imageUploader->previewImage().connect([=](vector<uint8_t> imageData, _n5) {
+      delete thumbnail;
+      thumbnail = new WMemoryResource{"image/png", imageData, container};
+      imagePreview->setImageLink(thumbnail);
+    });
     wApp->triggerUpdate();
   });
+  
+  int fullSize = max(currentFFMPEGMedia->resolution().first, currentFFMPEGMedia->resolution().second);
+  imagesToSave.full = thumbnailFor(fullSize, 10);
+  imagesToSave.thumb = thumbnailFor(IMAGE_SIZE_THUMB, 3);
+  imagesToSave.player = thumbnailFor(IMAGE_SIZE_PLAYER);
 }
 
 Signal<>& CreateThumbnails::redo()
@@ -159,16 +244,23 @@ void CreateThumbnails::save(Dbo::Transaction* transaction)
   if(d->result != Done)
     return;
   transaction->session().execute("DELETE FROM media_attachment WHERE media_id = ? AND type = 'preview'").bind(d->currentMedia->uid());
-  int fullSize = max(d->currentFFMPEGMedia->resolution().first, d->currentFFMPEGMedia->resolution().second);
-  MediaAttachment *fullAttachment = new MediaAttachment{"preview", "full", "", d->currentMedia->uid(), "image/png", d->thumbnailFor(fullSize, 10) };
-  MediaAttachment *thumbnailAttachment = new MediaAttachment{"preview", "thumbnail", "", d->currentMedia->uid(), "image/png", d->thumbnailFor(260, 3) };
-  MediaAttachment *playerAttachment = new MediaAttachment{"preview", "player", "", d->currentMedia->uid(), "image/png", d->thumbnailFor(640) };
+  MediaAttachment *fullAttachment = new MediaAttachment{"preview", "full", "", d->currentMedia->uid(), "image/png", d->imagesToSave.full };
+  MediaAttachment *thumbnailAttachment = new MediaAttachment{"preview", "thumbnail", "", d->currentMedia->uid(), "image/png", d->imagesToSave.thumb };
+  MediaAttachment *playerAttachment = new MediaAttachment{"preview", "player", "", d->currentMedia->uid(), "image/png", d->imagesToSave.player };
   transaction->session().add(fullAttachment);
   transaction->session().add(thumbnailAttachment);
   transaction->session().add(playerAttachment);
   d->currentMedia = 0;
   d->currentFFMPEGMedia = 0;
   d->result = Waiting;
+  d->imagesToSave.reset();
+}
+
+void ImagesToSave::reset()
+{
+  full.clear();
+  thumb.clear();
+  player.clear();
 }
 
 
