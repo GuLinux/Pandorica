@@ -120,7 +120,8 @@ void ImageUploader::reset() {
   upload->setProgressBar(new WProgressBar());
   hidden->addWidget(upload);
   upload->uploaded().connect(this, &ImageUploader::uploaded);
-  WPushButton *uploadButton = WW<WPushButton>(wtr("button.upload")).onClick([=](WMouseEvent){
+  WPushButton *uploadButton = new WPushButton{wtr("button.upload")};
+  uploadButton->clicked().connect([=](WMouseEvent){
     uploadButton->disable();
     upload->upload();
   });
