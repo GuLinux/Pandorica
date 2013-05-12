@@ -110,9 +110,13 @@
   <message id="mediabrowser.admin.settitle">Imposta Titolo</message>
   <message id="mediabrowser.filesize">Dimensione File: {1}</message>
   <message id="mediabrowser.medialength">Durata: {1}</message>
+  <message id="mediabrowser.admin.menu">Admin Tools</message>
+  <message id="mediabrowser.admin.setposter">Imposta Immagine</message>
+  
   <message id="mediabrowser.admin.settitle.missingproperties.caption">Errore: Media Properties mancanti</message>
   <message id="mediabrowser.admin.settitle.missingproperties.body">Le proprietà del media selezionato non sono presenti su database<br />Dovresti prima eseguire lo script "generateFileData".</message>
   <message id="mediacollection.reload">Ricarica</message>
+  
   <message id="mediabrowser.share">Condividi</message>
   <message id="mediabrowser.share.dialog">Per condividere {1} copia il link sottostante.<br />
   Ricorda che la persona che riceve il link dovrà prima essere abilitata dall'amministratore.<br />
