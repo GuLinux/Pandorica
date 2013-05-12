@@ -59,11 +59,11 @@ ScanMediaInfoStep::ScanMediaInfoStep(WApplication* app, WObject* parent)
 }
 
 
-void ScanMediaInfoStep::run(FFMPEGMedia* ffmpegMedia, Media* media, WContainerWidget* container, Dbo::Transaction* transaction)
+void ScanMediaInfoStep::run(FFMPEGMedia* ffmpegMedia, Media* media, WContainerWidget* container, Dbo::Transaction* transaction, MediaScannerStep::ExistingFlags onExisting)
 {
   d->result = Waiting;
   MediaPropertiesPtr mediaPropertiesPtr = transaction->session().find<MediaProperties>().where("media_id = ?").bind(media->uid());
-  if(mediaPropertiesPtr) {
+  if(onExisting == SkipIfExisting && mediaPropertiesPtr) {
     d->result = Skip;
     return;
   }
@@ -83,6 +83,7 @@ void ScanMediaInfoStep::save(Dbo::Transaction* transaction)
 {
   if(d->result != Done)
     return;
+  transaction->session().execute("DELETE FROM media_properties WHERE media_id = ?").bind(d->media->uid());
   pair<int, int> resolution = d->ffmpegMedia->resolution();
   auto mediaProperties = new MediaProperties{d->media->uid(), d->newTitle, d->media->fullPath(), d->ffmpegMedia->durationInSeconds(), fs::file_size(d->media->path()), resolution.first, resolution.second};
   transaction->session().add(mediaProperties);

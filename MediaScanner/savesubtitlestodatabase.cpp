@@ -54,8 +54,9 @@ SaveSubtitlesToDatabase::SaveSubtitlesToDatabase(WApplication* app, WObject* par
 {
 }
 
-void SaveSubtitlesToDatabase::run(FFMPEGMedia* ffmpegMedia, Media* media, WContainerWidget* container, Dbo::Transaction* transaction)
+void SaveSubtitlesToDatabase::run(FFMPEGMedia* ffmpegMedia, Media* media, WContainerWidget* container, Dbo::Transaction* transaction, MediaScannerStep::ExistingFlags onExisting)
 {
+  d->media = media;
   d->result = Waiting;
   vector<FFMPEG::Stream> subtitles;
   auto allStreams = ffmpegMedia->streams();
@@ -68,7 +69,7 @@ void SaveSubtitlesToDatabase::run(FFMPEGMedia* ffmpegMedia, Media* media, WConta
   }
   int subtitlesOnDb = transaction->session().query<int>("SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'subtitles'").bind(media->uid());
   cerr << "Media " << media->filename() << ": subtitles found=" << subtitles.size() << ", on db: " << subtitlesOnDb << "\n";
-  if(subtitlesOnDb == subtitles.size()) {
+  if(onExisting == SkipIfExisting && subtitlesOnDb == subtitles.size()) {
     d->result = Skip;
     return;
   }
@@ -132,6 +133,7 @@ void SaveSubtitlesToDatabase::save(Dbo::Transaction* transaction)
     d->result = Waiting;
     return;
   }
+  transaction->session().execute("DELETE FROM media_attachment WHERE media_id = ? AND type = 'subtitles'").bind(d->media->uid());
   for(MediaAttachment *subtitle: d->subtitlesToSave)
     transaction->session().add(subtitle);
   d->result = Waiting;

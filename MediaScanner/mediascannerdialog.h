@@ -32,6 +32,7 @@ public:
   MediaScannerDialog(Settings* settings, MediaCollection* mediaCollection, Wt::WObject* parent);
     virtual ~MediaScannerDialog();
   void run();
+  Wt::Signal<> &scanFinished();
 private:
   StreamingPrivate::MediaScannerDialogPrivate* const d;
 };

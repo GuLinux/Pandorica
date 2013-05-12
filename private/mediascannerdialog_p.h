@@ -18,6 +18,7 @@
 #ifndef MEDIASCANNERDIALOGPRIVATE_H
 #define MEDIASCANNERDIALOGPRIVATE_H
 #include <vector>
+#include <Wt/WSignal>
 
 class Media;
 class MediaScannerStep;
@@ -56,6 +57,7 @@ public:
     bool skipped;
     Wt::WPushButton* buttonCancel;
     Wt::WPushButton* buttonSkip;
+    Wt::Signal<> scanFinished;
     
 private:
     class MediaScannerDialog* const q;

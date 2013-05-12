@@ -19,6 +19,8 @@
 #include <Wt/WFileResource>
 #include "private/mediacollectionbrowser_p.h"
 #include "Models/models.h"
+#include "MediaScanner/createthumbnails.h"
+#include "ffmpegmedia.h"
 #include <iostream>
 #include <fstream>
 #include <ctime>
@@ -126,11 +128,15 @@ void MediaCollectionBrowserPrivate::addMedia(Media &media)
     WPopupMenuItem* queue = menu->addItem(wtr("mediabrowser.queue"));
     WPopupMenuItem* close = menu->addItem(wtr("mediabrowser.cancelpopup"));
     WPopupMenuItem* share = menu->addItem(wtr("mediabrowser.share"));
-    WPopupMenuItem* clearThumbs = 0;
-    WPopupMenuItem* setTitle = 0;
+    WPopupMenuItem* clearThumbs = NULL;
+    WPopupMenuItem* setTitle = NULL;
+    WPopupMenuItem *setPoster = NULL;
     if(isAdmin) {
-      clearThumbs = menu->addItem(wtr("mediabrowser.admin.deletepreview"));
-      setTitle = menu->addItem(wtr("mediabrowser.admin.settitle"));
+      auto adminSubMenu = new Wt::WPopupMenu();
+      menu->addMenu(wtr("mediabrowser.admin.menu"), adminSubMenu);
+      clearThumbs = adminSubMenu->addItem(wtr("mediabrowser.admin.deletepreview"));
+      setTitle = adminSubMenu->addItem(wtr("mediabrowser.admin.settitle"));
+      setPoster = adminSubMenu->addItem(wtr("mediabrowser.admin.setposter"));
     }
     
     menu->aboutToHide().connect([=](_n6){
@@ -138,14 +144,19 @@ void MediaCollectionBrowserPrivate::addMedia(Media &media)
         playSignal.emit(media);
       if(menu->result() == queue)
         queueSignal.emit(media);
+      if(menu->result() == share) {
+        auto shareMessageBox = new WMessageBox(wtr("mediabrowser.share"), wtr("mediabrowser.share.dialog").arg(media.title(session)).arg(settings->shareLink(media.uid()).url()), NoIcon, Ok);
+        shareMessageBox->button(Ok)->clicked().connect([=](WMouseEvent) { shareMessageBox->accept(); });
+        shareMessageBox->show();
+      }
       if(clearThumbs && menu->result() == clearThumbs) {
         clearThumbnailsFor(media);
       }
-      if(menu->result() == share) {
-        WMessageBox::show(wtr("mediabrowser.share"), wtr("mediabrowser.share.dialog").arg(media.title(session)).arg(settings->shareLink(media.uid()).url()), StandardButton::Ok);
-      }
       if(setTitle && menu->result() == setTitle) {
         setTitleFor(media);
+      }
+      if(setPoster && menu->result() == setPoster) {
+        setPosterFor(media);
       }
     });
     menu->popup(e);
@@ -217,6 +228,35 @@ void MediaCollectionBrowserPrivate::clearThumbnailsFor(Media media)
   session->execute("DELETE FROM media_attachment WHERE media_id=? and type = 'preview';").bind(media.uid());
   t.commit();
   q->reload();
+}
+
+
+void MediaCollectionBrowserPrivate::setPosterFor(Media media)
+{
+  FFMPEGMedia *ffmpegMedia = new FFMPEGMedia{media};
+  WDialog *dialog = new WDialog(wtr("mediabrowser.admin.setposter"));
+  auto createThumbs = new CreateThumbnails{wApp, settings, dialog};
+  dialog->footer()->addWidget(WW<WPushButton>(wtr("button.cancel")).css("btn btn-danger").onClick([=](WMouseEvent) {
+    dialog->reject();
+    delete ffmpegMedia;
+  }));
+  dialog->footer()->addWidget(WW<WPushButton>(wtr("button.ok")).css("btn btn-success").onClick([=](WMouseEvent) {
+    Dbo::Transaction t(*session);
+    createThumbs->save(&t);
+    dialog->accept();
+    q->reload();
+    delete ffmpegMedia;
+  }));
+  dialog->show();
+  dialog->resize(500, 500);
+  auto runStep = [=] {
+    Dbo::Transaction t(*session);
+    createThumbs->run(ffmpegMedia, (Media*) &media, dialog->contents(), &t, MediaScannerStep::OverwriteIfExisting );
+  };
+  createThumbs->redo().connect([=](_n6) {
+    runStep();
+  });
+  runStep();
 }
 
 

@@ -36,6 +36,7 @@ public:
     Wt::WApplication* app;
     MediaScannerStep::StepResult result;
     std::vector<MediaAttachment*> subtitlesToSave;
+    Media* media;
 
 private:
     class SaveSubtitlesToDatabase* const q;
