@@ -50,8 +50,10 @@ private:
     std::string formatFileSize(long size);
     void setTitleFor(Media media);
     void clearThumbnailsFor(Media media);
+    void setPosterFor(Media media);
     MediaCollectionBrowser* q;
 };
 }
+
 
 #endif

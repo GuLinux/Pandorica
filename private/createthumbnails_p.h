@@ -19,6 +19,7 @@
 #define CREATETHUMBNAILSPRIVATE_H
 #include <sys/types.h>
 #include <stdint.h>
+#include <Wt/WSignal>
 #include <media.h>
 
 class FFMPEGMedia;
@@ -54,6 +55,8 @@ public:
     MediaScannerStep::StepResult result;
     Media* currentMedia;
     ThumbnailPosition currentPosition;
+    FFMPEGMedia* currentFFMPEGMedia;
+    Wt::Signal<> redo;
 private:
     class CreateThumbnails* const q;
     double currentTime;

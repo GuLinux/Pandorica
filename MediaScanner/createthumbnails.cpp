@@ -71,10 +71,10 @@ CreateThumbnails::~CreateThumbnails()
     delete d;
 }
 
-void CreateThumbnails::run(FFMPEGMedia* ffmpegMedia, Media* media, WContainerWidget* container, Dbo::Transaction* transaction)
+void CreateThumbnails::run(FFMPEGMedia* ffmpegMedia, Media* media, WContainerWidget* container, Dbo::Transaction* transaction, MediaScannerStep::ExistingFlags onExisting)
 {
   d->result = Waiting;
-  if(transaction->session().query<int>("SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'preview'").bind(media->uid()) > 0) {
+  if(onExisting == SkipIfExisting && transaction->session().query<int>("SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'preview'").bind(media->uid()) > 0) {
     d->result = Skip;
     return;
   }
@@ -83,6 +83,7 @@ void CreateThumbnails::run(FFMPEGMedia* ffmpegMedia, Media* media, WContainerWid
     return;
   }
   d->currentMedia = media;
+  d->currentFFMPEGMedia = ffmpegMedia;
   d->currentPosition = d->randomPosition(ffmpegMedia);
   d->chooseRandomFrame(media, container);
   d->result = Done;
@@ -101,10 +102,16 @@ void CreateThumbnailsPrivate::chooseRandomFrame(Media* media, WContainerWidget* 
       .add(WW<WText>(wtr("mediascannerdialog.thumbnaillabel")).css("small-text"))
       .add(WW<WImage>(thumbnail).css("link-hand").onClick([=](WMouseEvent) {
         result = MediaScannerStep::Redo;
+        redo.emit();
       }))
       .setContentAlignment(AlignCenter));
     wApp->triggerUpdate();
   });
+}
+
+Signal<>& CreateThumbnails::redo()
+{
+  return d->redo;
 }
 
 
@@ -148,13 +155,19 @@ MediaScannerStep::StepResult CreateThumbnails::result()
 
 void CreateThumbnails::save(Dbo::Transaction* transaction)
 {
+  log("notice") << "Result: " << d->result << " (done= " << Done << ", Redo = " << Redo << ")";
   if(d->result != Done)
     return;
+  transaction->session().execute("DELETE FROM media_attachment WHERE media_id = ? AND type = 'preview'").bind(d->currentMedia->uid());
+  int fullSize = max(d->currentFFMPEGMedia->resolution().first, d->currentFFMPEGMedia->resolution().second);
+  MediaAttachment *fullAttachment = new MediaAttachment{"preview", "full", "", d->currentMedia->uid(), "image/png", d->thumbnailFor(fullSize, 10) };
   MediaAttachment *thumbnailAttachment = new MediaAttachment{"preview", "thumbnail", "", d->currentMedia->uid(), "image/png", d->thumbnailFor(260, 3) };
   MediaAttachment *playerAttachment = new MediaAttachment{"preview", "player", "", d->currentMedia->uid(), "image/png", d->thumbnailFor(640) };
+  transaction->session().add(fullAttachment);
   transaction->session().add(thumbnailAttachment);
   transaction->session().add(playerAttachment);
   d->currentMedia = 0;
+  d->currentFFMPEGMedia = 0;
   d->result = Waiting;
 }
 

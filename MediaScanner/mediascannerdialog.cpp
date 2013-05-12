@@ -62,13 +62,17 @@ MediaScannerDialog::MediaScannerDialog(Settings* settings, MediaCollection* medi
     d->skipped = true;
   }));
   footer()->addWidget(d->buttonNext = WW<WPushButton>(wtr("button.next")).css("btn btn-primary").setEnabled(false).onClick([=](WMouseEvent) { d->canContinue = true; }));
-  footer()->addWidget(d->buttonClose = WW<WPushButton>(wtr("close-button")).css("btn btn-success").onClick([=](WMouseEvent) { accept(); } ).setEnabled(false));
+  footer()->addWidget(d->buttonClose = WW<WPushButton>(wtr("close-button")).css("btn btn-success").onClick([=](WMouseEvent) {
+    accept();
+  }).setEnabled(false));
   contents()->addWidget(WW<WContainerWidget>()
     .add(d->progressBarTitle = WW<WText>().css("mediascannerdialog-filename"))
     .padding(6)
     .setContentAlignment(AlignCenter)
   );
-  
+  finished().connect([=](DialogCode code, _n5) {
+    scanFinished().emit();
+  });
   d->steps = {
     new ScanMediaInfoStep{wApp, this},
     new SaveSubtitlesToDatabase{wApp, this},
@@ -89,6 +93,11 @@ MediaScannerDialog::MediaScannerDialog(Settings* settings, MediaCollection* medi
 MediaScannerDialog::~MediaScannerDialog()
 {
   delete d;
+}
+
+Signal<>& MediaScannerDialog::scanFinished()
+{
+  return d->scanFinished;
 }
 
 
