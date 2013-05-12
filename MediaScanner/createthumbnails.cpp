@@ -150,13 +150,19 @@ void ImageUploader::uploaded() {
   vector<uint8_t> newVector;
   try {
     log("notice") << "uploaded file to " << upload->spoolFileName();
-    Magick::Image fullImage(upload->spoolFileName());
+    boost::filesystem::path pSpool{upload->spoolFileName()};
+    boost::filesystem::path pOrig{upload->clientFileName().toUTF8()};
+    string newPath = pSpool.string() + "." + pOrig.extension().string();
+    boost::filesystem::copy(pSpool, newPath);
+    log("notice") << "copied " << upload->spoolFileName() << " into " << newPath;
+    Magick::Image fullImage(newPath);
     imagesToSave.reset();
     copyTo(fullImage, imagesToSave.full, -1);
     copyTo(fullImage, imagesToSave.player, IMAGE_SIZE_PLAYER);
     copyTo(fullImage, newVector, IMAGE_SIZE_PREVIEW);
     copyTo(fullImage, imagesToSave.thumb, IMAGE_SIZE_THUMB);
     _previewImage.emit( newVector);
+    boost::filesystem::remove(newPath);
     reset();
   } catch(std::exception &e) {
     log("error") << "Error decoding image with imagemagick: " << e.what();
