@@ -6,6 +6,7 @@
 #include <boost/thread.hpp>
 #include <thread>
 #include <chrono>
+#include <Magick++.h>
 
 using namespace Wt;
 using namespace std;
@@ -25,6 +26,7 @@ int main(int argc, char **argv)
 {
   try {
     av_register_all();
+    Magick::InitializeMagick(*argv);
     
     WServer server(argv[0]);
     server.setServerConfiguration(argc, argv, WTHTTP_CONFIGURATION);

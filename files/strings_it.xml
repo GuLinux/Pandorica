@@ -125,6 +125,10 @@
   
   <!-- Media Scanner -->
   <message id="mediascanner.media.title">Titolo</message>
+  <message id="mediascannerdialog.thumbnail.upload.label">Carica File</message>
+  <message id="mediascannerdialog.thumbnail.upload.error">Errore aprendo il file, prova con un altro.</message>
+  <message id="mediascannerdialog.thumbnail.upload.toobig">File troppo grande, prova con uno più piccolo.</message>
+  
   <message id="mediascannerdialog.subtitlesmessage">Estrazione sottotitoli: {1} di {2} (indice: {3}, titolo: {4}, lingua: {5})</message>
   <message id="mediascannerdialog.thumbnaillabel">Anteprima (clicca per ricrearla da posizione casuale)</message>
   <message id="mediascannerdialog.subtitles_extracted">
@@ -217,6 +221,7 @@
   <message id="button.next">Avanti</message>
   <message id="button.cancel">Annulla</message>
   <message id="button.skip">Salta</message>
+  <message id="button.upload">Carica</message>
   
   <message id="set.title.filename.hint">Suggerimento da nome file: </message>
   

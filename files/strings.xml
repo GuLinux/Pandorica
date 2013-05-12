@@ -44,6 +44,9 @@
   <!-- Media Scanner -->
   <message id="mediascanner.title">Media Scanner</message>
   <message id="mediascanner.media.title">Title</message>
+  <message id="mediascannerdialog.thumbnail.upload.label">Upload File</message>
+  <message id="mediascannerdialog.thumbnail.upload.error">Error decoding file, try with another.</message>
+  <message id="mediascannerdialog.thumbnail.upload.toobig">File too large, please try with a smaller file.</message>
   <message id="mediascannerdialog.thumbnaillabel">Preview (click the image to change to a new random position)</message>
   <message id="mediascannerdialog.subtitlesmessage">Extracting subtitles: {1} of {2} (index: {3}, title: {4}, language: {5})</message>
   <message id="mediascannerdialog.subtitlesextracted">{1} subtitles extracted and ready to be saved.</message>
@@ -142,6 +145,7 @@
   <message id="button.next">Next</message>
   <message id="button.cancel">Cancel</message>
   <message id="button.ok">Ok</message>
+  <message id="button.upload">Upload</message>
   
   <message id="users.current.title">Logged Users</message>
   <message id="users.history.title">Users History</message>
