@@ -131,6 +131,7 @@
   
   
   <message id="button.add">Add</message>
+  <message id="button.skip">Skip</message>
   <message id="button.remove">Remove</message>
   <message id="close-button">Close</message>
   <message id="button.retry">Retry</message>

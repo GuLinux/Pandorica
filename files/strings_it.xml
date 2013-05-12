@@ -212,6 +212,8 @@
   <message id="button.retry">Riprova</message>
   <message id="button.next">Avanti</message>
   <message id="button.cancel">Annulla</message>
+  <message id="button.skip">Salta</message>
+  
   <message id="set.title.filename.hint">Suggerimento da nome file: </message>
   
   <message id="admin_missing_dialog_title">Configurazione Utenza Amministrazione</message>

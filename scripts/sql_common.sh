@@ -6,7 +6,7 @@ function doSql_sqlite() {
 }
 
 function doSql_psql() {
-  psql -A -t -h localhost -p 5432 videostreaming videostreaming
+  psql -A -t -h localhost -p 5432 "${PG_DB_NAME-videostreaming}" "${PG_USERNAME-videostreaming}"
 }
 
 function bool_sqlite() {

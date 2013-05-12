@@ -53,7 +53,9 @@ public:
     void scanMedias(Wt::WApplication* app, UpdateGuiProgress updateGuiProgress, OnScanFinish onScanFinish);
     bool canContinue;
     bool canceled;
+    bool skipped;
     Wt::WPushButton* buttonCancel;
+    Wt::WPushButton* buttonSkip;
     
 private:
     class MediaScannerDialog* const q;
