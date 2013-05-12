@@ -207,6 +207,12 @@ void MediaCollectionBrowserPrivate::addMedia(Media &media)
 
 void MediaCollectionBrowserPrivate::clearThumbnailsFor(Media media)
 {
+  string cacheDir;
+  wApp->readConfigurationProperty("thumbnails_cache_dir", cacheDir);
+  if(!cacheDir.empty() && boost::filesystem::is_directory(cacheDir)) {
+    boost::filesystem::path cacheFile{cacheDir + "/" + media.uid() + "_thumb.png"};
+    boost::filesystem::remove(cacheFile);
+  }
   Dbo::Transaction t(*session);
   session->execute("DELETE FROM media_attachment WHERE media_id=? and type = 'preview';").bind(media.uid());
   t.commit();
