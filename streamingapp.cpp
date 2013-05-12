@@ -75,6 +75,8 @@
 #include <Wt/WLabel>
 #include "private/streamingapp_p.h"
 #include "authpage.h"
+#include <Wt/WStringListModel>
+
 
 using namespace Wt;
 using namespace std;
@@ -243,34 +245,45 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   searchBox->setAttributeValue("placeholder", wtr("menu.search"));
 
   navigationBar->addSearch(searchBox, Wt::AlignRight);
+
   
   string jsMatcher = JS( function (editElement) {
     return function(suggestion) {
       if(suggestion==null) return editElement.value;
-      var matches = suggestion.match(new RegExp(".*" + editElement.value + ".*", "gi"));
-      return { match :matches != null, suggestion: suggestion.replace(new RegExp("(" + editElement.value + ")", "gi"), "<u><b>$1</b></u>") };
+      return { match :true, suggestion: suggestion.replace(new RegExp("(" + editElement.value + ")", "gi"), "<u><b>$1</b></u>") };
     }
   });
   string jsReplace = (boost::format(JS( function (editElement, suggestionText, suggestionValue) {
     editElement.value = "";
     %s
   })) % playSignal.createCall("suggestionValue")).str();
-  
+  WStringListModel *suggestionsModel = new WStringListModel(wApp);
+  WSortFilterProxyModel *suggestionFilterModel = new WSortFilterProxyModel(wApp);
+  suggestionFilterModel->setFilterFlags(RegExpFlag::MatchCaseInsensitive);
+  suggestionFilterModel->setFilterKeyColumn(0);
+  suggestionFilterModel->setSourceModel(suggestionsModel);
+  suggestionFilterModel->setFilterRole(Wt::UserRole);
   WSuggestionPopup* suggestions = new WSuggestionPopup(jsMatcher, jsReplace, wApp->root());
+  suggestions->filterModel().connect([=](WString &filter, _n5) {
+    WString filterRegex = WString(".*{1}.*").arg(filter);
+    suggestionFilterModel->setFilterRegExp(filterRegex);
+  });
+  suggestions->setFilterLength(-1);
   auto addSuggestions = [=](_n6) {
-    suggestions->clearSuggestions();
+    suggestionsModel->setStringList({});
+    searchBox->setText({});
     for(pair<string,Media> media: mediaCollection->collection()) {
+      int row = suggestionsModel->rowCount();
       WString title{media.second.title(&session)};
-      suggestions->addSuggestion(title, media.first);
-      /*
-      if(title.toUTF8() != media.second.filename())
-        suggestions->addSuggestion(media.second.filename(), media.first); // TODO check di consistenza
-        */
+      suggestionsModel->addString(title);
+      suggestionsModel->setData(row, 0, media.second.filename() + ";;" + title, Wt::UserRole);
     }
-    suggestions->forEdit(searchBox);
+    suggestionsModel->sort(0);
+    suggestions->setModel(suggestionFilterModel);
+    suggestions->forEdit(searchBox, WSuggestionPopup::Editing);
   };
   
-  
+
   mediaCollection->scanned().connect(addSuggestions );
   
 }
@@ -441,7 +454,6 @@ std::string defaultLabelFor(string language) {
   return defaultLabels[language];
 }
 
-#include <Wt/WSpinBox>
 
 void StreamingAppPrivate::play ( Media media ) {
   mediaListMenuItem->setText(wtr("menu.videoslist"));
