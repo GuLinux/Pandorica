@@ -58,6 +58,9 @@ MediaScannerDialog::MediaScannerDialog(Settings* settings, MediaCollection* medi
     d->canceled = true;
     reject();
   }));
+  footer()->addWidget(d->buttonSkip = WW<WPushButton>(wtr("button.skip")).css("btn btn-warning").onClick([=](WMouseEvent) {
+    d->skipped = true;
+  }));
   footer()->addWidget(d->buttonNext = WW<WPushButton>(wtr("button.next")).css("btn btn-primary").setEnabled(false).onClick([=](WMouseEvent) { d->canContinue = true; }));
   footer()->addWidget(d->buttonClose = WW<WPushButton>(wtr("close-button")).css("btn btn-success").onClick([=](WMouseEvent) { accept(); } ).setEnabled(false));
   contents()->addWidget(WW<WContainerWidget>()
@@ -125,6 +128,7 @@ void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, UpdateGuiProgr
     current++;
     guiRun(app, [=] {
       buttonNext->disable();
+      buttonSkip->disable();
       updateGuiProgress(current, media.filename());
     });
     runStepsFor(&media, app, session);
@@ -137,12 +141,13 @@ void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, UpdateGuiProgr
 void MediaScannerDialogPrivate::runStepsFor(Media *media, WApplication* app, Session &session)
 {
   canContinue = false;
+  skipped = false;
   FFMPEGMedia ffmpegMedia{*media};
   Dbo::Transaction t(session);
   for(MediaScannerStep *step: steps) {
     step->run(&ffmpegMedia, media, stepsContents[step], &t);
   }
-  while(!canContinue && !canceled) {
+  while(!canContinue && !canceled && !skipped) {
     bool stepsAreSkipped = true;
     bool stepsAreFinished = true;
     
@@ -156,18 +161,21 @@ void MediaScannerDialogPrivate::runStepsFor(Media *media, WApplication* app, Ses
     }
     canContinue |= stepsAreSkipped;
     guiRun(app, [=] {
+      buttonSkip->enable();
       buttonNext->setEnabled(stepsAreFinished && ! stepsAreSkipped);
       wApp->triggerUpdate();
     });
-    if(!canContinue && !canceled)
+    if(!canContinue && !canceled && !skipped)
       this_thread::sleep_for(chrono::milliseconds{50});
   }
   if(canceled)
     return;
-  for(MediaScannerStep *step: steps) {
-    step->save(&t);
+  if(!skipped) {
+    for(MediaScannerStep *step: steps) {
+      step->save(&t);
+    }
+    t.commit();
   }
-  t.commit();
 }
 
 
