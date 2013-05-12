@@ -157,11 +157,13 @@ void MediaCollectionBrowserPrivate::addMedia(Media &media)
   
   string cacheDir;
   string cacheDurationInSeconds{"7200"};
+  string thumbnailsCacheServerMap;
   
   wApp->readConfigurationProperty("thumbnails_cache_dir", cacheDir);
   wApp->readConfigurationProperty("thumbnails_cache_duration_seconds", cacheDurationInSeconds);
+  wApp->readConfigurationProperty("thumbnails_cache_server_map", thumbnailsCacheServerMap);
   
-  string cacheFile = cacheDir + "/" + media.uid() + "_thumb.png";
+  boost::filesystem::path cacheFile{cacheDir + "/" + media.uid() + "_thumb.png"};
   auto checkCacheFileValidity = [=] {
     if(!boost::filesystem::exists(cacheFile)) return false;
     WDateTime fileLastWrite = WDateTime::fromTime_t(boost::filesystem::last_write_time(cacheFile));
@@ -170,13 +172,13 @@ void MediaCollectionBrowserPrivate::addMedia(Media &media)
     return offset < boost::lexical_cast<int>(cacheDurationInSeconds);
   };
   
-  if(!cacheDir.empty()) {
+  if(!cacheDir.empty() && boost::filesystem::is_directory(cacheDir)) {
     if(!checkCacheFileValidity() ) {
 //       log("notice") << "Cache not found or expired, recreating";
       boost::filesystem::remove(cacheFile);
       Dbo::ptr<MediaAttachment> preview = media.preview(session, Media::PreviewThumb);
       if(preview) {
-        ofstream myfile (cacheFile);
+        ofstream myfile (cacheFile.string());
         for(auto c: preview->data())
           myfile << c;
         myfile.close();
@@ -184,8 +186,10 @@ void MediaCollectionBrowserPrivate::addMedia(Media &media)
     }
     if(checkCacheFileValidity() )
       icon = [=](WObject * parent) {
+        if(!thumbnailsCacheServerMap.empty())
+          return thumbnailsCacheServerMap + "/" + cacheFile.filename().string();
 //         log("notice") << "Using cache file for preview: " << cacheFile;
-        return (new WFileResource("image/png", cacheFile, parent))->url();
+        return (new WFileResource("image/png", cacheFile.string(), parent))->url();
       };
   }
   if(!checkCacheFileValidity() ) {
