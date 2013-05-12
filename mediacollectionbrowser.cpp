@@ -16,8 +16,12 @@
 #include <Wt/WMessageBox>
 #include <Wt/WLineEdit>
 #include <Wt/WPushButton>
+#include <Wt/WFileResource>
 #include "private/mediacollectionbrowser_p.h"
 #include "Models/models.h"
+#include <iostream>
+#include <fstream>
+#include <ctime>
 
 using namespace Wt;
 using namespace std;
@@ -149,13 +153,51 @@ void MediaCollectionBrowserPrivate::addMedia(Media &media)
   GetIconF icon = [](WObject *){ return Settings::icon(Settings::VideoFile); };
   if(media.mimetype().find("audio") != string::npos)
     icon = [](WObject *){ return Settings::icon(Settings::AudioFile); };
-  Dbo::ptr<MediaAttachment> preview = media.preview(session, Media::PreviewThumb);
-  if(preview)
-    icon = [=](WObject *parent) {
-      auto resource = new WMemoryResource(preview->mimetype(), preview->data(), parent);
-//       resource->setInternalPath(wApp->sessionId() + "-preview-" + media.uid());
-      return resource->url();
-    };
+  
+  
+  string cacheDir;
+  string cacheDurationInSeconds{"7200"};
+  
+  wApp->readConfigurationProperty("thumbnails_cache_dir", cacheDir);
+  wApp->readConfigurationProperty("thumbnails_cache_duration_seconds", cacheDurationInSeconds);
+  
+  string cacheFile = cacheDir + "/" + media.uid() + "_thumb.png";
+  auto checkCacheFileValidity = [=] {
+    if(!boost::filesystem::exists(cacheFile)) return false;
+    WDateTime fileLastWrite = WDateTime::fromTime_t(boost::filesystem::last_write_time(cacheFile));
+    int offset = fileLastWrite.secsTo(WDateTime::currentDateTime());
+//     log("notice") << "cache offset: " << offset << ", validity: " << cacheDurationInSeconds << " (" <<  boost::lexical_cast<int>(cacheDurationInSeconds) << ")";
+    return offset < boost::lexical_cast<int>(cacheDurationInSeconds);
+  };
+  
+  if(!cacheDir.empty()) {
+    if(!checkCacheFileValidity() ) {
+//       log("notice") << "Cache not found or expired, recreating";
+      boost::filesystem::remove(cacheFile);
+      Dbo::ptr<MediaAttachment> preview = media.preview(session, Media::PreviewThumb);
+      if(preview) {
+        ofstream myfile (cacheFile);
+        for(auto c: preview->data())
+          myfile << c;
+        myfile.close();
+      }
+    }
+    if(checkCacheFileValidity() )
+      icon = [=](WObject * parent) {
+//         log("notice") << "Using cache file for preview: " << cacheFile;
+        return (new WFileResource("image/png", cacheFile, parent))->url();
+      };
+  }
+  if(!checkCacheFileValidity() ) {
+    Dbo::ptr<MediaAttachment> preview = media.preview(session, Media::PreviewThumb);
+    if(preview) {
+      icon = [=](WObject *parent) {
+        auto resource = new WMemoryResource(preview->mimetype(), preview->data(), parent);
+        //       resource->setInternalPath(wApp->sessionId() + "-preview-" + media.uid());
+        return resource->url();
+      };
+    }
+  }
   addIcon(media.title(session), icon, onClick, popover);
 }
 
