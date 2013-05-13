@@ -93,6 +93,12 @@ bool Media::valid() const
   return !uid().empty() && !path().empty();
 }
 
+Media Media::invalid()
+{
+  return {};
+}
+
+
 Dbo::ptr< MediaAttachment > Media::preview(Session* session, Media::PreviewSize size ) const
 {
   string previewSize;

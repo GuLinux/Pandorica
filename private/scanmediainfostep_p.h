@@ -37,7 +37,7 @@ public:
     bool titleIsReady;
     MediaScannerStep::StepResult result;
     FFMPEGMedia* ffmpegMedia;
-    Media* media;
+    Media media;
     void setupGui(Wt::WContainerWidget *container, std::string titleSuggestion);
 private:
   class ScanMediaInfoStep* const q;

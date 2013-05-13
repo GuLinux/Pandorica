@@ -54,9 +54,8 @@ SaveSubtitlesToDatabase::SaveSubtitlesToDatabase(WApplication* app, WObject* par
 {
 }
 
-void SaveSubtitlesToDatabase::run(FFMPEGMedia* ffmpegMedia, Media* media, WContainerWidget* container, Dbo::Transaction* transaction, MediaScannerStep::ExistingFlags onExisting)
+void SaveSubtitlesToDatabase::run(FFMPEGMedia* ffmpegMedia, Media media, WContainerWidget* container, Dbo::Transaction* transaction, MediaScannerStep::ExistingFlags onExisting)
 {
-  d->media = media;
   d->result = Waiting;
   vector<FFMPEG::Stream> subtitles;
   auto allStreams = ffmpegMedia->streams();
@@ -67,18 +66,19 @@ void SaveSubtitlesToDatabase::run(FFMPEGMedia* ffmpegMedia, Media* media, WConta
     d->result = Skip;
     return;
   }
-  int subtitlesOnDb = transaction->session().query<int>("SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'subtitles'").bind(media->uid());
-  cerr << "Media " << media->filename() << ": subtitles found=" << subtitles.size() << ", on db: " << subtitlesOnDb << "\n";
+  int subtitlesOnDb = transaction->session().query<int>("SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'subtitles'").bind(media.uid());
+  cerr << "Media " << media.filename() << ": subtitles found=" << subtitles.size() << ", on db: " << subtitlesOnDb << "\n";
   if(onExisting == SkipIfExisting && subtitlesOnDb == subtitles.size()) {
     d->result = Skip;
     return;
   }
-  transaction->session().execute("DELETE FROM media_attachment WHERE media_id = ? AND type = 'subtitles'").bind(media->uid());
+  d->media = media;
+  transaction->session().execute("DELETE FROM media_attachment WHERE media_id = ? AND type = 'subtitles'").bind(media.uid());
   d->subtitlesToSave.clear();
-  boost::thread newThread(boost::bind(&SaveSubtitlesToDatabasePrivate::extractSubtitles, d, subtitles, media, container));
+  boost::thread newThread(boost::bind(&SaveSubtitlesToDatabasePrivate::extractSubtitles, d, subtitles, container));
 }
 
-void SaveSubtitlesToDatabasePrivate::extractSubtitles(vector<FFMPEG::Stream> subtitles, Media *media, WContainerWidget *container)
+void SaveSubtitlesToDatabasePrivate::extractSubtitles(vector< FFMPEG::Stream > subtitles, WContainerWidget* container)
 {
   int current{0};
   for(FFMPEG::Stream subtitle: subtitles) {
@@ -93,7 +93,7 @@ void SaveSubtitlesToDatabasePrivate::extractSubtitles(vector<FFMPEG::Stream> sub
     });
     time_point<high_resolution_clock> now{high_resolution_clock::now()};
     string tempFile = (boost::format("/tmp/temp_subtitle_%d.srt") % now.time_since_epoch().count()).str();
-    string cmd = (boost::format("ffmpeg -loglevel quiet -y -i \"%s\" -map 0:%d -c srt \"%s\"") % media->fullPath() % subtitle.index % tempFile).str();
+    string cmd = (boost::format("ffmpeg -loglevel quiet -y -i \"%s\" -map 0:%d -c srt \"%s\"") % media.fullPath() % subtitle.index % tempFile).str();
     cerr << "Executing command \"" << cmd << "\"\n";
     system(cmd.c_str());
     ifstream subfile(tempFile);
@@ -107,7 +107,7 @@ void SaveSubtitlesToDatabasePrivate::extractSubtitles(vector<FFMPEG::Stream> sub
     for(auto c: s.str()) {
       data.push_back(c);
     }
-    MediaAttachment *subtitleAttachment = new MediaAttachment("subtitles", subtitleName, subtitleLanguage, media->uid(), "text/plain", data);
+    MediaAttachment *subtitleAttachment = new MediaAttachment("subtitles", subtitleName, subtitleLanguage, media.uid(), "text/plain", data);
     subtitlesToSave.push_back(subtitleAttachment);
   }
   guiRun(app, [=] {
@@ -133,7 +133,7 @@ void SaveSubtitlesToDatabase::save(Dbo::Transaction* transaction)
     d->result = Waiting;
     return;
   }
-  transaction->session().execute("DELETE FROM media_attachment WHERE media_id = ? AND type = 'subtitles'").bind(d->media->uid());
+  transaction->session().execute("DELETE FROM media_attachment WHERE media_id = ? AND type = 'subtitles'").bind(d->media.uid());
   for(MediaAttachment *subtitle: d->subtitlesToSave)
     transaction->session().add(subtitle);
   d->result = Waiting;

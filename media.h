@@ -51,6 +51,7 @@ public:
   boost::filesystem::path path() const;
   boost::filesystem::path parentDirectory() const;
   bool valid() const;
+  static Media invalid();
 private:
   boost::filesystem::path m_path;
   std::string m_uid;

@@ -33,7 +33,7 @@ class CreateThumbnails : public MediaScannerStep, Wt::WObject
 public:
     ~CreateThumbnails();
     CreateThumbnails(Wt::WApplication *app, Settings* settings, Wt::WObject* parent = 0);
-    void run(FFMPEGMedia* ffmpegMedia, Media* media, Wt::WContainerWidget* container, Wt::Dbo::Transaction *transaction, ExistingFlags onExisting = SkipIfExisting);
+    void run(FFMPEGMedia* ffmpegMedia, Media media, Wt::WContainerWidget* container, Wt::Dbo::Transaction *transaction, ExistingFlags onExisting = SkipIfExisting);
     virtual void save(Wt::Dbo::Transaction *transaction);
     virtual StepResult result();
     virtual Wt::Signal<> &redo();

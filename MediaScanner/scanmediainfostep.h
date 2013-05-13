@@ -31,7 +31,7 @@ class ScanMediaInfoStep : public MediaScannerStep, Wt::WObject
 public:
   ScanMediaInfoStep(Wt::WApplication *app, Wt::WObject *parent = 0);
   virtual ~ScanMediaInfoStep();
-  virtual void run(FFMPEGMedia* ffmpegMedia, Media* media, Wt::WContainerWidget *container, Wt::Dbo::Transaction *transaction, ExistingFlags onExisting = SkipIfExisting);
+  virtual void run(FFMPEGMedia* ffmpegMedia, Media media, Wt::WContainerWidget *container, Wt::Dbo::Transaction *transaction, ExistingFlags onExisting = SkipIfExisting);
   virtual StepResult result();
   virtual void save(Wt::Dbo::Transaction *transaction);
 private:

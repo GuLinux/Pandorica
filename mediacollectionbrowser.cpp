@@ -233,15 +233,13 @@ void MediaCollectionBrowserPrivate::clearThumbnailsFor(Media media)
 
 void MediaCollectionBrowserPrivate::setPosterFor(Media media)
 {
-  // TODO: very messy... media is of course deleted, need to create a copy...
+  // TODO: very messy... FFMPEGMedia is of course deleted, need to create a copy...
   FFMPEGMedia *ffmpegMedia = new FFMPEGMedia{media};
-  Media *newMedia = new Media{media};
   WDialog *dialog = new WDialog(wtr("mediabrowser.admin.setposter"));
   auto createThumbs = new CreateThumbnails{wApp, settings, dialog};
   dialog->footer()->addWidget(WW<WPushButton>(wtr("button.cancel")).css("btn btn-danger").onClick([=](WMouseEvent) {
     dialog->reject();
     delete ffmpegMedia;
-    delete newMedia;
   }));
   dialog->footer()->addWidget(WW<WPushButton>(wtr("button.ok")).css("btn btn-success").onClick([=](WMouseEvent) {
     Dbo::Transaction t(*session);
@@ -256,13 +254,12 @@ void MediaCollectionBrowserPrivate::setPosterFor(Media media)
     dialog->accept();
     q->reload();
     delete ffmpegMedia;
-    delete newMedia;
   }));
   dialog->show();
   dialog->resize(500, 500);
   auto runStep = [=] {
     Dbo::Transaction t(*session);
-    createThumbs->run(ffmpegMedia, newMedia, dialog->contents(), &t, MediaScannerStep::OverwriteIfExisting );
+    createThumbs->run(ffmpegMedia, media, dialog->contents(), &t, MediaScannerStep::OverwriteIfExisting );
   };
   createThumbs->redo().connect([=](_n6) {
     runStep();
