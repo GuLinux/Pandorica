@@ -487,12 +487,7 @@ void StreamingAppPrivate::play ( Media media ) {
     string lang = threeLangCodeToTwo[subtitle->value()];
     wApp->log("notice") << "Found subtitle " << subtitle.id() << ", " << lang;
     string label = subtitle->name().empty() ? defaultLabelFor(lang) : subtitle->name();
-    try {
-      player->addSubtitles( { subtitle->link(subtitle, container).url(), lang, label} );
-    } catch(std::exception &e) {
-      log("error") << "Exception creating subtitle resource: " << e.what() << ", fallback to WMemoryResource";
-      player->addSubtitles( { (new WMemoryResource{subtitle->mimetype(), subtitle->data(), container})->url(), lang, label} );
-    }
+    player->addSubtitles( { subtitle->link(subtitle, container).url(), lang, label} );
   }
   player->ended().connect([=,&t](_n6){
     Dbo::Transaction t(session);
