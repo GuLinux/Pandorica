@@ -490,7 +490,7 @@ void StreamingAppPrivate::play ( Media media ) {
     try {
       player->addSubtitles( { subtitle->link(subtitle, container).url(), lang, label} );
     } catch(std::exception &e) {
-      log("error") << "Exception creating subtitle resource: fallback";
+      log("error") << "Exception creating subtitle resource: " << e.what() << ", fallback to WMemoryResource";
       player->addSubtitles( { (new WMemoryResource{subtitle->mimetype(), subtitle->data(), container})->url(), lang, label} );
     }
   }
