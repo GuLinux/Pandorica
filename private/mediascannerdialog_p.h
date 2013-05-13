@@ -19,8 +19,8 @@
 #define MEDIASCANNERDIALOGPRIVATE_H
 #include <vector>
 #include <Wt/WSignal>
+#include <media.h>
 
-class Media;
 class MediaScannerStep;
 class Session;
 class Settings;
@@ -61,7 +61,7 @@ public:
     
 private:
     class MediaScannerDialog* const q;
-    void runStepsFor(Media* media, Wt::WApplication* app, Session& session);
+    void runStepsFor(Media media, Wt::WApplication* app, Session& session);
 };
 }
 #endif // MEDIASCANNERDIALOGPRIVATE_H
