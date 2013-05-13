@@ -13,6 +13,7 @@ namespace fs = boost::filesystem;
 
 map<string, string> extensions {
   {"image/png", "png"},
+  {"image/jpeg", "jpg"},
 };
 
 Wt::WLink MediaAttachment::link(Dbo::ptr< MediaAttachment > myPtr, WObject* parent) const
