@@ -127,6 +127,10 @@
   </message>
   
   <!-- Media Scanner -->
+  <message id="stepname.scanMediaInfoStep">Estrazione Informazioni Media</message>
+  <message id="stepname.saveSubtitlesToDatabase">Estrazione Sottotitoli</message>
+  <message id="stepname.createThumbnails">Crea Immagine Anteprima</message>
+  
   <message id="mediascanner.media.title">Titolo</message>
   <message id="mediascannerdialog.thumbnail.upload.label">Carica File</message>
   <message id="mediascannerdialog.thumbnail.upload.error">Errore aprendo il file, prova con un altro.</message>
