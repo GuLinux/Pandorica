@@ -54,7 +54,7 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Sett
   auto layout = new WHBoxLayout();
   mainContainer->setLayout(layout);
   layout->addWidget(d->infoPanel);
-  layout->setResizable(0, false);
+  layout->setResizable(0, true);
   layout->addWidget(d->browser);
   d->infoPanel->setWidth(450);
   d->browser->setList(true);
