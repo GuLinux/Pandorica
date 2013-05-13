@@ -16,14 +16,6 @@ namespace StreamingPrivate {
 typedef std::pair<std::string,Media> MediaEntry;
 typedef std::function<std::string(Wt::WObject*)> GetIconF;
 
-struct Popover {
-    Wt::WString title;
-    Wt::WString text;
-    bool isValid() const {
-        return !title.empty() && !text.empty();
-    }
-};
-
 class InfoPanel : public Wt::WContainerWidget {
 public:
     InfoPanel(Session* session, Settings* settings, Wt::WContainerWidget* parent = 0);
@@ -54,7 +46,6 @@ public:
     void rebuildBreadcrumb();
     void browse(boost::filesystem::path currentPath);
 public:
-    bool isAdmin = false;
     MediaCollection *const collection;
     Settings *settings;
     Session *session;
@@ -63,7 +54,6 @@ public:
     Wt::WContainerWidget* browser;
     Wt::Signal<Media> playSignal;
     Wt::Signal<Media> queueSignal;
-    bool roleWasFetched = false;
     InfoPanel* infoPanel;
     static std::string formatFileSize(long size);
     
@@ -74,7 +64,7 @@ public:
 private:
     void addDirectory(boost::filesystem::path directory);
     void addMedia(Media& media);
-    Wt::WContainerWidget* addIcon(Wt::WString filename, GetIconF icon, MouseEventListener onClick, Popover popover = Popover());
+    Wt::WContainerWidget* addIcon(Wt::WString filename, GetIconF icon, MouseEventListener onClick);
     MediaCollectionBrowser* q;
 };
 }
