@@ -17,6 +17,8 @@
 #include <Wt/WLineEdit>
 #include <Wt/WPushButton>
 #include <Wt/WFileResource>
+#include <Wt/WVBoxLayout>
+#include <Wt/WHBoxLayout>
 #include "private/mediacollectionbrowser_p.h"
 #include "Models/models.h"
 #include "MediaScanner/createthumbnails.h"
@@ -24,6 +26,8 @@
 #include <iostream>
 #include <fstream>
 #include <ctime>
+#include <Wt/WPanel>
+#include <Wt/WGroupBox>
 
 using namespace Wt;
 using namespace std;
@@ -37,11 +41,22 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Sett
   d->breadcrumb = WW<WContainerWidget>().css("breadcrumb");
   d->breadcrumb->setList(true);
   d->browser = WW<WContainerWidget>().css("thumbnails").setMargin(WLength::Auto, Left).setMargin(WLength::Auto, Right);
+  WContainerWidget *mainContainer = new WContainerWidget;
+  auto layout = new WHBoxLayout();
+  mainContainer->setLayout(layout);
+  layout->addWidget( d->infoPanel = new InfoPanel(session, settings) );
+  layout->setResizable(0, true);
+  layout->addWidget(d->browser);
   d->browser->setList(true);
   addWidget(d->breadcrumb);
-  addWidget(d->browser);
+  addWidget(mainContainer);
   d->currentPath = d->collection->rootPath();
   collection->scanned().connect(this, &MediaCollectionBrowser::reload);
+  d->infoPanel->play().connect([=](Media media, _n5) { d->playSignal.emit(media); });
+  d->infoPanel->queue().connect([=](Media media, _n5) { d->queueSignal.emit(media); });
+  d->infoPanel->setTitle().connect(d, &MediaCollectionBrowserPrivate::setTitleFor);
+  d->infoPanel->setPoster().connect(d, &MediaCollectionBrowserPrivate::setPosterFor);
+  d->infoPanel->deletePoster().connect(d, &MediaCollectionBrowserPrivate::clearThumbnailsFor);
 }
 
 void MediaCollectionBrowser::reload()
@@ -50,9 +65,99 @@ void MediaCollectionBrowser::reload()
 }
 
 
+
+InfoPanel::InfoPanel(Session *session, Settings *settings, Wt::WContainerWidget* parent): WContainerWidget(parent), session(session), settings(settings)
+{
+  setStyleClass("browser-info-panel");
+  isAdmin = session->user()->isAdmin();
+}
+
+void InfoPanel::info(Media media)
+{
+  clear();
+  WContainerWidget *header = WW<WContainerWidget>().setContentAlignment(AlignCenter);
+  Dbo::Transaction t(*session);
+  WString title = media.title(session);
+  header->addWidget(WW<WText>(title).css("media-title"));
+  Dbo::ptr<MediaAttachment> previewAttachment = media.preview(session, Media::PreviewPlayer);
+  if(previewAttachment) {
+    WLink previewLink = previewAttachment->link(previewAttachment, header);
+    WLink fullImage = previewLink;
+    
+    Dbo::ptr<MediaAttachment> fullImageAttachment = media.preview(session, Media::PreviewFull);
+    if(fullImageAttachment)
+      fullImage = fullImageAttachment->link(fullImageAttachment, header);
+    
+    WAnchor *fullImageLink = new WAnchor{fullImage, new WImage{previewLink, title}};
+    fullImageLink->setTarget(AnchorTarget::TargetNewWindow);
+    header->addWidget(fullImageLink);
+  } else {
+    auto iconType = (media.mimetype().find("video") == string::npos) ? Settings::AudioFile : Settings::VideoFile;
+    WImage *icon = new WImage{ settings->icon(iconType) };
+    header->addWidget(icon);
+  }
+  WPanel *mediaInfoPanel = new WPanel();
+  mediaInfoPanel->setTitle(wtr("mediabrowser.information"));
+  mediaInfoPanel->setCollapsible(true);
+  mediaInfoPanel->setMargin(10, Wt::Side::Top);
+  WContainerWidget *mediaInfo = new WContainerWidget();
+  mediaInfoPanel->setCentralWidget(mediaInfo);
+  
+  mediaInfo->addWidget(labelValueBox(wtr("mediabrowser.filename"), media.filename()) );
+  mediaInfo->addWidget(labelValueBox(wtr("mediabrowser.filesize"), MediaCollectionBrowserPrivate::formatFileSize(fs::file_size(media.path())) ) );
+  
+  MediaPropertiesPtr mediaProperties = session->find<MediaProperties>().where("media_id = ?").bind(media.uid());
+  if(mediaProperties) {
+    mediaInfo->addWidget(labelValueBox(wtr("mediabrowser.medialength"), WTime(0,0,0).addSecs(mediaProperties->duration()).toString()) );
+  }
+  
+  WPanel *actions = new WPanel();
+  actions->setTitle(wtr("mediabrowser.actions"));
+  actions->setMargin(10, Wt::Side::Top);
+  actions->setCollapsible(true);
+  WContainerWidget *actionsContainer = new WContainerWidget();
+  actions->setCentralWidget(actionsContainer);
+  actionsContainer->addWidget(WW<WPushButton>(wtr("mediabrowser.play")).css("btn btn-block btn-primary").onClick([=](WMouseEvent){ _play.emit(media);} ));
+  actionsContainer->addWidget(WW<WPushButton>(wtr("mediabrowser.queue")).css("btn btn-block btn-inverse").onClick([=](WMouseEvent){ _queue.emit(media);} ));
+  actionsContainer->addWidget(WW<WPushButton>(wtr("mediabrowser.share")).css("btn btn-block btn-info").onClick([=](WMouseEvent){
+    auto shareMessageBox = new WMessageBox(wtr("mediabrowser.share"), wtr("mediabrowser.share.dialog").arg(media.title(session)).arg(settings->shareLink(media.uid()).url()), NoIcon, Ok);
+    shareMessageBox->button(Ok)->clicked().connect([=](WMouseEvent) { shareMessageBox->accept(); });
+    shareMessageBox->show();
+  } ));
+  addWidget(header);
+  addWidget(mediaInfoPanel);
+  addWidget(actions);
+  
+  if(isAdmin) {
+    WPanel *adminActions = new WPanel();
+    adminActions->setTitle(wtr("mediabrowser.admin.actions"));
+    adminActions->setCollapsed(true);
+    adminActions->setCollapsible(true);
+    adminActions->setMargin(10, Wt::Side::Top);
+    WContainerWidget *adminActionsContainer = new WContainerWidget();
+    adminActions->setCentralWidget(adminActionsContainer);
+    adminActionsContainer->addWidget(WW<WPushButton>(wtr("mediabrowser.admin.settitle")).css("btn btn-block btn-primary").onClick([=](WMouseEvent){ setTitle().emit(media);} ));
+    adminActionsContainer->addWidget(WW<WPushButton>(wtr("mediabrowser.admin.setposter")).css("btn btn-block btn-primary").onClick([=](WMouseEvent){ setPoster().emit(media);} ));
+    adminActionsContainer->addWidget(WW<WPushButton>(wtr("mediabrowser.admin.deletepreview")).css("btn btn-block btn-danger").onClick([=](WMouseEvent){ deletePoster().emit(media);} ));
+    addWidget(adminActions);
+  }
+  
+}
+
+Wt::WContainerWidget *InfoPanel::labelValueBox(Wt::WString label, Wt::WString value)
+{
+  WContainerWidget *box = WW<WContainerWidget>().css("row-fluid");
+  box->addWidget(WW<WContainerWidget>().css("span3").add(WW<WText>(label).css("label label-info")));
+  box->addWidget(WW<WContainerWidget>().css("span9 media-info-value").setContentAlignment(AlignRight).add(new WText{value}));
+  return box;
+}
+
+
+
 void MediaCollectionBrowserPrivate::browse(filesystem::path currentPath)
 {
   this->currentPath = currentPath;
+  infoPanel->clear();
   browser->clear();
   rebuildBreadcrumb();
   auto belongsToCurrent = [=](fs::path p){
@@ -111,56 +216,8 @@ void MediaCollectionBrowserPrivate::addMedia(Media &media)
     popover.text += "<br />" + mediaLengthText;
   }
   
-  auto onClick = [=](WMouseEvent e){
-    WPopupMenu *menu = new WPopupMenu();
-    WPopupMenuItem* filename = menu->addItem(media.title(session));
-    
-    filename->setSelectable(false); filename->setDisabled(true);
-    WPopupMenuItem* filesize = menu->addItem(fileSizeText);
-    filesize->setSelectable(false); filesize->setDisabled(true);
-    
-    if(!mediaLengthText.empty()) {
-      WPopupMenuItem* mediaLength = menu->addItem(mediaLengthText);
-      mediaLength->setSelectable(false); mediaLength->setDisabled(true);
-    }
-    
-    WPopupMenuItem* play = menu->addItem(wtr("mediabrowser.play"));
-    WPopupMenuItem* queue = menu->addItem(wtr("mediabrowser.queue"));
-    WPopupMenuItem* close = menu->addItem(wtr("mediabrowser.cancelpopup"));
-    WPopupMenuItem* share = menu->addItem(wtr("mediabrowser.share"));
-    WPopupMenuItem* clearThumbs = NULL;
-    WPopupMenuItem* setTitle = NULL;
-    WPopupMenuItem *setPoster = NULL;
-    if(isAdmin) {
-      auto adminSubMenu = new Wt::WPopupMenu();
-      menu->addMenu(wtr("mediabrowser.admin.menu"), adminSubMenu);
-      clearThumbs = adminSubMenu->addItem(wtr("mediabrowser.admin.deletepreview"));
-      setTitle = adminSubMenu->addItem(wtr("mediabrowser.admin.settitle"));
-      setPoster = adminSubMenu->addItem(wtr("mediabrowser.admin.setposter"));
-    }
-    
-    menu->aboutToHide().connect([=](_n6){
-      if(menu->result() == play)
-        playSignal.emit(media);
-      if(menu->result() == queue)
-        queueSignal.emit(media);
-      if(menu->result() == share) {
-        auto shareMessageBox = new WMessageBox(wtr("mediabrowser.share"), wtr("mediabrowser.share.dialog").arg(media.title(session)).arg(settings->shareLink(media.uid()).url()), NoIcon, Ok);
-        shareMessageBox->button(Ok)->clicked().connect([=](WMouseEvent) { shareMessageBox->accept(); });
-        shareMessageBox->show();
-      }
-      if(clearThumbs && menu->result() == clearThumbs) {
-        clearThumbnailsFor(media);
-      }
-      if(setTitle && menu->result() == setTitle) {
-        setTitleFor(media);
-      }
-      if(setPoster && menu->result() == setPoster) {
-        setPosterFor(media);
-      }
-    });
-    menu->popup(e);
-  };
+  auto onClick = [=](WMouseEvent e){ infoPanel->info(media); };
+  
   GetIconF icon = [](WObject *){ return Settings::icon(Settings::VideoFile); };
   if(media.mimetype().find("audio") != string::npos)
     icon = [](WObject *){ return Settings::icon(Settings::AudioFile); };
@@ -306,8 +363,7 @@ WContainerWidget* MediaCollectionBrowserPrivate::addIcon(WString filename, GetIc
 }
 
 
-string MediaCollectionBrowserPrivate::formatFileSize(long size)
-{
+string MediaCollectionBrowserPrivate::formatFileSize(long int size) {
   int maxSizeForUnit = 900;
   vector<string> units {"bytes", "KB", "MB", "GB"};
   double unitSize = size;

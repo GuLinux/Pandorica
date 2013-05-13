@@ -3,13 +3,11 @@
 
 #include <boost/filesystem.hpp>
 #include <Wt/WSignal>
+#include <Wt/WContainerWidget>
 #include <media.h>
 #include "Wt-Commons/wt_helpers.h"
 
 class MediaCollectionBrowser;
-namespace Wt {
-class WContainerWidget;
-}
 
 class Session;
 class Settings;
@@ -25,6 +23,28 @@ struct Popover {
         return !title.empty() && !text.empty();
     }
 };
+
+class InfoPanel : public Wt::WContainerWidget {
+public:
+    InfoPanel(Session* session, Settings* settings, Wt::WContainerWidget* parent = 0);
+    void info(Media media);
+    inline Wt::Signal<Media> &play() { return _play; }
+    inline Wt::Signal<Media> &queue() { return _queue; }
+    inline Wt::Signal<Media> &setTitle() { return _setTitle; }
+    inline Wt::Signal<Media> &setPoster() { return _setPoster; }
+    inline Wt::Signal<Media> &deletePoster() { return _deletePoster; }
+private:
+  WContainerWidget *labelValueBox(Wt::WString label, Wt::WString value);
+  Wt::Signal<Media> _play;
+  Wt::Signal<Media> _queue;
+  Wt::Signal<Media> _setTitle;
+  Wt::Signal<Media> _setPoster;
+  Wt::Signal<Media> _deletePoster;
+  Session *session;
+  Settings* settings;
+  bool isAdmin;
+};
+
 
 class MediaCollectionBrowserPrivate {
 public:
@@ -43,14 +63,17 @@ public:
     Wt::Signal<Media> playSignal;
     Wt::Signal<Media> queueSignal;
     bool roleWasFetched = false;
+    InfoPanel* infoPanel;
+    static std::string formatFileSize(long size);
+    
+    
+    void setTitleFor(Media media);
+    void clearThumbnailsFor(Media media);
+    void setPosterFor(Media media);
 private:
     void addDirectory(boost::filesystem::path directory);
     void addMedia(Media& media);
     Wt::WContainerWidget* addIcon(Wt::WString filename, GetIconF icon, MouseEventListener onClick, Popover popover = Popover());
-    std::string formatFileSize(long size);
-    void setTitleFor(Media media);
-    void clearThumbnailsFor(Media media);
-    void setPosterFor(Media media);
     MediaCollectionBrowser* q;
 };
 }

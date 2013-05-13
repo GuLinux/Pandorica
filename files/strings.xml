@@ -26,9 +26,12 @@
   <message id="mediabrowser.cancelpopup">Cancel Popup</message>
   <message id="mediabrowser.admin.deletepreview">Delete Preview</message>
   <message id="mediabrowser.admin.settitle">Set Title</message>
-  <message id="mediabrowser.filesize">File Size: {1}</message>
-  <message id="mediabrowser.medialength">Length: {1}</message>
-  <message id="mediabrowser.admin.menu">Tool di Amministrazione</message>
+  <message id="mediabrowser.filename">File Name</message>
+  <message id="mediabrowser.filesize">File Size</message>
+  <message id="mediabrowser.medialength">Length</message>
+  <message id="mediabrowser.information">Information</message>
+  <message id="mediabrowser.actions">Actions</message>
+  <message id="mediabrowser.admin.actions">Manage</message>
   <message id="mediabrowser.admin.setposter">Set Poster</message>
   
   <message id="mediabrowser.admin.settitle.missingproperties.caption">Error: Media Properties Missing</message>
