@@ -3,6 +3,7 @@
 #include <Wt/WApplication>
 #include <Wt/WMemoryResource>
 #include <Wt/WFileResource>
+#include <Wt/WServer>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <fstream>
@@ -26,12 +27,11 @@ Wt::WLink MediaAttachment::link(Dbo::ptr< MediaAttachment > myPtr, WObject* pare
 {
   auto fallback = [=] { return new WMemoryResource{mimetype(), _data, parent}; };
   string cacheDir;
-  string cacheDurationInSeconds{"7200"};
   string thumbnailsCacheServerMap;
   
-  wApp->readConfigurationProperty("blobs_cache_dir", cacheDir);
-  wApp->readConfigurationProperty("blobs_cache_server_map", thumbnailsCacheServerMap);
-  
+  log("notice") << "has blobs_cache_dir property: " << WServer::instance()->readConfigurationProperty("blobs_cache_dir", cacheDir);
+  log("notice") << "has blobs_cache_server_map property: " << WServer::instance()->readConfigurationProperty("blobs_cache_server_map", thumbnailsCacheServerMap);
+  log("notice") << "cacheDir: " << cacheDir;
   if(cacheDir.empty() || !fs::is_directory(cacheDir))
     return {fallback()};
   auto createPath = [=](string prefix) {
