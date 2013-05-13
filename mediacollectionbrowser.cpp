@@ -70,7 +70,15 @@ InfoPanel::InfoPanel(Session *session, Settings *settings, Wt::WContainerWidget*
 {
   setStyleClass("browser-info-panel");
   isAdmin = session->user()->isAdmin();
+  reset();
 }
+
+
+void InfoPanel::reset()
+{
+  clear();
+}
+
 
 void InfoPanel::info(Media media)
 {
@@ -157,7 +165,7 @@ Wt::WContainerWidget *InfoPanel::labelValueBox(Wt::WString label, Wt::WString va
 void MediaCollectionBrowserPrivate::browse(filesystem::path currentPath)
 {
   this->currentPath = currentPath;
-  infoPanel->clear();
+  infoPanel->reset();
   browser->clear();
   rebuildBreadcrumb();
   auto belongsToCurrent = [=](fs::path p){
