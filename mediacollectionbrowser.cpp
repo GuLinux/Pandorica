@@ -247,6 +247,12 @@ void MediaCollectionBrowserPrivate::setPosterFor(Media media)
     Dbo::Transaction t(*session);
     createThumbs->save(&t);
     t.commit();
+    string cacheDir;
+    wApp->readConfigurationProperty("thumbnails_cache_dir", cacheDir);
+    if(!cacheDir.empty() && boost::filesystem::is_directory(cacheDir)) {
+      boost::filesystem::path cacheFile{cacheDir + "/" + media.uid() + "_thumb.png"};
+      boost::filesystem::remove(cacheFile);
+    }
     dialog->accept();
     q->reload();
     delete ffmpegMedia;
