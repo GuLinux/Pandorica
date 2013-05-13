@@ -120,14 +120,12 @@ void ImageUploader::reset() {
   upload->setProgressBar(new WProgressBar());
   hidden->addWidget(upload);
   upload->uploaded().connect(this, &ImageUploader::uploaded);
-  WPushButton *uploadButton = new WPushButton{wtr("button.upload")};
-  uploadButton->clicked().connect([=](WMouseEvent){
-    uploadButton->disable();
-    upload->upload();
+  upload->changed().connect([=](_n1){
+    if(upload->canUpload()) {
+      upload->disable();
+      upload->upload();
+    }
   });
-  uploadButton->disable();
-  upload->changed().connect([=](_n1){ uploadButton->setEnabled(upload->canUpload()); });
-  hidden->addWidget(uploadButton);
   upload->fileTooLarge().connect([=](int64_t, _n5) {
     reset();
     linkContainer->addWidget(WW<WContainerWidget>().add(new WText{wtr("mediascannerdialog.thumbnail.upload.toobig")}).css("alert"));
