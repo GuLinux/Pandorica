@@ -80,24 +80,6 @@ CreateThumbnails::~CreateThumbnails()
     delete d;
 }
 
-void CreateThumbnails::run(FFMPEGMedia* ffmpegMedia, Media media, WContainerWidget* container, Dbo::Transaction* transaction, MediaScannerStep::ExistingFlags onExisting)
-{
-  d->result = Waiting;
-  if(onExisting == SkipIfExisting && transaction->session().query<int>("SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'preview'").bind(media.uid()) > 0) {
-    d->result = Skip;
-    return;
-  }
-  if(!ffmpegMedia->isVideo()) {
-    d->result = Skip;
-    return;
-  }
-  d->currentMedia = media;
-  d->currentFFMPEGMedia = ffmpegMedia;
-  d->currentPosition = d->randomPosition(ffmpegMedia);
-  d->chooseRandomFrame(container);
-  d->result = Done;
-}
-
 
 ImageUploader::ImageUploader(ImagesToSave& imagesToSave, Wt::WContainerWidget* parent)
   : WContainerWidget(parent), imagesToSave(imagesToSave)
@@ -162,6 +144,48 @@ void ImageUploader::uploaded() {
     linkContainer->addWidget(WW<WContainerWidget>().add(new WText{wtr("mediascannerdialog.thumbnail.upload.error")}).css("alert alert-error"));
   }
 }
+
+
+void CreateThumbnails::run(FFMPEGMedia* ffmpegMedia, Media media, WContainerWidget* container, Dbo::Transaction* transaction, MediaScannerStep::ExistingFlags onExisting)
+{
+  d->result = Waiting;
+  if(onExisting == SkipIfExisting && transaction->session().query<int>("SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'preview'").bind(media.uid()) > 0) {
+    d->result = Skip;
+    return;
+  }
+
+  d->currentMedia = media;
+  d->currentFFMPEGMedia = ffmpegMedia;
+  d->currentPosition = d->randomPosition(ffmpegMedia);
+  if(!ffmpegMedia->isVideo()) {
+    d->addImageChooser(container);
+    return;
+  }
+  d->chooseRandomFrame(container);
+  d->result = Done;
+}
+
+void CreateThumbnailsPrivate::addImageChooser(Wt::WContainerWidget* container)
+{
+  guiRun(app, [=]{
+    container->clear();
+    ImageUploader *imageUploader = new ImageUploader{imagesToSave};
+    
+    container->addWidget(imageUploader);
+    WContainerWidget *imageContainer = new WContainerWidget;
+    imageContainer->setContentAlignment(AlignCenter);
+    container->addWidget(imageContainer);
+    imageUploader->previewImage().connect([=](vector<uint8_t> imageData, _n5) {
+      imageContainer->clear();
+      thumbnail = new WMemoryResource{"image/png", imageData, container};
+      imageContainer->addWidget(new WImage{thumbnail});
+      result = MediaScannerStep::Done;
+    });
+    wApp->triggerUpdate();
+  });
+    
+}
+
 
 void CreateThumbnailsPrivate::chooseRandomFrame(WContainerWidget* container)
 {
