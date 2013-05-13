@@ -16,6 +16,7 @@ namespace fs = boost::filesystem;
 map<string, function<string(string)>> extensions {
   {"image/png", [](string){ return "png"; }},
   {"image/jpeg", [](string) { return "jpg"; }},
+  {"text/vtt", [](string) {return "vtt"; }},
   {"text/plain", [](string type) {
     if(type ==  "subtitles")
       return "srt";
@@ -35,6 +36,10 @@ Wt::WLink MediaAttachment::link(Dbo::ptr< MediaAttachment > myPtr, WObject* pare
   if(cacheDir.empty() || !fs::is_directory(cacheDir))
     return {fallback()};
   auto createPath = [=](string prefix) {
+    string extension = "bin";
+    if(extensions.count(mimetype())>0) {
+      extension = extensions[mimetype()](type()); 
+    }
     return (boost::format("%s/%s/%s_%d_%s_%s.%s")
       % prefix
       % type()
@@ -42,7 +47,7 @@ Wt::WLink MediaAttachment::link(Dbo::ptr< MediaAttachment > myPtr, WObject* pare
       % myPtr.id()
       % name()
       % value()
-      % extensions[mimetype()](type())
+      % extension
     ).str();
   };
   
