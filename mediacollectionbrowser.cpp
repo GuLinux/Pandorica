@@ -54,9 +54,8 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Sett
   auto layout = new WHBoxLayout();
   mainContainer->setLayout(layout);
   layout->addWidget(d->infoPanel);
-  layout->setResizable(0, false);
+  layout->setResizable(0, true);
   layout->addWidget(d->browser);
-  d->infoPanel->setWidth(450);
   d->browser->setList(true);
   addWidget(d->breadcrumb);
   addWidget(mainContainer);
@@ -181,6 +180,7 @@ void MediaCollectionBrowserPrivate::browse(filesystem::path currentPath)
   auto belongsToCurrent = [=](fs::path p){
     return p.parent_path() == this->currentPath;
   };
+  infoPanel->setWidth(450);
   
   set<fs::path> directories;
   vector<Media> medias;
