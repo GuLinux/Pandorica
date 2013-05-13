@@ -2,6 +2,12 @@
 
 outfile="$1"
 
+config_app=""
+if which GraphicsMagick++-config >/dev/null; then
+  config_app="GraphicsMagick++-config"
+  echo "Found GraphicsMagick instead" >&2
+fi
+
 function cfg() {
 	if test "x$outfile" == "x"; then
 		echo "$@"
@@ -12,7 +18,7 @@ function cfg() {
 
 if test "x$outfile" != "x" && [ -r "$outfile" ]; then rm "$outfile"; fi
 
-cppflags="$( Magick++-config --cppflags)"
+cppflags="$( $config_app --cppflags)"
 for definition in $cppflags; do
 	if echo "$definition" | grep "\-D" -q; then
 		cfg "add_definitions( $definition )"
@@ -25,7 +31,7 @@ done
 cfg "set(MAGICK_INCLUDES $MAGICK_INCLUDES)"
 cfg "message(\"Found ImageMagick Includes: \${MAGICK_INCLUDES}\")"
 
-ldflags="$( Magick++-config --libs )"
+ldflags="$( $config_app --libs )"
 for lib in $ldflags; do
 	MAGICK_LIBS="$MAGICK_LIBS $( echo "$lib")"
 done
