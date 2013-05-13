@@ -24,7 +24,7 @@ STRING(REGEX MATCH ".*Zerogoki.*" HOST_IS_ZEROGOKI "${HOSTNAME}")
 
 SET(INSTALL_DIR "/home/www-data/data/videostreaming" CACHE STRING "Install directory for Wt Applications and files")
 
-SET( models_srcs Models/group.cpp Models/user.cpp Models/mediarating.cpp )
+SET( models_srcs Models/group.cpp Models/user.cpp Models/mediarating.cpp Models/mediaattachment.cpp )
 SET( Wt_Commons_srcs Wt-Commons/whtmltemplateslocalizedstrings.cpp )
 SET( mediascanner_srcs
     MediaScanner/savesubtitlestodatabase.cpp
