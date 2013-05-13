@@ -138,7 +138,7 @@ void ImageUploader::reset() {
 void copyTo(Magick::Image &image, vector<uint8_t> &out, int size) {
   Magick::Blob blob;
   if(size>0)
-    image.resize(Magick::Geometry(size, size));
+    image.sample(Magick::Geometry(size, size));
   image.write(&blob, "PNG");
   char *data = (char*) blob.data();
   for(int i=0; i<blob.length(); i++) {
