@@ -42,11 +42,21 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Sett
   d->breadcrumb->setList(true);
   d->browser = WW<WContainerWidget>().css("thumbnails").setMargin(WLength::Auto, Left).setMargin(WLength::Auto, Right);
   WContainerWidget *mainContainer = new WContainerWidget;
+  d->infoPanel = new InfoPanel(session, settings);
+
+/*  
+  mainContainer->setStyleClass("row-fluid");
+  mainContainer->addWidget(d->infoPanel);
+  d->infoPanel->addStyleClass("span2");
+  mainContainer->addWidget(d->browser);
+  d->browser->addStyleClass("span10");
+*/
   auto layout = new WHBoxLayout();
   mainContainer->setLayout(layout);
-  layout->addWidget( d->infoPanel = new InfoPanel(session, settings) );
-  layout->setResizable(0, true);
+  layout->addWidget(d->infoPanel);
+  layout->setResizable(0, false);
   layout->addWidget(d->browser);
+  d->infoPanel->setWidth(450);
   d->browser->setList(true);
   addWidget(d->breadcrumb);
   addWidget(mainContainer);
@@ -171,7 +181,7 @@ void MediaCollectionBrowserPrivate::browse(filesystem::path currentPath)
   auto belongsToCurrent = [=](fs::path p){
     return p.parent_path() == this->currentPath;
   };
-
+  
   set<fs::path> directories;
   vector<Media> medias;
   
@@ -206,23 +216,7 @@ void MediaCollectionBrowserPrivate::addDirectory(filesystem::path directory)
 void MediaCollectionBrowserPrivate::addMedia(Media &media)
 {
   wApp->log("notice") << "adding media " << media.path();
-  Popover popover{media.title(session)};
-  WString fileSizeText = wtr("mediabrowser.filesize").arg(formatFileSize(fs::file_size(media.path()) ) );
-  popover.text += fileSizeText;
   Dbo::Transaction t(*session);
-  
-  if(!roleWasFetched) {
-    roleWasFetched = true;
-    Dbo::Transaction t(*session);
-    isAdmin = session->user()->isAdmin();
-  }
-  
-  MediaPropertiesPtr mediaProperties = session->find<MediaProperties>().where("media_id = ?").bind(media.uid());
-  WString mediaLengthText;
-  if(mediaProperties && mediaProperties->duration() > 0) {
-    mediaLengthText = wtr("mediabrowser.medialength").arg( WTime(0,0,0).addSecs(mediaProperties->duration()).toString() );
-    popover.text += "<br />" + mediaLengthText;
-  }
   
   auto onClick = [=](WMouseEvent e){ infoPanel->info(media); };
   
@@ -234,7 +228,7 @@ void MediaCollectionBrowserPrivate::addMedia(Media &media)
   if(preview)
     icon = [=](WObject *parent) { return preview->link(preview, parent).url(); };
   
-  addIcon(media.title(session), icon, onClick, popover);
+  addIcon(media.title(session), icon, onClick);
 }
 
 void MediaCollectionBrowserPrivate::clearThumbnailsFor(Media media)
@@ -337,7 +331,7 @@ void MediaCollectionBrowserPrivate::setTitleFor(Media media)
 }
 
 
-WContainerWidget* MediaCollectionBrowserPrivate::addIcon(WString filename, GetIconF icon, MouseEventListener onClick, Popover popover)
+WContainerWidget* MediaCollectionBrowserPrivate::addIcon(WString filename, GetIconF icon, MouseEventListener onClick)
 {
     WContainerWidget *item = WW<WContainerWidget>().css("span3 media-icon-container");
     item->setContentAlignment(AlignmentFlag::AlignCenter);
@@ -346,26 +340,7 @@ WContainerWidget* MediaCollectionBrowserPrivate::addIcon(WString filename, GetIc
     link->addWidget(WW<WText>(filename).css("filesystem-item-label"));
     item->addWidget(link);
     link->clicked().connect(onClick);
-    if(popover.isValid()) {
-      link->setAttributeValue("data-toggle", "popover");
-      string tooltipJS = (boost::format(JS(
-        var element = $('#%s');
-        var positionLeft = element.offset()["left"];
-        var positionRight = $(window).width() - positionLeft - element.width();
-        var positionBottom = $(window).height() - element.offset()["top"] - element.height();
-        console.log("Left: " + positionLeft + ", Right: " + positionRight + ", window width: " + $(window).width());
-        var placement = "bottom";
-        if(positionBottom < 150) placement = "top";
-        if(positionLeft < 100) placement = "right";
-        if(positionRight < 150) placement = "left";
-        element.popover({placement: placement, html: true, title: %s, content: %s, trigger: 'hover'});
-      )) % link->id() % popover.title.jsStringLiteral() % popover.text.jsStringLiteral() ).str();
-      link->doJavaScript(tooltipJS);
-      
-      link->clicked().connect([=](WMouseEvent) { link->doJavaScript((boost::format(JS(
-        $('#%s').popover('hide');
-      )) % link->id() ).str() ); } );
-    }
+
     browser->addWidget(item);
     return item;
 }
