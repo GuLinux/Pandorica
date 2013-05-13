@@ -140,25 +140,26 @@ void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, UpdateGuiProgr
       buttonSkip->disable();
       updateGuiProgress(current, media.filename());
     });
-    runStepsFor(&media, app, session);
+    runStepsFor(media, app, session);
   }
   this_thread::sleep_for(chrono::milliseconds{10});
   guiRun(app, [=] { onScanFinish(); });
 }
 
 
-void MediaScannerDialogPrivate::runStepsFor(Media *media, WApplication* app, Session &session)
+void MediaScannerDialogPrivate::runStepsFor(Media media, WApplication* app, Session& session)
 {
   canContinue = false;
   skipped = false;
-  FFMPEGMedia ffmpegMedia{*media};
+  FFMPEGMedia ffmpegMedia{media};
   Dbo::Transaction t(session);
   for(MediaScannerStep *step: steps) {
-    step->run(&ffmpegMedia, *media, stepsContents[step], &t);
+    step->run(&ffmpegMedia, media, stepsContents[step], &t);
   }
   while(!canContinue && !canceled && !skipped) {
     bool stepsAreSkipped = true;
     bool stepsAreFinished = true;
+
     
     for(MediaScannerStep *step: steps) {
       auto stepResult = step->result();
@@ -166,7 +167,7 @@ void MediaScannerDialogPrivate::runStepsFor(Media *media, WApplication* app, Ses
       stepsAreFinished &= stepResult == MediaScannerStep::Skip || stepResult == MediaScannerStep::Done;
       
       if(stepResult == MediaScannerStep::Redo)
-        step->run(&ffmpegMedia, *media, stepsContents[step], &t);
+        step->run(&ffmpegMedia, media, stepsContents[step], &t);
     }
     canContinue |= stepsAreSkipped;
     guiRun(app, [=] {

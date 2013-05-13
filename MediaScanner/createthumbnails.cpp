@@ -156,11 +156,11 @@ void CreateThumbnails::run(FFMPEGMedia* ffmpegMedia, Media media, WContainerWidg
 
   d->currentMedia = media;
   d->currentFFMPEGMedia = ffmpegMedia;
-  d->currentPosition = d->randomPosition(ffmpegMedia);
   if(!ffmpegMedia->isVideo()) {
     d->addImageChooser(container);
     return;
   }
+  d->currentPosition = d->randomPosition(ffmpegMedia);
   d->chooseRandomFrame(container);
   d->result = Done;
 }
