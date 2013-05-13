@@ -154,7 +154,7 @@ void MediaScannerDialogPrivate::runStepsFor(Media *media, WApplication* app, Ses
   FFMPEGMedia ffmpegMedia{*media};
   Dbo::Transaction t(session);
   for(MediaScannerStep *step: steps) {
-    step->run(&ffmpegMedia, media, stepsContents[step], &t);
+    step->run(&ffmpegMedia, *media, stepsContents[step], &t);
   }
   while(!canContinue && !canceled && !skipped) {
     bool stepsAreSkipped = true;
@@ -166,7 +166,7 @@ void MediaScannerDialogPrivate::runStepsFor(Media *media, WApplication* app, Ses
       stepsAreFinished &= stepResult == MediaScannerStep::Skip || stepResult == MediaScannerStep::Done;
       
       if(stepResult == MediaScannerStep::Redo)
-        step->run(&ffmpegMedia, media, stepsContents[step], &t);
+        step->run(&ffmpegMedia, *media, stepsContents[step], &t);
     }
     canContinue |= stepsAreSkipped;
     guiRun(app, [=] {

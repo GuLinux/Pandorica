@@ -32,11 +32,11 @@ class SaveSubtitlesToDatabasePrivate
 public:
   SaveSubtitlesToDatabasePrivate(Wt::WApplication* app, SaveSubtitlesToDatabase* q);
     virtual ~SaveSubtitlesToDatabasePrivate();
-    void extractSubtitles(std::vector< FFMPEG::Stream > subtitles, Media* media, Wt::WContainerWidget* container);
+    void extractSubtitles(std::vector< FFMPEG::Stream > subtitles, Wt::WContainerWidget* container);
     Wt::WApplication* app;
     MediaScannerStep::StepResult result;
     std::vector<MediaAttachment*> subtitlesToSave;
-    Media* media;
+    Media media;
 
 private:
     class SaveSubtitlesToDatabase* const q;
