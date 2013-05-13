@@ -55,14 +55,10 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Sett
   auto layout = new WHBoxLayout();
   mainContainer->setLayout(layout);
   layout->addWidget(d->infoPanel);
-  layout->setResizable(0, false);
-  layout->addWidget(d->browser);
-  auto myTimer = new WTimer();
-  myTimer->setInterval(1000);
-  myTimer->timeout().connect([=](WMouseEvent) {
-    d->infoPanel->setWidth(450);
-  });
-  myTimer->start();
+  layout->setResizable(0, true);
+  d->infoPanel->setWidth(450);
+  layout->addWidget(d->browser, 1);
+
   d->browser->setList(true);
   addWidget(d->breadcrumb);
   addWidget(mainContainer);
