@@ -28,6 +28,7 @@ class InfoPanel : public Wt::WContainerWidget {
 public:
     InfoPanel(Session* session, Settings* settings, Wt::WContainerWidget* parent = 0);
     void info(Media media);
+    void reset();
     inline Wt::Signal<Media> &play() { return _play; }
     inline Wt::Signal<Media> &queue() { return _queue; }
     inline Wt::Signal<Media> &setTitle() { return _setTitle; }
