@@ -476,12 +476,10 @@ void StreamingAppPrivate::play ( Media media ) {
   auto preview = media.preview(&session, Media::PreviewPlayer);
   WContainerWidget *container = new WContainerWidget;
   if(preview) {
-    auto resource = new WMemoryResource{preview->mimetype(), preview->data(), q};
-//     resource->setInternalPath(wApp->sessionId() + "-preview-big-" + media.uid());
     if(media.mimetype().find("audio") == string::npos)
-      player->setPoster(resource->url());
+      player->setPoster(preview->link(preview, container));
     else {
-      container->addWidget(WW<WImage>(resource).css("album-cover"));
+      container->addWidget(WW<WImage>(preview->link(preview, container)).css("album-cover"));
     }
   }
   Dbo::Transaction t(session);
@@ -489,8 +487,7 @@ void StreamingAppPrivate::play ( Media media ) {
     string lang = threeLangCodeToTwo[subtitle->value()];
     wApp->log("notice") << "Found subtitle " << subtitle.id() << ", " << lang;
     string label = subtitle->name().empty() ? defaultLabelFor(lang) : subtitle->name();
-    WMemoryResource *resource = new WMemoryResource{subtitle->mimetype(), subtitle->data(), container};
-    player->addSubtitles( {resource->url(), lang, label} );
+    player->addSubtitles( {subtitle->link(subtitle, container).url(), lang, label} );
   }
   player->ended().connect([=,&t](_n6){
     Dbo::Transaction t(session);
