@@ -6,14 +6,20 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <fstream>
+#include <functional>
 
 using namespace Wt;
 using namespace std;
 namespace fs = boost::filesystem;
 
-map<string, string> extensions {
-  {"image/png", "png"},
-  {"image/jpeg", "jpg"},
+map<string, function<string(string)>> extensions {
+  {"image/png", [](string){ return "png"; }},
+  {"image/jpeg", [](string) { return "jpg"; }},
+  {"text/plain", [](string type) {
+    if(type ==  "subtitles")
+      return "srt";
+    return "txt";
+  }},
 };
 
 Wt::WLink MediaAttachment::link(Dbo::ptr< MediaAttachment > myPtr, WObject* parent) const
@@ -36,7 +42,7 @@ Wt::WLink MediaAttachment::link(Dbo::ptr< MediaAttachment > myPtr, WObject* pare
       % myPtr.id()
       % name()
       % value()
-      % extensions[mimetype()]
+      % extensions[mimetype()](type())
     ).str();
   };
   
