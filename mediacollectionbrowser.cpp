@@ -28,6 +28,7 @@
 #include <ctime>
 #include <Wt/WPanel>
 #include <Wt/WGroupBox>
+#include <Wt/WTimer>
 
 using namespace Wt;
 using namespace std;
@@ -54,8 +55,14 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Sett
   auto layout = new WHBoxLayout();
   mainContainer->setLayout(layout);
   layout->addWidget(d->infoPanel);
-  layout->setResizable(0, true);
+  layout->setResizable(0, false);
   layout->addWidget(d->browser);
+  auto myTimer = new WTimer();
+  myTimer->setInterval(1000);
+  myTimer->timeout().connect([=](WMouseEvent) {
+    d->infoPanel->setWidth(450);
+  });
+  myTimer->start();
   d->browser->setList(true);
   addWidget(d->breadcrumb);
   addWidget(mainContainer);
@@ -180,7 +187,6 @@ void MediaCollectionBrowserPrivate::browse(filesystem::path currentPath)
   auto belongsToCurrent = [=](fs::path p){
     return p.parent_path() == this->currentPath;
   };
-  infoPanel->setWidth(450);
   
   set<fs::path> directories;
   vector<Media> medias;
