@@ -77,6 +77,7 @@ public:
     std::vector<uint8_t> thumbnailFor(int size, int quality = 8);
     ImagesToSave imagesToSave;
     
+    void addImageChooser(Wt::WContainerWidget* container);
     void chooseRandomFrame(Wt::WContainerWidget* container);
     ThumbnailPosition randomPosition(FFMPEGMedia *ffmpegMedia);
     
