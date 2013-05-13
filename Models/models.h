@@ -1,5 +1,6 @@
 #ifndef MODELS_H
 #define MODELS_H
+#include "Models/mediaproperties.h"
 #include "Models/mediaattachment.h"
 #include "Models/sessioninfo.h"
 #include "Models/sessiondetails.h"
