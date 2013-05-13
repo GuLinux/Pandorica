@@ -45,6 +45,10 @@
   </message>
 
   <!-- Media Scanner -->
+  <message id="stepname.scanMediaInfoStep">Extract Media Information</message>
+  <message id="stepname.saveSubtitlesToDatabase">Extract Subtitles</message>
+  <message id="stepname.createThumbnails">Create Poster Image</message>
+  
   <message id="mediascanner.title">Media Scanner</message>
   <message id="mediascanner.media.title">Title</message>
   <message id="mediascannerdialog.thumbnail.upload.label">Upload File</message>

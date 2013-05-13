@@ -30,6 +30,7 @@
 #include <Wt/WTimer>
 #include <Wt/WProgressBar>
 #include <Wt/Dbo/backend/Postgres>
+#include <Wt/WGroupBox>
 #include <thread>
 #include <boost/thread.hpp>
 
@@ -83,7 +84,8 @@ MediaScannerDialog::MediaScannerDialog(Settings* settings, MediaCollection* medi
   contents()->addWidget(stepsContainer);
 
   for(auto step: d->steps) {
-    auto container = new WContainerWidget;
+    auto container = new WGroupBox(wtr(string{"stepname."} + step->stepName() ));
+    container->setStyleClass("step-groupbox");
     d->stepsContents[step] = container;
     stepsContainer->addWidget(container);
     container->setPadding(5);
@@ -138,6 +140,8 @@ void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, UpdateGuiProgr
     guiRun(app, [=] {
       buttonNext->disable();
       buttonSkip->disable();
+      for(auto stepContent: stepsContents)
+        stepContent.second->hide();
       updateGuiProgress(current, media.filename());
     });
     runStepsFor(media, app, session);
@@ -163,6 +167,8 @@ void MediaScannerDialogPrivate::runStepsFor(Media media, WApplication* app, Sess
     
     for(MediaScannerStep *step: steps) {
       auto stepResult = step->result();
+      if(stepResult != MediaScannerStep::Skip)
+        guiRun(app, [=] { stepsContents[step]->show(); });
       stepsAreSkipped &= stepResult == MediaScannerStep::Skip;
       stepsAreFinished &= stepResult == MediaScannerStep::Skip || stepResult == MediaScannerStep::Done;
       

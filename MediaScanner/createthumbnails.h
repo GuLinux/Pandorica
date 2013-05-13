@@ -37,6 +37,7 @@ public:
     virtual void save(Wt::Dbo::Transaction *transaction);
     virtual StepResult result();
     virtual Wt::Signal<> &redo();
+    inline virtual std::string stepName() const {return "createThumbnails"; }
 private:
   StreamingPrivate::CreateThumbnailsPrivate* const d;
 };
