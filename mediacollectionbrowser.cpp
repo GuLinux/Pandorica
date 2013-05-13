@@ -246,6 +246,7 @@ void MediaCollectionBrowserPrivate::setPosterFor(Media media)
   dialog->footer()->addWidget(WW<WPushButton>(wtr("button.ok")).css("btn btn-success").onClick([=](WMouseEvent) {
     Dbo::Transaction t(*session);
     createThumbs->save(&t);
+    t.commit();
     dialog->accept();
     q->reload();
     delete ffmpegMedia;

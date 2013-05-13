@@ -150,19 +150,13 @@ void ImageUploader::uploaded() {
   vector<uint8_t> newVector;
   try {
     log("notice") << "uploaded file to " << upload->spoolFileName();
-    boost::filesystem::path pSpool{upload->spoolFileName()};
-    boost::filesystem::path pOrig{upload->clientFileName().toUTF8()};
-    string newPath = pSpool.string() + "." + pOrig.extension().string();
-    boost::filesystem::copy(pSpool, newPath);
-    log("notice") << "copied " << upload->spoolFileName() << " into " << newPath;
-    Magick::Image fullImage(newPath);
+    Magick::Image fullImage(upload->spoolFileName());
     imagesToSave.reset();
     copyTo(fullImage, imagesToSave.full, -1);
     copyTo(fullImage, imagesToSave.player, IMAGE_SIZE_PLAYER);
     copyTo(fullImage, newVector, IMAGE_SIZE_PREVIEW);
     copyTo(fullImage, imagesToSave.thumb, IMAGE_SIZE_THUMB);
     _previewImage.emit( newVector);
-    boost::filesystem::remove(newPath);
     reset();
   } catch(std::exception &e) {
     log("error") << "Error decoding image with imagemagick: " << e.what();
@@ -251,6 +245,7 @@ void CreateThumbnails::save(Dbo::Transaction* transaction)
   log("notice") << "Result: " << d->result << " (done= " << Done << ", Redo = " << Redo << ")";
   if(d->result != Done)
     return;
+  log("notice") << "Deleting old data from media_attachment for media_id " << d->currentMedia->uid();
   transaction->session().execute("DELETE FROM media_attachment WHERE media_id = ? AND type = 'preview'").bind(d->currentMedia->uid());
   MediaAttachment *fullAttachment = new MediaAttachment{"preview", "full", "", d->currentMedia->uid(), "image/png", d->imagesToSave.full };
   MediaAttachment *thumbnailAttachment = new MediaAttachment{"preview", "thumbnail", "", d->currentMedia->uid(), "image/png", d->imagesToSave.thumb };
@@ -258,6 +253,7 @@ void CreateThumbnails::save(Dbo::Transaction* transaction)
   transaction->session().add(fullAttachment);
   transaction->session().add(thumbnailAttachment);
   transaction->session().add(playerAttachment);
+  log("notice") << "Images saved";
   d->currentMedia = 0;
   d->currentFFMPEGMedia = 0;
   d->result = Waiting;
