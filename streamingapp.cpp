@@ -487,7 +487,7 @@ void StreamingAppPrivate::play ( Media media ) {
     string lang = threeLangCodeToTwo[subtitle->value()];
     wApp->log("notice") << "Found subtitle " << subtitle.id() << ", " << lang;
     string label = subtitle->name().empty() ? defaultLabelFor(lang) : subtitle->name();
-    player->addSubtitles( {subtitle->link(subtitle, container).url(), lang, label} );
+    player->addSubtitles( { (new WMemoryResource{subtitle->mimetype(), subtitle->data(), container})->url(), lang, label} );
   }
   player->ended().connect([=,&t](_n6){
     Dbo::Transaction t(session);
