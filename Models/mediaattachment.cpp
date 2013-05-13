@@ -22,9 +22,8 @@ Wt::WLink MediaAttachment::link(Dbo::ptr< MediaAttachment > myPtr, WObject* pare
   string cacheDurationInSeconds{"7200"};
   string thumbnailsCacheServerMap;
   
-  wApp->readConfigurationProperty("thumbnails_cache_dir", cacheDir);
-  wApp->readConfigurationProperty("thumbnails_cache_duration_seconds", cacheDurationInSeconds);
-  wApp->readConfigurationProperty("thumbnails_cache_server_map", thumbnailsCacheServerMap);
+  wApp->readConfigurationProperty("blobs_cache_dir", cacheDir);
+  wApp->readConfigurationProperty("blobs_cache_server_map", thumbnailsCacheServerMap);
   
   if(cacheDir.empty() || !fs::is_directory(cacheDir))
     return {fallback()};
