@@ -62,7 +62,7 @@ ScanMediaInfoStep::ScanMediaInfoStep(WApplication* app, WObject* parent)
 void ScanMediaInfoStep::run(FFMPEGMedia* ffmpegMedia, Media media, WContainerWidget* container, Dbo::Transaction* transaction, MediaScannerStep::ExistingFlags onExisting)
 {
   d->result = Waiting;
-  MediaPropertiesPtr mediaPropertiesPtr = transaction->session().find<MediaProperties>().where("media_id = ?").bind(media.uid());
+  MediaPropertiesPtr mediaPropertiesPtr = media.properties(*transaction);
   if(onExisting == SkipIfExisting && mediaPropertiesPtr) {
     d->result = Skip;
     return;

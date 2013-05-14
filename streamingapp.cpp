@@ -271,11 +271,12 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   });
   suggestions->setFilterLength(-1);
   auto addSuggestions = [=](_n6) {
+    Dbo::Transaction t(session);
     suggestionsModel->setStringList({});
     searchBox->setText({});
     for(pair<string,Media> media: mediaCollection->collection()) {
       int row = suggestionsModel->rowCount();
-      WString title{media.second.title(&session)};
+      WString title{media.second.title(t)};
       suggestionsModel->addString(title);
       suggestionsModel->setData(row, 0, media.first, Wt::UserRole);
       suggestionsModel->setData(row, 0, media.second.filename() + ";;" + title, Wt::UserRole+1);
@@ -469,11 +470,12 @@ void StreamingAppPrivate::play ( Media media ) {
     delete player;
   }
   player = settings.newPlayer();
+  Dbo::Transaction t(session);
   
   WLink mediaLink = settings.linkFor( media.path() );
   player->addSource( {mediaLink.url(), media.mimetype()} );
   player->setAutoplay(settings.autoplay(media));
-  auto preview = media.preview(&session, Media::PreviewPlayer);
+  auto preview = media.preview(t, Media::PreviewPlayer);
   WContainerWidget *container = new WContainerWidget;
   if(preview) {
     if(media.mimetype().find("audio") == string::npos)
@@ -482,14 +484,13 @@ void StreamingAppPrivate::play ( Media media ) {
       container->addWidget(WW<WImage>(preview->link(preview, container)).css("album-cover"));
     }
   }
-  Dbo::Transaction t(session);
-  for(MediaAttachmentPtr subtitle : media.subtitles(&t)) {
+  for(MediaAttachmentPtr subtitle : media.subtitles(t)) {
     string lang = threeLangCodeToTwo[subtitle->value()];
     wApp->log("notice") << "Found subtitle " << subtitle.id() << ", " << lang;
     string label = subtitle->name().empty() ? defaultLabelFor(lang) : subtitle->name();
     player->addSubtitles( { subtitle->link(subtitle, container).url(), lang, label} );
   }
-  player->ended().connect([=,&t](_n6){
+  player->ended().connect([=](_n6){
     Dbo::Transaction t(session);
     SessionInfoPtr sessionInfo = session.find<SessionInfo>().where("session_id = ?").bind(q->sessionId());
     for(auto detail : sessionInfo.modify()->sessionDetails())
@@ -505,7 +506,7 @@ void StreamingAppPrivate::play ( Media media ) {
   WContainerWidget* infoBox = new WContainerWidget;
   playerContainerWidget->addWidget(infoBox);
   playerContainerWidget->addWidget(new CommentsContainerWidget{media.uid(), &session});
-  infoBox->addWidget(new WText{media.title(&session)});
+  infoBox->addWidget(new WText{media.title(t)});
   /** TODO: apparently unsupported :(
   infoBox->addWidget(new WBreak() );
   WAnchor *resizeSmall = WW(WAnchor, "#", wtr("player.resizeSmall")).css("btn btn-info btn-mini").onClick([=](WMouseEvent){player->setPlayerSize(640);});
@@ -554,7 +555,7 @@ void StreamingAppPrivate::play ( Media media ) {
   downloadLink->setAttributeValue("title", wtr("player.downloadlink.tooltip"));
   downloadLink->doJavaScript((boost::format("$('#%s').tooltip();") % downloadLink->id()).str() );
   infoBox->addWidget(downloadLink);
-  wApp->setTitle( media.title(&session) );
+  wApp->setTitle( media.title(t) );
   log("notice") << "using url " << mediaLink.url();
   SessionInfoPtr sessionInfo = session.find<SessionInfo>().where("session_id = ?").bind(q->sessionId());
   for(auto detail : sessionInfo.modify()->sessionDetails())

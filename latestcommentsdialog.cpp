@@ -31,7 +31,7 @@ LatestCommentsDialog::LatestCommentsDialog(Session* session, MediaCollection *me
     WContainerWidget *header = WW<WContainerWidget>();
     header->setContentAlignment(AlignCenter);
     
-    WAnchor *videoLink = WW<WAnchor>("", media.title(session)).css("link-hand label label-info comment-box-element");
+    WAnchor *videoLink = WW<WAnchor>("", media.title(t)).css("link-hand label label-info comment-box-element");
     header->addWidget(videoLink);
     Dbo::ptr<AuthInfo> authInfo = session->find<AuthInfo>().where("user_id = ?").bind(comment->user().id());
     header->addWidget(WW<WText>(WString("{1} ({2})").arg(authInfo->identity("loginname")).arg(comment->lastUpdated().toString()))

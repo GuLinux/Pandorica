@@ -97,14 +97,14 @@ void InfoPanel::info(Media media)
   clear();
   WContainerWidget *header = WW<WContainerWidget>().setContentAlignment(AlignCenter);
   Dbo::Transaction t(*session);
-  WString title = media.title(session);
+  WString title = media.title(t);
   header->addWidget(WW<WText>(title).css("media-title"));
-  Dbo::ptr<MediaAttachment> previewAttachment = media.preview(session, Media::PreviewPlayer);
+  Dbo::ptr<MediaAttachment> previewAttachment = media.preview(t, Media::PreviewPlayer);
   if(previewAttachment) {
     WLink previewLink = previewAttachment->link(previewAttachment, header);
     WLink fullImage = previewLink;
     
-    Dbo::ptr<MediaAttachment> fullImageAttachment = media.preview(session, Media::PreviewFull);
+    Dbo::ptr<MediaAttachment> fullImageAttachment = media.preview(t, Media::PreviewFull);
     if(fullImageAttachment)
       fullImage = fullImageAttachment->link(fullImageAttachment, header);
     
@@ -121,7 +121,7 @@ void InfoPanel::info(Media media)
   mediaInfoPanel.second->addWidget(labelValueBox("mediabrowser.filename", media.filename()) );
   mediaInfoPanel.second->addWidget(labelValueBox("mediabrowser.filesize", MediaCollectionBrowserPrivate::formatFileSize(fs::file_size(media.path())) ) );
   
-  MediaPropertiesPtr mediaProperties = session->find<MediaProperties>().where("media_id = ?").bind(media.uid());
+  MediaPropertiesPtr mediaProperties = media.properties(t);
   if(mediaProperties) {
     mediaInfoPanel.second->addWidget(labelValueBox("mediabrowser.medialength", WTime(0,0,0).addSecs(mediaProperties->duration()).toString()) );
   }
@@ -138,7 +138,8 @@ void InfoPanel::info(Media media)
   actions.second->addWidget(WW<WPushButton>(wtr("mediabrowser.play")).css("btn btn-block btn-small btn-primary").onClick([=](WMouseEvent){ _play.emit(media);} ));
   actions.second->addWidget(WW<WPushButton>(wtr("mediabrowser.queue")).css("btn btn-block btn-small").onClick([=](WMouseEvent){ _queue.emit(media);} ));
   actions.second->addWidget(WW<WPushButton>(wtr("mediabrowser.share")).css("btn btn-block btn-small").onClick([=](WMouseEvent){
-    auto shareMessageBox = new WMessageBox(wtr("mediabrowser.share"), wtr("mediabrowser.share.dialog").arg(media.title(session)).arg(settings->shareLink(media.uid()).url()), NoIcon, Ok);
+    Wt::Dbo::Transaction t(*session);
+    auto shareMessageBox = new WMessageBox(wtr("mediabrowser.share"), wtr("mediabrowser.share.dialog").arg(media.title(t)).arg(settings->shareLink(media.uid()).url()), NoIcon, Ok);
     shareMessageBox->button(Ok)->clicked().connect([=](WMouseEvent) { shareMessageBox->accept(); });
     shareMessageBox->show();
   } ));
@@ -239,11 +240,11 @@ void MediaCollectionBrowserPrivate::addMedia(Media &media)
   if(media.mimetype().find("audio") != string::npos)
     icon = [](WObject *){ return Settings::icon(Settings::AudioFile); };
   
-  Dbo::ptr<MediaAttachment> preview = media.preview(session, Media::PreviewThumb);
+  Dbo::ptr<MediaAttachment> preview = media.preview(t, Media::PreviewThumb);
   if(preview)
     icon = [=](WObject *parent) { return preview->link(preview, parent).url(); };
   
-  addIcon(media.title(session), icon, onClick);
+  addIcon(media.title(t), icon, onClick);
 }
 
 void MediaCollectionBrowserPrivate::clearThumbnailsFor(Media media)
@@ -301,7 +302,7 @@ void MediaCollectionBrowserPrivate::setPosterFor(Media media)
 void MediaCollectionBrowserPrivate::setTitleFor(Media media)
 {
   Dbo::Transaction t(*session);
-  MediaPropertiesPtr properties = session->find<MediaProperties>().where("media_id = ?").bind(media.uid());
+  MediaPropertiesPtr properties = media.properties(t);
   if(!properties) {
     t.rollback();
     WMessageBox::show(wtr("mediabrowser.admin.settitle.missingproperties.caption"), wtr("mediabrowser.admin.settitle.missingproperties.body"), StandardButton::Ok);

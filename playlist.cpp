@@ -61,7 +61,8 @@ void Playlist::reset()
 
 void Playlist::queue(Media media)
 {
-  WAnchor* playlistEntry = WW<WAnchor>("", media.title(session)).css("link-hand");
+  Dbo::Transaction t(*session);
+  WAnchor* playlistEntry = WW<WAnchor>("", media.title(t)).css("link-hand");
   playlistEntry->addWidget(new WBreak());
   playlistEntry->clicked().connect([this,media, playlistEntry](WMouseEvent&){ nextItem(playlistEntry); });
   addWidget(WW<WContainerWidget>().add(playlistEntry));
