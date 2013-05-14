@@ -7,6 +7,10 @@
 #include <media.h>
 #include "Wt-Commons/wt_helpers.h"
 
+namespace Wt {
+class WPanel;
+}
+
 class MediaCollectionBrowser;
 
 class Session;
@@ -36,6 +40,7 @@ private:
   Session *session;
   Settings* settings;
   bool isAdmin;
+  std::pair<Wt::WPanel*,Wt::WContainerWidget*> createPanel(std::string titleKey);
 };
 
 
