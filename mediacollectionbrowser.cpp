@@ -152,7 +152,7 @@ void InfoPanel::info(Media media)
 pair<WPanel*,WContainerWidget*> InfoPanel::createPanel(string titleKey)
 {
   WPanel *panel = new WPanel();
-  panel->setTitle(wtr("mediabrowser.information"));
+  panel->setTitle(wtr(titleKey));
   panel->setCollapsible(true);
   panel->setMargin(10, Wt::Side::Top);
   panel->setAnimation({WAnimation::SlideInFromTop, WAnimation::EaseOut, 500});
