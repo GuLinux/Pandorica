@@ -21,7 +21,12 @@
 #include <stdint.h>
 #include <Wt/WSignal>
 #include <Wt/WContainerWidget>
+#include <Magick++/Blob.h>
 #include <media.h>
+
+namespace Magick {
+class Blob;
+}
 
 class FFMPEGMedia;
 class Settings;
@@ -46,24 +51,17 @@ struct ThumbnailPosition {
   static ThumbnailPosition from(int timeInSeconds);
 };
 
-struct ImagesToSave {
-  std::vector<uint8_t> full;
-  std::vector<uint8_t> thumb;
-  std::vector<uint8_t> player;
-  void reset();
-};
 
 class ImageUploader : public Wt::WContainerWidget {
 public:
-  ImageUploader(ImagesToSave &imagesToSave, WContainerWidget* parent = 0);
-  Wt::Signal<std::vector<uint8_t>> &previewImage() { return _previewImage; }
+  ImageUploader(WContainerWidget* parent = 0);
+  Wt::Signal<Magick::Blob> &previewImage() { return _previewImage; }
 private:
   void uploaded();
   void reset();
   Wt::WFileUpload *upload;
-  ImagesToSave &imagesToSave;
-  Wt::Signal<std::vector<uint8_t>> _previewImage;
-    WContainerWidget* linkContainer;
+  Wt::Signal<Magick::Blob> _previewImage;
+  WContainerWidget* linkContainer;
 };
 
 
@@ -74,8 +72,9 @@ public:
     virtual ~CreateThumbnailsPrivate();
     Settings* settings;
     Wt::WApplication* app;
-    std::vector<uint8_t> thumbnailFor(int size, int quality = 8);
-    ImagesToSave imagesToSave;
+    void thumbnailFor(int size, int quality = 8);
+    Magick::Blob resize(Magick::Blob blob, int size, uint quality = 75);
+    Magick::Blob fullImage;
     
     void addImageChooser(Wt::WContainerWidget* container);
     void chooseRandomFrame(Wt::WContainerWidget* container);
