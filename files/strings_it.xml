@@ -112,7 +112,7 @@
   <message id="mediabrowser.filesize">Dimensione File</message>
   <message id="mediabrowser.medialength">Durata</message>
   <message id="mediabrowser.rating">Voto</message>
-  
+  <message id="mediabrowser.resolution">Risoluzione</message>
   <message id="mediabrowser.information">Informazioni</message>
   <message id="mediabrowser.actions">Azioni</message>
   <message id="mediabrowser.admin.actions">Gestione</message>

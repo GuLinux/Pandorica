@@ -30,6 +30,7 @@
   <message id="mediabrowser.filesize">File Size</message>
   <message id="mediabrowser.medialength">Length</message>
   <message id="mediabrowser.rating">Rating</message>
+  <message id="mediabrowser.resolution">Resolution</message>
   <message id="mediabrowser.information">Information</message>
   <message id="mediabrowser.actions">Actions</message>
   <message id="mediabrowser.admin.actions">Manage</message>

@@ -124,6 +124,8 @@ void InfoPanel::info(Media media)
   MediaPropertiesPtr mediaProperties = media.properties(t);
   if(mediaProperties) {
     mediaInfoPanel.second->addWidget(labelValueBox("mediabrowser.medialength", WTime(0,0,0).addSecs(mediaProperties->duration()).toString()) );
+    if(media.mimetype().find("video") != string::npos && mediaProperties->width() > 0 && mediaProperties->height() > 0)
+      mediaInfoPanel.second->addWidget(labelValueBox("mediabrowser.resolution", WString("{1}x{2}").arg(mediaProperties->width()).arg(mediaProperties->height()) ) );
   }
   Ratings rating = MediaRating::ratingFor(media, t);
   if(rating.users > 0) {
