@@ -31,7 +31,8 @@ public:
     inline Wt::Signal<Media> &setPoster() { return _setPoster; }
     inline Wt::Signal<Media> &deletePoster() { return _deletePoster; }
 private:
-  WContainerWidget *labelValueBox(Wt::WString label, Wt::WString value);
+  WContainerWidget *labelValueBox(std::string label, Wt::WString value);
+  WContainerWidget *labelValueBox(std::string label, Wt::WWidget *widget);
   Wt::Signal<Media> _play;
   Wt::Signal<Media> _queue;
   Wt::Signal<Media> _setTitle;

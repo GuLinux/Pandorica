@@ -118,12 +118,20 @@ void InfoPanel::info(Media media)
   }
   auto mediaInfoPanel = createPanel("mediabrowser.information");
   
-  mediaInfoPanel.second->addWidget(labelValueBox(wtr("mediabrowser.filename"), media.filename()) );
-  mediaInfoPanel.second->addWidget(labelValueBox(wtr("mediabrowser.filesize"), MediaCollectionBrowserPrivate::formatFileSize(fs::file_size(media.path())) ) );
+  mediaInfoPanel.second->addWidget(labelValueBox("mediabrowser.filename", media.filename()) );
+  mediaInfoPanel.second->addWidget(labelValueBox("mediabrowser.filesize", MediaCollectionBrowserPrivate::formatFileSize(fs::file_size(media.path())) ) );
   
   MediaPropertiesPtr mediaProperties = session->find<MediaProperties>().where("media_id = ?").bind(media.uid());
   if(mediaProperties) {
-    mediaInfoPanel.second->addWidget(labelValueBox(wtr("mediabrowser.medialength"), WTime(0,0,0).addSecs(mediaProperties->duration()).toString()) );
+    mediaInfoPanel.second->addWidget(labelValueBox("mediabrowser.medialength", WTime(0,0,0).addSecs(mediaProperties->duration()).toString()) );
+  }
+  Ratings rating = MediaRating::ratingFor(media, t);
+  if(rating.users > 0) {
+    WContainerWidget *avgRatingWidget = new WContainerWidget;
+    for(int i=1; i<=5; i++) {
+      avgRatingWidget->addWidget(WW<WImage>("http://gulinux.net/css/rating_small.png").css(rating.ratingAverage <i ? "rating-unrated" : ""));
+    }
+    mediaInfoPanel.second->addWidget(labelValueBox("mediabrowser.rating", avgRatingWidget));
   }
   
   auto actions = createPanel("mediabrowser.actions");
@@ -163,11 +171,17 @@ pair<WPanel*,WContainerWidget*> InfoPanel::createPanel(string titleKey)
 }
 
 
-Wt::WContainerWidget *InfoPanel::labelValueBox(Wt::WString label, Wt::WString value)
+Wt::WContainerWidget *InfoPanel::labelValueBox(string label, Wt::WString value)
+{
+  return labelValueBox(label, new WText{value});
+}
+
+
+WContainerWidget* InfoPanel::labelValueBox(string label, WWidget* widget)
 {
   WContainerWidget *box = WW<WContainerWidget>().css("row-fluid");
-  box->addWidget(WW<WContainerWidget>().css("span3").add(WW<WText>(label).css("label label-info")));
-  box->addWidget(WW<WContainerWidget>().css("span9 media-info-value").setContentAlignment(AlignRight).add(new WText{value}));
+  box->addWidget(WW<WContainerWidget>().css("span3").add(WW<WText>(wtr(label)).css("label label-info")));
+  box->addWidget(WW<WContainerWidget>().css("span9 media-info-value").setContentAlignment(AlignRight).add(widget));
   return box;
 }
 
