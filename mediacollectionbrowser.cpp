@@ -128,8 +128,8 @@ void InfoPanel::info(Media media)
   
   auto actions = createPanel("mediabrowser.actions");
   actions.second->addWidget(WW<WPushButton>(wtr("mediabrowser.play")).css("btn btn-block btn-small btn-primary").onClick([=](WMouseEvent){ _play.emit(media);} ));
-  actions.second->addWidget(WW<WPushButton>(wtr("mediabrowser.queue")).css("btn btn-block btn-small btn-inverse").onClick([=](WMouseEvent){ _queue.emit(media);} ));
-  actions.second->addWidget(WW<WPushButton>(wtr("mediabrowser.share")).css("btn btn-block btn-small btn-info").onClick([=](WMouseEvent){
+  actions.second->addWidget(WW<WPushButton>(wtr("mediabrowser.queue")).css("btn btn-block btn-small").onClick([=](WMouseEvent){ _queue.emit(media);} ));
+  actions.second->addWidget(WW<WPushButton>(wtr("mediabrowser.share")).css("btn btn-block btn-small").onClick([=](WMouseEvent){
     auto shareMessageBox = new WMessageBox(wtr("mediabrowser.share"), wtr("mediabrowser.share.dialog").arg(media.title(session)).arg(settings->shareLink(media.uid()).url()), NoIcon, Ok);
     shareMessageBox->button(Ok)->clicked().connect([=](WMouseEvent) { shareMessageBox->accept(); });
     shareMessageBox->show();
