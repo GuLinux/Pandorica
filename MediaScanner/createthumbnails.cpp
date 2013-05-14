@@ -55,8 +55,13 @@ using namespace Wt;
 using namespace std;
 using namespace std::chrono;
 using namespace ffmpegthumbnailer;
+using namespace Magick;
 
 using namespace StreamingPrivate;
+
+vector<uint8_t> vectorFrom(Blob blob) {
+  return { (char*) blob.data(), (char*) blob.data() + blob.length()};
+}
 
 time_point<high_resolution_clock> serverStartTimeForRandomSeeding{high_resolution_clock::now()};
 mt19937_64 randomEngine{(uint64_t) serverStartTimeForRandomSeeding.time_since_epoch().count()};
@@ -81,8 +86,8 @@ CreateThumbnails::~CreateThumbnails()
 }
 
 
-ImageUploader::ImageUploader(ImagesToSave& imagesToSave, Wt::WContainerWidget* parent)
-  : WContainerWidget(parent), imagesToSave(imagesToSave)
+ImageUploader::ImageUploader(WContainerWidget* parent)
+  : WContainerWidget(parent)
 {
   reset();
 }
@@ -115,28 +120,15 @@ void ImageUploader::reset() {
   setStyleClass("form-inline");
 }
 
-void copyTo(Magick::Image &image, vector<uint8_t> &out, int size) {
-  Magick::Blob blob;
-  if(size>0)
-    image.sample(Magick::Geometry(size, size));
-  image.write(&blob, "PNG");
-  char *data = (char*) blob.data();
-  for(int i=0; i<blob.length(); i++) {
-    out.push_back( data[i]);
-  }
-}
 
 void ImageUploader::uploaded() {
-  vector<uint8_t> newVector;
   try {
     log("notice") << "uploaded file to " << upload->spoolFileName();
     Magick::Image fullImage(upload->spoolFileName());
-    imagesToSave.reset();
-    copyTo(fullImage, imagesToSave.full, -1);
-    copyTo(fullImage, imagesToSave.player, IMAGE_SIZE_PLAYER);
-    copyTo(fullImage, newVector, IMAGE_SIZE_PREVIEW);
-    copyTo(fullImage, imagesToSave.thumb, IMAGE_SIZE_THUMB);
-    _previewImage.emit( newVector);
+    Blob blob;
+    fullImage.quality(100);
+    fullImage.write(&blob);
+    _previewImage.emit(blob);
     reset();
   } catch(std::exception &e) {
     log("error") << "Error decoding image with imagemagick: " << e.what();
@@ -169,15 +161,17 @@ void CreateThumbnailsPrivate::addImageChooser(Wt::WContainerWidget* container)
 {
   guiRun(app, [=]{
     container->clear();
-    ImageUploader *imageUploader = new ImageUploader{imagesToSave};
+    ImageUploader *imageUploader = new ImageUploader;
     
     container->addWidget(imageUploader);
     WContainerWidget *imageContainer = new WContainerWidget;
     imageContainer->setContentAlignment(AlignCenter);
     container->addWidget(imageContainer);
-    imageUploader->previewImage().connect([=](vector<uint8_t> imageData, _n5) {
+    imageUploader->previewImage().connect([=](Blob blob, _n5) {
+      delete thumbnail;
       imageContainer->clear();
-      thumbnail = new WMemoryResource{"image/png", imageData, container};
+      fullImage = blob;
+      thumbnail = new WMemoryResource{"image/png", vectorFrom(resize(blob, IMAGE_SIZE_PREVIEW)), container};
       imageContainer->addWidget(new WImage{thumbnail});
       result = MediaScannerStep::Done;
     });
@@ -190,10 +184,13 @@ void CreateThumbnailsPrivate::addImageChooser(Wt::WContainerWidget* container)
 void CreateThumbnailsPrivate::chooseRandomFrame(WContainerWidget* container)
 {
   delete thumbnail;
-  thumbnail = new WMemoryResource{"image/png", thumbnailFor(IMAGE_SIZE_PREVIEW), container};
+  int fullSize = max(currentFFMPEGMedia->resolution().first, currentFFMPEGMedia->resolution().second);
+  thumbnailFor(fullSize, 10);
+
+  thumbnail = new WMemoryResource{"image/png", vectorFrom(resize(fullImage, IMAGE_SIZE_PREVIEW)), container};
   guiRun(app, [=]{
     container->clear();
-    ImageUploader *imageUploader = new ImageUploader{imagesToSave};
+    ImageUploader *imageUploader = new ImageUploader;
 
     container->addWidget(imageUploader);
     WImage *imagePreview = WW<WImage>(thumbnail).css("link-hand").onClick([=](WMouseEvent) {
@@ -204,19 +201,26 @@ void CreateThumbnailsPrivate::chooseRandomFrame(WContainerWidget* container)
       .add(WW<WText>(wtr("mediascannerdialog.thumbnaillabel")).css("small-text"))
       .add(imagePreview)
       .setContentAlignment(AlignCenter));
-    imageUploader->previewImage().connect([=](vector<uint8_t> imageData, _n5) {
+    imageUploader->previewImage().connect([=](Blob blob, _n5) {
       delete thumbnail;
-      thumbnail = new WMemoryResource{"image/png", imageData, container};
+      fullImage = blob;
+      thumbnail = new WMemoryResource{"image/png", vectorFrom(resize(blob, IMAGE_SIZE_PREVIEW)), container};
       imagePreview->setImageLink(thumbnail);
     });
     wApp->triggerUpdate();
   });
-  
-  int fullSize = max(currentFFMPEGMedia->resolution().first, currentFFMPEGMedia->resolution().second);
-  imagesToSave.full = thumbnailFor(fullSize, 10);
-  imagesToSave.thumb = thumbnailFor(IMAGE_SIZE_THUMB, 3);
-  imagesToSave.player = thumbnailFor(IMAGE_SIZE_PLAYER);
 }
+
+Magick::Blob StreamingPrivate::CreateThumbnailsPrivate::resize(Blob blob, int size, uint quality)
+{
+  Magick::Image image{blob};
+  Blob output;
+  image.sample({size, size});
+  image.quality(quality);
+  image.write(&output);
+  return output;
+}
+
 
 Signal<>& CreateThumbnails::redo()
 {
@@ -269,9 +273,9 @@ void CreateThumbnails::save(Dbo::Transaction* transaction)
     return;
   log("notice") << "Deleting old data from media_attachment for media_id " << d->currentMedia.uid();
   transaction->session().execute("DELETE FROM media_attachment WHERE media_id = ? AND type = 'preview'").bind(d->currentMedia.uid());
-  MediaAttachment *fullAttachment = new MediaAttachment{"preview", "full", "", d->currentMedia.uid(), "image/png", d->imagesToSave.full };
-  MediaAttachment *thumbnailAttachment = new MediaAttachment{"preview", "thumbnail", "", d->currentMedia.uid(), "image/png", d->imagesToSave.thumb };
-  MediaAttachment *playerAttachment = new MediaAttachment{"preview", "player", "", d->currentMedia.uid(), "image/png", d->imagesToSave.player };
+  MediaAttachment *fullAttachment = new MediaAttachment{"preview", "full", "", d->currentMedia.uid(), "image/png", vectorFrom(d->fullImage) };
+  MediaAttachment *thumbnailAttachment = new MediaAttachment{"preview", "thumbnail", "", d->currentMedia.uid(), "image/png", vectorFrom(d->resize(d->fullImage, IMAGE_SIZE_THUMB, 60)) };
+  MediaAttachment *playerAttachment = new MediaAttachment{"preview", "player", "", d->currentMedia.uid(), "image/png", vectorFrom(d->resize(d->fullImage, IMAGE_SIZE_PLAYER)) };
   transaction->session().add(fullAttachment);
   transaction->session().add(thumbnailAttachment);
   transaction->session().add(playerAttachment);
@@ -279,18 +283,10 @@ void CreateThumbnails::save(Dbo::Transaction* transaction)
   d->currentMedia = Media::invalid();
   d->currentFFMPEGMedia = 0;
   d->result = Waiting;
-  d->imagesToSave.reset();
-}
-
-void ImagesToSave::reset()
-{
-  full.clear();
-  thumb.clear();
-  player.clear();
 }
 
 
-vector<uint8_t> CreateThumbnailsPrivate::thumbnailFor(int size, int quality)
+void CreateThumbnailsPrivate::thumbnailFor(int size, int quality)
 {
   video_thumbnailer *thumbnailer = video_thumbnailer_create();
   thumbnailer->overlay_film_strip = currentMedia.mimetype().find("video") == string::npos ? 0 : 1;
@@ -306,8 +302,8 @@ vector<uint8_t> CreateThumbnailsPrivate::thumbnailFor(int size, int quality)
   thumbnailer->thumbnail_image_quality = quality;
   thumbnailer->thumbnail_size = size;
   video_thumbnailer_generate_thumbnail_to_buffer(thumbnailer, currentMedia.fullPath().c_str(), imageData);
-  vector<uint8_t> data{imageData->image_data_ptr, imageData->image_data_ptr + imageData->image_data_size};
+  fullImage = {imageData->image_data_ptr, imageData->image_data_size};
+//   vector<uint8_t> data{imageData->image_data_ptr, imageData->image_data_ptr + imageData->image_data_size};
   video_thumbnailer_destroy_image_data(imageData);
   video_thumbnailer_destroy(thumbnailer);
-  return data;
 }
