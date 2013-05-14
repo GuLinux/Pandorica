@@ -151,8 +151,8 @@ void InfoPanel::info(Media media)
   if(isAdmin) {
     WPanel *adminActions = new WPanel();
     adminActions->setTitle(wtr("mediabrowser.admin.actions"));
-    adminActions->setCollapsed(true);
     adminActions->setCollapsible(true);
+    adminActions->setCollapsed(true);
     adminActions->setMargin(10, Wt::Side::Top);
     WContainerWidget *adminActionsContainer = new WContainerWidget();
     adminActions->setCentralWidget(adminActionsContainer);
