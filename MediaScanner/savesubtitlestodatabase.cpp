@@ -67,7 +67,6 @@ void SaveSubtitlesToDatabase::run(FFMPEGMedia* ffmpegMedia, Media media, WContai
     return;
   }
   int subtitlesOnDb = transaction->session().query<int>("SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'subtitles'").bind(media.uid());
-  cerr << "Media " << media.filename() << ": subtitles found=" << subtitles.size() << ", on db: " << subtitlesOnDb << "\n";
   if(onExisting == SkipIfExisting && subtitlesOnDb == subtitles.size()) {
     d->result = Skip;
     return;

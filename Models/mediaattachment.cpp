@@ -32,9 +32,6 @@ Wt::WLink MediaAttachment::link(Dbo::ptr< MediaAttachment > myPtr, WObject* pare
   string cacheDir;
   string thumbnailsCacheServerMap;
   
-  log("notice") << "has blobs_cache_dir property: " << WServer::instance()->readConfigurationProperty("blobs_cache_dir", cacheDir);
-  log("notice") << "has blobs_cache_server_map property: " << WServer::instance()->readConfigurationProperty("blobs_cache_server_map", thumbnailsCacheServerMap);
-  log("notice") << "cacheDir: " << cacheDir;
   if(cacheDir.empty() || !fs::is_directory(cacheDir))
     return {fallback()};
   auto createPath = [=](string prefix) {
@@ -54,7 +51,6 @@ Wt::WLink MediaAttachment::link(Dbo::ptr< MediaAttachment > myPtr, WObject* pare
   };
   
   fs::path cacheFile{createPath(cacheDir)};
-  log("notice") << "Cache file path: " << cacheFile;
   
   if(!fs::is_directory(cacheFile.parent_path()) && ! fs::create_directory(cacheFile.parent_path()))
     return {fallback()};
