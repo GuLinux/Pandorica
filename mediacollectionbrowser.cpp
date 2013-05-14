@@ -137,9 +137,9 @@ void InfoPanel::info(Media media)
   actions->setCollapsible(true);
   WContainerWidget *actionsContainer = new WContainerWidget();
   actions->setCentralWidget(actionsContainer);
-  actionsContainer->addWidget(WW<WPushButton>(wtr("mediabrowser.play")).css("btn btn-block btn-primary").onClick([=](WMouseEvent){ _play.emit(media);} ));
-  actionsContainer->addWidget(WW<WPushButton>(wtr("mediabrowser.queue")).css("btn btn-block btn-inverse").onClick([=](WMouseEvent){ _queue.emit(media);} ));
-  actionsContainer->addWidget(WW<WPushButton>(wtr("mediabrowser.share")).css("btn btn-block btn-info").onClick([=](WMouseEvent){
+  actionsContainer->addWidget(WW<WPushButton>(wtr("mediabrowser.play")).css("btn btn-block btn-small btn-primary").onClick([=](WMouseEvent){ _play.emit(media);} ));
+  actionsContainer->addWidget(WW<WPushButton>(wtr("mediabrowser.queue")).css("btn btn-block btn-small btn-inverse").onClick([=](WMouseEvent){ _queue.emit(media);} ));
+  actionsContainer->addWidget(WW<WPushButton>(wtr("mediabrowser.share")).css("btn btn-block btn-small btn-info").onClick([=](WMouseEvent){
     auto shareMessageBox = new WMessageBox(wtr("mediabrowser.share"), wtr("mediabrowser.share.dialog").arg(media.title(session)).arg(settings->shareLink(media.uid()).url()), NoIcon, Ok);
     shareMessageBox->button(Ok)->clicked().connect([=](WMouseEvent) { shareMessageBox->accept(); });
     shareMessageBox->show();
@@ -156,9 +156,9 @@ void InfoPanel::info(Media media)
     adminActions->setMargin(10, Wt::Side::Top);
     WContainerWidget *adminActionsContainer = new WContainerWidget();
     adminActions->setCentralWidget(adminActionsContainer);
-    adminActionsContainer->addWidget(WW<WPushButton>(wtr("mediabrowser.admin.settitle")).css("btn btn-block btn-primary").onClick([=](WMouseEvent){ setTitle().emit(media);} ));
-    adminActionsContainer->addWidget(WW<WPushButton>(wtr("mediabrowser.admin.setposter")).css("btn btn-block btn-primary").onClick([=](WMouseEvent){ setPoster().emit(media);} ));
-    adminActionsContainer->addWidget(WW<WPushButton>(wtr("mediabrowser.admin.deletepreview")).css("btn btn-block btn-danger").onClick([=](WMouseEvent){ deletePoster().emit(media);} ));
+    adminActionsContainer->addWidget(WW<WPushButton>(wtr("mediabrowser.admin.settitle")).css("btn btn-block btn-small btn-primary").onClick([=](WMouseEvent){ setTitle().emit(media);} ));
+    adminActionsContainer->addWidget(WW<WPushButton>(wtr("mediabrowser.admin.setposter")).css("btn btn-block btn-small btn-primary").onClick([=](WMouseEvent){ setPoster().emit(media);} ));
+    adminActionsContainer->addWidget(WW<WPushButton>(wtr("mediabrowser.admin.deletepreview")).css("btn btn-block btn-small btn-danger").onClick([=](WMouseEvent){ deletePoster().emit(media);} ));
     addWidget(adminActions);
   }
   
