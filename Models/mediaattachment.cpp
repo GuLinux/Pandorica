@@ -24,9 +24,11 @@ map<string, function<string(string)>> extensions {
   }},
 };
 
-Wt::WLink MediaAttachment::link(Dbo::ptr< MediaAttachment > myPtr, WObject* parent) const
+Wt::WLink MediaAttachment::link(Dbo::ptr< MediaAttachment > myPtr, WObject* parent, bool useCacheIfAvailable) const
 {
   auto fallback = [=] { return new WMemoryResource{mimetype(), _data, parent}; };
+  if(!useCacheIfAvailable)
+    return fallback();
   string cacheDir;
   string thumbnailsCacheServerMap;
   

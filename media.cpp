@@ -57,10 +57,9 @@ string Media::filename() const
   return m_path.filename().string();
 }
 
-WString Media::title(Session* session) const
+WString Media::title(Dbo::Transaction& transaction) const
 {
-  Dbo::Transaction t(*session);
-  MediaPropertiesPtr properties = session->find<MediaProperties>().where("media_id = ?").bind(uid());
+  MediaPropertiesPtr properties = transaction.session().find<MediaProperties>().where("media_id = ?").bind(uid());
   if(!properties || properties->title().empty())
     return filename();
   return properties->title();
@@ -99,7 +98,7 @@ Media Media::invalid()
 }
 
 
-Dbo::ptr< MediaAttachment > Media::preview(Session* session, Media::PreviewSize size ) const
+Dbo::ptr< MediaAttachment > Media::preview(Dbo::Transaction& transaction, Media::PreviewSize size ) const
 {
   string previewSize;
   switch(size) {
@@ -110,23 +109,21 @@ Dbo::ptr< MediaAttachment > Media::preview(Session* session, Media::PreviewSize 
     case Media::PreviewThumb:
       previewSize="thumbnail"; break;
   }
-  Dbo::Transaction t(*session);
-  return session->find<MediaAttachment>().where("media_id = ? AND type = 'preview' AND name = ?")
+  return transaction.session().find<MediaAttachment>().where("media_id = ? AND type = 'preview' AND name = ?")
     .bind(uid()).bind(previewSize);
 }
 
-Dbo::collection<MediaAttachmentPtr> Media::subtitles(Session* session) const
+
+Dbo::collection<MediaAttachmentPtr> Media::subtitles(Dbo::Transaction& transaction) const
 {
-  Dbo::Transaction t(*session);
-  return subtitles(&t);
+  return transaction.session().find<MediaAttachment>().where("media_id = ? AND type = 'subtitles'").bind(uid()).resultList();
 }
 
-Dbo::collection< Dbo::ptr< MediaAttachment > > Media::subtitles(Dbo::Transaction* transaction) const
+MediaPropertiesPtr Media::properties(Dbo::Transaction& transaction) const
 {
-  Dbo::collection<MediaAttachmentPtr> subs = transaction->session().find<MediaAttachment>().where("media_id = ? AND type = 'subtitles'")
-    .bind(uid());
-  return subs;
+  return transaction.session().find<MediaProperties>().where("media_id = ?").bind(uid()).resultValue();
 }
+
 
 
 

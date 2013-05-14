@@ -34,7 +34,7 @@ public:
   inline std::string mimetype() const { return _mimetype; }
   inline std::vector<unsigned char> data() const { return _data; }
   
-  Wt::WLink link(Wt::Dbo::ptr< MediaAttachment > myPtr, Wt::WObject* parent = 0) const;
+  Wt::WLink link(Wt::Dbo::ptr< MediaAttachment > myPtr, Wt::WObject* parent = 0, bool useCacheIfAvailable = true) const;
 private:
   std::string _type;
   std::string _name;

@@ -24,6 +24,7 @@
 #include <Wt/Dbo/ptr>
 #include <Wt/WString>
 
+class MediaProperties;
 namespace Wt {
 namespace Dbo {
 class Transaction;
@@ -39,15 +40,15 @@ public:
   Media(const boost::filesystem::path &path);
   Media();
   ~Media();
-  Wt::WString title(Session* session) const;
+  Wt::WString title(Wt::Dbo::Transaction &transaction) const;
   std::string fullPath() const;
   std::string filename() const;
   std::string extension() const;
   std::string mimetype() const;
   std::string uid() const;
-  Wt::Dbo::ptr<MediaAttachment> preview(Session *session, PreviewSize size = PreviewPlayer) const;
-  Wt::Dbo::collection<Wt::Dbo::ptr<MediaAttachment>> subtitles(Session *session) const;
-  Wt::Dbo::collection<Wt::Dbo::ptr<MediaAttachment>> subtitles(Wt::Dbo::Transaction *transaction) const;
+  Wt::Dbo::ptr<MediaAttachment> preview(Wt::Dbo::Transaction &transaction, PreviewSize size = PreviewPlayer) const;
+  Wt::Dbo::collection<Wt::Dbo::ptr<MediaAttachment>> subtitles(Wt::Dbo::Transaction& transaction) const;
+  Wt::Dbo::ptr<MediaProperties> properties(Wt::Dbo::Transaction &transaction) const;
   boost::filesystem::path path() const;
   boost::filesystem::path parentDirectory() const;
   bool valid() const;
