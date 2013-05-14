@@ -2,6 +2,8 @@
 
 #include "streamingapp.h"
 #include "session.h"
+#include "Models/models.h"
+
 #include <Wt/WServer>
 #include <boost/thread.hpp>
 #include <thread>
@@ -21,6 +23,14 @@ extern "C" {
   #include <libavformat/avformat.h>
 }
 
+void expireStaleSessions() {
+  Session session;
+  Dbo::Transaction t(session);
+  auto oldSessions = session.find<SessionInfo>().where("session_ended = 0").resultList();
+  for(auto oldSession: oldSessions)
+    oldSession.modify()->end();
+  t.commit();
+}
 
 int main(int argc, char **argv)
 {
@@ -32,6 +42,7 @@ int main(int argc, char **argv)
     server.setServerConfiguration(argc, argv, WTHTTP_CONFIGURATION);
     server.addEntryPoint(Application, createApplication);
     Session::configureAuth();
+    expireStaleSessions();
 
     boost::thread t([&server]{
       this_thread::sleep_for(chrono::milliseconds{30000});
