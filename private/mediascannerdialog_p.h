@@ -30,12 +30,18 @@ class WText;
 class WApplication;
 class WPushButton;
 class WContainerWidget;
+class WGroupBox;
 }
 
 class MediaCollection;
 namespace StreamingPrivate{
 typedef std::function<void(int,std::string)> UpdateGuiProgress;
 typedef std::function<void()> OnScanFinish;
+
+struct StepContent {
+  Wt::WGroupBox *groupBox;
+  Wt::WContainerWidget *content;
+};
 
 class MediaScannerDialogPrivate
 {
@@ -49,7 +55,7 @@ public:
     Wt::WProgressBar* progressBar;
     Wt::WText* progressBarTitle;
     Settings* settings;
-    std::map<MediaScannerStep*, Wt::WContainerWidget*> stepsContents;
+    std::map<MediaScannerStep*, StepContent> stepsContents;
     Wt::WPushButton* buttonRetry;
     void scanMedias(Wt::WApplication* app, UpdateGuiProgress updateGuiProgress, OnScanFinish onScanFinish);
     bool canContinue;

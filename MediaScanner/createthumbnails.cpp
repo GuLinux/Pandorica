@@ -198,7 +198,7 @@ void CreateThumbnailsPrivate::chooseRandomFrame(WContainerWidget* container)
       redo.emit();
     });
     container->addWidget(WW<WContainerWidget>()
-      .add(WW<WText>(wtr("mediascannerdialog.thumbnaillabel")).css("small-text"))
+      .add(WW<WText>(wtr("mediascannerdialog.thumbnaillabel")).css("small-text").setInline(false))
       .add(imagePreview)
       .setContentAlignment(AlignCenter));
     imageUploader->previewImage().connect([=](Blob blob, _n5) {
