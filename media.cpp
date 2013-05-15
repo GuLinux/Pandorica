@@ -39,7 +39,8 @@ map<string,string> supportedMimetypes{
   {".ogg", "audio/ogg"}, {".mp3", "audio/mpeg"}
 };
 
-Media::Media(const filesystem::path& path) : m_path{path}, m_uid{hexEncode(md5(path.string()))} {}
+Media::Media(const filesystem::path& path) : m_path{path}, m_uid{hexEncode(md5(path.string()))} {
+}
 
 Media::~Media()
 {

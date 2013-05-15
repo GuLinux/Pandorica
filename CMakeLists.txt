@@ -32,7 +32,7 @@ SET( mediascanner_srcs
     MediaScanner/scanmediainfostep.cpp
     MediaScanner/mediascannerdialog.cpp
 )
-SET( player_srcs
+SET( player_srcs findorphansdialog.cpp
     player/videojs.cpp
     player/wmediaplayerwrapper.cpp
     player/html5player.cpp

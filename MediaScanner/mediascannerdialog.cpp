@@ -64,7 +64,7 @@ MediaScannerDialog::MediaScannerDialog(Settings* settings, MediaCollection* medi
     d->skipped = true;
   }));
   footer()->addWidget(d->buttonNext = WW<WPushButton>(wtr("button.next")).css("btn btn-primary").setEnabled(false).onClick([=](WMouseEvent) { d->canContinue = true; }));
-  footer()->addWidget(d->buttonClose = WW<WPushButton>(wtr("close-button")).css("btn btn-success").onClick([=](WMouseEvent) {
+  footer()->addWidget(d->buttonClose = WW<WPushButton>(wtr("button.close")).css("btn btn-success").onClick([=](WMouseEvent) {
     accept();
   }).setEnabled(false));
   contents()->addWidget(WW<WContainerWidget>()

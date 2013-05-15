@@ -119,7 +119,7 @@ void InfoPanel::info(Media media)
   auto mediaInfoPanel = createPanel("mediabrowser.information");
   
   mediaInfoPanel.second->addWidget(labelValueBox("mediabrowser.filename", media.filename()) );
-  mediaInfoPanel.second->addWidget(labelValueBox("mediabrowser.filesize", MediaCollectionBrowserPrivate::formatFileSize(fs::file_size(media.path())) ) );
+  mediaInfoPanel.second->addWidget(labelValueBox("mediabrowser.filesize", Utils::formatFileSize(fs::file_size(media.path())) ) );
   
   MediaPropertiesPtr mediaProperties = media.properties(t);
   if(mediaProperties) {
@@ -363,19 +363,6 @@ WContainerWidget* MediaCollectionBrowserPrivate::addIcon(WString filename, GetIc
     return item;
 }
 
-
-string MediaCollectionBrowserPrivate::formatFileSize(long int size) {
-  int maxSizeForUnit = 900;
-  vector<string> units {"bytes", "KB", "MB", "GB"};
-  double unitSize = size;
-  
-  for(string unit: units) {
-    if(unitSize<maxSizeForUnit || unit == units.back()) {
-      return (boost::format("%.2f %s") % unitSize % unit).str();
-    }
-    unitSize /= 1024;
-  }
-}
 
 
 

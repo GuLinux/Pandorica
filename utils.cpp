@@ -23,6 +23,7 @@
 #include <Wt/Json/Array>
 #include <Wt/WServer>
 #include <boost/regex.hpp>
+#include <boost/format.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <Wt/Mail/Client>
@@ -115,6 +116,18 @@ std::string Utils::titleHintFromFilename(std::string filename)
   return filename;
 }
 
+string Utils::formatFileSize(long size) {
+  int maxSizeForUnit = 900;
+  vector<string> units {"bytes", "KB", "MB", "GB"};
+  double unitSize = size;
+  
+  for(string unit: units) {
+    if(unitSize<maxSizeForUnit || unit == units.back()) {
+      return (boost::format("%.2f %s") % unitSize % unit).str();
+    }
+    unitSize /= 1024;
+  }
+}
 
 vector< FindAndReplace > FindAndReplace::from(string filename)
 {
