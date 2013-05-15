@@ -31,7 +31,7 @@ public:
     static std::string titleHintFromFilename(std::string filename);
     static void mailForUnauthorizedUser(std::string email, Wt::WString identity);
     static void mailForNewAdmin(std::string email, Wt::WString identity);
-    
+    static std::string formatFileSize(long size);
 private:
   StreamingPrivate::UtilsPrivate* const d;
 };

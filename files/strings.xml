@@ -1,4 +1,4 @@
-<messages nplurals="2" plural="n==1 ? 0 : 1">
+<messages nplurals="3" plural="n==0 ? 0 : n==1 ? 1 : 2">
   <!-- login -->
   <message id="oauth_login_with">Login with an existing account:</message>
   <message id="auth.regular_login_accordion">Or use regular login</message>
@@ -60,8 +60,9 @@
   <message id="mediascannerdialog.subtitlesmessage">Extracting subtitles: {1} of {2} (index: {3}, title: {4}, language: {5})</message>
   <message id="mediascannerdialog.subtitlesextracted">{1} subtitles extracted and ready to be saved.</message>
   <message id="mediascannerdialog.subtitles_extracted">
-    <plural case="0">One subtitle extracted and ready to be saved.</plural>
-    <plural case="1">{1} subtitles extracted and ready to be saved.</plural>
+    <plural case="1">One subtitle extracted and ready to be saved.</plural>
+    <plural case="0">{1} subtitles extracted and ready to be saved.</plural>
+    <plural case="2">{1} subtitles extracted and ready to be saved.</plural>
   </message>
   
   <!-- comments -->
@@ -80,8 +81,9 @@
   <message id="player.resizeLarge">Large</message>
   
   <message id="player.avg.ratings">
-    <plural case="0">Rating of one user: </plural>
-    <plural case="1">Rating of {1} users: </plural>
+    <plural case="1">Rating of one user: </plural>
+    <plural case="0">Rating of {1} users: </plural>
+    <plural case="2">Rating of {1} users: </plural>
   </message>
   <message id="player.do.rate">Rate: </message>
   
@@ -149,7 +151,7 @@
   <message id="button.add">Add</message>
   <message id="button.skip">Skip</message>
   <message id="button.remove">Remove</message>
-  <message id="close-button">Close</message>
+  <message id="button.close">Close</message>
   <message id="button.retry">Retry</message>
   <message id="button.next">Next</message>
   <message id="button.cancel">Cancel</message>
@@ -166,7 +168,24 @@
   <message id="admin_missing_dialog_text">Hello, {1}. This website doesn't have an administrator yet. We can add yourself to an admin group.</message>
   <message id="admin_missing_dialog_default_groupname">Administrators</message>
   <message id="admin_missing_dialog_groupname_label">Admin Group Name</message>
+  
+  <message id="cleanup.orphans">Cleanup Orphan Data</message>
 
+ <message id="findorphans.removedata">Remove Data</message>
+ <message id="findorphans.media.title">Title</message>
+ <message id="findorphans.attachment.type">Type</message>
+ <message id="findorphans.attachment.name">Name</message>
+ <message id="findorphans.attachment.value">Value</message>
+ <message id="findorphans.attachment.datasize">Size</message>
+ <message id="findorphans.attachment.view">View</message>
+ 
+ <message id="findorphans.summary">
+   <plural case="0">Found no orphan medias</plural>
+   <plural case="1">Found {1} orphan media, with a total of {2} attachments ({3}).<br />
+     Select the data you want to remove, and press the "Remove Data" button.</plural>
+   <plural case="2">Found {1} orphan medias, with a total of {2} attachments ({3}).<br />
+ Select the data you want to remove, and press the "Remove Data" button.</plural>
+ </message>
   
  <message id="user.need_mail_verification">You need to verify your email address before logging in.<br />
  Please check you inbox.<br />${refresh}</message>

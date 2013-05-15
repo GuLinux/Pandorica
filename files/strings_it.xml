@@ -1,4 +1,4 @@
-<messages nplurals="2" plural="n==1 ? 0 : 1">
+<messages nplurals="3" plural="n==0 ? 0 : n==1 ? 1 : 2">
   <message id="Wt.WMessageBox.Cancel">Annulla</message>
   <!-- login -->
   <message id="oauth_login_with">Entra con il tuo account:</message>
@@ -141,8 +141,9 @@
   <message id="mediascannerdialog.subtitlesmessage">Estrazione sottotitoli: {1} di {2} (indice: {3}, titolo: {4}, lingua: {5})</message>
   <message id="mediascannerdialog.thumbnaillabel">Anteprima (clicca per ricrearla da posizione casuale)</message>
   <message id="mediascannerdialog.subtitles_extracted">
-    <plural case="0">Un sottotitolo estratto e pronto per il salvataggio.</plural>
-    <plural case="1">{1} sottotitoli estratti e pronti per il salvataggio.</plural>
+    <plural case="1">Un sottotitolo estratto e pronto per il salvataggio.</plural>
+    <plural case="0">{1} sottotitoli estratti e pronti per il salvataggio.</plural>
+    <plural case="2">{1} sottotitoli estratti e pronti per il salvataggio.</plural>
   </message>
   
   <!-- comments -->
@@ -154,8 +155,9 @@
   <message id="player.sharelink">Link per la condivisione</message>
   <message id="player.downloadlink.tooltip">Per scaricare correttamente il file, clicca col tasto destro sul link e scegli "Salva con nome"</message>
   <message id="player.avg.ratings">
-    <plural case="0">Voto di un utente: </plural>
-    <plural case="1">Voto di {1} utenti: </plural>
+    <plural case="1">Voto di un utente: </plural>
+    <plural case="0">Voto di {1} utenti: </plural>
+    <plural case="2">Voto di {1} utenti: </plural>
   </message>
   <message id="player.do.rate">Vota: </message>
   
@@ -189,7 +191,7 @@
   <message id="media_autoplay.description"></message>
   <message id="gui_language.label">Lingua</message>
   
-  <message id="close-button">Chiudi</message>
+  <message id="button.close">Chiudi</message>
   <message id="users.current.title">Utenti Collegati</message>
   <message id="users.history.title">Cronologia Utenti</message>
   
@@ -238,6 +240,24 @@
   <message id="admin_missing_dialog_text">Benvenuto, {1}. Questo sito web non ha ancora un amministratore. Possiamo aggiungere la tua utenza ad un gruppo di amministrazione.</message>
   <message id="admin_missing_dialog_default_groupname">Amministratori</message>
   <message id="admin_missing_dialog_groupname_label">Nome Gruppo Amministratori</message>
+  
+  <message id="cleanup.orphans">Cancella Dati Orfani</message>
+  
+  <message id="findorphans.removedata">Rimuovi Dati</message>
+  <message id="findorphans.media.title">Titolo</message>
+  <message id="findorphans.attachment.type">Tipo</message>
+  <message id="findorphans.attachment.name">Nome</message>
+  <message id="findorphans.attachment.value">Valore</message>
+  <message id="findorphans.attachment.datasize">Dimensione</message>
+  <message id="findorphans.attachment.view">Vedi</message>
+  
+  <message id="findorphans.summary">
+    <plural case="0">Nessun dato orfano trovato</plural>
+    <plural case="1">Trovato un media orfano, con un totale di {2} allegati ({3}).<br />
+    Seleziona i dati da cancellare, e premi il pulsante "Rimuovi Dati".</plural>
+    <plural case="2">Trovati {1} media orfani, con un totale di {2} allegati ({3}).<br />
+    Seleziona i dati da cancellare, e premi il pulsante "Rimuovi Dati".</plural>
+  </message>
   
   <message id="user.need_mail_verification">Devi verificare il tuo indirizzo email prima di entrare.<br />
     Controlla la tua casella email.<br />${refresh}</message>

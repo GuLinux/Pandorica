@@ -75,6 +75,7 @@
 #include <Wt/WLabel>
 #include "private/streamingapp_p.h"
 #include "authpage.h"
+#include "findorphansdialog.h"
 #include <Wt/WStringListModel>
 
 
@@ -309,6 +310,11 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
   allLog->addStyleClass("menu-users-log");
   WMenuItem *groupsDialog = adminMenu->addItem(wtr("menu.groups"));
   WMenuItem *mediaCollectionScanner = adminMenu->addItem(wtr("mediascanner.title"));
+  WMenuItem *cleanup = adminMenu->addItem(wtr("cleanup.orphans"));
+  
+  cleanup->triggered().connect([=](WMenuItem*, _n5) {
+    (new FindOrphansDialog(mediaCollection, &session))->run();
+  });
   groupsDialog->addStyleClass("menu-groups");
   
   allLog->triggered().connect([=](WMenuItem*, _n5){

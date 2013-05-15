@@ -32,6 +32,7 @@ public:
   inline std::string value() const { return _value; }
   inline std::string mediaId() const { return _mediaId; }
   inline std::string mimetype() const { return _mimetype; }
+  inline unsigned long size() const { return _data.size(); }
   inline std::vector<unsigned char> data() const { return _data; }
   
   Wt::WLink link(Wt::Dbo::ptr< MediaAttachment > myPtr, Wt::WObject* parent = 0, bool useCacheIfAvailable = true) const;
