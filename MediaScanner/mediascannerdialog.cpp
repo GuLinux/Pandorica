@@ -52,6 +52,7 @@ MediaScannerDialog::MediaScannerDialog(Settings* settings, MediaCollection* medi
   resize(700, 650);
   setWindowTitle(wtr("mediascanner.title"));
   setClosable(false);
+  setResizable(true);
   d->progressBar = new WProgressBar;
   d->progressBar->addStyleClass("pull-left");
   footer()->addWidget(d->progressBar);
@@ -84,11 +85,13 @@ MediaScannerDialog::MediaScannerDialog(Settings* settings, MediaCollection* medi
   contents()->addWidget(stepsContainer);
 
   for(auto step: d->steps) {
-    auto container = new WGroupBox(wtr(string{"stepname."} + step->stepName() ));
-    container->setStyleClass("step-groupbox");
-    d->stepsContents[step] = container;
-    stepsContainer->addWidget(container);
-    container->setPadding(5);
+    auto groupBox = new WGroupBox(wtr(string{"stepname."} + step->stepName() ));
+    groupBox->setStyleClass("step-groupbox");
+    auto container = new WContainerWidget;
+    groupBox->addWidget(container);
+    d->stepsContents[step] = {groupBox, container};
+    stepsContainer->addWidget(groupBox);
+    groupBox->setPadding(5);
   }
 }
 
@@ -111,7 +114,7 @@ void MediaScannerDialog::run()
     d->progressBar->setValue(progress);
     d->progressBarTitle->setText(text);
     for(auto stepContainers : d->stepsContents)
-      stepContainers.second->clear();
+      stepContainers.second.content->clear();
     wApp->triggerUpdate();
   };
   OnScanFinish enableCloseButton = [=] {
@@ -119,7 +122,7 @@ void MediaScannerDialog::run()
     d->buttonCancel->disable();
     d->progressBarTitle->setText("");
     for(auto stepContainers : d->stepsContents)
-      stepContainers.second->clear();
+      stepContainers.second.content->clear();
     wApp->triggerUpdate();
   };
   // TODO: muovere nel thread, appena MediaCollection::rescan() diventa thread safe
@@ -141,7 +144,7 @@ void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, UpdateGuiProgr
       buttonNext->disable();
       buttonSkip->disable();
       for(auto stepContent: stepsContents)
-        stepContent.second->hide();
+        stepContent.second.groupBox->hide();
       updateGuiProgress(current, media.filename());
     });
     runStepsFor(media, app, session);
@@ -158,7 +161,7 @@ void MediaScannerDialogPrivate::runStepsFor(Media media, WApplication* app, Sess
   FFMPEGMedia ffmpegMedia{media};
   Dbo::Transaction t(session);
   for(MediaScannerStep *step: steps) {
-    step->run(&ffmpegMedia, media, stepsContents[step], &t);
+    step->run(&ffmpegMedia, media, stepsContents[step].content, &t);
   }
   while(!canContinue && !canceled && !skipped) {
     bool stepsAreSkipped = true;
@@ -168,12 +171,12 @@ void MediaScannerDialogPrivate::runStepsFor(Media media, WApplication* app, Sess
     for(MediaScannerStep *step: steps) {
       auto stepResult = step->result();
       if(stepResult != MediaScannerStep::Skip)
-        guiRun(app, [=] { stepsContents[step]->show(); });
+        guiRun(app, [=] { stepsContents[step].groupBox->show(); });
       stepsAreSkipped &= stepResult == MediaScannerStep::Skip;
       stepsAreFinished &= stepResult == MediaScannerStep::Skip || stepResult == MediaScannerStep::Done;
       
       if(stepResult == MediaScannerStep::Redo)
-        step->run(&ffmpegMedia, media, stepsContents[step], &t);
+        step->run(&ffmpegMedia, media, stepsContents[step].content, &t);
     }
     canContinue |= stepsAreSkipped;
     guiRun(app, [=] {
