@@ -46,6 +46,7 @@ namespace StreamingPrivate {
     Wt::WMenuItem* activeUsersMenuItem;
     Wt::WNavigationBar* navigationBar;
     Wt::WMenuItem* mediaListMenuItem;
+    long sessionsCount = -1;
   };
   
 }
