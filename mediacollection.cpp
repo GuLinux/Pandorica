@@ -41,6 +41,14 @@ bool MediaCollectionPrivate::isAllowed(filesystem::path path)
     return false;
 }
 
+Media resolveMedia(fs::path path) {
+  while(fs::is_symlink(path)) {
+    path = fs::read_symlink(path);
+  }
+  if(fs::is_regular_file(path))
+    return Media{path};
+  return Media::invalid();
+}
 
 void MediaCollectionPrivate::listDirectory(filesystem::path path)
 {
@@ -49,9 +57,9 @@ void MediaCollectionPrivate::listDirectory(filesystem::path path)
       copy(fs::recursive_directory_iterator(path, fs::symlink_option::recurse), fs::recursive_directory_iterator(), back_inserter(v));
         sort(v.begin(), v.end());
         for(fs::directory_entry entry: v) {
-          fs::path path = entry.path();
-          Media media {path};
-          if(fs::is_regular_file(path) && media.mimetype() != "UNSUPPORTED" && isAllowed(path)) {
+          Media media = resolveMedia(entry.path());
+          if( media.valid() && isAllowed(entry.path())) {
+            Media media{entry.path()};
             collection[media.uid()] = media;
           }
         }
