@@ -130,17 +130,20 @@ void HTML5Player::setAutoplay(bool autoplay)
 void HTML5Player::playerReady()
 {
   
-  string mediaelementOptions = HTML(
-    iPadUseNativeControls: true,
-    iPhoneUseNativeControls: true, 
-    AndroidUseNativeControls: true
-  );
+  string mediaelementOptions;
   /* works in theory, but it goes with double subs on chrome
    */
   if(defaultTracks["subtitles"].isValid()) {
-    mediaelementOptions += mediaelementOptions.empty() ? "" : ", " + string("startLanguage: '") + defaultTracks["subtitles"].lang + "'";
+    mediaelementOptions += (mediaelementOptions.empty() ? "" : ", ") + string("startLanguage: '") + defaultTracks["subtitles"].lang + "'";
   }
-  runJavascript(string("$('video,audio').mediaelementplayer();"));
+  log("notice") << "player options: " << mediaelementOptions;
+  runJavascript((boost::format("$('video,audio').mediaelementplayer({%s});") % mediaelementOptions).str() );
+  // doesn't work properly without user interaction
+  if(false) {
+    runJavascript(JS(
+      mediaPlayer.player.enterFullScreen();
+    ));
+  }
 }
 
 
