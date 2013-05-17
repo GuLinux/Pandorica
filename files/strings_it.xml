@@ -118,6 +118,9 @@
   <message id="mediabrowser.admin.actions">Gestione</message>
   <message id="mediabrowser.admin.setposter">Imposta Immagine</message>
   
+  <message id="infopanel.empty.title">Informazioni Media</message>
+  <message id="infopanel.empty.message">Clicca su un media per vedere le sue informazioni, riprodurlo o condividerlo</message>
+  
   <message id="mediabrowser.admin.settitle.missingproperties.caption">Errore: Media Properties mancanti</message>
   <message id="mediabrowser.admin.settitle.missingproperties.body">Le proprietà del media selezionato non sono presenti su database<br />Dovresti prima eseguire lo script "generateFileData".</message>
   <message id="mediacollection.reload">Ricarica</message>
