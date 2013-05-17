@@ -62,8 +62,11 @@ int main(int argc, char **argv)
     server.addEntryPoint(Application, createApplication);
     
     CompositeResource staticResources;
-    if(true) {
-      string staticDirectory = "../files/static";
+    string staticDeployPath;
+    bool hasStaticDirectoryDeployPath = server.readConfigurationProperty("static_deploy_path", staticDeployPath);
+    if(!hasStaticDirectoryDeployPath) {
+      string staticDirectory{"files/static"};
+      server.readConfigurationProperty("static_files_path", staticDirectory);
       fs::recursive_directory_iterator it(staticDirectory, fs::symlink_option::recurse);
       while(it != fs::recursive_directory_iterator()) {
         if(fs::is_regular(*it)) {

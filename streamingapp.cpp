@@ -468,7 +468,7 @@ std::string defaultLabelFor(string language) {
 }
 
 
-void StreamingAppPrivate::play ( Media media ) {
+void StreamingAppPrivate::play(Media media) {
   mediaListMenuItem->setText(wtr("menu.videoslist"));
   widgetsStack->setCurrentIndex(0);
   log("notice") << "Playing file " << media.path();
