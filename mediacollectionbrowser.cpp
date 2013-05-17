@@ -6,6 +6,7 @@
 #include <Wt/WImage>
 #include <Wt/WMemoryResource>
 #include "Wt-Commons/wt_helpers.h"
+#include "Wt-Commons/wt_helpers.h"
 #include "settings.h"
 #include "session.h"
 #include "utils.h"
@@ -89,6 +90,12 @@ InfoPanel::InfoPanel(Session *session, Settings *settings, Wt::WContainerWidget*
 void InfoPanel::reset()
 {
   clear();
+  addWidget(WW<WContainerWidget>().setContentAlignment(AlignCenter)
+    .add(WW<WText>(wtr("infopanel.empty.title")).css("media-title"))
+    .add(WW<WImage>("http://gulinux.net/css/site-logo-big.png"))
+  );
+  addWidget(new WBreak);
+  addWidget(WW<WText>(wtr("infopanel.empty.message")));
 }
 
 
