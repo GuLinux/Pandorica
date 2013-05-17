@@ -152,7 +152,70 @@ void StreamingApp::authEvent()
 
   d->setupMenus(d->session.user()->isAdmin());
   t.commit();
+  d->registerSession();
   setupGui();
+}
+
+void updateSessions() {
+  for(StreamingSession session: streamingSessions) {
+    WServer::instance()->post(session.sessionId, boost::bind(&StreamingAppPrivate::updateUsersCount, session.d));
+  }
+}
+
+void StreamingAppPrivate::registerSession()
+{
+  streamingSessions.push_back({wApp->sessionId(), q, this});
+  updateSessions();
+}
+void StreamingAppPrivate::unregisterSession()
+{
+  streamingSessions.erase(remove_if( streamingSessions.begin(), streamingSessions.end(), [this](StreamingSession s) { return q->sessionId() ==  s.sessionId; } ), streamingSessions.end() );
+  updateSessions();
+}
+
+
+void endSessionOnDatabase(string sessionId, long userId) {
+  Session session;
+  Dbo::Transaction t(session);
+  WServer::instance()->log("notice") << "Ending session on database ( sessionId = " << sessionId << ")";
+  
+  SessionInfoPtr sessionInfo = session.find<SessionInfo>().where("session_id = ?").bind(sessionId);
+  if(!sessionInfo) {
+    WServer::instance()->log("notice") << "stale session not found";
+    return;
+  }
+  WServer::instance()->log("notice") << "Session found, ending" << sessionInfo->sessionId();
+  sessionInfo.modify()->end();
+  for(auto detail : sessionInfo.modify()->sessionDetails()) {
+    detail.modify()->ended();
+    detail.flush();
+  }
+  sessionInfo.flush();
+  t.commit();
+}
+
+StreamingApp::~StreamingApp() {
+  WServer::instance()->log("notice") << "Destroying app";
+  if(d->session.login().loggedIn()) {
+    WServer::instance()->ioService().post(boost::bind(endSessionOnDatabase, sessionId(), d->userId));
+  }
+  d->unregisterSession();
+  delete d;
+  WServer::instance()->log("notice") << "Deleted-pointer";
+}
+
+
+void StreamingAppPrivate::updateUsersCount()
+{
+  wApp->log("notice") << "refreshing users count";
+  string query = "SELECT COUNT(*) from session_info WHERE session_ended = 0";
+  Dbo::Transaction t(session);
+  int previousSessionsCount = sessionsCount;
+  sessionsCount = session.query<long>(query).resultValue();
+  if(previousSessionsCount != sessionsCount) {
+    activeUsersMenuItem->setText(wtr("menu.users").arg(sessionsCount));
+    wApp->triggerUpdate();
+  }
 }
 
 
@@ -213,21 +276,6 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   
   activeUsersMenuItem = new WMenuItem(wtr("menu.users").arg(""));
   activeUsersMenuItem->addStyleClass("menu-loggedusers");
-  auto updateUsersCount = [=](WMouseEvent) {
-    wApp->log("notice") << "refreshing users count";
-    string query = "SELECT COUNT(*) from session_info WHERE session_ended = 0";
-    Dbo::Transaction t(session);
-    int previousSessionsCount = sessionsCount;
-    sessionsCount = session.query<long>(query).resultValue();
-    if(previousSessionsCount != sessionsCount)
-      activeUsersMenuItem->setText(wtr("menu.users").arg(sessionsCount));
-  };
-  
-  WTimer *updateUsersCountTimer = new WTimer{q};
-  updateUsersCountTimer->setInterval(5000);
-  updateUsersCountTimer->timeout().connect(updateUsersCount);
-  WTimer::singleShot(1500, updateUsersCount);
-  updateUsersCountTimer->start();
   
   WMenuItem *logout = items->addItem(wtr("menu.logout"));
   logout->addStyleClass("menu-logout");
@@ -574,32 +622,4 @@ void StreamingAppPrivate::play(Media media) {
   t.commit();
 }
 
-void endSessionOnDatabase(string sessionId, long userId) {
-  Session session;
-  Dbo::Transaction t(session);
-  WServer::instance()->log("notice") << "Ending session on database ( sessionId = " << sessionId << ")";
-
-  SessionInfoPtr sessionInfo = session.find<SessionInfo>().where("session_id = ?").bind(sessionId);
-  if(!sessionInfo) {
-    WServer::instance()->log("notice") << "stale session not found";
-    return;
-  }
-  WServer::instance()->log("notice") << "Session found, ending" << sessionInfo->sessionId();
-  sessionInfo.modify()->end();
-  for(auto detail : sessionInfo.modify()->sessionDetails()) {
-    detail.modify()->ended();
-    detail.flush();
-  }
-  sessionInfo.flush();
-  t.commit();
-}
-
-StreamingApp::~StreamingApp() {
-  WServer::instance()->log("notice") << "Destroying app";
-  if(d->session.login().loggedIn()) {
-    WServer::instance()->ioService().post(boost::bind(endSessionOnDatabase, sessionId(), d->userId));
-  }
-  delete d;
-  WServer::instance()->log("notice") << "Deleted-pointer";
-}
 

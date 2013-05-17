@@ -15,6 +15,15 @@ class MediaCollectionBrowser;
 class Player;
 class StreamingApp;
 namespace StreamingPrivate {
+  class StreamingAppPrivate;
+  
+  struct StreamingSession {
+    std::string sessionId;
+    StreamingApp *app;
+    StreamingAppPrivate *d;
+  };
+  std::vector<StreamingSession> streamingSessions;
+  
   class StreamingAppPrivate {
   public:
     StreamingAppPrivate(StreamingApp* q);
@@ -40,6 +49,9 @@ namespace StreamingPrivate {
     MediaCollectionBrowser* mediaCollectionBrowser;
     MediaCollection* mediaCollection;
     long userId = -1;
+    void updateUsersCount();
+    void registerSession();
+    void unregisterSession();
   private:
     void setupUserMenus(Wt::WMenu* mainMenu);
     void ratingFor(Media media, Wt::Dbo::Transaction t);
@@ -48,6 +60,5 @@ namespace StreamingPrivate {
     Wt::WMenuItem* mediaListMenuItem;
     long sessionsCount = -1;
   };
-  
 }
 #endif
