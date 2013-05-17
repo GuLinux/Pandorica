@@ -217,8 +217,10 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
     wApp->log("notice") << "refreshing users count";
     string query = "SELECT COUNT(*) from session_info WHERE session_ended = 0";
     Dbo::Transaction t(session);
-    long sessionsCount = session.query<long>(query);
-    activeUsersMenuItem->setText(wtr("menu.users").arg(sessionsCount));
+    int previousSessionsCount = sessionsCount;
+    sessionsCount = session.query<long>(query).resultValue();
+    if(previousSessionsCount != sessionsCount)
+      activeUsersMenuItem->setText(wtr("menu.users").arg(sessionsCount));
   };
   
   WTimer *updateUsersCountTimer = new WTimer{q};
