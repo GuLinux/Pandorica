@@ -3,15 +3,21 @@
 #include "streamingapp.h"
 #include "session.h"
 #include "Models/models.h"
+#include "Wt-Commons/compositeresource.h"
+
 
 #include <Wt/WServer>
+#include <Wt/WFileResource>
 #include <boost/thread.hpp>
 #include <thread>
 #include <chrono>
 #include <Magick++.h>
+#include <boost/filesystem.hpp>
+#include <boost/algorithm/string/replace.hpp>
 
 using namespace Wt;
 using namespace std;
+namespace fs = boost::filesystem;
 
 WApplication *createApplication(const WEnvironment& env)
 {
@@ -32,6 +38,18 @@ void expireStaleSessions() {
   t.commit();
 }
 
+map<string,string> extensionsMimetypes {
+  { ".css", "text/css" },
+  { ".png", "image/png" },
+  { ".jpg", "image/jpeg" },
+  { ".jpeg", "image/jpeg" },
+  { ".gif", "image/gif" },
+  { ".js", "application/javascript" },
+  { ".svg", "image/svg+xml" },
+  { ".swf", "application/x-shockwave-flash" },
+  { ".xap", "application/x-silverlight-app" },
+};
+
 int main(int argc, char **argv)
 {
   try {
@@ -41,6 +59,26 @@ int main(int argc, char **argv)
     WServer server(argv[0]);
     server.setServerConfiguration(argc, argv, WTHTTP_CONFIGURATION);
     server.addEntryPoint(Application, createApplication);
+    
+    CompositeResource staticResources;
+    if(true) {
+      string staticDirectory = "../files/static";
+      fs::recursive_directory_iterator it(staticDirectory, fs::symlink_option::recurse);
+      while(it != fs::recursive_directory_iterator()) {
+        if(fs::is_regular(*it)) {
+          string filePath{it->path().string()};
+          string fileUrl{filePath};
+          boost::replace_first(fileUrl, staticDirectory, "");
+          auto resource = new WFileResource{filePath, &staticResources};
+          if(!extensionsMimetypes[it->path().extension().string()].empty())
+            resource->setMimeType(extensionsMimetypes[it->path().extension().string()]);
+          staticResources.add(fileUrl, resource);
+        }
+        it++;
+      }
+      server.addResource(&staticResources, "/static");
+    }
+    
     Session::configureAuth();
     expireStaleSessions();
 

@@ -1,0 +1,225 @@
+.item, .itemselected {
+	white-space: nowrap;
+}
+
+.menu_item_ico {
+	margin-right: 5px;
+	width: 24px;
+	height: 24px;
+}
+
+.video-js, .mejs-container {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.small-text {
+	font-size: smaller!important;
+}
+
+.comment-box, .add-comment-box {
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+
+.comment-text {
+	font-size: small;
+}
+
+.in {
+	z-index: 4;
+}
+
+.filesystem-item {
+  font-size: smaller;
+/*  word-wrap: break-word; 
+  min-height: 160px; */
+  height:148px;
+  max-height:148px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+/*
+  line-height: 360px!important;
+*/
+}
+
+.filesystem-item-label {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  display: block;
+}
+
+.filesystem-item img {
+  vertical-align: middle;
+  max-height: 128px;
+}
+
+.mejs-captions-text {
+  font-size: medium;
+}
+
+.playlist {
+  max-width: 750px;
+  margin-bottom: 10px!important;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.Wt-suggest {
+  margin-top: 42px;
+}
+
+.Wt-suggest .content div {
+  background-color: #FFF7EC;
+  text-color: #272727;
+}
+
+.comment-box-element {
+  margin-bottom: 5px;
+  display: block!important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.comment-header, .comment-text {
+	padding: 10px!important;
+  white-space: normal;
+  word-wrap: break-word;  
+}
+
+.navbar a, .link-hand, .Wt-auth-icon {
+  cursor: pointer;
+}
+
+.Wt-auth-icon {
+  display: block;
+}
+
+.mejs-poster img {
+        width: auto;
+        height: auto;
+        margin-left: auto;
+        margin-right: auto;
+        max-height: 100%;
+        max-width: 100%;
+}
+
+.album-cover {
+  max-width: 450px;
+  max-height: 450px;
+}
+
+.media-icon-container .popover {
+  width: auto;
+}
+
+.tree-directory-item img {
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.tree-directory-item input {
+  vertical-align: middle;
+}
+
+.hidden {
+  display: none;
+}
+
+.nav li a span span, .playlist-toggle span {
+  padding-left:19px;
+}
+
+.brand span {
+  padding-left:26px;
+  background: transparent url(http://gulinux.net/css/fs_icons/humano2/site-logo.png)  center left no-repeat;
+}
+
+.mediascannerdialog-filename {
+  font-size: smaller;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  display: block;
+}
+
+.playlist-toggle span {
+  background: transparent url(http://gulinux.net/css/fs_icons/humano2/playlist.png)  center left no-repeat;
+}
+
+.menu-media-list a span span {
+  background: transparent url(http://gulinux.net/css/fs_icons/humano2/nav_media.png)  center left no-repeat;
+}
+.menu-comments a span span {
+  background: transparent url(http://gulinux.net/css/fs_icons/humano2/comments.png)  center left no-repeat;
+}
+.menu-settings a span span {
+  background: transparent url(http://gulinux.net/css/fs_icons/humano2/settings.png)  center left no-repeat;
+}
+.menu-logout a span span {
+  background: transparent url(http://gulinux.net/css/fs_icons/humano2/logout.png)  center left no-repeat;
+}
+.menu-admin a span span {
+  background: transparent url(http://gulinux.net/css/fs_icons/humano2/admin.png)  center left no-repeat;
+}
+.menu-loggedusers a span span {
+  background: transparent url(http://gulinux.net/css/fs_icons/humano2/users.png)  center left no-repeat;
+}
+.menu-groups a span span {
+  background: transparent url(http://gulinux.net/css/fs_icons/humano2/groups.png)  center left no-repeat;
+}
+.menu-users-log a span span {
+  background: transparent url(http://gulinux.net/css/fs_icons/humano2/users-log.png)  center left no-repeat;
+}
+
+.Wt-auth-logged-in {
+  text-align: center;
+}
+
+.modal-body {
+  max-height: initial!important;
+}
+
+.media-title {
+  font-weight: bold;
+  padding: 5px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  display: block;
+}
+
+.media-info-value {
+  word-wrap:break-word;
+  font-size: smaller;
+}
+
+.step-groupbox legend {
+  font-size: smaller;
+  margin-bottom: 5px;
+  line-height: 25px;
+  padding-top: 5px;
+}
+
+.rate-star:hover {
+  opacity: 1;
+  filter: alpha(opacity=100); /* msie */
+}
+
+.rating-unrated, .rate-star {
+  opacity: 0.3;
+  filter: alpha(opacity=30); /* msie */
+}
+
+.rating-container {
+  padding: 10px;
+}
+
+.rating-box {
+  padding-top: 5px;
+  width: 300px;
+  text-align: right;
+  margin-left: auto;
+  margin-right: auto;
+}

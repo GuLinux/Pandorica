@@ -100,13 +100,14 @@ StreamingAppPrivate::StreamingAppPrivate(StreamingApp *q) : q(q), playSignal(q, 
 
 
 StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(environment), d(new StreamingAppPrivate(this)) {
+  
   useStyleSheet( wApp->resourcesUrl() + "form.css");
-  useStyleSheet("http://gulinux.net/css/videostreaming.css");
-  requireJQuery("http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js");
-  require("http://gulinux.net/css/bootstrap/js/bootstrap.js");
-
-  require("http://gulinux.net/css/mediaelement/mediaelement-and-player.js");
-  useStyleSheet("http://gulinux.net/css/mediaelement/mediaelementplayer.css");
+//   useStyleSheet("http://gulinux.net/css/videostreaming.css");
+  useStyleSheet(Settings::staticPath("/streamingapp.css"));
+  requireJQuery(Settings::staticPath("/jquery.min.js"));
+  require(Settings::staticPath("/bootstrap/js/bootstrap.min.js"));
+  require(Settings::staticPath("/mediaelement/mediaelement-and-player.min.js"));
+  useStyleSheet(Settings::staticPath("/mediaelement/mediaelementplayer.min.css"));
   setTheme(new WBootstrapTheme(this));
   enableUpdates(true);
   WMessageResourceBundle *xmlResourcesBundle = new WMessageResourceBundle;
@@ -530,7 +531,7 @@ void StreamingAppPrivate::play ( Media media ) {
     Ratings rating = MediaRating::ratingFor(media, transaction);
     avgRatingWidget->addWidget(new WText( WString::trn("player.avg.ratings", rating.users).arg(rating.users) ));
     for(int i=1; i<=5; i++) {
-      avgRatingWidget->addWidget(WW<WImage>("http://gulinux.net/css/rating.png").css(rating.ratingAverage <i ? "rating-unrated" : ""));
+      avgRatingWidget->addWidget(WW<WImage>(Settings::staticPath("/icons/rating.png")).css(rating.ratingAverage <i ? "rating-unrated" : ""));
     }
   };
   auto setRating = [=] (int rating) {
@@ -543,7 +544,7 @@ void StreamingAppPrivate::play ( Media media ) {
   
   myRating->addWidget(new WText(wtr("player.do.rate")));
   for(int i=1; i<=5; i++) {
-    myRating->addWidget(WW<WImage>("http://gulinux.net/css/rating.png").css("rate-star link-hand").onClick([=](WMouseEvent) {
+    myRating->addWidget(WW<WImage>(Settings::staticPath("/icons/rating.png")).css("rate-star link-hand").onClick([=](WMouseEvent) {
       setRating(i);
     }));
   }

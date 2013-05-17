@@ -4,6 +4,7 @@
 #include <Wt/WDateTime>
 #include <Wt/WFileResource>
 #include <Wt/Utils>
+#include <Wt/WServer>
 
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
@@ -170,16 +171,28 @@ WLink SettingsPrivate::nginxSecLinkFor(string secDownloadPrefix, string secDownl
 }
 
 map<Settings::Icons,string> iconsMap {
-  {Settings::FolderBig, "http://gulinux.net/css/fs_icons/%s/directory-big.png"},
-  {Settings::FolderSmall, "http://gulinux.net/css/fs_icons/%s/directory-small.png"},
-  {Settings::VideoFile, "http://gulinux.net/css/fs_icons/%s/video.png"},
-  {Settings::AudioFile, "http://gulinux.net/css/fs_icons/%s/audio.png"}
+  {Settings::FolderBig, "%s/icons/filesystem/directory-big.png"},
+  {Settings::FolderSmall, "%s/icons/filesystem/directory-small.png"},
+  {Settings::VideoFile, "%s/icons/filesystem/video.png"},
+  {Settings::AudioFile, "%s/icons/filesystem/audio.png"}
 };
 
 string Settings::icon(Settings::Icons icon)
 {
-  string theme {"humano2"};
-  return (boost::format(iconsMap[icon]) % theme).str();
+  string staticDeployPath{Settings::staticDeployPath()};
+  return (boost::format(iconsMap[icon]) % staticDeployPath).str();
+}
+
+string Settings::staticDeployPath()
+{
+  string staticDeployPath{"/static"};
+  WServer::instance()->readConfigurationProperty("static_deploy_path", staticDeployPath);
+  return staticDeployPath;
+}
+
+string Settings::staticPath(const string& relativeUrl)
+{
+  return staticDeployPath() + relativeUrl;
 }
 
 

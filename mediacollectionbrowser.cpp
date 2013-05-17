@@ -92,7 +92,7 @@ void InfoPanel::reset()
   clear();
   addWidget(WW<WContainerWidget>().setContentAlignment(AlignCenter)
     .add(WW<WText>(wtr("infopanel.empty.title")).css("media-title"))
-    .add(WW<WImage>("http://gulinux.net/css/site-logo-big.png"))
+    .add(WW<WImage>(Settings::staticPath("/icons/site-logo-big.png")))
   );
   addWidget(new WBreak);
   addWidget(WW<WText>(wtr("infopanel.empty.message")));
@@ -138,7 +138,7 @@ void InfoPanel::info(Media media)
   if(rating.users > 0) {
     WContainerWidget *avgRatingWidget = new WContainerWidget;
     for(int i=1; i<=5; i++) {
-      avgRatingWidget->addWidget(WW<WImage>("http://gulinux.net/css/rating_small.png").css(rating.ratingAverage <i ? "rating-unrated" : ""));
+      avgRatingWidget->addWidget(WW<WImage>(Settings::staticPath("/icons/rating_small.png")).css(rating.ratingAverage <i ? "rating-unrated" : ""));
     }
     mediaInfoPanel.second->addWidget(labelValueBox("mediabrowser.rating", avgRatingWidget));
   }

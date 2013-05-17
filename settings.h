@@ -30,6 +30,8 @@ public:
     static const std::string preferredPlayer;
     enum Icons { FolderBig, FolderSmall, VideoFile, AudioFile };
     static std::string icon(Icons icon);
+    static std::string staticPath(const std::string &relativeUrl);
+    static std::string staticDeployPath();
 private:
   StreamingPrivate::SettingsPrivate *const d;
 };
