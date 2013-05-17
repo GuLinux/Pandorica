@@ -40,6 +40,7 @@ void expireStaleSessions() {
 
 map<string,string> extensionsMimetypes {
   { ".css", "text/css" },
+  { ".less", "text/css" },
   { ".png", "image/png" },
   { ".jpg", "image/jpeg" },
   { ".jpeg", "image/jpeg" },
@@ -72,6 +73,7 @@ int main(int argc, char **argv)
           auto resource = new WFileResource{filePath, &staticResources};
           if(!extensionsMimetypes[it->path().extension().string()].empty())
             resource->setMimeType(extensionsMimetypes[it->path().extension().string()]);
+          cerr << "Adding static resource " << filePath << " with path " << fileUrl << "\n";
           staticResources.add(fileUrl, resource);
         }
         it++;
