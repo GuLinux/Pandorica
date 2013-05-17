@@ -45,6 +45,7 @@ public:
     AuthWidgetCustom(const Wt::Auth::AuthService& baseAuth, Wt::Auth::AbstractUserDatabase& users, Wt::Auth::Login& login, Wt::WContainerWidget* parent = 0);
 protected:
     virtual Wt::Auth::RegistrationModel* createRegistrationModel();
+    virtual void createOAuthLoginView();
 };
 
 

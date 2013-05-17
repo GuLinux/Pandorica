@@ -28,8 +28,10 @@
 #include "utils.h"
 #include <Wt/Dbo/Transaction>
 #include <Wt/WTimer>
+#include <Wt/WImage>
 
 #include "Models/models.h"
+#include "settings.h"
 
 using namespace StreamingPrivate;
 using namespace std;
@@ -56,6 +58,22 @@ AuthPagePrivate::AuthPagePrivate(Session* session, AuthPage* q) : session(sessio
 
 AuthPagePrivate::~AuthPagePrivate()
 {
+}
+
+void AuthWidgetCustom::createOAuthLoginView()
+{
+  Wt::Auth::AuthWidget::createOAuthLoginView();
+  if(!resolveWidget("icons")) return;
+  WContainerWidget *icons = (WContainerWidget*) resolveWidget("icons");
+  for(auto child: icons->children()) {
+    WImage *image = dynamic_cast<WImage*>(child);
+    if(!image) continue;
+    string imageUrl = image->imageLink().url();
+    
+    boost::replace_all(imageUrl, "css", Settings::staticDeployPath() + "/icons/oauth" );
+    log("notice") << "found oauth image: " << image->imageLink().url() << " >> " << imageUrl;
+    image->setImageLink(imageUrl);
+  }
 }
 
 

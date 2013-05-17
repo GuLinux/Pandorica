@@ -48,13 +48,18 @@ void MediaCollectionPrivate::listDirectory(filesystem::path path)
   copy(fs::directory_iterator(path), fs::directory_iterator(), back_inserter(v));
   sort(v.begin(), v.end());
   for(fs::path path: v) {
-    if(fs::is_directory(path))
-      listDirectory(path);
-    else {
-      Media media{path};
-      if(media.mimetype() != "UNSUPPORTED" && isAllowed(path)) {
-        collection[media.uid()] = media;
+    try {
+      if(fs::is_directory(path)) {
+        listDirectory(path);
       }
+      else {
+        Media media{path};
+        if(media.mimetype() != "UNSUPPORTED" && isAllowed(path)) {
+          collection[media.uid()] = media;
+        }
+      }
+    } catch(std::exception &e) {
+      log("error") << "Error trying to add path " << path << ": " << e.what();
     }
   }
 }
