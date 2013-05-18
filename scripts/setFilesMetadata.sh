@@ -82,6 +82,9 @@ getAllMedias | doSql_$driver | while read line; do
   if test "x$saved_media_id" == "x$media_id" && test "x$title" == "x$format_tags_title"; then
     echo "Media already correctly tagged, skipping"
     continue
+    else
+      echo "expecting title='$title',  found='$format_tags_title'"
+      echo "expecting media_id='$media_id',  found='$saved_media_id'"
   fi
   medias_count=$(( $medias_count + 1 ))
   echo "$medias_count" > "/tmp/$( basename "$0")_medias_count"
