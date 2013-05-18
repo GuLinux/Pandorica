@@ -49,7 +49,7 @@ function write_mp4() {
   in_file="$( backupFile "$filename")"
   cat <<EOF
   mv "$filename" "$in_file"
-  MP4Box "$in_file" -unhint -itags name="$title":tool=streaming_mediaid=$media_id -out "$filename"
+  MP4Box "$in_file" -unhint -itags name="$title":tool=streaming_mediaid=$media_id -out "$filename" -hint
 EOF
 }
 
