@@ -3,11 +3,16 @@
 source "$( dirname "$( readlink -f "$0")" )/sql_common.sh"
 set -e
 
-driver="${1-sqlite}"
+driver="$1"
+filter_folder="$2"
+if test "x$filter_folder" != "x"; then
+  filter_folder="$( readlink -f "$filter_folder" )"
+fi
 
 if test "x$1" == "x"; then
-echo "Usage: $0 [driver]"
+echo "Usage: $0 driver [filter-folder]"
 echo "Drivers supported: sqlite, psql"
+echo "If filter folder is supplied, only files belonging to that folder will be written"
 exit 1
 fi
 
@@ -73,19 +78,23 @@ getAllMedias | doSql_$driver | while read line; do
   
   eval "$( ffprobe "$filename" -of flat=s=_ -loglevel quiet -show_format)"
   saved_media_id="${format_tags_tool##*=}"
+  if test "x$filter_folder" != "x" && ! echo "$filename" | grep -q "$filter_folder"; then
+    echo "Media not belonging to $filter_folder; skipping"
+    continue
+  fi
   if test "x$saved_media_id" == "x$media_id" && test "x$title" == "x$format_tags_title"; then
     echo "Media already correctly tagged, skipping"
     continue
-  else
-    case $extension in
-      "mp4"|"m4v"|"m4a")
-        write_mp4 $media_id "$filename" "$title" >> "$new_shell_file"
-        ;;
-      *)
-        write_ffmpeg $media_id "$filename" "$title" >> "$new_shell_file"
-        ;;
-    esac
   fi
+
+  case $extension in
+    "mp4"|"m4v"|"m4a")
+      write_mp4 $media_id "$filename" "$title" >> "$new_shell_file"
+      ;;
+    *)
+      write_ffmpeg $media_id "$filename" "$title" >> "$new_shell_file"
+      ;;
+  esac
 done
 
 echo "Writing now"
