@@ -57,13 +57,12 @@ new_shell_file="/tmp/$( basename "$0")_tmp.sh"
 cat > "$new_shell_file" <<EOF
 #!/bin/bash
 
-MEDIAS_COUNT="$( getMediasCount | doSql_$driver )"
+MEDIAS_COUNT=__MEDIAS_COUNT_PLACEHOLDER__
 EOF
 chmod +x "$new_shell_file"
 
 medias_count=0
 getAllMedias | doSql_$driver | while read line; do
-  export medias_count=$(( $medias_count + 1 ))
   media_id="$( echo "$line" | cut -d'|' -f1)"
   filename="$( echo "$line" | cut -d'|' -f2)"
   title="$( echo "$line" | cut -d'|' -f3)"
@@ -73,8 +72,6 @@ getAllMedias | doSql_$driver | while read line; do
   fi
   filename="$( readlink -f "$filename" )"
   
-  echo "Media id=$media_id, extension=$extension,  title=$title"
-  echo "echo \"[$medias_count/\$MEDIAS_COUNT] - \$( echo \"$medias_count * 100 / \$MEDIAS_COUNT\" | bc )%\"" >> "$new_shell_file"
   
   eval "$( ffprobe "$filename" -of flat=s=_ -loglevel quiet -show_format)"
   saved_media_id="${format_tags_tool##*=}"
@@ -86,6 +83,9 @@ getAllMedias | doSql_$driver | while read line; do
     echo "Media already correctly tagged, skipping"
     continue
   fi
+  medias_count=$(( $medias_count + 1 ))
+  echo "$medias_count" > "/tmp/$( basename "$0")_medias_count"
+  echo "echo \"[$medias_count/\$MEDIAS_COUNT] - \$( echo \"$medias_count * 100 / \$MEDIAS_COUNT\" | bc )%\"" >> "$new_shell_file"
 
   case $extension in
     "mp4"|"m4v"|"m4a")
@@ -96,6 +96,8 @@ getAllMedias | doSql_$driver | while read line; do
       ;;
   esac
 done
+medias_count=$( cat "/tmp/$( basename "$0")_medias_count"); rm "/tmp/$( basename "$0")_medias_count"
+sed -i "s/__MEDIAS_COUNT_PLACEHOLDER__/$medias_count/g" "$new_shell_file"
 
 echo "Writing now"
 "$new_shell_file"
