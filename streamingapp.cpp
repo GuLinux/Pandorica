@@ -73,6 +73,7 @@
 #include <Wt/WIOService>
 #include <Wt/WIOService>
 #include <Wt/WLabel>
+#include <Wt/WPanel>
 #include "private/streamingapp_p.h"
 #include "authpage.h"
 #include "findorphansdialog.h"
@@ -411,22 +412,9 @@ void StreamingApp::setupGui()
   d->playerContainerWidget = new WContainerWidget;
   d->playerContainerWidget->setContentAlignment(AlignCenter);
   d->playlist = new Playlist{&d->session};
-  d->playlist->setList(true);
-  d->playlist->addStyleClass("accordion-inner");
-  
-  WContainerWidget *playlistAccordion = WW<WContainerWidget>().css("accordion-body collapse").add(d->playlist);
-  
-  WContainerWidget *playlistContainer = WW<WContainerWidget>().css("accordion-group playlist").setContentAlignment(AlignCenter);
-  WAnchor *playlistLink = WW<WAnchor>(string("#") + playlistAccordion->id(), wtr("playlist.accordion"))
-    .setAttribute("data-toggle", "collapse")
-    .setAttribute("data-parent",string("#") + contentWidget->id())
-    .css("link-hand accordion-toggle playlist-toggle");
-  playlistContainer->addWidget(WW<WContainerWidget>().css("accordion-heading").add(playlistLink));
-  playlistContainer->addWidget(playlistAccordion);
-  
   
   contentWidget->addStyleClass("accordion");
-  contentWidget->addWidget(playlistContainer);
+  contentWidget->addWidget(WW<WContainerWidget>().add(d->playlist).setContentAlignment(AlignCenter));
   contentWidget->addWidget(d->playerContainerWidget);
   
   d->mediaCollectionBrowser = new MediaCollectionBrowser{d->mediaCollection, &d->settings, &d->session};
@@ -620,6 +608,7 @@ void StreamingAppPrivate::play(Media media) {
   sessionInfo.modify()->sessionDetails().insert(new SessionDetails{media.path()});
   sessionInfo.flush();
   t.commit();
+  playlist->setCollapsed(true);
 }
 
 

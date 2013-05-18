@@ -2,69 +2,88 @@
 #include "session.h"
 #include <Wt/WApplication>
 #include <Wt/WAnchor>
+#include <Wt/WText>
 #include "Wt-Commons/wt_helpers.h"
+#include "private/playlist_p.h"
 
 using namespace Wt;
 using namespace std;
 using namespace boost;
+using namespace StreamingPrivate;
 namespace fs = boost::filesystem;
 
-
-Playlist::Playlist(Session* session, WContainerWidget* parent): WContainerWidget(parent), session(session)
+PlaylistPrivate::PlaylistPrivate(Session* session) : session(session)
 {
-  setList(true);
-  addStyleClass("nav nav-pills nav-stacked");
+}
+
+
+
+Playlist::Playlist(Session* session, WContainerWidget* parent)
+: WPanel(parent), d(new PlaylistPrivate{session})
+{
+  setCentralWidget(d->container = new WContainerWidget);
+  setTitleBar(true);
+  addStyleClass("playlist");
+  titleBarWidget()->addWidget(WW<WContainerWidget>().add(new WText{"Playlist"}).css("playlist-toggle accordion-toggle"));
+  titleBarWidget()->clicked().connect([=](WMouseEvent){ setCollapsed(!isCollapsed()); });
+  titleBarWidget()->addStyleClass("playtlist-titlebar");
+  setAnimation({WAnimation::SlideInFromTop, WAnimation::EaseOut, 500});
+  setCollapsible(true);
+  setCollapsed(true);
+  d->container->setList(true);
+  d->container->addStyleClass("nav nav-pills nav-stacked");
+  d->container->setMargin(5, Side::Bottom);
 }
 
 Playlist::~Playlist()
 {
-
+  delete d;
 }
 
 
-Signal< Media >& Playlist::next()
+Signal<Media>& Playlist::next()
 {
-  return _next;
+  return d->next;
 }
 
 Media Playlist::first()
 {
-  return internalQueue.front().second;
+  return d->internalQueue.front().second;
 }
 
 void Playlist::nextItem(WWidget* itemToPlay)
 {
   wApp->log("notice") << "itemToPlay==" << itemToPlay;
-  if(internalQueue.empty()) return;
+  if(d->internalQueue.empty()) return;
 
-  auto itemToSkip = internalQueue.begin();
+  auto itemToSkip = d->internalQueue.begin();
   while(itemToSkip->first != itemToPlay) {
-    removeWidget(itemToSkip->first);
+    d->container->removeWidget(itemToSkip->first);
     delete itemToSkip->first;
-    itemToSkip = internalQueue.erase(itemToSkip);
+    itemToSkip = d->internalQueue.erase(itemToSkip);
     if(!itemToPlay) break;
   }
   
-  wApp->log("notice") << "outside the loop: internalQueue.size(): " << internalQueue.size();
-  if(internalQueue.empty()) return;
-  QueueItem next = *internalQueue.begin();
-  _next.emit(next.second);
+  wApp->log("notice") << "outside the loop: internalQueue.size(): " << d->internalQueue.size();
+  if(d->internalQueue.empty()) return;
+  QueueItem next = *d->internalQueue.begin();
+  d->next.emit(next.second);
 }
 
 void Playlist::reset()
 {
-  clear();
-  internalQueue.clear();
+  d->container->clear();
+  d->internalQueue.clear();
 }
 
 
 
 void Playlist::queue(Media media)
 {
-  Dbo::Transaction t(*session);
+  Dbo::Transaction t(*d->session);
   WAnchor* playlistEntry = WW<WAnchor>("", media.title(t)).css("link-hand");
   playlistEntry->addWidget(new WBreak());
   playlistEntry->clicked().connect([this,media, playlistEntry](WMouseEvent&){ nextItem(playlistEntry); });
-  addWidget(WW<WContainerWidget>().add(playlistEntry));
-  internalQueue.push_back(QueueItem(playlistEntry, media));
+  d->container->addWidget(WW<WContainerWidget>().add(playlistEntry));
+  d->internalQueue.push_back(QueueItem(playlistEntry, media));
 }

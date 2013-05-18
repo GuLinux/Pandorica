@@ -1,14 +1,15 @@
 #ifndef PLAYLIST_H
 #define PLAYLIST_H
 
-#include <Wt/WContainerWidget>
+#include <Wt/WPanel>
 #include <boost/filesystem.hpp>
 #include "media.h"
 
-class Session;
-typedef std::pair<Wt::WWidget*,Media> QueueItem;
+namespace StreamingPrivate {
+  class PlaylistPrivate;
+}
 
-class Playlist : public Wt::WContainerWidget
+class Playlist : public Wt::WPanel
 {
 
 public:
@@ -20,9 +21,7 @@ public:
   Media first();
   void reset();
 private:
-  std::list<QueueItem> internalQueue;
-  Wt::Signal<Media> _next;
-  Session *session;
+  StreamingPrivate::PlaylistPrivate *const d;
 };
 
 #endif // PLAYLIST_H
