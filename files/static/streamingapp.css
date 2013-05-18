@@ -134,7 +134,7 @@
 
 .brand span {
   padding-left:26px;
-  background: transparent url(http://gulinux.net/css/fs_icons/humano2/site-logo.png)  center left no-repeat;
+  background: transparent url(icons/site-logo.png)  center left no-repeat;
 }
 
 .mediascannerdialog-filename {
@@ -146,32 +146,32 @@
 }
 
 .playlist-toggle span {
-  background: transparent url(http://gulinux.net/css/fs_icons/humano2/playlist.png)  center left no-repeat;
+  background: transparent url(icons/actions/playlist.png)  center left no-repeat;
 }
 
 .menu-media-list a span span {
-  background: transparent url(http://gulinux.net/css/fs_icons/humano2/nav_media.png)  center left no-repeat;
+  background: transparent url(icons/actions/nav_media.png)  center left no-repeat;
 }
 .menu-comments a span span {
-  background: transparent url(http://gulinux.net/css/fs_icons/humano2/comments.png)  center left no-repeat;
+  background: transparent url(icons/actions/comments.png)  center left no-repeat;
 }
 .menu-settings a span span {
-  background: transparent url(http://gulinux.net/css/fs_icons/humano2/settings.png)  center left no-repeat;
+  background: transparent url(icons/actions/settings.png)  center left no-repeat;
 }
 .menu-logout a span span {
-  background: transparent url(http://gulinux.net/css/fs_icons/humano2/logout.png)  center left no-repeat;
+  background: transparent url(icons/actions/logout.png)  center left no-repeat;
 }
 .menu-admin a span span {
-  background: transparent url(http://gulinux.net/css/fs_icons/humano2/admin.png)  center left no-repeat;
+  background: transparent url(icons/actions/admin.png)  center left no-repeat;
 }
 .menu-loggedusers a span span {
-  background: transparent url(http://gulinux.net/css/fs_icons/humano2/users.png)  center left no-repeat;
+  background: transparent url(icons/actions/users.png)  center left no-repeat;
 }
 .menu-groups a span span {
-  background: transparent url(http://gulinux.net/css/fs_icons/humano2/groups.png)  center left no-repeat;
+  background: transparent url(icons/actions/groups.png)  center left no-repeat;
 }
 .menu-users-log a span span {
-  background: transparent url(http://gulinux.net/css/fs_icons/humano2/users-log.png)  center left no-repeat;
+  background: transparent url(icons/actions/users-log.png)  center left no-repeat;
 }
 
 .Wt-auth-logged-in {
