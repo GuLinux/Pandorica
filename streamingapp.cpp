@@ -413,7 +413,6 @@ void StreamingApp::setupGui()
   d->playerContainerWidget->setContentAlignment(AlignCenter);
   d->playlist = new Playlist{&d->session};
   
-  contentWidget->addStyleClass("accordion");
   contentWidget->addWidget(WW<WContainerWidget>().add(d->playlist).setContentAlignment(AlignCenter));
   contentWidget->addWidget(d->playerContainerWidget);
   

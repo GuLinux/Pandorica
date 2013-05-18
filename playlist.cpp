@@ -67,6 +67,7 @@ void Playlist::nextItem(WWidget* itemToPlay)
   wApp->log("notice") << "outside the loop: internalQueue.size(): " << d->internalQueue.size();
   if(d->internalQueue.empty()) return;
   QueueItem next = *d->internalQueue.begin();
+  next.first->parent()->addStyleClass("active");
   d->next.emit(next.second);
 }
 
