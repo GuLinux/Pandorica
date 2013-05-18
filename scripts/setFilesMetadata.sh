@@ -11,10 +11,12 @@ echo "Drivers supported: sqlite, psql"
 exit 1
 fi
 
+function getMediasCount() {
+  echo "select count(media_id) from media_properties where title is not null AND length(title) > 0;"
+}
+
 function getAllMedias() {
-  cat <<EOF
-  select media_id, filename, title from media_properties where title is not null AND length(title) > 0;
-EOF
+  echo "select media_id, filename, title from media_properties where title is not null AND length(title) > 0;"
 }
 
 function backupFile() {
@@ -50,10 +52,13 @@ new_shell_file="/tmp/$( basename "$0")_tmp.sh"
 cat > "$new_shell_file" <<EOF
 #!/bin/bash
 
+MEDIAS_COUNT="$( getMediasCount | doSql_$driver )"
 EOF
 chmod +x "$new_shell_file"
 
+medias_count=0
 getAllMedias | doSql_$driver | while read line; do
+  export medias_count=$(( $medias_count + 1 ))
   media_id="$( echo "$line" | cut -d'|' -f1)"
   filename="$( echo "$line" | cut -d'|' -f2)"
   title="$( echo "$line" | cut -d'|' -f3)"
@@ -64,14 +69,24 @@ getAllMedias | doSql_$driver | while read line; do
   filename="$( readlink -f "$filename" )"
   
   echo "Media id=$media_id, extension=$extension,  title=$title"
-  case $extension in
-    "mp4"|"m4v"|"m4a")
-      write_mp4 $media_id "$filename" "$title" >> "$new_shell_file"
-      ;;
-    *)
-      write_ffmpeg $media_id "$filename" "$title" >> "$new_shell_file"
-      ;;
-  esac
+  echo "echo \"[$medias_count/\$MEDIAS_COUNT] - \$( echo \"$medias_count * 100 / \$MEDIAS_COUNT\" | bc )%\"" >> "$new_shell_file"
+  
+  eval "$( ffprobe "$filename" -of flat=s=_ -loglevel quiet -show_format)"
+  saved_media_id="${format_tags_tool##*=}"
+  if test "x$saved_media_id" == "x$media_id" && test "x$title" == "x$format_tags_title"; then
+    echo "Media already correctly tagged, skipping"
+    continue
+  else
+    case $extension in
+      "mp4"|"m4v"|"m4a")
+        write_mp4 $media_id "$filename" "$title" >> "$new_shell_file"
+        ;;
+      *)
+        write_ffmpeg $media_id "$filename" "$title" >> "$new_shell_file"
+        ;;
+    esac
+  fi
 done
 
+echo "Writing now"
 "$new_shell_file"
