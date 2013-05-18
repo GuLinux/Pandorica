@@ -76,15 +76,12 @@ getAllMedias | doSql_$driver | while read line; do
   eval "$( ffprobe "$filename" -of flat=s=_ -loglevel quiet -show_format)"
   saved_media_id="${format_tags_tool##*=}"
   if test "x$filter_folder" != "x" && ! echo "$filename" | grep -q "$filter_folder"; then
-    echo "Media not belonging to $filter_folder; skipping"
+#echo "Media not belonging to $filter_folder; skipping"
     continue
   fi
   if test "x$saved_media_id" == "x$media_id" && test "x$title" == "x$format_tags_title"; then
-    echo "Media already correctly tagged, skipping"
+    echo "Media $filename already correctly tagged, skipping"
     continue
-    else
-      echo "expecting title='$title',  found='$format_tags_title'"
-      echo "expecting media_id='$media_id',  found='$saved_media_id'"
   fi
   medias_count=$(( $medias_count + 1 ))
   echo "$medias_count" > "/tmp/$( basename "$0")_medias_count"
