@@ -209,14 +209,14 @@ StreamingApp::~StreamingApp() {
 void StreamingAppPrivate::updateUsersCount()
 {
   wApp->log("notice") << "refreshing users count";
-  string query = "SELECT COUNT(*) from session_info WHERE session_ended = 0";
-  Dbo::Transaction t(session);
-  int previousSessionsCount = sessionsCount;
-  sessionsCount = session.query<long>(query).resultValue();
-  if(previousSessionsCount != sessionsCount) {
-    activeUsersMenuItem->setText(wtr("menu.users").arg(sessionsCount));
+//   string query = "SELECT COUNT(*) from session_info WHERE session_ended = 0";
+//   Dbo::Transaction t(session);
+//   int previousSessionsCount = sessionsCount;
+//   sessionsCount = session.query<long>(query).resultValue();
+//   if(previousSessionsCount != sessionsCount) {
+    activeUsersMenuItem->setText(wtr("menu.users").arg(streamingSessions.size()));
     wApp->triggerUpdate();
-  }
+//   }
 }
 
 
