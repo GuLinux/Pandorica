@@ -58,7 +58,7 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Sett
   layout->addWidget(d->infoPanel);
   layout->setResizable(0, true);
   d->infoPanel->setWidth(450);
-  layout->addWidget(d->browser, 1);
+  layout->addWidget(WW<WContainerWidget>().css("mediabrowser").add(d->browser), 1);
 
   d->browser->setList(true);
   addWidget(d->breadcrumb);
