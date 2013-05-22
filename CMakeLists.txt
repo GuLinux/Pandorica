@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(videostreaming)
+project(streamingapp)
 add_definitions(-std=gnu++11)
 
 find_package(Wt REQUIRED)
@@ -22,7 +22,7 @@ STRING(REGEX MATCH ".*Zerogoki.*" HOST_IS_ZEROGOKI "${HOSTNAME}")
 #   message("Zerogoki hostname: using FCGI Connector (${Wt_CONNECTOR_LIBRARY} - ${Wt_CONNECTOR_DEBUG_LIBRARY}")
 # endif(NOT ${HOST_IS_ZEROGOKI} STREQUAL "")
 
-SET(INSTALL_DIR "/home/www-data/data/videostreaming" CACHE STRING "Install directory for Wt Applications and files")
+SET(INSTALL_DIR "/home/www-data/data/streamingapp" CACHE STRING "Install directory for Wt Applications and files")
 
 SET( models_srcs Models/group.cpp Models/user.cpp Models/mediarating.cpp Models/mediaattachment.cpp )
 SET( Wt_Commons_srcs Wt-Commons/whtmltemplateslocalizedstrings.cpp )
@@ -38,7 +38,7 @@ SET( player_srcs Wt-Commons/compositeresource.cpp findorphansdialog.cpp
     player/html5player.cpp
 )
 
-add_executable(videostreaming ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs} ${player_srcs}
+add_executable(streamingapp ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs} ${player_srcs}
     authpage.cpp
     utils.cpp
     ffmpegmedia.cpp
@@ -77,8 +77,8 @@ SET(BOOST_LIBS
 -lboost_regex
 )
 
-target_link_libraries(videostreaming -lavformat -lavcodec -lavutil -lffmpegthumbnailer ${BOOST_LIBS} ${WT_LINK_LIBS} ${MAGICK_LIBS})
-install(TARGETS videostreaming RUNTIME DESTINATION ${INSTALL_DIR}/bin)
+target_link_libraries(streamingapp -lavformat -lavcodec -lavutil -lffmpegthumbnailer ${BOOST_LIBS} ${WT_LINK_LIBS} ${MAGICK_LIBS})
+install(TARGETS streamingapp RUNTIME DESTINATION ${INSTALL_DIR}/bin)
 set(TRANSLATION_FILES files/strings.xml files/strings_it.xml )
 INSTALL(FILES ${TRANSLATION_FILES} DESTINATION ${INSTALL_DIR} )
 INSTALL(FILES files/title_from_filename_replacements.json DESTINATION ${INSTALL_DIR})
