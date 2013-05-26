@@ -1,12 +1,28 @@
 cmake_minimum_required(VERSION 2.8)
 project(streamingapp)
 add_definitions(-std=gnu++11)
-
 find_package(Wt REQUIRED)
 execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_magick_cmake_conf ${CMAKE_CURRENT_BINARY_DIR}/imagemagick.cmake )
+INCLUDE (CheckIncludeFiles)
 include(${CMAKE_CURRENT_BINARY_DIR}/imagemagick.cmake)
+include(FindPackageHandleStandardArgs)
 
 include_directories(${Wt_INCLUDE_DIR} ${CMAKE_SOURCE_DIR} ${MAGICK_INCLUDES} )
+
+find_path(HAVE_DBO_MYSQL Wt/Dbo/backend/MySQL)
+find_path(HAVE_DBO_POSTGRES Wt/Dbo/backend/Postgres)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(DBO_MYSQL DEFAULT_MSG HAVE_DBO_MYSQL)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(DBO_POSTGRES DEFAULT_MSG HAVE_DBO_POSTGRES)
+message("Have MYSQL DBO Driver: ${DBO_MYSQL_FOUND}")
+message("Have Postgres DBO Driver: ${DBO_POSTGRES_FOUND}")
+
+if(${DBO_MYSQL_FOUND})
+  add_definitions(-DHAVE_MYSQL)
+endif(${DBO_MYSQL_FOUND})
+if(${DBO_POSTGRES_FOUND})
+  add_definitions(-DHAVE_POSTGRES)
+endif(${DBO_POSTGRES_FOUND})
+
 
 
 set(Wt_CONNECTOR_LIBRARY "${Wt_HTTP_LIBRARY}")
