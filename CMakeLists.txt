@@ -18,6 +18,8 @@ message("Have Postgres DBO Driver: ${DBO_POSTGRES_FOUND}")
 
 if(${DBO_MYSQL_FOUND})
   add_definitions(-DHAVE_MYSQL)
+  set(Wt_DBOMYSQL_DEBUG_LIBRARY -lwtdbomysqld)
+  set(Wt_DBOMYSQL_LIBRARY -lwtdbomysql)
 endif(${DBO_MYSQL_FOUND})
 if(${DBO_POSTGRES_FOUND})
   add_definitions(-DHAVE_POSTGRES)
@@ -79,10 +81,10 @@ add_executable(streamingapp ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_src
 string(TOLOWER ${CMAKE_BUILD_TYPE} build_type)
 if(${build_type} STREQUAL "debug")
   message("Linking to WT Debug Libraries")
-  set(WT_LINK_LIBS ${Wt_DEBUG_LIBRARY} ${Wt_DBO_DEBUG_LIBRARY} ${Wt_DBOPOSTGRES_DEBUG_LIBRARY} ${Wt_DBOSQLITE3_DEBUG_LIBRARY} ${Wt_CONNECTOR_DEBUG_LIBRARY} )
+  set(WT_LINK_LIBS ${Wt_DEBUG_LIBRARY} ${Wt_DBO_DEBUG_LIBRARY} ${Wt_DBOPOSTGRES_DEBUG_LIBRARY} ${Wt_DBOMYSQL_DEBUG_LIBRARY} ${Wt_DBOSQLITE3_DEBUG_LIBRARY} ${Wt_CONNECTOR_DEBUG_LIBRARY} )
 else(${build_type} STREQUAL "debug")
   message("Linking to WT Release Libraries")
-  set(WT_LINK_LIBS ${Wt_LIBRARY} ${Wt_DBO_LIBRARY} ${Wt_DBOPOSTGRES_LIBRARY} ${Wt_DBOSQLITE3_LIBRARY} ${Wt_CONNECTOR_LIBRARY})
+  set(WT_LINK_LIBS ${Wt_LIBRARY} ${Wt_DBO_LIBRARY} ${Wt_DBOPOSTGRES_LIBRARY} ${Wt_DBOMYSQL_LIBRARY} ${Wt_DBOSQLITE3_LIBRARY} ${Wt_CONNECTOR_LIBRARY})
 endif(${build_type} STREQUAL "debug")
 
 SET(BOOST_LIBS 
