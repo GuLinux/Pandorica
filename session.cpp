@@ -162,6 +162,7 @@ void SessionPrivate::createConnection()
   MySqlParams mySqlParams = MySqlParams::readFromConfiguration();
   if(mySqlParams.isValid) {
     WServer::instance()->log("notice") << "Using mysql connection";
+    WServer::instance()->log("notice") << "connection params: db=" << mySqlParams.db << ",user="<< mySqlParams.dbUser <<",passwd="<< mySqlParams.dbPasswd << ",host="<< mySqlParams.dbHost<<",port=" << mySqlParams.dbPort;
     connection = new dbo::backend::MySQL(mySqlParams.db, mySqlParams.dbUser, mySqlParams.dbPasswd, mySqlParams.dbHost, mySqlParams.dbPort);
     return;
   }
