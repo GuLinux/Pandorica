@@ -15,7 +15,14 @@
 #include "Wt/Auth/FacebookService"
 #include "Wt/Auth/Dbo/AuthInfo"
 #include "Wt/Auth/Dbo/UserDatabase"
-#include <Wt/Dbo/backend/Postgres>
+#ifdef HAVE_POSTGRES
+  #warning "have postgres backend"
+  #include <Wt/Dbo/backend/Postgres>
+#endif
+#ifdef HAVE_MYSQL
+  #warning "have mysql backend"
+  #include <Wt/Dbo/backend/MySQL>
+#endif
 #include <Wt/Dbo/backend/Sqlite3>
 #include <Wt/WApplication>
 #include <Wt/WServer>
@@ -107,18 +114,56 @@ Auth::Login& Session::login()
   return d->login;
 }
 
+#ifdef HAVE_MYSQL
+struct MySqlParams {
+  bool isValid = false;
+  string db;
+  string dbUser;
+  string dbPasswd;
+  string dbHost = "localhost";
+  int dbPort = 0;
+  
+  static MySqlParams readFromConfiguration() {
+    bool isValid = true;
+    string db, dbUser, dbPasswd, dbHost, dbPort;
+    isValid &= WServer::instance->readConfigurationProperty("mysql-db-name", db);
+    isValid &= WServer::instance->readConfigurationProperty("mysql-db-user", dbUser);
+    isValid &= WServer::instance->readConfigurationProperty("mysql-db-password", dbPasswd);
+    MySqlParams params{isValid, db, dbUser, dbPasswd};
+    if(WServer::instance->readConfigurationProperty("mysql-db-hostname", dbHost)) {
+      params.dbHost = dbHost;
+    }
+    if(WServer::instance->readConfigurationProperty("mysql-db-port", dbPort)) {
+      params.dbPort = boost::lexical_cast<int>(dbPort);
+    }
+    return params;
+  }
+};
+
+#endif
 
 void SessionPrivate::createConnection()
 {
-  string psqlConnParameters = "";
-  WServer::instance()->readConfigurationProperty("psql-connection", psqlConnParameters);
-  if(!psqlConnParameters.empty()) {
+  string psqlConnParameters, mysqlConnParameters;
+  bool havePostgresConfiguration = WServer::instance()->readConfigurationProperty("psql-connection", psqlConnParameters);
+  bool haveMySQLConfiguration = WServer::instance()->readConfigurationProperty("mysql-connection", mysqlConnParameters);
+#ifdef HAVE_POSTGRES
+  if(havePostgresConfiguration && !psqlConnParameters.empty()) {
     WServer::instance()->log("notice") << "Using postgresql connection";
     connection = new dbo::backend::Postgres(psqlConnParameters);
     return;
   }
-    WServer::instance()->log("notice") << "Using sqlite3 connection";
-    connection = new dbo::backend::Sqlite3("videostreaming.sqlite");
+#endif
+#ifdef HAVE_MYSQL
+  MySqlParams mySqlParams = MySqlParams::readFromConfiguration();
+  if(mySqlParams.isValid) {
+    WServer::instance()->log("notice") << "Using mysql connection";
+    connection = new dbo::backend::MySQL(mySqlParams.db, mySqlParams.dbUser, mySqlParams.dbPasswd, mySqlParams.dbHost, mySqlParams.dbPort);
+    return;
+  }
+#endif
+  WServer::instance()->log("notice") << "Using sqlite3 connection";
+  connection = new dbo::backend::Sqlite3("videostreaming.sqlite");
 }
 
 
