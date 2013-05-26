@@ -129,7 +129,11 @@ struct MySqlParams {
     isValid &= WServer::instance()->readConfigurationProperty("mysql-db-name", db);
     isValid &= WServer::instance()->readConfigurationProperty("mysql-db-user", dbUser);
     isValid &= WServer::instance()->readConfigurationProperty("mysql-db-password", dbPasswd);
-    MySqlParams params{isValid, db, dbUser, dbPasswd};
+    MySqlParams params;
+    params.isValid = isValid;
+    params.db = db;
+    params.dbUser = dbUser;
+    params.dbPasswd = dbPasswd;
     if(WServer::instance()->readConfigurationProperty("mysql-db-hostname", dbHost)) {
       params.dbHost = dbHost;
     }
