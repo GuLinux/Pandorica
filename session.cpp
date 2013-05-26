@@ -126,14 +126,14 @@ struct MySqlParams {
   static MySqlParams readFromConfiguration() {
     bool isValid = true;
     string db, dbUser, dbPasswd, dbHost, dbPort;
-    isValid &= WServer::instance->readConfigurationProperty("mysql-db-name", db);
-    isValid &= WServer::instance->readConfigurationProperty("mysql-db-user", dbUser);
-    isValid &= WServer::instance->readConfigurationProperty("mysql-db-password", dbPasswd);
+    isValid &= WServer::instance()->readConfigurationProperty("mysql-db-name", db);
+    isValid &= WServer::instance()->readConfigurationProperty("mysql-db-user", dbUser);
+    isValid &= WServer::instance()->readConfigurationProperty("mysql-db-password", dbPasswd);
     MySqlParams params{isValid, db, dbUser, dbPasswd};
-    if(WServer::instance->readConfigurationProperty("mysql-db-hostname", dbHost)) {
+    if(WServer::instance()->readConfigurationProperty("mysql-db-hostname", dbHost)) {
       params.dbHost = dbHost;
     }
-    if(WServer::instance->readConfigurationProperty("mysql-db-port", dbPort)) {
+    if(WServer::instance()->readConfigurationProperty("mysql-db-port", dbPort)) {
       params.dbPort = boost::lexical_cast<int>(dbPort);
     }
     return params;
