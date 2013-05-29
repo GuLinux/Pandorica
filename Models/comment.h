@@ -13,16 +13,16 @@ class User;
 class Comment {
 public:
   Comment() {}
-  Comment(std::string videoId, Wt::Dbo::ptr<User> user, std::string content)
-    : _videoId(videoId), _user(user), _content(content), _lastUpdated(Wt::WDateTime::currentDateTime().toTime_t()) {}
+  Comment(std::string mediaId, Wt::Dbo::ptr<User> user, std::string content)
+    : _mediaId(mediaId), _user(user), _content(content), _lastUpdated(Wt::WDateTime::currentDateTime().toTime_t()) {}
   ~Comment() {}
   std::string content() const { return _content; }
-  std::string videoId() const { return _videoId; }
+  std::string mediaId() const { return _mediaId; }
   Wt::WDateTime lastUpdated() const { return Wt::WDateTime::fromTime_t(_lastUpdated); }
   Wt::Dbo::ptr<User> user() const { return _user; }
 private:
   std::string _content;
-  std::string _videoId;
+  std::string _mediaId;
   long _lastUpdated;
   Wt::Dbo::ptr<User> _user;
 public:
@@ -30,7 +30,7 @@ public:
   void persist(Action& a)
   {
     Wt::Dbo::field(a, _content, "content");
-    Wt::Dbo::field(a, _videoId, "video_id");
+    Wt::Dbo::field(a, _mediaId, "media_id");
     Wt::Dbo::field(a, _lastUpdated, "last_updated");
     Wt::Dbo::belongsTo(a, _user, "user");
   }

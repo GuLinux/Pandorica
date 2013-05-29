@@ -27,7 +27,7 @@ LatestCommentsDialog::LatestCommentsDialog(Session* session, MediaCollection *me
     contents()->addWidget(new WText{wtr("comments.empty")});
   for(CommentPtr comment: latestComments) {
     WContainerWidget* commentWidget = new WContainerWidget;
-    Media media = mediaCollection->media(comment->videoId());
+    Media media = mediaCollection->media(comment->mediaId());
       
     WContainerWidget *header = WW<WContainerWidget>();
     header->setContentAlignment(AlignCenter);
