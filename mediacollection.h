@@ -6,6 +6,12 @@
 #include <boost/filesystem.hpp>
 #include "media.h"
 
+namespace Wt {
+namespace Dbo {
+class Transaction;
+}
+}
+
 class Session;
 namespace StreamingPrivate {
   class MediaCollectionPrivate;
@@ -15,7 +21,7 @@ class MediaCollection : public Wt::WObject
 public:
   MediaCollection(std::string basePath, Session *session, Wt::WApplication* parent = 0);
     virtual ~MediaCollection();
-    void rescan();
+    void rescan(Wt::Dbo::Transaction& transaction);
     std::map<std::string,Media> collection() const;
     boost::filesystem::path rootPath() const;
     Media media(std::string uid) const;

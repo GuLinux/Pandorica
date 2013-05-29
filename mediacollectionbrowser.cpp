@@ -378,7 +378,8 @@ void MediaCollectionBrowserPrivate::rebuildBreadcrumb()
 {
   breadcrumb->clear();
   breadcrumb->addWidget(WW<WPushButton>(wtr("mediacollection.reload")).css("btn btn-small").onClick([=](WMouseEvent) {
-    collection->rescan();
+    Dbo::Transaction t(*session);
+    collection->rescan(t);
     browse(collection->rootPath());
   }));
   list<fs::path> paths;
