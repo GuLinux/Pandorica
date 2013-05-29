@@ -37,6 +37,7 @@ using namespace StreamingPrivate;
 using namespace std;
 using namespace Wt;
 using namespace Wt::Auth;
+using namespace WtCommons;
 
 namespace dbo = Wt::Dbo;
 

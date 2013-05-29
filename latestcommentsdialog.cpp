@@ -12,6 +12,7 @@
 #include "Models/models.h"
 
 using namespace Wt;
+using namespace WtCommons;
 
 LatestCommentsDialog::LatestCommentsDialog(Session* session, MediaCollection *mediaCollection, WObject* parent): WDialog{parent}
 {

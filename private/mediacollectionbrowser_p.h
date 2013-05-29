@@ -70,7 +70,7 @@ public:
 private:
     void addDirectory(boost::filesystem::path directory);
     void addMedia(Media& media);
-    Wt::WContainerWidget* addIcon(Wt::WString filename, GetIconF icon, MouseEventListener onClick);
+    Wt::WContainerWidget* addIcon(Wt::WString filename, GetIconF icon, WtCommons::MouseEventListener onClick);
     MediaCollectionBrowser* q;
 };
 }

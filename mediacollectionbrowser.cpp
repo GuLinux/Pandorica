@@ -36,6 +36,7 @@ using namespace std;
 using namespace boost;
 using namespace StreamingPrivate;
 namespace fs = boost::filesystem;
+using namespace WtCommons;
 
 MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Settings* settings, Session* session, WContainerWidget* parent)
   : WContainerWidget(parent), d(new MediaCollectionBrowserPrivate(collection, settings, session, this))

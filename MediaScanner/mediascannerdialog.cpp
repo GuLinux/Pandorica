@@ -37,6 +37,7 @@
 using namespace Wt;
 using namespace std;
 using namespace StreamingPrivate;
+using namespace WtCommons;
 
 MediaScannerDialogPrivate::MediaScannerDialogPrivate(MediaScannerDialog* q, MediaCollection *mediaCollection, Settings* settings)
   : q(q), mediaCollection(mediaCollection), settings(settings)

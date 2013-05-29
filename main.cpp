@@ -18,6 +18,7 @@
 using namespace Wt;
 using namespace std;
 namespace fs = boost::filesystem;
+using namespace WtCommons;
 
 WApplication *createApplication(const WEnvironment& env)
 {

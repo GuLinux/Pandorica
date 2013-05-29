@@ -43,6 +43,7 @@ using namespace std;
 using namespace std::chrono;
 namespace fs = boost::filesystem;
 using namespace StreamingPrivate;
+using namespace WtCommons;
 
 ScanMediaInfoStepPrivate::ScanMediaInfoStepPrivate(ScanMediaInfoStep* q, WApplication *app)
   : q(q), app(app)

@@ -16,11 +16,9 @@
 #include "Wt/Auth/Dbo/AuthInfo"
 #include "Wt/Auth/Dbo/UserDatabase"
 #ifdef HAVE_POSTGRES
-  #warning "have postgres backend"
   #include <Wt/Dbo/backend/Postgres>
 #endif
 #ifdef HAVE_MYSQL
-  #warning "have mysql backend"
   #include <Wt/Dbo/backend/MySQL>
 #endif
 #include <Wt/Dbo/backend/Sqlite3>
@@ -162,7 +160,6 @@ void SessionPrivate::createConnection()
   MySqlParams mySqlParams = MySqlParams::readFromConfiguration();
   if(mySqlParams.isValid) {
     WServer::instance()->log("notice") << "Using mysql connection";
-    WServer::instance()->log("notice") << "connection params: db=" << mySqlParams.db << ",user="<< mySqlParams.dbUser <<",passwd="<< mySqlParams.dbPasswd << ",host="<< mySqlParams.dbHost<<",port=" << mySqlParams.dbPort;
     connection = new dbo::backend::MySQL(mySqlParams.db, mySqlParams.dbUser, mySqlParams.dbPasswd, mySqlParams.dbHost, mySqlParams.dbPort);
     return;
   }
