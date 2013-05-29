@@ -29,7 +29,7 @@ namespace StreamingPrivate {
 class MediaScannerDialog : Wt::WDialog
 {
 public:
-  MediaScannerDialog(Settings* settings, MediaCollection* mediaCollection, Wt::WObject* parent);
+  MediaScannerDialog(Session* session, Settings* settings, MediaCollection* mediaCollection, Wt::WObject* parent);
     virtual ~MediaScannerDialog();
   void run();
   Wt::Signal<> &scanFinished();

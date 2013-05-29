@@ -39,16 +39,16 @@ using namespace std;
 using namespace StreamingPrivate;
 using namespace WtCommons;
 
-MediaScannerDialogPrivate::MediaScannerDialogPrivate(MediaScannerDialog* q, MediaCollection *mediaCollection, Settings* settings)
-  : q(q), mediaCollection(mediaCollection), settings(settings)
+MediaScannerDialogPrivate::MediaScannerDialogPrivate(MediaScannerDialog* q, MediaCollection *mediaCollection, Session *session, Settings* settings)
+  : q(q), mediaCollection(mediaCollection), session(session), settings(settings)
 {
 }
 MediaScannerDialogPrivate::~MediaScannerDialogPrivate()
 {
 }
 
-MediaScannerDialog::MediaScannerDialog(Settings* settings, MediaCollection* mediaCollection, WObject* parent)
-    : d(new MediaScannerDialogPrivate(this, mediaCollection, settings))
+MediaScannerDialog::MediaScannerDialog(Session *session, Settings* settings, MediaCollection* mediaCollection, WObject* parent)
+    : d(new MediaScannerDialogPrivate(this, mediaCollection, session, settings))
 {
   resize(700, 650);
   setWindowTitle(wtr("mediascanner.title"));
@@ -126,9 +126,7 @@ void MediaScannerDialog::run()
       stepContainers.second.content->clear();
     wApp->triggerUpdate();
   };
-  // TODO: muovere nel thread, appena MediaCollection::rescan() diventa thread safe
-  d->mediaCollection->rescan();
-  boost::thread t( boost::bind(&MediaScannerDialogPrivate::scanMedias, d, wApp, updateProgressBar, enableCloseButton) );
+  boost::thread t( boost::bind(&MediaScannerDialogPrivate::scanMedias, d, wApp, updateProgressBar, enableCloseButton ) );
 }
 
 void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, UpdateGuiProgress updateGuiProgress, OnScanFinish onScanFinish)
@@ -136,6 +134,9 @@ void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, UpdateGuiProgr
   canceled = false;
   uint current = 0;
   Session session;
+  Dbo::Transaction transaction(session);
+  mediaCollection->rescan(transaction);
+  
   for(auto mediaPair: mediaCollection->collection()) {
     if(canceled)
       return;

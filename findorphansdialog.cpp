@@ -38,6 +38,8 @@
 #include <Wt/WPushButton>
 #include <boost/thread.hpp>
 
+#include "Models/models.h"
+
 using namespace Wt;
 using namespace std;
 using namespace StreamingPrivate;
@@ -107,7 +109,6 @@ FindOrphansDialog::FindOrphansDialog(MediaCollection *mediaCollection, Session *
 void FindOrphansDialog::run()
 {
   show();
-  d->mediaCollection->rescan();
   boost::thread populateModelThread(boost::bind(&FindOrphansDialogPrivate::populateModel, d, d->model, wApp));
 }
 
@@ -115,6 +116,7 @@ void FindOrphansDialogPrivate::populateModel(WStandardItemModel* model, WApplica
 {
   Session privateSession;
   Dbo::Transaction t(privateSession);
+  mediaCollection->rescan(t);
   Dbo::collection<string> mediaIdsDbo = privateSession.query<string>("select media_id from media_attachment union select media_id from media_properties order by media_id").resultList();
   vector<string> mediaIds;
   remove_copy_if(mediaIdsDbo.begin(), mediaIdsDbo.end(), back_insert_iterator<vector<string>>(mediaIds), [=](string mediaId) { return mediaCollection->media(mediaId).valid(); } );

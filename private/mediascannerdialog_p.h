@@ -21,6 +21,8 @@
 #include <Wt/WSignal>
 #include <media.h>
 
+class User;
+class Session;
 class MediaScannerStep;
 class Session;
 class Settings;
@@ -46,7 +48,7 @@ struct StepContent {
 class MediaScannerDialogPrivate
 {
 public:
-    MediaScannerDialogPrivate(MediaScannerDialog* q, MediaCollection* mediaCollection, Settings* settings);
+    MediaScannerDialogPrivate(MediaScannerDialog* q, MediaCollection* mediaCollection, Session *session, Settings* settings);
     virtual ~MediaScannerDialogPrivate();
     Wt::WPushButton* buttonNext;
     Wt::WPushButton* buttonClose;
@@ -57,13 +59,14 @@ public:
     Settings* settings;
     std::map<MediaScannerStep*, StepContent> stepsContents;
     Wt::WPushButton* buttonRetry;
-    void scanMedias(Wt::WApplication* app, UpdateGuiProgress updateGuiProgress, OnScanFinish onScanFinish);
+    void scanMedias(Wt::WApplication* app, StreamingPrivate::UpdateGuiProgress updateGuiProgress, StreamingPrivate::OnScanFinish onScanFinish);
     bool canContinue;
     bool canceled;
     bool skipped;
     Wt::WPushButton* buttonCancel;
     Wt::WPushButton* buttonSkip;
     Wt::Signal<> scanFinished;
+    Session* session;
     
 private:
     class MediaScannerDialog* const q;

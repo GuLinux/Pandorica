@@ -5,6 +5,7 @@
 #include <Wt/WServer>
 #include <thread>
 #include "private/mediacollection_p.h"
+#include "Models/models.h"
 
 using namespace Wt;
 using namespace std;
@@ -17,19 +18,19 @@ namespace fs = boost::filesystem;
 MediaCollection::MediaCollection(string basePath, Session* session, WApplication* parent)
     : WObject(parent), d(new MediaCollectionPrivate(basePath, session, parent))
 {
+  d->userId = session->user().id();
 }
 
-void MediaCollection::rescan()
+void MediaCollection::rescan(Dbo::Transaction &transaction)
 {
-    Dbo::Transaction t(*d->session);
-    d->allowedPaths = d->session->user()->allowedPaths();
-    d->collection.clear();
-    d->listDirectory(d->basePath);
-    // TODO: muovere su nuovo thread, al momento pare non andare (eccezione postgres)
-//   WServer::instance()->post(d->app->sessionId(), [=] {
+  UserPtr user = transaction.session().find<User>().where("id = ?").bind(d->userId);
+  d->allowedPaths = user->allowedPaths();
+  d->collection.clear();
+  d->listDirectory(d->basePath);
+  WServer::instance()->post(d->app->sessionId(), [=] {
     d->scanned.emit();
-//     wApp->triggerUpdate();
-//   });
+    wApp->triggerUpdate();
+  });
 }
 
 bool MediaCollectionPrivate::isAllowed(filesystem::path path)

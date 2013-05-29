@@ -34,7 +34,6 @@ public:
     template<class Action>
   void persist(Action& a)
   {
-    // TODO togliere username, email,forse anche Role usando AuthorizedUser e User
     Wt::Dbo::id(a, _sessionId, "session_id");
     Wt::Dbo::field(a, _ip, "ip");
     Wt::Dbo::field(a, _sessionStarted, "session_started");

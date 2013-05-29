@@ -22,6 +22,7 @@ public:
   Session *session;
   std::list<std::string> allowedPaths;
   Wt::WApplication *app;
+  long userId;
 };
 }
 #endif

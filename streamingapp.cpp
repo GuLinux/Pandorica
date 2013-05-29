@@ -379,7 +379,7 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
   });
   
   mediaCollectionScanner->triggered().connect([=](WMenuItem*, _n5) {
-    auto dialog = new MediaScannerDialog(&settings, mediaCollection, q);
+    auto dialog = new MediaScannerDialog(&session, &settings, mediaCollection, q);
     dialog->scanFinished().connect([=](_n6) {
       mediaCollectionBrowser->reload();
     });
@@ -433,8 +433,9 @@ void StreamingApp::setupGui()
 
   
   d->playlist->next().connect(d, &StreamingAppPrivate::play);
-  WTimer::singleShot(500, [=](WMouseEvent) { 
-    d->mediaCollection->rescan();
+  WTimer::singleShot(500, [=](WMouseEvent) {
+    Dbo::Transaction t(d->session);
+    d->mediaCollection->rescan(t);
     d->parseFileParameter();
   });
 }
