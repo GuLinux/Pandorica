@@ -42,6 +42,7 @@
 using namespace Wt;
 using namespace std;
 using namespace boost;
+using namespace WtCommons;
 
 template<class IdType,class ColumnType>
 class DetailsButtonDelegate : public WItemDelegate {

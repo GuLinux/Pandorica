@@ -9,6 +9,7 @@
 
 using namespace Wt;
 using namespace std;
+using namespace WtCommons;
 
 class ComboPairModel : public Wt::WAbstractListModel {
 public:

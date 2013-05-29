@@ -56,6 +56,7 @@ using namespace std;
 using namespace std::chrono;
 using namespace ffmpegthumbnailer;
 using namespace Magick;
+using namespace WtCommons;
 
 using namespace StreamingPrivate;
 

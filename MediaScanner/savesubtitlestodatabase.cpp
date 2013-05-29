@@ -34,6 +34,7 @@ using namespace Wt;
 using namespace std;
 using namespace std::chrono;
 using namespace StreamingPrivate;
+using namespace WtCommons;
 
 SaveSubtitlesToDatabasePrivate::SaveSubtitlesToDatabasePrivate(Wt::WApplication* app, SaveSubtitlesToDatabase* q)
   : app(app), q(q)

@@ -41,6 +41,7 @@
 using namespace Wt;
 using namespace std;
 using namespace StreamingPrivate;
+using namespace WtCommons;
 
 FindOrphansDialogPrivate::FindOrphansDialogPrivate(FindOrphansDialog* q) : q(q)
 {

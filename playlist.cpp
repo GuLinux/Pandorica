@@ -11,6 +11,7 @@ using namespace std;
 using namespace boost;
 using namespace StreamingPrivate;
 namespace fs = boost::filesystem;
+using namespace WtCommons;
 
 PlaylistPrivate::PlaylistPrivate(Session* session) : session(session)
 {

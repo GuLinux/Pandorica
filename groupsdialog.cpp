@@ -45,6 +45,7 @@
 
 using namespace Wt;
 using namespace std;
+using namespace WtCommons;
 
 class UsersInGroupDialog : public Wt::WDialog {
 public:

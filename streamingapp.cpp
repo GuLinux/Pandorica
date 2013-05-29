@@ -85,6 +85,7 @@ using namespace std;
 using namespace boost;
 using namespace StreamingPrivate;
 namespace fs = boost::filesystem;
+using namespace WtCommons;
 
 typedef std::function<void(filesystem::path)> RunOnPath;
 

@@ -17,6 +17,8 @@ using namespace Wt;
 using namespace boost;
 using namespace std;
 using namespace StreamingPrivate;
+using namespace WtCommons;
+
 //                          content, last_updated, username, email
 typedef boost::tuple<string, long,         string,    string> CommentTuple;
 
