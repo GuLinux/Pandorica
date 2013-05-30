@@ -32,6 +32,7 @@ public:
     static std::string icon(Icons icon);
     static std::string staticPath(const std::string &relativeUrl);
     static std::string staticDeployPath();
+    std::string relativePath(std::string mediaPath, bool removeTrailingSlash = false) const;
 private:
   StreamingPrivate::SettingsPrivate *const d;
 };

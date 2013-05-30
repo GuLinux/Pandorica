@@ -366,7 +366,7 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
   WMenuItem *cleanup = adminMenu->addItem(wtr("cleanup.orphans"));
   
   cleanup->triggered().connect([=](WMenuItem*, _n5) {
-    (new FindOrphansDialog(mediaCollection, &session))->run();
+    (new FindOrphansDialog(mediaCollection, &session, &settings))->run();
   });
   groupsDialog->addStyleClass("menu-groups");
   

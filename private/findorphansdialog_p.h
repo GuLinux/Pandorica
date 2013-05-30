@@ -17,15 +17,24 @@
 
 #ifndef FINDORPHANSDIALOGPRIVATE_H
 #define FINDORPHANSDIALOGPRIVATE_H
+#include <stdint.h>
+#include <Wt/WModelIndex>
 
+class Settings;
 namespace Wt {
 class WStandardItemModel;
 class WText;
 class WPushButton;
+class WStackedWidget;
+class WContainerWidget;
+namespace Dbo {
+  class Transaction;
+}
 }
 
 class Session;
 class MediaCollection;
+typedef std::function<void(Wt::Dbo::Transaction &)> MigrateF;
 
 namespace StreamingPrivate {
   struct DataSummary {
@@ -34,19 +43,39 @@ namespace StreamingPrivate {
     uint64_t bytes = 0;
   };
   
+  struct FileSuggestion {
+    std::string filePath;
+    std::string mediaId;
+    uint64_t score = 0;
+    FileSuggestion(std::string filePath, std::string mediaId, std::vector< std::string> originalFileTokens);
+    FileSuggestion(std::string filePath, std::string mediaId, uint64_t score)
+    : filePath(filePath), mediaId(mediaId), score(score) {}
+  };
+  
+  
   class FindOrphansDialogPrivate
   {
   public:
+    enum ModelExtraData { MediaId = Wt::UserRole, Score = Wt::UserRole+1, Path = Wt::UserRole + 2 };
     FindOrphansDialogPrivate(FindOrphansDialog* q);
     virtual ~FindOrphansDialogPrivate();
     MediaCollection *mediaCollection;
     Session* session;
     Wt::WText* summary;
+    Wt::WPushButton* nextButton;
     Wt::WPushButton* closeButton;
     Wt::WPushButton* saveButton;
     Wt::WStandardItemModel* model;
+    Wt::WStackedWidget *stack;
+    Wt::WContainerWidget *movedOrphansContainer;
+    Settings* settings;
 
-      void populateModel(Wt::WStandardItemModel *model, Wt::WApplication *app);
+    void nextButtonClicked();
+    
+    void populateRemoveOrphansModel(Wt::WStandardItemModel *model, Wt::WApplication *app);
+    void populateMovedFiles(Wt::WApplication *app);
+    std::vector<std::string> orphans(Wt::Dbo::Transaction &transaction);
+    std::vector<MigrateF> migrations;
   private:
       class FindOrphansDialog* const q;
       DataSummary dataSummary;
