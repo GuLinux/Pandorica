@@ -173,7 +173,20 @@
   <message id="admin_missing_dialog_groupname_label">Admin Group Name</message>
   
   <message id="cleanup.orphans">Manage Orphan Data</message>
-
+  <message id="cleanup.orphans.findmoved.title">
+    <h4>Recovery Moved Media Information</h4>
+  </message>
+  <message id="cleanup.orphans.findmoved.message">
+    <p>Below you can find a list of media that seem to be moved. In the combo box you can find some suggested media to remap the information in the database</p>
+    <p>Click "Next" when ready</p>
+  </message>
+  <message id="cleanup.orphans.updatemoded.title">
+    <h4>Updating Media Database</h4>
+  </message>
+  <message id="cleanup.orphans.findorphans.title">
+    <h4>Remove Orphan Media Information</h4>
+  </message>
+  
  <message id="findorphans.removedata">Remove Data</message>
  <message id="findorphans.media.title">Title</message>
  <message id="findorphans.attachment.type">Type</message>

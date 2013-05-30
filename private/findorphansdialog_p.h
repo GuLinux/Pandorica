@@ -30,6 +30,7 @@ class WContainerWidget;
 namespace Dbo {
   class Transaction;
 }
+class WProgressBar;
 }
 
 class Session;
@@ -69,12 +70,13 @@ namespace StreamingPrivate {
     Wt::WStandardItemModel* model;
     Wt::WStackedWidget *stack;
     Wt::WContainerWidget *movedOrphansContainer;
+    Wt::WProgressBar *migrationProgress;
     Settings* settings;
 
     void nextButtonClicked();
     void migrate(Wt::Dbo::Transaction &transaction, std::string oldMediaId, std::string newMediaId);
-    
-    void populateRemoveOrphansModel(Wt::WStandardItemModel *model, Wt::WApplication *app);
+    void applyMigrations(Wt::WApplication *app);
+    void populateRemoveOrphansModel(Wt::WApplication *app);
     void populateMovedFiles(Wt::WApplication *app);
     std::vector<std::string> orphans(Wt::Dbo::Transaction &transaction);
     std::vector<MigrateF> migrations;
