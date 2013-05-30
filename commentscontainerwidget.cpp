@@ -89,7 +89,7 @@ CommentsContainerWidget::CommentsContainerWidget(string videoId, Session* sessio
   ";
   wApp->log("notice") << "comments query: " << querysql;
   auto query = d->session->query<CommentTuple>(querysql);
-  query.where("video_id = ?").bind(videoId);
+  query.where("media_id = ?").bind(videoId);
   query.where("auth_identity.provider = 'loginname'");
   query.orderBy("last_updated DESC");
   addWidget(WW<WText>(wtr("comments.label")).css("label").setInline(false));
