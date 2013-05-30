@@ -277,14 +277,17 @@ void FindOrphansDialogPrivate::populateMovedFiles(WApplication* app)
       app->triggerUpdate();
     });
   }
+  bool skipToRemoveOrphans = migrations.empty();
   WServer::instance()->post(app->sessionId(), [=] {
-    nextButton->setEnabled(!migrations.empty());
-    closeButton->setEnabled(!migrations.empty());
-    if(migrations.empty()) {
+    nextButton->setEnabled(!skipToRemoveOrphans);
+    closeButton->setEnabled(!skipToRemoveOrphans);
+    if(skipToRemoveOrphans) {
       stack->setCurrentIndex(2);
     }
     app->triggerUpdate();
   });
+  if(skipToRemoveOrphans)
+    populateRemoveOrphansModel(app);
 }
 
 
