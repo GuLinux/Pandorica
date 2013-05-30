@@ -26,17 +26,17 @@ namespace Wt {
   class WAbstractItemModel;
 }
 
-/*
-class RoleItemDelegate : public Wt::WItemDelegate
+typedef std::function<std::string(std::string s)> StringTranformDelegateFunction;
+class StringTransformDelegate : public Wt::WItemDelegate
 {
 
 public:
-  RoleItemDelegate(Wt::WAbstractItemModel *model, Wt::WObject *parent = 0);
+  StringTransformDelegate(StringTranformDelegateFunction function, Wt::WAbstractItemModel *model, Wt::WObject *parent = 0);
   virtual Wt::WWidget* update(Wt::WWidget* widget, const Wt::WModelIndex& index, Wt::WFlags< Wt::ViewItemRenderFlag > flags);
 private:
   Wt::WAbstractItemModel *model;
+  StringTranformDelegateFunction function;
 };
-*/
 
 class DateTimeDelegate : public Wt::WItemDelegate {
 public:

@@ -6,6 +6,7 @@
 #include <Wt/Dbo/Query>
 #include <boost/tuple/tuple.hpp>
 
+class Settings;
 class Session;
 class SessionDetails;
 
@@ -14,11 +15,11 @@ class SessionDetailsDialog : public Wt::WDialog
 {
 
 public:
-    SessionDetailsDialog(std::string id, Session *session);
-    SessionDetailsDialog(long userId, Session *session);
+    SessionDetailsDialog(std::string id, Session *session, Settings *settings);
+    SessionDetailsDialog(long userId, Session *session, Settings *settings);
     
 private:
-    SessionDetailsDialog(const Wt::Dbo::Query<SessionDetailsTuple> &query);
+    SessionDetailsDialog(const Wt::Dbo::Query<SessionDetailsTuple> &query, Settings *settings);
 };
 
 #endif // SESSIONDETAILSDIALOG_H

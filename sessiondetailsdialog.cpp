@@ -9,32 +9,33 @@
 #include <Wt-Commons/wt_helpers.h>
 
 #include "Models/models.h"
+#include "settings.h"
 
 using namespace std;
 using namespace Wt;
 using namespace boost;
 
-SessionDetailsDialog::SessionDetailsDialog(string id, Session* session)
+SessionDetailsDialog::SessionDetailsDialog(string id, Session* session, Settings* settings)
   : SessionDetailsDialog(session->query<SessionDetailsTuple>("select \
     filename,\
     play_started,\
     play_ended,\
-    filepath from session_details").where("session_info_session_id = ?").bind(id).orderBy("play_started desc"))
+    filepath from session_details").where("session_info_session_id = ?").bind(id).orderBy("play_started desc"), settings)
 {
 }
 
-SessionDetailsDialog::SessionDetailsDialog(long userId, Session* session)
+SessionDetailsDialog::SessionDetailsDialog(long int userId, Session* session, Settings* settings)
   : SessionDetailsDialog(session->query<SessionDetailsTuple>("select session_details.filename as filename,\
 							      session_details.play_started as play_started,\
 							      session_details.play_ended as play_ended,\
 							      session_details.filepath as filepath \
 	from session_details\
-	inner join session_info on session_id = session_info_session_id").where("user_id = ?").bind(userId).orderBy("play_started desc"))
+	inner join session_info on session_id = session_info_session_id").where("user_id = ?").bind(userId).orderBy("play_started desc"), settings)
 {
   wApp->log("notice") << "finding by user_id = " << userId;
 }
 
-SessionDetailsDialog::SessionDetailsDialog(const Dbo::Query< SessionDetailsTuple>& query): WDialog()
+SessionDetailsDialog::SessionDetailsDialog(const Dbo::Query< SessionDetailsTuple >& query, Settings* settings): WDialog()
 {
   Dbo::QueryModel< SessionDetailsTuple >* model = new Dbo::QueryModel<SessionDetailsTuple>();
   setTitleBarEnabled(true);
@@ -50,6 +51,7 @@ SessionDetailsDialog::SessionDetailsDialog(const Dbo::Query< SessionDetailsTuple
   WTableView *table = new WTableView();
   table->setItemDelegateForColumn(1, new DateTimeDelegate(model));
   table->setItemDelegateForColumn(2, new DateTimeDelegate(model));
+  table->setItemDelegateForColumn(3, new StringTransformDelegate([=](string path) { return settings->relativePath(path); }, model, table ));
   table->setColumnWidth(0, 300);
   table->setColumnWidth(1, 110);
   table->setColumnWidth(2, 110);

@@ -27,27 +27,21 @@ using namespace Wt;
 using namespace boost;
 using namespace std;
 
-/*
-RoleItemDelegate::RoleItemDelegate(Wt::WAbstractItemModel* model, Wt::WObject* parent): WItemDelegate(parent), model(model)
+StringTransformDelegate::StringTransformDelegate(StringTranformDelegateFunction function, Wt::WAbstractItemModel* model, Wt::WObject* parent)
+  : WItemDelegate(parent), function(function), model(model)
 {
 }
 
 
-Wt::WWidget* RoleItemDelegate::update(Wt::WWidget* widget, const Wt::WModelIndex& index, Wt::WFlags< Wt::ViewItemRenderFlag > flags)
+Wt::WWidget* StringTransformDelegate::update(Wt::WWidget* widget, const Wt::WModelIndex& index, Wt::WFlags< Wt::ViewItemRenderFlag > flags)
 {
-  int role = any_cast<int>(model->data(index));
-  string roleLabel = "Unknown";
-  if(role==AuthorizedUser::Admin)
-    roleLabel = "Admin";
-  if(role==AuthorizedUser::NormalUser)
-    roleLabel = "User";
+  string value = any_cast<string>(model->data(index));
   if(!widget)
-    return new WText(roleLabel);
-  ((WText*)widget)->setText(roleLabel);
+    return new WText(function(value));
+  ((WText*)widget)->setText(function(value));
   return widget;
 }
 
-*/
 
 
 
