@@ -347,7 +347,7 @@ void FindOrphansDialogPrivate::populateRemoveOrphansModel(Wt::WApplication* app)
     }
     WServer::instance()->post(app->sessionId(), [=] {
       closeButton->enable();
-      saveButton->enable();
+      saveButton->setEnabled(dataSummary.mediasCount > 0);
       summary->setText(WString::trn("findorphans.summary", dataSummary.mediasCount).arg(dataSummary.mediasCount).arg(dataSummary.attachmentsCount).arg(Utils::formatFileSize(dataSummary.bytes)));
       app->triggerUpdate();
     });
