@@ -38,6 +38,7 @@
 #include <Wt-Commons/wt_helpers.h>
 
 #include "Models/models.h"
+#include "settings.h"
 
 using namespace Wt;
 using namespace std;
@@ -49,15 +50,15 @@ class DetailsButtonDelegate : public WItemDelegate {
   typedef std::function<string(ColumnType)> ColumnValue;
   typedef std::function<IdType(WAbstractItemModel *model, const WModelIndex& index)> GetId;
 public:
-    DetailsButtonDelegate(WAbstractItemModel *model, Session *session, GetId idColumn, ColumnValue columnValue, WObject* parent = 0)
-      : WItemDelegate(parent), model(model), session(session), idColumn(idColumn), columnValue(columnValue) {}
+    DetailsButtonDelegate(WAbstractItemModel *model, Session *session, Settings *settings, GetId idColumn, ColumnValue columnValue, WObject* parent = 0)
+      : WItemDelegate(parent), model(model), session(session), settings(settings), idColumn(idColumn), columnValue(columnValue) {}
     virtual WWidget* update(WWidget* widget, const WModelIndex& index, WFlags< ViewItemRenderFlag > flags) {
       if(!widget) {
 	WAnchor* link = new WAnchor("", columnValue(any_cast<ColumnType>(model->data(index))));
 	IdType id = idColumn(model,index);
     link->setStyleClass("link-hand");
     link->clicked().connect([id,this](WMouseEvent){
-	  WDialog *dialog = new SessionDetailsDialog(id, session);
+	  WDialog *dialog = new SessionDetailsDialog(id, session, settings);
 	  dialog->show();
 	});
 	return link;
@@ -67,6 +68,7 @@ public:
 private:
   WAbstractItemModel *model;
   Session *session;
+  Settings *settings;
   GetId idColumn;
   ColumnValue columnValue;
 };
@@ -92,7 +94,7 @@ Dbo::Query<LoggedUserEntry> buildQuery(Session *session, bool showAll, string ex
   return query;
 }
 
-LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
+LoggedUsersDialog::LoggedUsersDialog(Session* session, Settings* settings, bool showAll)
   : WDialog(), session(session)
 {
   setTitleBarEnabled(true);
@@ -122,10 +124,10 @@ LoggedUsersDialog::LoggedUsersDialog(Session* session, bool showAll)
   table->setHeaderHeight(28);
   table->setEditTriggers(Wt::WAbstractItemView::NoEditTrigger);
   
-  table->setItemDelegateForColumn(0, new DetailsButtonDelegate<string, string>(filterModel, session,
+  table->setItemDelegateForColumn(0, new DetailsButtonDelegate<string, string>(filterModel, session, settings,
     [](WAbstractItemModel *model, const WModelIndex &index) { return any_cast<string>(model->data(index.row(), 0)); },
     [](string) { return wtr("session.details").toUTF8(); }));
-  table->setItemDelegateForColumn(1, new DetailsButtonDelegate<long, string>(filterModel, session,
+  table->setItemDelegateForColumn(1, new DetailsButtonDelegate<long, string>(filterModel, session, settings,
     [session](WAbstractItemModel *model, const WModelIndex &index) {
       Dbo::Transaction t(*session);
       long userId = any_cast<long>(model->data(index.row(), 6));

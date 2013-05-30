@@ -23,12 +23,13 @@
 
 #include <Wt/WDialog>
 
+class Settings;
 class Session;
 class LoggedUsersDialog : public Wt::WDialog
 {
 
 public:
-    LoggedUsersDialog(Session *session, bool showAll = false);
+    LoggedUsersDialog(Session *session, Settings *settings, bool showAll = false);
     virtual ~LoggedUsersDialog();
 private:
   Session *session;

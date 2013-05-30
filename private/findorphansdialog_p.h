@@ -61,6 +61,7 @@ namespace StreamingPrivate {
     virtual ~FindOrphansDialogPrivate();
     MediaCollection *mediaCollection;
     Session* session;
+    Session* threadsSession;
     Wt::WText* summary;
     Wt::WPushButton* nextButton;
     Wt::WPushButton* closeButton;
@@ -71,6 +72,7 @@ namespace StreamingPrivate {
     Settings* settings;
 
     void nextButtonClicked();
+    void migrate(Wt::Dbo::Transaction &transaction, std::string oldMediaId, std::string newMediaId);
     
     void populateRemoveOrphansModel(Wt::WStandardItemModel *model, Wt::WApplication *app);
     void populateMovedFiles(Wt::WApplication *app);

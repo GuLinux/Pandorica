@@ -244,7 +244,7 @@
   <message id="admin_missing_dialog_default_groupname">Amministratori</message>
   <message id="admin_missing_dialog_groupname_label">Nome Gruppo Amministratori</message>
   
-  <message id="cleanup.orphans">Cancella Dati Orfani</message>
+  <message id="cleanup.orphans">Gestione Dati Orfani</message>
   
   <message id="findorphans.removedata">Rimuovi Dati</message>
   <message id="findorphans.media.title">Titolo</message>

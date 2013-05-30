@@ -55,9 +55,11 @@ namespace fs = boost::filesystem;
 
 FindOrphansDialogPrivate::FindOrphansDialogPrivate(FindOrphansDialog* q) : q(q)
 {
+  threadsSession = new Session();
 }
 FindOrphansDialogPrivate::~FindOrphansDialogPrivate()
 {
+  delete threadsSession;
 }
 
 FindOrphansDialog::~FindOrphansDialog()
@@ -78,7 +80,7 @@ FindOrphansDialog::FindOrphansDialog(MediaCollection* mediaCollection, Session* 
   d->stack->addWidget(removeOrphansView);
   removeOrphansView->addWidget(d->summary = WW<WText>().setInline(false));
   setClosable(false);
-  resize(1000, 400);
+  resize(1040, 600);
   
   WTreeView *view = new WTreeView();
   removeOrphansView->addWidget(view);
@@ -183,10 +185,9 @@ FileSuggestion::FileSuggestion(string filePath, string mediaId, vector<string> o
 
 void FindOrphansDialogPrivate::populateMovedFiles(WApplication* app)
 {
-  Session privateSession;
-  Dbo::Transaction t(privateSession);
+  Dbo::Transaction t(*threadsSession);
   mediaCollection->rescan(t);
-  Dbo::collection<MediaPropertiesPtr> allMedias = privateSession.find<MediaProperties>().resultList();
+  Dbo::collection<MediaPropertiesPtr> allMedias = threadsSession->find<MediaProperties>().resultList();
   for(MediaPropertiesPtr media: allMedias) {
     if(mediaCollection->media(media->mediaId()).valid() || media->filename().empty() ) continue;
     string originalFilePath = media->filename();
@@ -234,25 +235,8 @@ void FindOrphansDialogPrivate::populateMovedFiles(WApplication* app)
           log("notice") << "No new media id for " << originalFilePath;
           return;
         }
-        string migrationQuery{"UPDATE %s SET media_id = ? WHERE media_id = ?"};
         log("notice") << "Migrating " << originalFilePath << " to " << newMediaId;
-        MediaPropertiesPtr mediaProperties = t.session().find<MediaProperties>().where("media_id = ?").bind(newMediaId);
-        if(mediaProperties) {
-          log("notice") << "Media properties already found, skipping and deleting original";
-          t.session().execute("DELETE FROM media_properties WHERE media_id = ?").bind(originalMediaId);
-        }
-        else {
-          t.session().execute( (boost::format(migrationQuery) % "media_properties").str() ).bind(newMediaId).bind(originalMediaId);
-        }
-        Dbo::collection<MediaAttachmentPtr> attachments = t.session().find<MediaAttachment>().where("media_id = ?").bind(newMediaId);
-        if(attachments.size() > 0) {
-          log("notice") << "Media attachments already found, skipping and deleting original";
-          t.session().execute("DELETE FROM media_attachment WHERE media_id = ?").bind(originalMediaId);
-        } else {
-          t.session().execute( (boost::format(migrationQuery) % "media_attachment").str() ).bind(newMediaId).bind(originalMediaId);
-        }
-        t.session().execute( (boost::format(migrationQuery) % "comment").str() ).bind(newMediaId).bind(originalMediaId);
-        t.session().execute( (boost::format(migrationQuery) % "media_rating").str() ).bind(newMediaId).bind(originalMediaId);
+        migrate(t, originalMediaId, newMediaId);
       });
       combo->setModel(model);
       combo->setCurrentIndex(selection);
@@ -262,26 +246,51 @@ void FindOrphansDialogPrivate::populateMovedFiles(WApplication* app)
   WServer::instance()->post(app->sessionId(), [=] {
     nextButton->enable();
     closeButton->enable();
+    if(migrations.empty()) {
+      // TODO: skip page
+    }
     app->triggerUpdate();
   });
 }
 
 
+void FindOrphansDialogPrivate::migrate(Dbo::Transaction& transaction, string oldMediaId, string newMediaId)
+{
+  string migrationQuery{"UPDATE %s SET media_id = ? WHERE media_id = ?"};
+  MediaPropertiesPtr mediaProperties = transaction.session().find<MediaProperties>().where("media_id = ?").bind(newMediaId);
+  if(mediaProperties) {
+    log("notice") << "Media properties already found, skipping and deleting original";
+    transaction.session().execute("DELETE FROM media_properties WHERE media_id = ?").bind(oldMediaId);
+  }
+  else {
+    transaction.session().execute( (boost::format(migrationQuery) % "media_properties").str() ).bind(newMediaId).bind(oldMediaId);
+  }
+  Dbo::collection<MediaAttachmentPtr> attachments = transaction.session().find<MediaAttachment>().where("media_id = ?").bind(newMediaId);
+  if(attachments.size() > 0) {
+    log("notice") << "Media attachments already found, skipping and deleting original";
+    transaction.session().execute("DELETE FROM media_attachment WHERE media_id = ?").bind(oldMediaId);
+  } else {
+    transaction.session().execute( (boost::format(migrationQuery) % "media_attachment").str() ).bind(newMediaId).bind(oldMediaId);
+  }
+  transaction.session().execute( (boost::format(migrationQuery) % "comment").str() ).bind(newMediaId).bind(oldMediaId);
+  transaction.session().execute( (boost::format(migrationQuery) % "media_rating").str() ).bind(newMediaId).bind(oldMediaId);
+}
+
+
 void FindOrphansDialogPrivate::populateRemoveOrphansModel(WStandardItemModel* model, WApplication* app)
 {
-  Session privateSession;
-  Dbo::Transaction t(privateSession);
+  Dbo::Transaction t(*threadsSession);
   mediaCollection->rescan(t);
   vector<string> mediaIds = orphans(t);
   
   for(string mediaId: mediaIds) {
     dataSummary.mediasCount++;
-    MediaPropertiesPtr properties = privateSession.find<MediaProperties>().where("media_id = ?").bind(mediaId);
+    MediaPropertiesPtr properties = threadsSession->find<MediaProperties>().where("media_id = ?").bind(mediaId);
     WStandardItem *title = new WStandardItem{properties ? properties->title() : "<title unknown>"};
     title->setCheckable(true);
     title->setChecked(true);
     title->setData(mediaId);
-    auto attachments = privateSession.find<MediaAttachment>().where("media_id = ?").bind(mediaId).resultList();
+    auto attachments = threadsSession->find<MediaAttachment>().where("media_id = ?").bind(mediaId).resultList();
     for(MediaAttachmentPtr attachment: attachments) {
       dataSummary.attachmentsCount++;
       dataSummary.bytes += attachment->size();

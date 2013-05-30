@@ -172,7 +172,7 @@
   <message id="admin_missing_dialog_default_groupname">Administrators</message>
   <message id="admin_missing_dialog_groupname_label">Admin Group Name</message>
   
-  <message id="cleanup.orphans">Cleanup Orphan Data</message>
+  <message id="cleanup.orphans">Manage Orphan Data</message>
 
  <message id="findorphans.removedata">Remove Data</message>
  <message id="findorphans.media.title">Title</message>
