@@ -39,9 +39,11 @@
 #include <Wt/WStackedWidget>
 #include <Wt/WStringListModel>
 #include <Wt/WComboBox>
+#include <Wt/WProgressBar>
 #include <boost/thread.hpp>
 #include <boost/format.hpp>
 #include <boost/algorithm/string/regex.hpp>
+#include <thread>
 #include "Models/models.h"
 #include "settings.h"
 
@@ -76,9 +78,20 @@ FindOrphansDialog::FindOrphansDialog(MediaCollection* mediaCollection, Session* 
   d->settings = settings;
   auto removeOrphansView = new WContainerWidget;
   d->stack = new WStackedWidget(contents());
-  d->stack->addWidget(d->movedOrphansContainer = WW<WContainerWidget>());
+  d->stack->setTransitionAnimation( {WAnimation::SlideInFromRight | WAnimation::Fade, WAnimation::EaseInOut, 500 });
+  d->stack->addWidget(d->movedOrphansContainer = WW<WContainerWidget>()
+    .add(WW<WContainerWidget>().add(new WText{wtr("cleanup.orphans.findmoved.title")}).setContentAlignment(AlignCenter))
+    .add(WW<WText>(wtr("cleanup.orphans.findmoved.message")).css("small-text").setMargin(15, Side::Bottom))
+  );
+  
+  d->stack->addWidget(WW<WContainerWidget>().setContentAlignment(AlignCenter)
+    .add(new WText{wtr("cleanup.orphans.updatemoded.title")})
+    .add(d->migrationProgress = new WProgressBar)
+  );
+  
   d->stack->addWidget(removeOrphansView);
-  removeOrphansView->addWidget(d->summary = WW<WText>().setInline(false));
+  removeOrphansView->addWidget(WW<WContainerWidget>().add(new WText{wtr("cleanup.orphans.findorphans.title")}).setContentAlignment(AlignCenter) );
+  removeOrphansView->addWidget(d->summary = WW<WText>().setInline(false).css("small-text"));
   setClosable(false);
   resize(1040, 600);
   
@@ -91,7 +104,7 @@ FindOrphansDialog::FindOrphansDialog(MediaCollection* mediaCollection, Session* 
   d->model->setHeaderData(3, Wt::Horizontal, wtr("findorphans.attachment.value"));
   d->model->setHeaderData(4, Wt::Horizontal, wtr("findorphans.attachment.datasize"));
   view->setModel(d->model);
-  view->resize(1000, 400);
+  view->resize(1000, 380);
   view->setColumnWidth(1, 75);
   view->setColumnWidth(2, 95);
   view->setColumnWidth(3, 65);
@@ -135,13 +148,32 @@ void FindOrphansDialog::run()
 void FindOrphansDialog::nextButtonClicked() {
   d->nextButton->disable();
   d->closeButton->disable();
-  Dbo::Transaction t(*d->session);
-  for(auto migration: d->migrations) {
+  boost::thread applyMigrationsThread(boost::bind(&FindOrphansDialogPrivate::applyMigrations, d, wApp));
+}
+
+void FindOrphansDialogPrivate::applyMigrations(WApplication* app)
+{
+  WServer::instance()->post(app->sessionId(), [=] {
+    stack->setCurrentIndex(1);
+    migrationProgress->setMaximum(migrations.size());
+    app->triggerUpdate();
+  });
+  Dbo::Transaction t(*threadsSession);
+  int currentMigration = 0;
+  for(auto migration: migrations) {
     migration(t);
+    currentMigration++;
+    WServer::instance()->post(app->sessionId(), [=] {
+      migrationProgress->setValue(currentMigration);
+      app->triggerUpdate();
+    });
   }
   t.commit();
-  d->stack->setCurrentIndex(d->stack->currentIndex()+1);
-  boost::thread populateRemoveOrphansModelThread(boost::bind(&FindOrphansDialogPrivate::populateRemoveOrphansModel, d, d->model, wApp));
+  WServer::instance()->post(app->sessionId(), [=] {
+    stack->setCurrentIndex(2);
+    app->triggerUpdate();
+  });
+  populateRemoveOrphansModel(app);
 }
 
 
@@ -230,7 +262,9 @@ void FindOrphansDialogPrivate::populateMovedFiles(WApplication* app)
       fileContainer->addWidget(WW<WText>(settings->relativePath(originalFilePath, true)).css("small-text"));
       WComboBox *combo = WW<WComboBox>(fileContainer).css("input-block-level small-text");
       migrations.push_back([=](Dbo::Transaction &t) {
-        string newMediaId = boost::any_cast<string>(model->data(model->index(combo->currentIndex(), 0), MediaId));
+        boost::any mediaIdModelData = model->data(model->index(combo->currentIndex(), 0), MediaId);
+        log("notice") << "type for mediaIdModelData: " << mediaIdModelData.type().name();
+        string newMediaId = boost::any_cast<string>(mediaIdModelData);
         if(newMediaId.empty()) {
           log("notice") << "No new media id for " << originalFilePath;
           return;
@@ -244,10 +278,10 @@ void FindOrphansDialogPrivate::populateMovedFiles(WApplication* app)
     });
   }
   WServer::instance()->post(app->sessionId(), [=] {
-    nextButton->enable();
-    closeButton->enable();
+    nextButton->setEnabled(!migrations.empty());
+    closeButton->setEnabled(!migrations.empty());
     if(migrations.empty()) {
-      // TODO: skip page
+      stack->setCurrentIndex(2);
     }
     app->triggerUpdate();
   });
@@ -277,7 +311,7 @@ void FindOrphansDialogPrivate::migrate(Dbo::Transaction& transaction, string old
 }
 
 
-void FindOrphansDialogPrivate::populateRemoveOrphansModel(WStandardItemModel* model, WApplication* app)
+void FindOrphansDialogPrivate::populateRemoveOrphansModel(Wt::WApplication* app)
 {
   Dbo::Transaction t(*threadsSession);
   mediaCollection->rescan(t);
