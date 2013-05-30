@@ -19,20 +19,22 @@
 #define FINDORPHANSDIALOG_H
 #include <Wt/WDialog>
 
+class Settings;
 class Session;
 class MediaCollection;
 namespace StreamingPrivate {
   class FindOrphansDialogPrivate;
 }
-class FindOrphansDialog : Wt::WDialog
+class FindOrphansDialog : public Wt::WDialog
 {
 public:
-    FindOrphansDialog(MediaCollection *mediaCollection, Session *session, Wt::WObject* parent = 0);
+    FindOrphansDialog(MediaCollection *mediaCollection, Session *session, Settings *settings, Wt::WObject* parent = 0);
     ~FindOrphansDialog();
 
     void run();
 private:
-    StreamingPrivate::FindOrphansDialogPrivate* const d;
+  void nextButtonClicked();
+  StreamingPrivate::FindOrphansDialogPrivate* const d;
 };
 
 #endif // FINDORPHANSDIALOG_H

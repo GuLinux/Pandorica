@@ -36,14 +36,22 @@
 #include <Wt/WStandardItemModel>
 #include <Wt/WStandardItem>
 #include <Wt/WPushButton>
+#include <Wt/WStackedWidget>
+#include <Wt/WStringListModel>
+#include <Wt/WComboBox>
 #include <boost/thread.hpp>
-
+#include <boost/format.hpp>
+#include <boost/algorithm/string/regex.hpp>
 #include "Models/models.h"
+#include "settings.h"
 
 using namespace Wt;
 using namespace std;
 using namespace StreamingPrivate;
 using namespace WtCommons;
+namespace fs = boost::filesystem;
+
+#define MAX_ULONG numeric_limits<uint64_t>::max()
 
 FindOrphansDialogPrivate::FindOrphansDialogPrivate(FindOrphansDialog* q) : q(q)
 {
@@ -58,16 +66,22 @@ FindOrphansDialog::~FindOrphansDialog()
 
 }
 
-FindOrphansDialog::FindOrphansDialog(MediaCollection *mediaCollection, Session *session, Wt::WObject* parent)
+FindOrphansDialog::FindOrphansDialog(MediaCollection* mediaCollection, Session* session, Settings* settings, WObject* parent)
     : d(new FindOrphansDialogPrivate(this))
 {
   d->mediaCollection = mediaCollection;
   d->session = session;
-  contents()->addWidget(d->summary = WW<WText>().setInline(false));
+  d->settings = settings;
+  auto removeOrphansView = new WContainerWidget;
+  d->stack = new WStackedWidget(contents());
+  d->stack->addWidget(d->movedOrphansContainer = WW<WContainerWidget>());
+  d->stack->addWidget(removeOrphansView);
+  removeOrphansView->addWidget(d->summary = WW<WText>().setInline(false));
   setClosable(false);
+  resize(1000, 400);
   
   WTreeView *view = new WTreeView();
-  contents()->addWidget(view);
+  removeOrphansView->addWidget(view);
   d->model = new WStandardItemModel(0, 6, this);
   d->model->setHeaderData(0, Wt::Horizontal, wtr("findorphans.media.title"));
   d->model->setHeaderData(1, Wt::Horizontal, wtr("findorphans.attachment.type"));
@@ -81,6 +95,8 @@ FindOrphansDialog::FindOrphansDialog(MediaCollection *mediaCollection, Session *
   view->setColumnWidth(3, 65);
   view->setColumnWidth(4, 95);
   view->setColumnWidth(5, 60);
+  footer()->addWidget(d->nextButton = WW<WPushButton>(wtr("button.next")).css("btn-warning").disable());
+  d->nextButton->clicked().connect(this, &FindOrphansDialog::nextButtonClicked);
   footer()->addWidget(d->closeButton = WW<WPushButton>(wtr("button.close")).css("btn-danger").disable().onClick([=](WMouseEvent){ reject(); }));
   footer()->addWidget(d->saveButton = WW<WPushButton>(wtr("findorphans.removedata")).css("btn-primary").disable().onClick([=](WMouseEvent){ accept(); }));
   setWindowTitle(wtr("cleanup.orphans"));
@@ -101,6 +117,8 @@ FindOrphansDialog::FindOrphansDialog(MediaCollection *mediaCollection, Session *
       log("notice") << "executing statement: " << string{"DELETE FROM media_properties "} + whereCondition.str();
       d->session->execute(string{"DELETE FROM media_properties "} + whereCondition.str());
       d->session->execute(string{"DELETE FROM media_attachment "} + whereCondition.str());
+      d->session->execute(string{"DELETE FROM comment "} + whereCondition.str());
+      d->session->execute(string{"DELETE FROM media_rating "} + whereCondition.str());
       t.commit();
     }
   });
@@ -109,17 +127,152 @@ FindOrphansDialog::FindOrphansDialog(MediaCollection *mediaCollection, Session *
 void FindOrphansDialog::run()
 {
   show();
-  boost::thread populateModelThread(boost::bind(&FindOrphansDialogPrivate::populateModel, d, d->model, wApp));
+  boost::thread populatMovedOrphansThread(boost::bind(&FindOrphansDialogPrivate::populateMovedFiles, d, wApp));
 }
 
-void FindOrphansDialogPrivate::populateModel(WStandardItemModel* model, WApplication* app)
+void FindOrphansDialog::nextButtonClicked() {
+  d->nextButton->disable();
+  d->closeButton->disable();
+  Dbo::Transaction t(*d->session);
+  for(auto migration: d->migrations) {
+    migration(t);
+  }
+  t.commit();
+  d->stack->setCurrentIndex(d->stack->currentIndex()+1);
+  boost::thread populateRemoveOrphansModelThread(boost::bind(&FindOrphansDialogPrivate::populateRemoveOrphansModel, d, d->model, wApp));
+}
+
+
+std::vector< std::string > FindOrphansDialogPrivate::orphans(Dbo::Transaction& transaction)
+{
+  Dbo::collection<string> mediaIdsDbo = transaction.session().query<string>("select media_id from media_attachment union \
+  select media_id from media_properties union \
+  select media_id from comment union \
+  select media_id from media_rating \
+  order by media_id").resultList();
+  vector<string> mediaIds;
+  remove_copy_if(mediaIdsDbo.begin(), mediaIdsDbo.end(), back_insert_iterator<vector<string>>(mediaIds), [=](string mediaId) { return mediaCollection->media(mediaId).valid(); } );
+  return mediaIds;
+}
+
+
+vector<string> tokenize(string filename) {
+  vector<string> tokens;
+  boost::regex re("(\\b|[-_.,;:])+");
+  boost::sregex_token_iterator i(filename.begin(), filename.end(), re, -1);
+  boost::sregex_token_iterator j;
+  while(i!=j) {
+    string token = *i++;
+    if(!token.empty() && token.size() > 2)
+      tokens.push_back(token);
+  }
+  return tokens;
+}
+
+FileSuggestion::FileSuggestion(string filePath, string mediaId, vector<string> originalFileTokens)
+  : filePath(filePath), mediaId(mediaId)
+{
+  string filename = fs::path(filePath).filename().string();
+  vector<string> myTokens = tokenize(filename);
+  for(string token: myTokens) {
+    int occurrences = count(originalFileTokens.begin(), originalFileTokens.end(), token);
+    score += occurrences;
+  }
+}
+
+
+void FindOrphansDialogPrivate::populateMovedFiles(WApplication* app)
 {
   Session privateSession;
   Dbo::Transaction t(privateSession);
   mediaCollection->rescan(t);
-  Dbo::collection<string> mediaIdsDbo = privateSession.query<string>("select media_id from media_attachment union select media_id from media_properties order by media_id").resultList();
-  vector<string> mediaIds;
-  remove_copy_if(mediaIdsDbo.begin(), mediaIdsDbo.end(), back_insert_iterator<vector<string>>(mediaIds), [=](string mediaId) { return mediaCollection->media(mediaId).valid(); } );
+  Dbo::collection<MediaPropertiesPtr> allMedias = privateSession.find<MediaProperties>().resultList();
+  for(MediaPropertiesPtr media: allMedias) {
+    if(mediaCollection->media(media->mediaId()).valid() || media->filename().empty() ) continue;
+    string originalFilePath = media->filename();
+    string originalMediaId = media->mediaId();
+    fs::path dbFileName = fs::path(originalFilePath).filename();
+    vector<string> originalFileTokens = tokenize(dbFileName.string());
+    vector<FileSuggestion> suggestions;
+    
+    for(auto collectionMedia: mediaCollection->collection()) {
+      string filePath = collectionMedia.second.path().string();
+      if(collectionMedia.second.path().filename() == dbFileName) {
+        suggestions.push_back({filePath, collectionMedia.first, MAX_ULONG});
+      } else {
+        FileSuggestion suggestion{filePath, collectionMedia.first, originalFileTokens};
+        if(suggestion.score>0)
+          suggestions.push_back(suggestion);
+      }
+    }
+    if(suggestions.size() == 0)
+      continue;
+    sort(suggestions.begin(), suggestions.end(), [](FileSuggestion a, FileSuggestion b) { return a.score > b.score; });
+    WStringListModel *model = new WStringListModel(q);
+    
+    model->addString("Do Nothing");
+    model->setData(model->rowCount()-1, 0, string{} , MediaId);
+    int selection = 0;
+    
+    for(FileSuggestion suggestion: suggestions) {
+      string videosDir;
+      model->addString(settings->relativePath(suggestion.filePath, true) + (suggestion.score == MAX_ULONG ? " (best match)" : "") );
+      model->setData(model->rowCount()-1, 0, suggestion.mediaId, MediaId);
+      model->setData(model->rowCount()-1, 0, suggestion.score, Score);
+      model->setData(model->rowCount()-1, 0, suggestion.filePath, Path);
+      if(selection == 0 && suggestion.score == MAX_ULONG)
+        selection = model->rowCount()-1;
+      if(model->rowCount() > 4) break;
+    }
+    WServer::instance()->post(app->sessionId(), [=] {
+      WContainerWidget *fileContainer = new WContainerWidget(movedOrphansContainer);
+      fileContainer->addWidget(WW<WText>(settings->relativePath(originalFilePath, true)).css("small-text"));
+      WComboBox *combo = WW<WComboBox>(fileContainer).css("input-block-level small-text");
+      migrations.push_back([=](Dbo::Transaction &t) {
+        string newMediaId = boost::any_cast<string>(model->data(model->index(combo->currentIndex(), 0), MediaId));
+        if(newMediaId.empty()) {
+          log("notice") << "No new media id for " << originalFilePath;
+          return;
+        }
+        string migrationQuery{"UPDATE %s SET media_id = ? WHERE media_id = ?"};
+        log("notice") << "Migrating " << originalFilePath << " to " << newMediaId;
+        MediaPropertiesPtr mediaProperties = t.session().find<MediaProperties>().where("media_id = ?").bind(newMediaId);
+        if(mediaProperties) {
+          log("notice") << "Media properties already found, skipping and deleting original";
+          t.session().execute("DELETE FROM media_properties WHERE media_id = ?").bind(originalMediaId);
+        }
+        else {
+          t.session().execute( (boost::format(migrationQuery) % "media_properties").str() ).bind(newMediaId).bind(originalMediaId);
+        }
+        Dbo::collection<MediaAttachmentPtr> attachments = t.session().find<MediaAttachment>().where("media_id = ?").bind(newMediaId);
+        if(attachments.size() > 0) {
+          log("notice") << "Media attachments already found, skipping and deleting original";
+          t.session().execute("DELETE FROM media_attachment WHERE media_id = ?").bind(originalMediaId);
+        } else {
+          t.session().execute( (boost::format(migrationQuery) % "media_attachment").str() ).bind(newMediaId).bind(originalMediaId);
+        }
+        t.session().execute( (boost::format(migrationQuery) % "comment").str() ).bind(newMediaId).bind(originalMediaId);
+        t.session().execute( (boost::format(migrationQuery) % "media_rating").str() ).bind(newMediaId).bind(originalMediaId);
+      });
+      combo->setModel(model);
+      combo->setCurrentIndex(selection);
+      app->triggerUpdate();
+    });
+  }
+  WServer::instance()->post(app->sessionId(), [=] {
+    nextButton->enable();
+    closeButton->enable();
+    app->triggerUpdate();
+  });
+}
+
+
+void FindOrphansDialogPrivate::populateRemoveOrphansModel(WStandardItemModel* model, WApplication* app)
+{
+  Session privateSession;
+  Dbo::Transaction t(privateSession);
+  mediaCollection->rescan(t);
+  vector<string> mediaIds = orphans(t);
   
   for(string mediaId: mediaIds) {
     dataSummary.mediasCount++;

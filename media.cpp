@@ -90,7 +90,7 @@ Media::Media() {}
 
 bool Media::valid() const
 {
-  return !uid().empty() && !path().empty() && mimetype() != "UNSUPPORTED";
+  return !uid().empty() && !path().empty() && ! path().string().empty() && mimetype() != "UNSUPPORTED";
 }
 
 Media Media::invalid()

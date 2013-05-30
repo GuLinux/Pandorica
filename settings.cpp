@@ -42,6 +42,15 @@ string Settings::videosDir() const
   return videosDir;
 }
 
+string Settings::relativePath(string mediaPath, bool removeTrailingSlash) const
+{
+  string relPath = boost::replace_all_copy(mediaPath, videosDir(), "");
+  if(removeTrailingSlash && relPath[0] == '/') {
+    boost::replace_first(relPath, "/", "");
+  }
+  return relPath;
+}
+
 filesystem::path Settings::mediaData() const
 {
   string dataPath = videosDir() + "/.media_data";

@@ -76,7 +76,9 @@ map< string, Media > MediaCollection::collection() const
 
 Media MediaCollection::media(string uid) const
 {
+  if(d->collection.count(uid)>0)
     return d->collection[uid];
+  return {};
 }
 
 Signal<>& MediaCollection::scanned()
