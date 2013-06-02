@@ -26,6 +26,8 @@ public:
     boost::filesystem::path rootPath() const;
     Media media(std::string uid) const;
     Wt::Signal<> &scanned();
+    void setUserId(long long userId);
+    long long viewingAs() const;
 private:
   StreamingPrivate::MediaCollectionPrivate *const d;
 };

@@ -74,6 +74,8 @@
 #include <Wt/WIOService>
 #include <Wt/WLabel>
 #include <Wt/WPanel>
+#include <Wt/WComboBox>
+#include <Wt/Dbo/QueryModel>
 #include "private/streamingapp_p.h"
 #include "authpage.h"
 #include "findorphansdialog.h"
@@ -374,8 +376,40 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
     (new LoggedUsersDialog{&session, &settings, true})->show();
   });
   
+  
   groupsDialog->triggered().connect([=](WMenuItem*, _n5) {
     (new GroupsDialog(&session, &settings))->show();
+  });
+  
+  WMenuItem *viewAs = adminMenu->addItem(wtr("menu.viewas"));
+  viewAs->triggered().connect([=](WMenuItem*, _n5) {
+    WDialog *dialog = new WDialog;
+    Dbo::Transaction t(session);
+    dialog->setTitleBarEnabled(true);
+    dialog->setWindowTitle(wtr("menu.viewas"));
+    WComboBox *combo = WW<WComboBox>(dialog->contents()).css("span5");
+    WStringListModel *model = new WStringListModel(combo);
+    combo->setModel(model);
+    
+    Dbo::collection<Dbo::ptr<AuthInfo>> usersList = session.find<AuthInfo>().where("email <> '' AND email is not null");
+    for(Dbo::ptr<AuthInfo> userEntry: usersList) {
+      model->addString(userEntry->identity("loginname") + " (" + userEntry->email() + ")");
+      model->setData(model->rowCount() -1, 0, userEntry->user().id(), UserRole);
+      if(mediaCollection->viewingAs() == userEntry->user().id())
+        combo->setCurrentIndex(model->rowCount());
+    }
+    dialog->show();
+    dialog->footer()->addWidget(WW<WPushButton>(wtr("button.cancel")).css("btn btn-inverse").onClick([=](WMouseEvent) { dialog->reject(); }));
+    dialog->footer()->addWidget(WW<WPushButton>(wtr("button.ok")).css("btn btn-primary").onClick([=](WMouseEvent) { dialog->accept(); }));
+    dialog->finished().connect([=](WDialog::DialogCode code, _n5) {
+      Dbo::Transaction t(session);
+      long userId = session.user().id();
+      if(code == WDialog::Accepted) {
+        userId = boost::any_cast<long long>(model->data(model->index(combo->currentIndex(), 0), UserRole));
+      }
+      mediaCollection->setUserId(userId);
+      mediaCollection->rescan(t);
+    });
   });
   
   mediaCollectionScanner->triggered().connect([=](WMenuItem*, _n5) {
