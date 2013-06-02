@@ -19,6 +19,7 @@
   <message id="menu.search">Search</message>
   <message id="menu.admin">Admin</message>
   <message id="menu.groups">Groups</message>
+  <message id="menu.viewas">View Collection As...</message>
   
   <!-- media browser -->
   <message id="mediabrowser.play">Play</message>

@@ -18,7 +18,7 @@ namespace fs = boost::filesystem;
 MediaCollection::MediaCollection(string basePath, Session* session, WApplication* parent)
     : WObject(parent), d(new MediaCollectionPrivate(basePath, session, parent))
 {
-  d->userId = session->user().id();
+  setUserId(session->user().id());
 }
 
 void MediaCollection::rescan(Dbo::Transaction &transaction)
@@ -41,6 +41,17 @@ bool MediaCollectionPrivate::isAllowed(filesystem::path path)
     }
     return false;
 }
+
+void MediaCollection::setUserId(long long int userId)
+{
+  d->userId = userId;
+}
+
+long long MediaCollection::viewingAs() const
+{
+  return d->userId;
+}
+
 
 Media resolveMedia(fs::path path) {
   while(fs::is_symlink(path)) {
