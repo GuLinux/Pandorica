@@ -12,11 +12,11 @@ class Session;
 namespace StreamingPrivate {
 class MediaCollectionPrivate {
 public:
-  MediaCollectionPrivate(std::string basePath, Session *session, Wt::WApplication *app) : basePath(basePath), session(session), app(app) {}
+  MediaCollectionPrivate(std::vector<std::string> mediaDirectories, Session *session, Wt::WApplication *app) : mediaDirectories(mediaDirectories), session(session), app(app) {}
   void listDirectory(boost::filesystem::path path);
   bool isAllowed(boost::filesystem::path path);
 public:
-  boost::filesystem::path basePath;
+  std::vector<std::string> mediaDirectories;
   std::map<std::string,Media> collection;
   Wt::Signal<> scanned;
   Session *session;

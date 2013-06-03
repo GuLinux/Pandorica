@@ -35,7 +35,7 @@ class WStandardItemModel;
 }
 
 class SelectDirectories;
-namespace StreamingAppPrivate {
+namespace StreamingPrivate {
 class SelectDirectoriesPrivate
 {
 public:
@@ -44,8 +44,10 @@ public:
     Wt::WTreeView* tree;
     Wt::WStandardItemModel* model;
     void populateTree(std::string path);
+    Wt::WApplication *app;
+    void addSubItems(Wt::WStandardItem *item);
 private:
-    Wt::WStandardItem* buildStandardItem(boost::filesystem::path path);
+    Wt::WStandardItem* buildStandardItem(boost::filesystem::path path, bool addSubItems);
     class SelectDirectories* const q;
     std::vector<std::string> selectedPaths;
 };

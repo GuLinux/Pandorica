@@ -31,6 +31,8 @@
 #include <Wt/WGroupBox>
 #include <Wt/WTimer>
 
+#define ROOT_PATH_ID "///ROOT///"
+
 using namespace Wt;
 using namespace std;
 using namespace boost;
@@ -64,7 +66,8 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Sett
   d->browser->setList(true);
   addWidget(d->breadcrumb);
   addWidget(mainContainer);
-  d->currentPath = d->collection->rootPath();
+  d->currentPath = new RootCollectionPath{settings, collection};
+  d->collectionPaths[ROOT_PATH_ID] = d->currentPath;
   collection->scanned().connect(this, &MediaCollectionBrowser::reload);
   d->infoPanel->play().connect([=](Media media, _n5) { d->playSignal.emit(media); });
   d->infoPanel->queue().connect([=](Media media, _n5) { d->queueSignal.emit(media); });
@@ -117,7 +120,7 @@ void InfoPanel::info(Media media)
       fullImage = fullImageAttachment->link(fullImageAttachment, header);
     
     WAnchor *fullImageLink = new WAnchor{fullImage, new WImage{previewLink, title}};
-    fullImageLink->setTarget(AnchorTarget::TargetNewWindow);
+    fullImageLink->setTarget(Wt::AnchorTarget::TargetNewWindow);
     header->addWidget(fullImageLink);
   } else {
     auto iconType = (media.mimetype().find("video") == string::npos) ? Settings::AudioFile : Settings::VideoFile;
@@ -198,44 +201,78 @@ WContainerWidget* InfoPanel::labelValueBox(string label, WWidget* widget)
 
 
 
-void MediaCollectionBrowserPrivate::browse(filesystem::path currentPath)
+void MediaCollectionBrowserPrivate::browse(CollectionPath *currentPath)
 {
   this->currentPath = currentPath;
   infoPanel->reset();
   browser->clear();
   rebuildBreadcrumb();
+  currentPath->render([=](string key, CollectionPath *collectionPath){
+    if(collectionPaths[key]) {
+      delete collectionPaths[key];
+      collectionPaths.erase(key);
+    }
+    collectionPaths[key] = collectionPath;
+    addDirectory(collectionPath);
+  }, [=](Media media){ addMedia(media);});
+}
+
+void DirectoryCollectionPath::render(OnDirectoryAdded directoryAdded, OnMediaAdded mediaAdded)
+{
   auto belongsToCurrent = [=](fs::path p){
-    return p.parent_path() == this->currentPath;
+    return p.parent_path() == this->path;
   };
   
   set<fs::path> directories;
   vector<Media> medias;
   
-  for(MediaEntry m: collection->collection()) {
+  for(MediaEntry m: mediaCollection->collection()) {
     if(belongsToCurrent(m.second.path()))
       medias.push_back(m.second);
     if(m.second.filename().empty() || m.second.fullPath().empty()) continue;
     
     fs::path directory = m.second.parentDirectory();
-    while(directory != collection->rootPath() && !belongsToCurrent(directory) && directory != filesystem::path("/")) {
+    while(/*directory != collection->rootPath() && */!belongsToCurrent(directory) && directory != filesystem::path("/")) {
       directory = directory.parent_path();
     }
-    if(directory != currentPath && belongsToCurrent(directory) && !directories.count(directory))
+    if(directory != this->path && belongsToCurrent(directory) && !directories.count(directory))
       directories.insert(directory);
   }
   
   std::sort(medias.begin(), medias.end(), [](const Media &a, const Media &b)->bool{ return (a.filename() <b.filename()); } );
   
-  for(fs::path directory: directories) addDirectory(directory);
-  for(Media media: medias) addMedia(media);
+  for(fs::path directory: directories) {
+    directoryAdded(directory.string(), new DirectoryCollectionPath{directory, mediaCollection, this});
+  }
+  for(Media media: medias) mediaAdded(media);
 }
 
-void MediaCollectionBrowserPrivate::addDirectory(filesystem::path directory)
+void RootCollectionPath::render(OnDirectoryAdded directoryAdded, OnMediaAdded mediaAdded)
+{
+  for(string directory: settings->mediasDirectories()) {
+    directoryAdded(directory, new DirectoryCollectionPath{directory, mediaCollection, this});
+  }
+}
+
+
+string DirectoryCollectionPath::label() const
+{
+  return path.filename().string();
+}
+
+string RootCollectionPath::label() const
+{
+  return wtr("mediacollection.root").toUTF8();
+}
+
+
+
+void MediaCollectionBrowserPrivate::addDirectory(CollectionPath* directory)
 {
   auto onClick = [=](WMouseEvent){
     browse(directory);
   };
-  addIcon(directory.filename().string(), [](WObject*){ return Settings::icon(Settings::FolderBig); }, onClick);
+  addIcon(directory->label(), [](WObject*){ return Settings::icon(Settings::FolderBig); }, onClick);
 }
 
 
@@ -379,23 +416,27 @@ void MediaCollectionBrowserPrivate::rebuildBreadcrumb()
   breadcrumb->clear();
   breadcrumb->addWidget(WW<WPushButton>(wtr("mediacollection.reload")).css("btn btn-small").onClick([=](WMouseEvent) {
     Dbo::Transaction t(*session);
+    for(auto path: collectionPaths) {
+      if(path.first == ROOT_PATH_ID) continue;
+      delete path.second;
+      collectionPaths.erase(path.first);
+    }
     collection->rescan(t);
-    browse(collection->rootPath());
+    browse(collectionPaths[ROOT_PATH_ID]);
   }));
-  list<fs::path> paths;
-  fs::path p = currentPath;
-  while(p != collection->rootPath()) {
-    paths.push_front(p);
-    p = p.parent_path();
+  list<CollectionPath*> paths;
+  CollectionPath *current = currentPath;
+  while(current) {
+    paths.push_front(current);
+    current = current->parent();
   }
-  paths.push_front(p);
   
-  for(fs::path p: paths) {
+  for(CollectionPath *path: paths) {
     WContainerWidget *item = new WContainerWidget;
     if(breadcrumb->count())
       item->addWidget(WW<WText>("/").css("divider"));
-    item->addWidget( WW<WAnchor>("", p.filename().string()).css("link-hand").onClick([=](WMouseEvent){
-      browse(p);
+    item->addWidget( WW<WAnchor>("", path->label()).css("link-hand").onClick([=](WMouseEvent){
+      browse(path);
     }) );
     breadcrumb->addWidget(item);
   }
@@ -415,6 +456,10 @@ Signal< Media >& MediaCollectionBrowser::queue()
 
 MediaCollectionBrowser::~MediaCollectionBrowser()
 {
-
+  for(auto collectionPath: d->collectionPaths) {
+    delete collectionPath.second;
+    d->collectionPaths.erase(collectionPath.first);
+  }
+  delete d;
 }
 

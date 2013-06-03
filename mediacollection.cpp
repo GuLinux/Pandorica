@@ -15,8 +15,8 @@ using namespace StreamingPrivate;
 
 namespace fs = boost::filesystem;
 
-MediaCollection::MediaCollection(string basePath, Session* session, WApplication* parent)
-    : WObject(parent), d(new MediaCollectionPrivate(basePath, session, parent))
+MediaCollection::MediaCollection(vector<string> mediaDirectories, Session* session, WApplication* parent)
+: WObject(parent), d(new MediaCollectionPrivate(mediaDirectories, session, parent))
 {
   setUserId(session->user().id());
 }
@@ -26,7 +26,8 @@ void MediaCollection::rescan(Dbo::Transaction &transaction)
   UserPtr user = transaction.session().find<User>().where("id = ?").bind(d->userId);
   d->allowedPaths = user->allowedPaths();
   d->collection.clear();
-  d->listDirectory(d->basePath);
+  for(fs::path p: d->mediaDirectories)
+    d->listDirectory(p);
   WServer::instance()->post(d->app->sessionId(), [=] {
     d->scanned.emit();
     wApp->triggerUpdate();
@@ -103,7 +104,3 @@ MediaCollection::~MediaCollection()
     delete d;
 }
 
-filesystem::path MediaCollection::rootPath() const
-{
-    return d->basePath;
-}

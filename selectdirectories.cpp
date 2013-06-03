@@ -23,10 +23,11 @@
 #include <Wt/WStandardItem>
 #include <Wt/WContainerWidget>
 #include <boost/filesystem.hpp>
+#include <boost/thread.hpp>
 #include "Wt-Commons/wt_helpers.h"
 
 
-using namespace StreamingAppPrivate;
+using namespace StreamingPrivate;
 using namespace std;
 using namespace Wt;
 
@@ -40,73 +41,69 @@ SelectDirectoriesPrivate::~SelectDirectoriesPrivate()
 }
 
 SelectDirectories::SelectDirectories(vector< string > rootPaths, vector< string > selectedPaths, OnPathClicked onPathSelected, OnPathClicked onPathUnselected, WObject* parent)
-  : WObject(parent), d(new SelectDirectoriesPrivate(this, selectedPaths))
+    : WObject(parent), d(new SelectDirectoriesPrivate(this, selectedPaths))
 {
-  WTreeView *tree = new WTreeView();
-  d->tree = tree;
-  d->model = new WStandardItemModel(this);
-  tree->setMinimumSize(400, WLength::Auto);
-  tree->setModel(d->model);
-  tree->setHeight(320);
-  tree->setRootIsDecorated(false);
-  
-  tree->doubleClicked().connect([=](WModelIndex index, WMouseEvent, _n4){
-    tree->setExpanded(index, !tree->isExpanded(index));
-  });
-  
-  d->model->itemChanged().connect([=](WStandardItem *item, _n5) {
-    bool itemChecked = (item->checkState() == Wt::Checked);
-    string itemPath = boost::any_cast<fs::path>(item->data()).string();
-    if(itemChecked) {
-      onPathSelected(itemPath);
-    } else {
-      onPathUnselected(itemPath);
-    }
-  });
-  
-  for(string path: rootPaths)
-    d->populateTree(path);
+    WTreeView *tree = new WTreeView();
+    d->tree = tree;
+    d->app = wApp;
+    d->model = new WStandardItemModel(this);
+    tree->setMinimumSize(400, WLength::Auto);
+    tree->setModel(d->model);
+    tree->setRootIsDecorated(true);
+
+    tree->doubleClicked().connect([=](WModelIndex index, WMouseEvent, _n4) {
+        tree->setExpanded(index, !tree->isExpanded(index));
+    });
+    d->model->itemChanged().connect([=](WStandardItem *item, _n5) {
+        bool itemChecked = (item->checkState() == Wt::Checked);
+        string itemPath = boost::any_cast<fs::path>(item->data()).string();
+        if(itemChecked) {
+            onPathSelected(itemPath);
+        } else {
+            onPathUnselected(itemPath);
+        }
+    });
+    
+    tree->expanded().connect([=](WModelIndex index, _n5) {
+      WStandardItem *item = d->model->itemFromIndex(index);
+      boost::thread t([=] {
+        for(int i=0; i<item->rowCount(); i++) {
+          d->addSubItems(item->child(i));
+        }
+      });
+    });
+
+    for(string path: rootPaths)
+        d->populateTree(path);
+    // TODO: expand selected items
 }
 
 void SelectDirectories::setHeight(WLength height)
 {
-  d->tree->setHeight(height);
+    d->tree->setHeight(height);
 }
 
 void SelectDirectories::setWidth(WLength width)
 {
-  d->tree->setWidth(width);
+    d->tree->setWidth(width);
 }
 
 
 void SelectDirectoriesPrivate::populateTree(std::string path)
 {
-  model->clear();
-  map<fs::path, WStandardItem*> items{
-    {path, buildStandardItem(path)}
-  };
-  model->appendRow(items[path]);
-  fs::recursive_directory_iterator it{path, fs::symlink_option::recurse};
-  while(it != fs::recursive_directory_iterator() ) {
-    if(fs::is_directory(*it)) {
-      WStandardItem *item = buildStandardItem(*it);
-      items[it->path()] = item;
-      items[it->path().parent_path()]->appendRow(item);
-    }
-    it++;
-  }
-  tree->expandToDepth(1);
+    model->clear();
+    model->appendRow(buildStandardItem(path, true));
 };
 
 void SelectDirectories::addTo(WContainerWidget* container)
 {
-  container->addWidget(d->tree);
+    container->addWidget(d->tree);
 }
 
-WStandardItem* SelectDirectoriesPrivate::buildStandardItem(fs::path path)
+WStandardItem* SelectDirectoriesPrivate::buildStandardItem(boost::filesystem::path path, bool shouldAddSubItems)
 {
-  string folderName{path.filename().string()};
-  WStandardItem* item = new WStandardItem{Settings::icon(Settings::FolderSmall), folderName};
+  string folderName {path.filename().string()};
+  WStandardItem* item = new WStandardItem {Settings::icon(Settings::FolderSmall), folderName};
   item->setCheckable(true);
   item->setStyleClass("tree-directory-item link-hand");
   item->setLink("");
@@ -115,11 +112,36 @@ WStandardItem* SelectDirectoriesPrivate::buildStandardItem(fs::path path)
     if(pathSelected == path.string())
       item->setChecked(true);
     item->setData(path);
+  if(shouldAddSubItems)
+    addSubItems(item);
   return item;
+}
+
+void SelectDirectoriesPrivate::addSubItems(WStandardItem* item)
+{
+  WServer::instance()->post(app->sessionId(), [=] { item->removeRows(0, item->rowCount()); });
+  fs::path path = boost::any_cast<fs::path>(item->data());
+  log("notice") << "Adding sub-items for " << path;
+  try {
+    fs::directory_iterator it {path};
+    while(it != fs::directory_iterator() ) {
+      log("notice") << "Found sub-item: " << *it;
+      if(fs::is_directory(*it)) {
+        fs::path subPath = *it;
+        WServer::instance()->post(app->sessionId(), [=] {
+          item->appendRow(buildStandardItem(subPath, false));
+          app->triggerUpdate();
+        });
+      }
+      it++;
+    }
+  } catch(std::exception &e) {
+    log("warning") << "Error adding subdirectories for path " << path << ": " << e.what();
+  }
 }
 
 
 SelectDirectories::~SelectDirectories()
 {
-  delete d;
+    delete d;
 }

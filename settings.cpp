@@ -35,20 +35,30 @@ Settings::Settings() : d(new SettingsPrivate(this)) {}
 Settings::~Settings() { delete d; }
 
 
-string Settings::mediasDir() const
+vector< string > Settings::mediasDirectories() const
 {
   string mediasDir = string(getenv("HOME")) + "/Videos";
   wApp->readConfigurationProperty("medias-dir", mediasDir);
-  return mediasDir;
+  return {mediasDir};
 }
+
+void Settings::setMediasDirectories(vector< string > directories)
+{
+
+}
+
 
 string Settings::relativePath(string mediaPath, bool removeTrailingSlash) const
 {
-  string relPath = boost::replace_all_copy(mediaPath, mediasDir(), "");
-  if(removeTrailingSlash && relPath[0] == '/') {
-    boost::replace_first(relPath, "/", "");
+  for(string mediaDirectory: mediasDirectories()) {
+    if(mediaPath.find(mediaDirectory) == string::npos) continue;
+    string relPath = boost::replace_all_copy(mediaPath, mediaDirectory, "");
+    if(removeTrailingSlash && relPath[0] == '/') {
+      boost::replace_first(relPath, "/", "");
+    }
+    return relPath;
   }
-  return relPath;
+  return mediaPath;
 }
 
 
@@ -127,12 +137,14 @@ WLink Settings::linkFor(filesystem::path p)
     return d->nginxSecLinkFor(secLinkPrefix, secLinkSecret, p);
   }
   
-  
+  // TODO: ripristinare deploy-dir, magari da configurazione
+  /*
   if(wApp->readConfigurationProperty("medias-deploy-dir", mediasDeployDir )) {
     string relpath = p.string();
-    boost::replace_all(relpath, mediasDir(), mediasDeployDir);
+    boost::replace_all(relpath, mediasDirectories(), mediasDeployDir);
     return relpath;
   }
+  */
 
    WLink link{new WFileResource(p.string(), wApp)};
    wApp->log("notice") << "Generated url: " << link.url();
@@ -147,20 +159,23 @@ WLink Settings::shareLink(string mediaId)
 
 WLink SettingsPrivate::lightySecDownloadLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p)
 {
+  /* TODO: restore
     string filePath = p.string();
-    boost::replace_all(filePath, q->mediasDir(), "");
+    boost::replace_all(filePath, q->mediasDirectories(), "");
     string hexTime = (boost::format("%1$x") %WDateTime::currentDateTime().toTime_t()) .str();
     string token = Utils::hexEncode(Utils::md5(secDownloadSecret + filePath + hexTime));
     string secDownloadUrl = secDownloadPrefix + token + "/" + hexTime + filePath;
     wApp->log("notice") << "****** secDownload: filename= " << filePath;
     wApp->log("notice") << "****** secDownload: url= " << secDownloadUrl;
     return secDownloadUrl;
+    */
 }
 
 WLink SettingsPrivate::nginxSecLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p)
 {
+  /* TODO: restore
     string filePath = p.string();
-    boost::replace_all(filePath, q->mediasDir(), "");
+    boost::replace_all(filePath, q->mediasDirectories(), "");
     long expireTime = WDateTime::currentDateTime().addSecs(20000).toTime_t();
     string token = Utils::base64Encode(Utils::md5( (boost::format("%s%s%d") % secDownloadSecret % filePath % expireTime).str() ), false);
     token = boost::replace_all_copy(token, "=", "");
@@ -170,6 +185,7 @@ WLink SettingsPrivate::nginxSecLinkFor(string secDownloadPrefix, string secDownl
     wApp->log("notice") << "****** secDownload: filename= " << filePath;
     wApp->log("notice") << "****** secDownload: url= " << secDownloadUrl;
     return secDownloadUrl;
+    */
 }
 
 map<Settings::Icons,string> iconsMap {
