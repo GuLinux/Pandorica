@@ -4,6 +4,7 @@
 #include <Wt/WSignal>
 #include "media.h"
 
+class Settings;
 namespace Wt {
 class WApplication;
 }
@@ -12,11 +13,12 @@ class Session;
 namespace StreamingPrivate {
 class MediaCollectionPrivate {
 public:
-  MediaCollectionPrivate(std::vector<std::string> mediaDirectories, Session *session, Wt::WApplication *app) : mediaDirectories(mediaDirectories), session(session), app(app) {}
+  MediaCollectionPrivate(Settings *settings, Session *session, Wt::WApplication *app) : settings(settings), session(session), app(app) {}
   void listDirectory(boost::filesystem::path path);
   bool isAllowed(boost::filesystem::path path);
 public:
-  std::vector<std::string> mediaDirectories;
+  Wt::WLoadingIndicator *loadingIndicator;
+  Settings *settings;
   std::map<std::string,Media> collection;
   Wt::Signal<> scanned;
   Session *session;

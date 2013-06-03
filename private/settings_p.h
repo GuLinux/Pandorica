@@ -12,6 +12,7 @@ public:
   Wt::WLink nginxSecLinkFor(std::string secDownloadPrefix, std::string secDownloadSecret, boost::filesystem::path p);
   Settings *q;
   std::map<std::string,std::string> sessionSettings;
+  std::vector<std::string> mediaDirectories;
 };
 }
 #endif

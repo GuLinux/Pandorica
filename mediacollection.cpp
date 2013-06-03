@@ -3,9 +3,11 @@
 #include <Wt/Utils>
 #include <Wt/WApplication>
 #include <Wt/WServer>
+#include <Wt/WOverlayLoadingIndicator>
 #include <thread>
 #include "private/mediacollection_p.h"
 #include "Models/models.h"
+#include "settings.h"
 
 using namespace Wt;
 using namespace std;
@@ -15,22 +17,30 @@ using namespace StreamingPrivate;
 
 namespace fs = boost::filesystem;
 
-MediaCollection::MediaCollection(vector<string> mediaDirectories, Session* session, WApplication* parent)
-: WObject(parent), d(new MediaCollectionPrivate(mediaDirectories, session, parent))
+MediaCollection::MediaCollection(Settings *settings, Session* session, WApplication* parent)
+: WObject(parent), d(new MediaCollectionPrivate(settings, session, parent))
 {
   setUserId(session->user().id());
 }
 
 void MediaCollection::rescan(Dbo::Transaction &transaction)
 {
+  WServer::instance()->post(d->app->sessionId(), [=] {
+    d->loadingIndicator = new WOverlayLoadingIndicator();
+    wApp->root()->addWidget(d->loadingIndicator->widget());
+    d->loadingIndicator->widget()->show();
+    wApp->triggerUpdate();
+  });
   UserPtr user = transaction.session().find<User>().where("id = ?").bind(d->userId);
   d->allowedPaths = user->allowedPaths();
   d->collection.clear();
-  for(fs::path p: d->mediaDirectories)
+  for(fs::path p: d->settings->mediasDirectories())
     d->listDirectory(p);
   WServer::instance()->post(d->app->sessionId(), [=] {
     d->scanned.emit();
+    d->loadingIndicator->widget()->hide();
     wApp->triggerUpdate();
+    delete d->loadingIndicator;
   });
 }
 
