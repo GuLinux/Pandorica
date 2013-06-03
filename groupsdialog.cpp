@@ -30,6 +30,7 @@
 #include <Wt/WTable>
 
 #include "settings.h"
+#include "selectdirectories.h"
 
 #include <Wt/Dbo/Dbo>
 #include <Wt/Dbo/QueryModel>
@@ -59,7 +60,6 @@ class GroupDirectoriesDialog : public Wt::WDialog {
 public:
   GroupDirectoriesDialog(Dbo::ptr< Group > group, Session* session, Settings* settings);
 };
-
 GroupsDialog::GroupsDialog(Session* session, Settings* settings): WDialog()
 {
   setTitleBarEnabled(true);
@@ -224,75 +224,35 @@ UsersInGroupDialog::UsersInGroupDialog(GroupPtr group, Session* session): WDialo
 }
 
 using namespace boost::filesystem;
-GroupDirectoriesDialog::GroupDirectoriesDialog(Dbo::ptr< Group > group, Session* session, Settings *settings): WDialog()
+GroupDirectoriesDialog::GroupDirectoriesDialog(Dbo::ptr< Group > group, Session* session, Settings *settings)
+  : WDialog()
 {
+  Dbo::Transaction t(*session);
   setTitleBarEnabled(true);
   setResizable(false);
   setClosable(true);
   setWindowTitle(wtr("directories.for.group.dialog.title").arg(group->groupName()));
-  WTreeView *tree = new WTreeView();
-  setHeight(400);
-  WStandardItemModel *model = new WStandardItemModel(this);
-  tree->setMinimumSize(400, WLength::Auto);
-  tree->setModel(model);
-  tree->setHeight(320);
-  contents()->addWidget(tree);
-  tree->setRootIsDecorated(false);
+  vector<string> selectedGroupPaths;
   
-  tree->doubleClicked().connect([=](WModelIndex index, WMouseEvent, _n4){
-    tree->setExpanded(index, !tree->isExpanded(index));
-  });
-    
-  auto folderItem = [=] (path p) {
-    Dbo::Transaction t(*session);
-    string folderName{p.filename().string()};
-    WStandardItem* item = new WStandardItem{Settings::icon(Settings::FolderSmall), folderName};
-    item->setCheckable(true);
-    item->setStyleClass("tree-directory-item link-hand");
-    item->setLink("");
-    item->setToolTip(wtr("tree.double.click.to.expand"));
-    for(Dbo::ptr<GroupPath> groupPath: group->groupPaths)
-      if(groupPath->path() == p.string())
-        item->setChecked(true);
-    item->setData(p);
-    return item;
-  };
-  
-  auto populateTree = [=] {
-    model->clear();
-    path videosDir{settings->videosDir()};
-    map<path, WStandardItem*> items{
-      {videosDir, folderItem(videosDir)}
-    };
-    model->appendRow(items[videosDir]);
-    recursive_directory_iterator it{videosDir, symlink_option::recurse};
-    while(it != recursive_directory_iterator() ) {
-      if(is_directory(*it)) {
-        WStandardItem *item = folderItem(*it);
-        items[it->path()] = item;
-        items[it->path().parent_path()]->appendRow(item);
-      }
-      it++;
-    }
-    tree->expandToDepth(1);
-  };
-  model->itemChanged().connect([=](WStandardItem *item, _n5) {
-    Dbo::Transaction t(*session);
-    bool itemChecked = (item->checkState() == Wt::Checked);
-    string itemPath = boost::any_cast<path>(item->data()).string();
-    if(itemChecked) {
-      group.modify()->groupPaths.insert(new GroupPath{itemPath});
-    } else {
+  transform(group->groupPaths.begin(), group->groupPaths.end(), back_insert_iterator<vector<string>>(selectedGroupPaths), [=](Dbo::ptr<GroupPath> g) { return g->path(); } );
+  SelectDirectories* selectDirectories = new SelectDirectories({settings->mediasDir()}, selectedGroupPaths, 
+    [=](string path) {
+      Dbo::Transaction t(*session);
+      group.modify()->groupPaths.insert(new GroupPath{path});
+    },
+    [=](string path) {
+      Dbo::Transaction t(*session);
       for(Dbo::ptr<GroupPath> groupPath: group->groupPaths) {
-        if(groupPath->path() == itemPath) {
+        if(groupPath->path() == path) {
           groupPath.remove();
         }
       }
     }
-    t.commit();
-  });
+  );
+  setHeight(400);
   
-  populateTree();
+  selectDirectories->setHeight(400);
+  selectDirectories->addTo(contents());
 }
 
 

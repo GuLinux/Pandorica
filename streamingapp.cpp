@@ -106,7 +106,6 @@ StreamingAppPrivate::StreamingAppPrivate(StreamingApp *q) : q(q), playSignal(q, 
 StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(environment), d(new StreamingAppPrivate(this)) {
   
   useStyleSheet( wApp->resourcesUrl() + "form.css");
-//   useStyleSheet("http://gulinux.net/css/videostreaming.css");
   useStyleSheet(Settings::staticPath("/streamingapp.css"));
   requireJQuery(Settings::staticPath("/jquery.min.js"));
   require(Settings::staticPath("/bootstrap/js/bootstrap.min.js"));
@@ -152,7 +151,7 @@ void StreamingApp::authEvent()
   }
   auto sessionInfoPtr = d->session.add(sessionInfo);
   wApp->log("notice") << "created sessionInfo with sessionId=" << sessionInfoPtr->sessionId();
-  d->mediaCollection = new MediaCollection(d->settings.videosDir(), &d->session, this);
+  d->mediaCollection = new MediaCollection(d->settings.mediasDir(), &d->session, this);
 
   d->setupMenus(d->session.user()->isAdmin());
   t.commit();
@@ -232,7 +231,7 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   navigationBar->setResponsive(true);
   
   WMenu *items = new WMenu();
-  mediaListMenuItem = items->addItem(wtr("menu.videoslist"));
+  mediaListMenuItem = items->addItem(wtr("menu.mediaslist"));
   mediaListMenuItem->addStyleClass("menu-media-list");
   WMenuItem *commentsMenuItem = items->addItem(wtr("menu.latest.comments"));
   commentsMenuItem->addStyleClass("menu-comments");
@@ -247,10 +246,10 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   
   mediaListMenuItem->triggered().connect([=](WMenuItem*, _n5){
     if(widgetsStack->currentIndex()) {
-      mediaListMenuItem->setText(wtr("menu.videoslist"));
+      mediaListMenuItem->setText(wtr("menu.mediaslist"));
       widgetsStack->setCurrentIndex(0);
     } else {
-      mediaListMenuItem->setText(wtr("menu.back.to.video"));
+      mediaListMenuItem->setText(wtr("menu.back.to.media"));
       widgetsStack->setCurrentIndex(1);
       mediaCollectionBrowser->reload();
     }
@@ -542,7 +541,7 @@ std::string defaultLabelFor(string language) {
 
 
 void StreamingAppPrivate::play(Media media) {
-  mediaListMenuItem->setText(wtr("menu.videoslist"));
+  mediaListMenuItem->setText(wtr("menu.mediaslist"));
   widgetsStack->setCurrentIndex(0);
   log("notice") << "Playing file " << media.path();
   if(player) {

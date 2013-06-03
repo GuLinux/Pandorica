@@ -15,8 +15,7 @@ class Settings
 public:
     Settings();
     virtual ~Settings();
-    std::string videosDir() const;
-    boost::filesystem::path mediaData() const;
+    std::string mediasDir() const;
     std::string value(std::string cookieName);
     std::string locale();
     void setValue(std::string settingName, std::string value);
