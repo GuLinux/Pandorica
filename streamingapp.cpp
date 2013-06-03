@@ -62,6 +62,7 @@
 #include <Wt/WStackedWidget>
 #include <Wt/WLineEdit>
 #include <boost/format.hpp>
+#include <boost/thread.hpp>
 #include <Wt/WSuggestionPopup>
 #include <Wt/WStringListModel>
 #include <Wt/WSortFilterProxyModel>
@@ -152,7 +153,7 @@ void StreamingApp::authEvent()
   }
   auto sessionInfoPtr = d->session.add(sessionInfo);
   wApp->log("notice") << "created sessionInfo with sessionId=" << sessionInfoPtr->sessionId();
-  d->mediaCollection = new MediaCollection(d->settings.mediasDirectories(), &d->session, this);
+  d->mediaCollection = new MediaCollection(&d->settings, &d->session, this);
 
   d->setupMenus(d->session.user()->isAdmin());
   t.commit();
@@ -418,7 +419,18 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
     dialog->setWindowTitle(wtr("menu.setmediaroot"));
     dialog->setClosable(true);
     dialog->setHeight(400);
-    SelectDirectories *selectDirectories = new SelectDirectories({"/"}, {}, [=](string p){}, [=](string p){}, dialog );
+    SelectDirectories *selectDirectories = new SelectDirectories({"/"}, settings.mediasDirectories(), [=](string p){
+      settings.addMediaDirectory(p);
+    }, [=](string p){
+      settings.removeMediaDirectory(p);
+    }, dialog );
+    dialog->finished().connect([=](WDialog::DialogCode, _n5) {
+      boost::thread t([=]{
+        Session privateSession;
+        Dbo::Transaction t(privateSession);
+        mediaCollection->rescan(t);
+      });
+    });
     selectDirectories->setHeight(320);
     selectDirectories->addTo(dialog->contents());
     dialog->show();

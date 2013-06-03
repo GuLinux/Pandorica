@@ -37,15 +37,24 @@ Settings::~Settings() { delete d; }
 
 vector< string > Settings::mediasDirectories() const
 {
-  string mediasDir = string(getenv("HOME")) + "/Videos";
-  wApp->readConfigurationProperty("medias-dir", mediasDir);
-  return {mediasDir};
+  if(d->mediaDirectories.empty()) {
+    string mediasDir = string(getenv("HOME")) + "/Videos";
+    wApp->readConfigurationProperty("medias-dir", mediasDir);
+    d->mediaDirectories = {mediasDir};
+  }
+  return d->mediaDirectories;
 }
 
-void Settings::setMediasDirectories(vector< string > directories)
+void Settings::addMediaDirectory(string directory)
 {
-
+  d->mediaDirectories.push_back(directory);
 }
+
+void Settings::removeMediaDirectory(string directory)
+{
+  remove_if(d->mediaDirectories.begin(), d->mediaDirectories.end(), [=](string d) { return d == directory; });
+}
+
 
 
 string Settings::relativePath(string mediaPath, bool removeTrailingSlash) const

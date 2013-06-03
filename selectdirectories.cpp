@@ -124,16 +124,14 @@ void SelectDirectoriesPrivate::addSubItems(WStandardItem* item)
   log("notice") << "Adding sub-items for " << path;
   try {
     fs::directory_iterator it {path};
-    while(it != fs::directory_iterator() ) {
-      log("notice") << "Found sub-item: " << *it;
-      if(fs::is_directory(*it)) {
-        fs::path subPath = *it;
-        WServer::instance()->post(app->sessionId(), [=] {
-          item->appendRow(buildStandardItem(subPath, false));
-          app->triggerUpdate();
-        });
-      }
-      it++;
+    vector<fs::path> paths;
+    copy_if(it, fs::directory_iterator(), back_insert_iterator<vector<fs::path>>(paths), [=](fs::path p) { return fs::is_directory(p) && p.filename().string()[0] != '.'; });
+    sort(paths.begin(), paths.end(), [=](fs::path a, fs::path b) { return a.filename() < b.filename(); });
+    for(fs::path p: paths) {
+      WServer::instance()->post(app->sessionId(), [=] {
+        item->appendRow(buildStandardItem(p, false));
+        app->triggerUpdate();
+      });
     }
   } catch(std::exception &e) {
     log("warning") << "Error adding subdirectories for path " << path << ": " << e.what();

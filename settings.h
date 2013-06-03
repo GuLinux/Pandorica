@@ -16,7 +16,9 @@ public:
     Settings();
     virtual ~Settings();
     std::vector<std::string> mediasDirectories() const;
-    void setMediasDirectories(std::vector<std::string> directories);
+    void addMediaDirectory(std::string directory);
+    void removeMediaDirectory(std::string directory);
+
     std::string value(std::string cookieName);
     std::string locale();
     void setValue(std::string settingName, std::string value);
