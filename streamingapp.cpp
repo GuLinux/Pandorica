@@ -79,6 +79,7 @@
 #include "private/streamingapp_p.h"
 #include "authpage.h"
 #include "findorphansdialog.h"
+#include "selectdirectories.h"
 #include <Wt/WStringListModel>
 
 
@@ -151,7 +152,7 @@ void StreamingApp::authEvent()
   }
   auto sessionInfoPtr = d->session.add(sessionInfo);
   wApp->log("notice") << "created sessionInfo with sessionId=" << sessionInfoPtr->sessionId();
-  d->mediaCollection = new MediaCollection(d->settings.mediasDir(), &d->session, this);
+  d->mediaCollection = new MediaCollection(d->settings.mediasDirectories(), &d->session, this);
 
   d->setupMenus(d->session.user()->isAdmin());
   t.commit();
@@ -411,6 +412,18 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
     });
   });
   
+  WMenuItem *setMediaRoot = adminMenu->addItem(wtr("menu.setmediaroot"));
+  setMediaRoot->triggered().connect([=](WMenuItem*, _n5) {
+    WDialog *dialog = new WDialog;
+    dialog->setWindowTitle(wtr("menu.setmediaroot"));
+    dialog->setClosable(true);
+    dialog->setHeight(400);
+    SelectDirectories *selectDirectories = new SelectDirectories({"/"}, {}, [=](string p){}, [=](string p){}, dialog );
+    selectDirectories->setHeight(320);
+    selectDirectories->addTo(dialog->contents());
+    dialog->show();
+  });
+  
   mediaCollectionScanner->triggered().connect([=](WMenuItem*, _n5) {
     auto dialog = new MediaScannerDialog(&session, &settings, mediaCollection, q);
     dialog->scanFinished().connect([=](_n6) {
@@ -422,6 +435,8 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
   auto activeUsersConnection = activeUsersMenuItem->triggered().connect([=](WMenuItem*, _n5){
     (new LoggedUsersDialog{&session, &settings})->show();
   });
+  
+  
   WMenuItem *adminMenuItem = mainMenu->addItem(wtr("menu.admin"));
   adminMenuItem->addStyleClass("hidden-phone");
   adminMenuItem->clicked().connect([=](WMouseEvent) {

@@ -43,6 +43,7 @@
   <message id="mediabrowser.admin.settitle.missingproperties.caption">Error: Media Properties Missing</message>
   <message id="mediabrowser.admin.settitle.missingproperties.body">The media properties are not stored in the current database<br />You probably want to run the "generateFileData" script first.</message>
   <message id="mediacollection.reload">Reload</message>
+  <message id="mediacollection.root">Media Root</message>
   
   <message id="mediabrowser.share">Share</message>
   <message id="mediabrowser.share.dialog">To share {1} just copy the link below.<br />

@@ -15,7 +15,8 @@ class Settings
 public:
     Settings();
     virtual ~Settings();
-    std::string mediasDir() const;
+    std::vector<std::string> mediasDirectories() const;
+    void setMediasDirectories(std::vector<std::string> directories);
     std::string value(std::string cookieName);
     std::string locale();
     void setValue(std::string settingName, std::string value);

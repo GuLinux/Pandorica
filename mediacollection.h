@@ -19,11 +19,10 @@ namespace StreamingPrivate {
 class MediaCollection : public Wt::WObject
 {
 public:
-  MediaCollection(std::string basePath, Session *session, Wt::WApplication* parent = 0);
+  MediaCollection(std::vector<std::string> mediaDirectories, Session* session, Wt::WApplication* parent = 0);
     virtual ~MediaCollection();
     void rescan(Wt::Dbo::Transaction& transaction);
     std::map<std::string,Media> collection() const;
-    boost::filesystem::path rootPath() const;
     Media media(std::string uid) const;
     Wt::Signal<> &scanned();
     void setUserId(long long userId);

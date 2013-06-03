@@ -5,6 +5,7 @@
 #include <Wt/WSignal>
 #include <Wt/WContainerWidget>
 #include <media.h>
+#include <functional>
 #include "Wt-Commons/wt_helpers.h"
 
 namespace Wt {
@@ -44,31 +45,65 @@ private:
   std::pair<Wt::WPanel*,Wt::WContainerWidget*> createPanel(std::string titleKey);
 };
 
+class CollectionPath;
+typedef std::function<void(std::string key, CollectionPath *collectionPath)> OnDirectoryAdded;
+typedef std::function<void(Media media)> OnMediaAdded;
+
+class CollectionPath {
+public:
+  CollectionPath(CollectionPath *parent = 0) : parent_(parent) {}
+  virtual void render(OnDirectoryAdded directoryAdded, OnMediaAdded mediaAdded ) = 0;
+  virtual std::string label() const = 0;
+  CollectionPath *parent() { return parent_; }
+private:
+  CollectionPath *parent_;
+};
+
+class DirectoryCollectionPath : public CollectionPath {
+public:
+  DirectoryCollectionPath(boost::filesystem::path path, MediaCollection *mediaCollection, CollectionPath *parent) : CollectionPath(parent), path(path), mediaCollection(mediaCollection) {}
+  virtual void render(OnDirectoryAdded directoryAdded, OnMediaAdded mediaAdded);
+  virtual std::string label() const;
+private:
+  boost::filesystem::path path;
+  MediaCollection *mediaCollection;
+};
+
+class RootCollectionPath : public CollectionPath {
+public:
+  RootCollectionPath(Settings *settings, MediaCollection *mediaCollection) : CollectionPath(), settings(settings), mediaCollection(mediaCollection) {}
+  virtual void render(OnDirectoryAdded directoryAdded, OnMediaAdded mediaAdded);
+  virtual std::string label() const;
+private:
+  Settings *settings;
+  MediaCollection *mediaCollection;
+};
 
 class MediaCollectionBrowserPrivate {
 public:
     MediaCollectionBrowserPrivate(MediaCollection *collection, Settings *settings, Session *session, MediaCollectionBrowser *q)
         : collection(collection) , settings(settings), session(session), q(q) {}
     void rebuildBreadcrumb();
-    void browse(boost::filesystem::path currentPath);
+    void browse(CollectionPath *currentPath);
 public:
     MediaCollection *const collection;
     Settings *settings;
     Session *session;
-    boost::filesystem::path currentPath;
+    CollectionPath *currentPath = 0;
     Wt::WContainerWidget* breadcrumb;
     Wt::WContainerWidget* browser;
     Wt::Signal<Media> playSignal;
     Wt::Signal<Media> queueSignal;
     InfoPanel* infoPanel;
     static std::string formatFileSize(long size);
+    std::map<std::string,CollectionPath*> collectionPaths;
     
     
     void setTitleFor(Media media);
     void clearThumbnailsFor(Media media);
     void setPosterFor(Media media);
 private:
-    void addDirectory(boost::filesystem::path directory);
+    void addDirectory(CollectionPath *directory);
     void addMedia(Media& media);
     Wt::WContainerWidget* addIcon(Wt::WString filename, GetIconF icon, WtCommons::MouseEventListener onClick);
     MediaCollectionBrowser* q;

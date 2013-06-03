@@ -235,7 +235,7 @@ GroupDirectoriesDialog::GroupDirectoriesDialog(Dbo::ptr< Group > group, Session*
   vector<string> selectedGroupPaths;
   
   transform(group->groupPaths.begin(), group->groupPaths.end(), back_insert_iterator<vector<string>>(selectedGroupPaths), [=](Dbo::ptr<GroupPath> g) { return g->path(); } );
-  SelectDirectories* selectDirectories = new SelectDirectories({settings->mediasDir()}, selectedGroupPaths, 
+  SelectDirectories* selectDirectories = new SelectDirectories(settings->mediasDirectories(), selectedGroupPaths, 
     [=](string path) {
       Dbo::Transaction t(*session);
       group.modify()->groupPaths.insert(new GroupPath{path});

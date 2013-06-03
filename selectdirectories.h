@@ -28,7 +28,7 @@ namespace Wt {
 class WContainerWidget;
 }
 
-namespace StreamingAppPrivate {
+namespace StreamingPrivate {
   class SelectDirectoriesPrivate;
 }
 
@@ -44,7 +44,7 @@ public:
   void setHeight(Wt::WLength height);
   inline void resize(Wt::WLength &width, Wt::WLength &height) { setWidth(width); setHeight(height); }
 private:
-    StreamingAppPrivate::SelectDirectoriesPrivate* const d;
+  StreamingPrivate::SelectDirectoriesPrivate* const d;
 };
 
 #endif // SELECTDIRECTORIES_H
