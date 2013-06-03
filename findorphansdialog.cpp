@@ -248,7 +248,6 @@ void FindOrphansDialogPrivate::populateMovedFiles(WApplication* app)
     int selection = 0;
     
     for(FileSuggestion suggestion: suggestions) {
-      string videosDir;
       model->addString(settings->relativePath(suggestion.filePath, true) + (suggestion.score == MAX_ULONG ? " (best match)" : "") );
       model->setData(model->rowCount()-1, 0, suggestion.mediaId, MediaId);
       model->setData(model->rowCount()-1, 0, suggestion.score, Score);

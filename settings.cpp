@@ -35,27 +35,20 @@ Settings::Settings() : d(new SettingsPrivate(this)) {}
 Settings::~Settings() { delete d; }
 
 
-string Settings::videosDir() const
+string Settings::mediasDir() const
 {
-  string videosDir = string(getenv("HOME")) + "/Videos";
-  wApp->readConfigurationProperty("videos-dir", videosDir);
-  return videosDir;
+  string mediasDir = string(getenv("HOME")) + "/Videos";
+  wApp->readConfigurationProperty("medias-dir", mediasDir);
+  return mediasDir;
 }
 
 string Settings::relativePath(string mediaPath, bool removeTrailingSlash) const
 {
-  string relPath = boost::replace_all_copy(mediaPath, videosDir(), "");
+  string relPath = boost::replace_all_copy(mediaPath, mediasDir(), "");
   if(removeTrailingSlash && relPath[0] == '/') {
     boost::replace_first(relPath, "/", "");
   }
   return relPath;
-}
-
-filesystem::path Settings::mediaData() const
-{
-  string dataPath = videosDir() + "/.media_data";
-  wApp->readConfigurationProperty("media_data", dataPath);
-  return fs::path(dataPath);
 }
 
 
@@ -115,7 +108,7 @@ bool Settings::autoplay(const Media& media)
 
 WLink Settings::linkFor(filesystem::path p)
 {
-  string videosDeployDir;
+  string mediasDeployDir;
   string secLinkPrefix;
   string secLinkSecret;
   string secDownloadPrefix;
@@ -135,9 +128,9 @@ WLink Settings::linkFor(filesystem::path p)
   }
   
   
-  if(wApp->readConfigurationProperty("videos-deploy-dir", videosDeployDir )) {
+  if(wApp->readConfigurationProperty("medias-deploy-dir", mediasDeployDir )) {
     string relpath = p.string();
-    boost::replace_all(relpath, videosDir(), videosDeployDir);
+    boost::replace_all(relpath, mediasDir(), mediasDeployDir);
     return relpath;
   }
 
@@ -155,7 +148,7 @@ WLink Settings::shareLink(string mediaId)
 WLink SettingsPrivate::lightySecDownloadLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p)
 {
     string filePath = p.string();
-    boost::replace_all(filePath, q->videosDir(), "");
+    boost::replace_all(filePath, q->mediasDir(), "");
     string hexTime = (boost::format("%1$x") %WDateTime::currentDateTime().toTime_t()) .str();
     string token = Utils::hexEncode(Utils::md5(secDownloadSecret + filePath + hexTime));
     string secDownloadUrl = secDownloadPrefix + token + "/" + hexTime + filePath;
@@ -167,7 +160,7 @@ WLink SettingsPrivate::lightySecDownloadLinkFor(string secDownloadPrefix, string
 WLink SettingsPrivate::nginxSecLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p)
 {
     string filePath = p.string();
-    boost::replace_all(filePath, q->videosDir(), "");
+    boost::replace_all(filePath, q->mediasDir(), "");
     long expireTime = WDateTime::currentDateTime().addSecs(20000).toTime_t();
     string token = Utils::base64Encode(Utils::md5( (boost::format("%s%s%d") % secDownloadSecret % filePath % expireTime).str() ), false);
     token = boost::replace_all_copy(token, "=", "");
