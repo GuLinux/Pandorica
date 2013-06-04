@@ -20,6 +20,7 @@
 
 #include <vector>
 #include <string>
+#include <map>
 #include <boost/filesystem.hpp>
 
 namespace boost {
@@ -45,11 +46,13 @@ public:
     Wt::WStandardItemModel* model;
     void populateTree(std::string path);
     Wt::WApplication *app;
-    void addSubItems(Wt::WStandardItem *item);
+    void addSubItems(Wt::WStandardItem *item, bool sync = false);
+    void trySelecting(Wt::WStandardItem *item, boost::filesystem::path path);
 private:
     Wt::WStandardItem* buildStandardItem(boost::filesystem::path path, bool addSubItems);
     class SelectDirectories* const q;
     std::vector<std::string> selectedPaths;
+    std::map<boost::filesystem::path, Wt::WStandardItem*> items;
 };
 }
 #endif // SELECTDIRECTORIESPRIVATE_H

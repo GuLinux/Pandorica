@@ -62,8 +62,8 @@ WString Media::title(Dbo::Transaction& transaction) const
 {
   MediaPropertiesPtr properties = transaction.session().find<MediaProperties>().where("media_id = ?").bind(uid());
   if(!properties || properties->title().empty())
-    return filename();
-  return properties->title();
+    return WString::fromUTF8(filename());
+  return WString::fromUTF8(properties->title());
 }
 
 string Media::mimetype() const

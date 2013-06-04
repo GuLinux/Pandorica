@@ -11,6 +11,8 @@
 #include "player/html5player.h"
 #include "player/wmediaplayerwrapper.h"
 #include "private/settings_p.h"
+#include "Models/setting.h"
+#include "session.h"
 
 using namespace std;
 using namespace Wt;
@@ -19,14 +21,12 @@ using namespace StreamingPrivate;
 
 namespace fs=boost::filesystem;
 
-const std::string Settings::downloadSource = "download_src";
 const std::string Settings::mediaAutoplay = "media_autoplay";
 const std::string Settings::preferredPlayer = "player";
 const std::string Settings::guiLanguage = "gui_language";
 
 map<string,string> defaultValues {
   {Settings::mediaAutoplay, "autoplay_always"},
-  {Settings::downloadSource, "lighttpd"},
   {Settings::preferredPlayer, "html5"},
   {Settings::guiLanguage, "<browserdefault>"},
   };
@@ -38,9 +38,9 @@ Settings::~Settings() { delete d; }
 vector< string > Settings::mediasDirectories() const
 {
   if(d->mediaDirectories.empty()) {
-    string mediasDir = string(getenv("HOME")) + "/Videos";
-    wApp->readConfigurationProperty("medias-dir", mediasDir);
-    d->mediaDirectories = {mediasDir};
+    Session session;
+    Dbo::Transaction t(session);
+    d->mediaDirectories = Setting::values<string>("media_directories", t);
   }
   return d->mediaDirectories;
 }
@@ -48,11 +48,17 @@ vector< string > Settings::mediasDirectories() const
 void Settings::addMediaDirectory(string directory)
 {
   d->mediaDirectories.push_back(directory);
+  Session session;
+  Dbo::Transaction t(session);
+  Setting::write<string>("media_directories", d->mediaDirectories, t);
 }
 
 void Settings::removeMediaDirectory(string directory)
 {
   remove_if(d->mediaDirectories.begin(), d->mediaDirectories.end(), [=](string d) { return d == directory; });
+  Session session;
+  Dbo::Transaction t(session);
+  Setting::write<string>("media_directories", d->mediaDirectories, t);
 }
 
 

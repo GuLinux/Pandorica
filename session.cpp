@@ -92,6 +92,7 @@ Session::Session()
   mapClass<MediaProperties>("media_properties");
   mapClass<MediaAttachment>("media_attachment");
   mapClass<MediaRating>("media_rating");
+  mapClass<Setting>("settings");
   ofstream schema;
   schema.open("schema.sql");
   schema << tableCreationSql();
