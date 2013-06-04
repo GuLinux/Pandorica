@@ -102,6 +102,7 @@
   <message id="menu.admin">Gestione</message>
   <message id="menu.groups">Gruppi</message>
   <message id="menu.viewas">Visualizza Come...</message>
+  <message id="menu.configure.app">Configura Sito</message>
   
   <!-- media browser -->
   <message id="mediabrowser.play">Riproduci</message>
@@ -307,4 +308,10 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
       Visita il sito {3}.</message>
   <message id="new_admin_subject">VideoStreaming: nuovo amministratore aggiunto</message>
   <message id="new_admin_body">L'utente {1} ({2}) è stato aggiunto alla lista di amministratori.</message>
+<message id="configure.app.deploytype">Tipo di Deploy</message>
+<message id="configure.app.deploytype.internal">Interno</message>
+<message id="configure.app.deploytype.static">Cartella Statica</message>
+<message id="button.save">Salva</message>
+<message id="configure.app.deploy_dir">Directory di deploy</message>
+<message id="configure.app.deploy.path.label">Percorso di deploy per "{1}"</message>
 </messages>

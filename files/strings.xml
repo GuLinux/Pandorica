@@ -20,6 +20,9 @@
   <message id="menu.admin">Admin</message>
   <message id="menu.groups">Groups</message>
   <message id="menu.viewas">View Collection As...</message>
+  <message id="menu.configure.app">Configure App</message>
+  
+  
   
   <!-- media browser -->
   <message id="mediabrowser.play">Play</message>
@@ -238,4 +241,13 @@ clicking on the following link or copying the URL into your browser:
       Visit {3} to do it.</message>
   <message id="new_admin_subject">VideoStreaming: new admin added</message>
   <message id="new_admin_body">The user {1} ({2}) was just added to the administrators list.</message>
+  <message id="configure.app.deploytype">Deploy Type</message>
+<message id="configure.app.deploytype.internal">Internal</message>
+<message id="configure.app.deploytype.static">Static Folder</message>
+<message id="configure.app.deploytype.lighttpd_secdownload">Lighttpd Secure Download</message>
+<message id="configure.app.deploytype.nginx_seclink">Nginx Secure Link</message>
+<message id="configure.app.deploytype.secdl_password_label">Secure Link - Secure Download Password</message>
+<message id="button.save">Save</message>
+<message id="configure.app.deploy_dir">Deploy directory</message>
+<message id="configure.app.deploy.path.label">Deploy path for "{1}"</message>
 </messages>

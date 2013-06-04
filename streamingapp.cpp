@@ -414,7 +414,7 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
     });
   });
   
-  WMenuItem *setMediaRoot = adminMenu->addItem(wtr("menu.setmediaroot"));
+  WMenuItem *setMediaRoot = adminMenu->addItem(wtr("menu.configure.app"));
   setMediaRoot->triggered().connect([=](WMenuItem*, _n5) {
     (new ServerSettingsDialog{&settings, &session, mediaCollection} )->run();
   });
