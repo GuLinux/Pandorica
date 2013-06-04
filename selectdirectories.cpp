@@ -97,7 +97,6 @@ void SelectDirectories::setWidth(WLength width)
 
 void SelectDirectoriesPrivate::populateTree(std::string path)
 {
-    model->clear();
     model->appendRow(buildStandardItem(path, true));
     for(string p: selectedPaths) {
       if(items.count(fs::path(p)) > 0) {
