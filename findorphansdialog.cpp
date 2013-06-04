@@ -248,7 +248,7 @@ void FindOrphansDialogPrivate::populateMovedFiles(WApplication* app)
     int selection = 0;
     
     for(FileSuggestion suggestion: suggestions) {
-      model->addString(settings->relativePath(suggestion.filePath, true) + (suggestion.score == MAX_ULONG ? " (best match)" : "") );
+      model->addString(settings->relativePath(suggestion.filePath, threadsSession, true) + (suggestion.score == MAX_ULONG ? " (best match)" : "") );
       model->setData(model->rowCount()-1, 0, suggestion.mediaId, MediaId);
       model->setData(model->rowCount()-1, 0, suggestion.score, Score);
       model->setData(model->rowCount()-1, 0, suggestion.filePath, Path);
@@ -258,7 +258,7 @@ void FindOrphansDialogPrivate::populateMovedFiles(WApplication* app)
     }
     WServer::instance()->post(app->sessionId(), [=] {
       WContainerWidget *fileContainer = new WContainerWidget(movedOrphansContainer);
-      fileContainer->addWidget(WW<WText>(settings->relativePath(originalFilePath, true)).css("small-text"));
+      fileContainer->addWidget(WW<WText>(settings->relativePath(originalFilePath, session, true)).css("small-text"));
       WComboBox *combo = WW<WComboBox>(fileContainer).css("input-block-level small-text");
       migrations.push_back([=](Dbo::Transaction &t) {
         boost::any mediaIdModelData = model->data(model->index(combo->currentIndex(), 0), MediaId);

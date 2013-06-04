@@ -71,12 +71,13 @@ private:
 
 class RootCollectionPath : public CollectionPath {
 public:
-  RootCollectionPath(Settings *settings, MediaCollection *mediaCollection) : CollectionPath(), settings(settings), mediaCollection(mediaCollection) {}
+  RootCollectionPath(Settings *settings, Session *session, MediaCollection *mediaCollection) : CollectionPath(), settings(settings), session(session), mediaCollection(mediaCollection) {}
   virtual void render(OnDirectoryAdded directoryAdded, OnMediaAdded mediaAdded);
   virtual std::string label() const;
 private:
   Settings *settings;
   MediaCollection *mediaCollection;
+  Session* session;
 };
 
 class MediaCollectionBrowserPrivate {

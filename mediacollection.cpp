@@ -34,7 +34,7 @@ void MediaCollection::rescan(Dbo::Transaction &transaction)
   UserPtr user = transaction.session().find<User>().where("id = ?").bind(d->userId);
   d->allowedPaths = user->allowedPaths();
   d->collection.clear();
-  for(fs::path p: d->settings->mediasDirectories())
+  for(fs::path p: d->settings->mediasDirectories(&transaction.session()))
     d->listDirectory(p);
   WServer::instance()->post(d->app->sessionId(), [=] {
     d->scanned.emit();

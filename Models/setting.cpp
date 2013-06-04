@@ -17,6 +17,8 @@
 
 #include "setting.h"
 
+using namespace std;
+
 Setting::Setting()
 {
 
@@ -26,3 +28,19 @@ Setting::~Setting()
 {
 
 }
+
+string Setting::deployType()
+{
+  return "deploy_type";
+}
+
+string Setting::deployPath(const string& path)
+{
+  return string{"deploy_path_"} + path;
+}
+
+string Setting::secureDownloadPassword()
+{
+  return "securedownload_password";
+}
+

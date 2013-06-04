@@ -76,7 +76,6 @@ ServerSettingsDialog::ServerSettingsDialog(Settings* settings, Session* session,
   }));
   footer()->addWidget(d->buttonOk = WW<WPushButton>(wtr("button.ok")).disable().css("btn btn-primary").onClick([=](WMouseEvent) { accept(); }));
   finished().connect([=](WDialog::DialogCode, _n5) {
-    settings->serverSettingsChanged();
     boost::thread t([=]{
       Session privateSession;
       Dbo::Transaction t(privateSession);
@@ -87,10 +86,10 @@ ServerSettingsDialog::ServerSettingsDialog(Settings* settings, Session* session,
 
 WContainerWidget* ServerSettingsDialogPrivate::selectMediaRootPage()
 {
-  SelectDirectories *selectDirectories = new SelectDirectories({"/"}, settings->mediasDirectories(), [=](string p){
-    settings->addMediaDirectory(p);
+  SelectDirectories *selectDirectories = new SelectDirectories({"/"}, settings->mediasDirectories(session), [=](string p){
+    settings->addMediaDirectory(p, session);
   }, [=](string p){
-    settings->removeMediaDirectory(p);
+    settings->removeMediaDirectory(p, session);
   }, q );
   selectDirectories->setHeight(460);
   WContainerWidget *selectDirectoriesContainer = new WContainerWidget;
@@ -110,16 +109,15 @@ WContainerWidget* ServerSettingsDialogPrivate::selectDeployTypePage()
   btnGroup->addButton(WW<WRadioButton>("Nginx Secure Link", container).setInline(false), Settings::DeployType::NginxSecureLink);
   
   Dbo::Transaction t(*session);
-  Settings::DeployType deployType = (Settings::DeployType) Setting::value<int>("deploy_type", t, Settings::DeployType::Internal);
+  Settings::DeployType deployType = (Settings::DeployType) Setting::value<int>(Setting::deployType(), t, Settings::DeployType::Internal);
   btnGroup->setCheckedButton(btnGroup->button( deployType ));
   
   auto setupDeployOptions = [=](Settings::DeployType deployType) {
     if(deployType != Settings::DeployType::Internal) {
       Dbo::Transaction t(*session);
-      for(string directory: settings->mediasDirectories()) {
+      for(string directory: settings->mediasDirectories(session)) {
         string directoryName = fs::path(directory).filename().string();
-        string settingKey{string{"deploy_path_"} + directory};
-        string value = Setting::value(settingKey, t, string{});
+        string value = Setting::value(Setting::deployPath(directory), t, string{});
         WLabel *label = WW<WLabel>(string{"Deploy path for "} + directoryName, options).css("label label-info").setInline(false);
         WInPlaceEdit *editDeployPath = WW<WInPlaceEdit>(value, options).setInline(false);
         editDeployPath->valueChanged().connect([=](WString newValue, _n5){
@@ -130,7 +128,7 @@ WContainerWidget* ServerSettingsDialogPrivate::selectDeployTypePage()
             valueToSave += "/";
           editDeployPath->setText(valueToSave);
           Dbo::Transaction t(*session);
-          Setting::write(settingKey, valueToSave, t);
+          Setting::write(Setting::deployPath(directory), valueToSave, t);
           t.commit();
         });
         editDeployPath->setEmptyText("click to set deploy directory");
@@ -138,11 +136,11 @@ WContainerWidget* ServerSettingsDialogPrivate::selectDeployTypePage()
       if(deployType == Settings::DeployType::LighttpdSecureDownload || deployType == Settings::DeployType::NginxSecureLink) {
         WW<WLabel>("Secret Password for Secure Download/Secure Link", options).css("label label-info").setInline(false);
         
-        WLineEdit *editPassword = WW<WLineEdit>(Setting::value("securedownload_password", t, string{}));
+        WLineEdit *editPassword = WW<WLineEdit>(Setting::value(Setting::secureDownloadPassword(), t, string{}));
         editPassword->setEchoMode(WLineEdit::EchoMode::Password);
         WPushButton *savePassword = WW<WPushButton>("Save").onClick([=](WMouseEvent) {
           Dbo::Transaction t(*session);
-          Setting::write("securedownload_password", editPassword->valueText().toUTF8(), t);
+          Setting::write(Setting::secureDownloadPassword(), editPassword->valueText().toUTF8(), t);
           t.commit();
         });
         options->addWidget(WW<WContainerWidget>().css("input-append input-block-level").add(editPassword).add(savePassword));
@@ -153,7 +151,7 @@ WContainerWidget* ServerSettingsDialogPrivate::selectDeployTypePage()
   btnGroup->checkedChanged().connect([=](WRadioButton *button, _n5){
     Settings::DeployType deployType = (Settings::DeployType) btnGroup->id(button);
     Dbo::Transaction t(*session);
-    Setting::write("deploy_type", deployType, t);
+    Setting::write(Setting::deployType(), deployType, t);
     options->clear();
     setupDeployOptions(deployType);
     t.commit();

@@ -30,7 +30,9 @@ class Setting
 public:
     Setting();
     ~Setting();
-
+  static std::string deployType();
+  static std::string deployPath(const std::string &path);
+  static std::string secureDownloadPassword();
 
     template<class Action>
     void persist(Action& a) {

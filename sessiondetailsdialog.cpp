@@ -51,7 +51,7 @@ SessionDetailsDialog::SessionDetailsDialog(const Dbo::Query< SessionDetailsTuple
   WTableView *table = new WTableView();
   table->setItemDelegateForColumn(1, new DateTimeDelegate(model));
   table->setItemDelegateForColumn(2, new DateTimeDelegate(model));
-  table->setItemDelegateForColumn(3, new StringTransformDelegate([=](string path) { return settings->relativePath(path); }, model, table ));
+  table->setItemDelegateForColumn(3, new StringTransformDelegate([=](string path) { return settings->relativePath(path, &query.session() ); }, model, table ));
   table->setColumnWidth(0, 300);
   table->setColumnWidth(1, 110);
   table->setColumnWidth(2, 110);
