@@ -561,7 +561,8 @@ void StreamingAppPrivate::play(Media media) {
   player = settings.newPlayer();
   Dbo::Transaction t(session);
   
-  WLink mediaLink = settings.linkFor( media.path() );
+  WLink mediaLink = settings.linkFor( media.path() , &session);
+  log("notice") << "found mediaLink: " << mediaLink.url();
   player->addSource( {mediaLink.url(), media.mimetype()} );
   player->setAutoplay(settings.autoplay(media));
   auto preview = media.preview(t, Media::PreviewPlayer);

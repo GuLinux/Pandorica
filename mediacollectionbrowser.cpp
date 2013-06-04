@@ -66,7 +66,7 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Sett
   d->browser->setList(true);
   addWidget(d->breadcrumb);
   addWidget(mainContainer);
-  d->currentPath = new RootCollectionPath{settings, collection};
+  d->currentPath = new RootCollectionPath{settings, session, collection};
   d->collectionPaths[ROOT_PATH_ID] = d->currentPath;
   collection->scanned().connect(this, &MediaCollectionBrowser::reload);
   d->infoPanel->play().connect([=](Media media, _n5) { d->playSignal.emit(media); });
@@ -249,7 +249,7 @@ void DirectoryCollectionPath::render(OnDirectoryAdded directoryAdded, OnMediaAdd
 
 void RootCollectionPath::render(OnDirectoryAdded directoryAdded, OnMediaAdded mediaAdded)
 {
-  for(string directory: settings->mediasDirectories()) {
+  for(string directory: settings->mediasDirectories(session)) {
     directoryAdded(directory, new DirectoryCollectionPath{directory, mediaCollection, this});
   }
 }

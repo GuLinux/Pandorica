@@ -35,37 +35,34 @@ Settings::Settings() : d(new SettingsPrivate(this)) {}
 Settings::~Settings() { delete d; }
 
 
-vector< string > Settings::mediasDirectories() const
+vector< string > Settings::mediasDirectories(Dbo::Session *session) const
 {
   if(d->mediaDirectories.empty()) {
-    Session session;
-    Dbo::Transaction t(session);
+    Dbo::Transaction t(*session);
     d->mediaDirectories = Setting::values<string>("media_directories", t);
   }
   return d->mediaDirectories;
 }
 
-void Settings::addMediaDirectory(string directory)
+void Settings::addMediaDirectory(string directory, Dbo::Session* session)
 {
   d->mediaDirectories.push_back(directory);
-  Session session;
-  Dbo::Transaction t(session);
+  Dbo::Transaction t(*session);
   Setting::write<string>("media_directories", d->mediaDirectories, t);
 }
 
-void Settings::removeMediaDirectory(string directory)
+void Settings::removeMediaDirectory(string directory, Dbo::Session* session)
 {
   remove_if(d->mediaDirectories.begin(), d->mediaDirectories.end(), [=](string d) { return d == directory; });
-  Session session;
-  Dbo::Transaction t(session);
+  Dbo::Transaction t(*session);
   Setting::write<string>("media_directories", d->mediaDirectories, t);
 }
 
 
 
-string Settings::relativePath(string mediaPath, bool removeTrailingSlash) const
+string Settings::relativePath(string mediaPath, Dbo::Session* session, bool removeTrailingSlash) const
 {
-  for(string mediaDirectory: mediasDirectories()) {
+  for(string mediaDirectory: mediasDirectories(session)) {
     if(mediaPath.find(mediaDirectory) == string::npos) continue;
     string relPath = boost::replace_all_copy(mediaPath, mediaDirectory, "");
     if(removeTrailingSlash && relPath[0] == '/') {
@@ -129,45 +126,40 @@ bool Settings::autoplay(const Media& media)
   return false;
 }
 
-void Settings::serverSettingsChanged()
+
+
+WLink Settings::linkFor(filesystem::path p, Dbo::Session* session)
 {
-  d->mediaDirectories.clear();
-  d->deployType = Undefined;
-  d->mediaDirectoriesDeployPaths.clear();
-  d->secureDownloadPassword.clear();
-}
-
-
-WLink Settings::linkFor(filesystem::path p)
-{
-  string mediasDeployDir;
-  string secLinkPrefix;
-  string secLinkSecret;
-  string secDownloadPrefix;
-  string secDownloadSecret;
+  Dbo::Transaction t(*session);
+  map<string,string> mediaDirectoriesDeployPaths;
+  DeployType deployType = (DeployType) Setting::value<int>(Setting::deployType(), t, Internal);
+  for(string directory: mediasDirectories(session)) {
+    mediaDirectoriesDeployPaths[directory] = Setting::value(Setting::deployPath(directory), t, string{});
+  }
+  string secureDownloadPassword = Setting::value(Setting::secureDownloadPassword(), t, string{});
+  bool missingSecureLinkPassword = (deployType == NginxSecureLink || deployType == LighttpdSecureDownload) && secureDownloadPassword.empty();
   
-  bool has_lighttpd = (wApp->readConfigurationProperty("secdownload-prefix", secDownloadPrefix)
-    && wApp->readConfigurationProperty("secdownload-secret", secDownloadSecret));
-  bool has_nginx = (wApp->readConfigurationProperty("seclink-prefix", secLinkPrefix)
-    && wApp->readConfigurationProperty("seclink-secret", secLinkSecret));
-
-  if(has_lighttpd) {
-    return d->lightySecDownloadLinkFor(secDownloadPrefix, secDownloadSecret, p);
+  if(missingSecureLinkPassword ) {
+    log("notice") << "Deploy type is set to secureLink/secureDownload but no password is present, fallback to Internal";
+    deployType = Internal;
+  }
+  if(deployType != Internal) {
+    for(auto deployDir: mediaDirectoriesDeployPaths) {
+      if(p.string().find(deployDir.first) != string::npos) {
+        switch(deployType) {
+          case LighttpdSecureDownload:
+            return d->lightySecDownloadLinkFor(deployDir.second, deployDir.first, secureDownloadPassword, p);
+          case NginxSecureLink:
+            return d->nginxSecLinkFor(deployDir.second, deployDir.first, secureDownloadPassword, p);
+          default:
+            string relpath = p.string();
+            boost::replace_all(relpath, deployDir.first + '/', deployDir.second); // TODO: consistency check
+            return relpath;
+        }
+      }
+    }
   }
   
-  if(has_nginx) {
-    return d->nginxSecLinkFor(secLinkPrefix, secLinkSecret, p);
-  }
-  
-  // TODO: ripristinare deploy-dir, magari da configurazione
-  /*
-  if(wApp->readConfigurationProperty("medias-deploy-dir", mediasDeployDir )) {
-    string relpath = p.string();
-    boost::replace_all(relpath, mediasDirectories(), mediasDeployDir);
-    return relpath;
-  }
-  */
-
    WLink link{new WFileResource(p.string(), wApp)};
    wApp->log("notice") << "Generated url: " << link.url();
    return link;
@@ -179,27 +171,24 @@ WLink Settings::shareLink(string mediaId)
 }
 
 
-WLink SettingsPrivate::lightySecDownloadLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p)
+Wt::WLink SettingsPrivate::lightySecDownloadLinkFor(string secDownloadPrefix, string secDownloadRoot, string secureDownloadPassword, filesystem::path p)
 {
-  /* TODO: restore
     string filePath = p.string();
-    boost::replace_all(filePath, q->mediasDirectories(), "");
+    boost::replace_all(filePath, secDownloadRoot, "");
     string hexTime = (boost::format("%1$x") %WDateTime::currentDateTime().toTime_t()) .str();
-    string token = Utils::hexEncode(Utils::md5(secDownloadSecret + filePath + hexTime));
+    string token = Utils::hexEncode(Utils::md5(secureDownloadPassword + filePath + hexTime));
     string secDownloadUrl = secDownloadPrefix + token + "/" + hexTime + filePath;
     wApp->log("notice") << "****** secDownload: filename= " << filePath;
     wApp->log("notice") << "****** secDownload: url= " << secDownloadUrl;
     return secDownloadUrl;
-    */
 }
 
-WLink SettingsPrivate::nginxSecLinkFor(string secDownloadPrefix, string secDownloadSecret, filesystem::path p)
+Wt::WLink SettingsPrivate::nginxSecLinkFor(string secDownloadPrefix, string secLinkRoot, string secureDownloadPassword, filesystem::path p)
 {
-  /* TODO: restore
     string filePath = p.string();
-    boost::replace_all(filePath, q->mediasDirectories(), "");
+    boost::replace_all(filePath, secLinkRoot + '/', ""); // TODO: consistency check
     long expireTime = WDateTime::currentDateTime().addSecs(20000).toTime_t();
-    string token = Utils::base64Encode(Utils::md5( (boost::format("%s%s%d") % secDownloadSecret % filePath % expireTime).str() ), false);
+    string token = Utils::base64Encode(Utils::md5( (boost::format("%s%s%d") % secureDownloadPassword % filePath % expireTime).str() ), false);
     token = boost::replace_all_copy(token, "=", "");
     token = boost::replace_all_copy(token, "+", "-");
     token = boost::replace_all_copy(token, "/", "_");
@@ -207,7 +196,6 @@ WLink SettingsPrivate::nginxSecLinkFor(string secDownloadPrefix, string secDownl
     wApp->log("notice") << "****** secDownload: filename= " << filePath;
     wApp->log("notice") << "****** secDownload: url= " << secDownloadUrl;
     return secDownloadUrl;
-    */
 }
 
 map<Settings::Icons,string> iconsMap {
