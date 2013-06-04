@@ -81,6 +81,7 @@
 #include "authpage.h"
 #include "findorphansdialog.h"
 #include "selectdirectories.h"
+#include "serversettingsdialog.h"
 #include <Wt/WStringListModel>
 
 
@@ -415,25 +416,7 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
   
   WMenuItem *setMediaRoot = adminMenu->addItem(wtr("menu.setmediaroot"));
   setMediaRoot->triggered().connect([=](WMenuItem*, _n5) {
-    WDialog *dialog = new WDialog;
-    dialog->setWindowTitle(wtr("menu.setmediaroot"));
-    dialog->setClosable(true);
-    dialog->setHeight(400);
-    SelectDirectories *selectDirectories = new SelectDirectories({"/"}, settings.mediasDirectories(), [=](string p){
-      settings.addMediaDirectory(p);
-    }, [=](string p){
-      settings.removeMediaDirectory(p);
-    }, dialog );
-    dialog->finished().connect([=](WDialog::DialogCode, _n5) {
-      boost::thread t([=]{
-        Session privateSession;
-        Dbo::Transaction t(privateSession);
-        mediaCollection->rescan(t);
-      });
-    });
-    selectDirectories->setHeight(320);
-    selectDirectories->addTo(dialog->contents());
-    dialog->show();
+    (new ServerSettingsDialog{&settings, &session, mediaCollection} )->run();
   });
   
   mediaCollectionScanner->triggered().connect([=](WMenuItem*, _n5) {

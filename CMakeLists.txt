@@ -48,7 +48,7 @@ SET( mediascanner_srcs
     MediaScanner/scanmediainfostep.cpp
     MediaScanner/mediascannerdialog.cpp
 )
-SET( player_srcs Models/setting.cpp selectdirectories.cpp Wt-Commons/compositeresource.cpp findorphansdialog.cpp
+SET( player_srcs serversettingsdialog.cpp Models/setting.cpp selectdirectories.cpp Wt-Commons/compositeresource.cpp findorphansdialog.cpp
     player/videojs.cpp
     player/wmediaplayerwrapper.cpp
     player/html5player.cpp

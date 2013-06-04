@@ -61,8 +61,10 @@ public:
     }
     
     template<class Type>
-    static Type value(std::string key, Wt::Dbo::Transaction &transaction) {
+    static Type value(std::string key, Wt::Dbo::Transaction &transaction, Type defaultValue = Type{} ) {
       Wt::Dbo::ptr<Setting> setting = transaction.session().find<Setting>().where("key = ?").bind(key);
+      if(!setting)
+        return defaultValue;
       return boost::lexical_cast<Type>(setting->_value);
     }
     
