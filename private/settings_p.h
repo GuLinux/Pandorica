@@ -13,6 +13,9 @@ public:
   Settings *q;
   std::map<std::string,std::string> sessionSettings;
   std::vector<std::string> mediaDirectories;
+  Settings::DeployType deployType;
+  std::string secureDownloadPassword;
+  std::map<std::string,std::string> mediaDirectoriesDeployPaths;
 };
 }
 #endif

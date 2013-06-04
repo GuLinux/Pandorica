@@ -31,10 +31,12 @@ public:
     static const std::string mediaAutoplay;
     static const std::string preferredPlayer;
     enum Icons { FolderBig, FolderSmall, VideoFile, AudioFile };
+    enum DeployType { Internal, Static, LighttpdSecureDownload, NginxSecureLink, Undefined = 0xFF };
     static std::string icon(Icons icon);
     static std::string staticPath(const std::string &relativeUrl);
     static std::string staticDeployPath();
     std::string relativePath(std::string mediaPath, bool removeTrailingSlash = false) const;
+    void serverSettingsChanged();
 private:
   StreamingPrivate::SettingsPrivate *const d;
 };

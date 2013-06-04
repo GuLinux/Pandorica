@@ -129,6 +129,13 @@ bool Settings::autoplay(const Media& media)
   return false;
 }
 
+void Settings::serverSettingsChanged()
+{
+  d->mediaDirectories.clear();
+  d->deployType = Undefined;
+  d->mediaDirectoriesDeployPaths.clear();
+  d->secureDownloadPassword.clear();
+}
 
 
 WLink Settings::linkFor(filesystem::path p)
