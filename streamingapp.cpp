@@ -337,7 +337,7 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
       WString title{media.second.title(t)};
       suggestionsModel->addString(title);
       suggestionsModel->setData(row, 0, media.first, Wt::UserRole);
-      suggestionsModel->setData(row, 0, media.second.filename() + ";;" + title, Wt::UserRole+1);
+      suggestionsModel->setData(row, 0, media.second.filename() + ";;" + title.toUTF8(), Wt::UserRole+1);
     }
     suggestionsModel->sort(0);
     suggestions->setModel(suggestionFilterModel);
