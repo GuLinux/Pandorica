@@ -28,7 +28,6 @@ public:
     Player *newPlayer();
     bool autoplay(const Media &media);
     static const std::string guiLanguage;
-    static const std::string downloadSource;
     static const std::string mediaAutoplay;
     static const std::string preferredPlayer;
     enum Icons { FolderBig, FolderSmall, VideoFile, AudioFile };

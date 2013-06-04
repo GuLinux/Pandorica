@@ -60,7 +60,7 @@ ServerSettingsDialog::~ServerSettingsDialog()
 ServerSettingsDialog::ServerSettingsDialog(Settings* settings, Session* session, MediaCollection *mediaCollection, WObject* parent)
     : WDialog(parent), d(new ServerSettingsDialogPrivate(settings, session, mediaCollection, this))
 {
-  setWindowTitle(wtr("menu.setmediaroot"));
+  setWindowTitle(wtr("menu.configure.app"));
   WStackedWidget *stack = new WStackedWidget(contents());
   setClosable(false);
   setHeight(600);
@@ -116,12 +116,12 @@ void ServerSettingsDialogPrivate::buildDeployTypePage()
   selectDeployTypeContainer->clear();
   WContainerWidget *options = new WContainerWidget();
   WButtonGroup *btnGroup = new WButtonGroup(selectDeployTypeContainer);
-  WGroupBox *radioBox = new WGroupBox("Media Deploy Type", selectDeployTypeContainer);
+  WGroupBox *radioBox = new WGroupBox(wtr("configure.app.deploytype"), selectDeployTypeContainer);
   
-  btnGroup->addButton(WW<WRadioButton>("Internal", radioBox).setInline(false), Settings::DeployType::Internal);
-  btnGroup->addButton(WW<WRadioButton>("Static Folder", radioBox).setInline(false), Settings::DeployType::Static);
-  btnGroup->addButton(WW<WRadioButton>("Lighttpd Secure Download", radioBox).setInline(false), Settings::DeployType::LighttpdSecureDownload);
-  btnGroup->addButton(WW<WRadioButton>("Nginx Secure Link", radioBox).setInline(false), Settings::DeployType::NginxSecureLink);
+  btnGroup->addButton(WW<WRadioButton>(wtr("configure.app.deploytype.internal"), radioBox).setInline(false), Settings::DeployType::Internal);
+  btnGroup->addButton(WW<WRadioButton>(wtr("configure.app.deploytype.static"), radioBox).setInline(false), Settings::DeployType::Static);
+  btnGroup->addButton(WW<WRadioButton>(wtr("configure.app.deploytype.lighttpd_secdownload"), radioBox).setInline(false), Settings::DeployType::LighttpdSecureDownload);
+  btnGroup->addButton(WW<WRadioButton>(wtr("configure.app.deploytype.nginx_seclink"), radioBox).setInline(false), Settings::DeployType::NginxSecureLink);
   
   Dbo::Transaction t(*session);
   Settings::DeployType deployType = (Settings::DeployType) Setting::value<int>(Setting::deployType(), t, Settings::DeployType::Internal);
@@ -139,7 +139,7 @@ void ServerSettingsDialogPrivate::buildDeployTypePage()
           Setting::write(Setting::secureDownloadPassword(), editPassword->valueText().toUTF8(), t);
           t.commit();
         });
-        WW<WGroupBox>("Secure Link/Download Password", options).add(
+        WW<WGroupBox>(wtr("configure.app.deploytype.secdl_password_label"), options).add(
           WW<WContainerWidget>().css("input-append span4").add(editPassword).add(savePassword)
         );
       }
@@ -148,17 +148,17 @@ void ServerSettingsDialogPrivate::buildDeployTypePage()
         string directoryName = fs::path(directory).filename().string();
         string value = Setting::value(Setting::deployPath(directory), t, string{});
         WLineEdit *editDeployPath = WW<WLineEdit>(value);
-        WPushButton *saveDeployPath = WW<WPushButton>("Save").css("btn btn-primary").onClick([=](WMouseEvent) {
+        WPushButton *saveDeployPath = WW<WPushButton>(wtr("button.save")).css("btn btn-primary").onClick([=](WMouseEvent) {
           string valueToSave = sanitizePath(editDeployPath->valueText().toUTF8());
           editDeployPath->setText(valueToSave);
           Dbo::Transaction t(*session);
           Setting::write(Setting::deployPath(directory), valueToSave, t);
           t.commit();
         });
-        WW<WGroupBox>(string{"Deploy path for "} + directoryName, options).add(
+        WW<WGroupBox>(wtr("configure.app.deploy.path.label").arg(directoryName), options).add(
           WW<WContainerWidget>().css("input-append span4").add(editDeployPath).add(saveDeployPath)
         );
-        editDeployPath->setEmptyText("Deploy directory");
+        editDeployPath->setEmptyText(wtr("configure.app.deploy_dir"));
       }
     }
   };
