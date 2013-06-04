@@ -40,6 +40,7 @@ SelectDirectoriesPrivate::~SelectDirectoriesPrivate()
 {
 }
 
+
 SelectDirectories::SelectDirectories(vector< string > rootPaths, vector< string > selectedPaths, OnPathClicked onPathSelected, OnPathClicked onPathUnselected, WObject* parent)
     : WObject(parent), d(new SelectDirectoriesPrivate(this, selectedPaths))
 {
@@ -66,6 +67,11 @@ SelectDirectories::SelectDirectories(vector< string > rootPaths, vector< string 
     
     tree->expanded().connect([=](WModelIndex index, _n5) {
       WStandardItem *item = d->model->itemFromIndex(index);
+//       for(int i=0; i<item->rowCount(); i++) {
+//         if(item->child(i))
+//           item->child(i)->setRowCount(0);
+//       }
+      if(item->rowCount()>0) return;
       boost::thread t([=] {
         for(int i=0; i<item->rowCount(); i++) {
           d->addSubItems(item->child(i));
@@ -93,7 +99,17 @@ void SelectDirectoriesPrivate::populateTree(std::string path)
 {
     model->clear();
     model->appendRow(buildStandardItem(path, true));
+    for(string p: selectedPaths) {
+      if(items.count(fs::path(p)) > 0) {
+        WStandardItem *item = items[fs::path(p)];
+        while(item->parent() != 0) {
+          item = item->parent();
+          tree->expand(model->indexFromItem(item));
+        }
+      }
+    }
 };
+
 
 void SelectDirectories::addTo(WContainerWidget* container)
 {
@@ -108,18 +124,22 @@ WStandardItem* SelectDirectoriesPrivate::buildStandardItem(boost::filesystem::pa
   item->setStyleClass("tree-directory-item link-hand");
   item->setLink("");
   item->setToolTip(wtr("tree.double.click.to.expand"));
-  for(string pathSelected: selectedPaths)
+  item->setData(path);
+  bool hasSelectedSubItems = false;
+  for(string pathSelected: selectedPaths) {
+    hasSelectedSubItems |= pathSelected.find(path.parent_path().string()) != string::npos;
     if(pathSelected == path.string())
       item->setChecked(true);
-    item->setData(path);
-  if(shouldAddSubItems)
-    addSubItems(item);
+  }
+  if(shouldAddSubItems || hasSelectedSubItems) {
+    addSubItems(item, true);
+  }
+  items[path] = item;
   return item;
 }
 
-void SelectDirectoriesPrivate::addSubItems(WStandardItem* item)
+void SelectDirectoriesPrivate::addSubItems(WStandardItem* item, bool sync)
 {
-  WServer::instance()->post(app->sessionId(), [=] { item->removeRows(0, item->rowCount()); });
   fs::path path = boost::any_cast<fs::path>(item->data());
   log("notice") << "Adding sub-items for " << path;
   try {
@@ -127,12 +147,19 @@ void SelectDirectoriesPrivate::addSubItems(WStandardItem* item)
     vector<fs::path> paths;
     copy_if(it, fs::directory_iterator(), back_insert_iterator<vector<fs::path>>(paths), [=](fs::path p) { return fs::is_directory(p) && p.filename().string()[0] != '.'; });
     sort(paths.begin(), paths.end(), [=](fs::path a, fs::path b) { return a.filename() < b.filename(); });
-    for(fs::path p: paths) {
-      WServer::instance()->post(app->sessionId(), [=] {
-        item->appendRow(buildStandardItem(p, false));
-        app->triggerUpdate();
+    auto addItems = [=] {
+      for_each(paths.begin(), paths.end(), [=](fs::path p) {
+        if(items.count(p) >0) return;
+        item->appendRow( buildStandardItem(p, false) );
       });
-    }
+    };
+    if(sync)
+      addItems();
+    else
+    WServer::instance()->post(app->sessionId(), [=] {
+      addItems();
+      app->triggerUpdate();
+    });
   } catch(std::exception &e) {
     log("warning") << "Error adding subdirectories for path " << path << ": " << e.what();
   }

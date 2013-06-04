@@ -8,5 +8,6 @@
 #include "Models/mediarating.h"
 #include "Models/user.h"
 #include "Models/group.h"
+#include "Models/setting.h"
 
 #endif
