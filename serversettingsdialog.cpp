@@ -63,6 +63,7 @@ ServerSettingsDialog::ServerSettingsDialog(Settings* settings, Session* session,
   WStackedWidget *stack = new WStackedWidget(contents());
   setClosable(false);
   setHeight(600);
+  setWidth(600);
   stack->addWidget(d->selectMediaRootPage());
   stack->addWidget(d->selectDeployTypePage());
   
