@@ -31,6 +31,7 @@
 #include <Wt/WLabel>
 #include <Wt/WLineEdit>
 #include <Wt/WInPlaceEdit>
+#include <Wt/WGroupBox>
 #include <boost/filesystem.hpp>
 
 using namespace std;
@@ -65,7 +66,8 @@ ServerSettingsDialog::ServerSettingsDialog(Settings* settings, Session* session,
   setHeight(600);
   setWidth(600);
   stack->addWidget(d->selectMediaRootPage());
-  stack->addWidget(d->selectDeployTypePage());
+  stack->addWidget(d->selectDeployTypeContainer = new WContainerWidget);
+  d->buildDeployTypePage();
   
   footer()->addWidget(d->buttonNext = WW<WPushButton>(wtr("button.next")).css("btn").onClick([=](WMouseEvent) {
     int nextIndex{stack->currentIndex()+1};
@@ -89,8 +91,10 @@ WContainerWidget* ServerSettingsDialogPrivate::selectMediaRootPage()
 {
   SelectDirectories *selectDirectories = new SelectDirectories({"/"}, settings->mediasDirectories(session), [=](string p){
     settings->addMediaDirectory(p, session);
+    buildDeployTypePage();
   }, [=](string p){
     settings->removeMediaDirectory(p, session);
+    buildDeployTypePage();
   }, q );
   selectDirectories->setHeight(460);
   WContainerWidget *selectDirectoriesContainer = new WContainerWidget;
@@ -98,16 +102,26 @@ WContainerWidget* ServerSettingsDialogPrivate::selectMediaRootPage()
   return selectDirectoriesContainer;
 }
 
-WContainerWidget* ServerSettingsDialogPrivate::selectDeployTypePage()
+
+string sanitizePath(string deployPath) {
+  if(deployPath[0] != '/')
+    deployPath = string{"/"} + deployPath;
+  if(deployPath[deployPath.size()-1] != '/')
+    deployPath += "/";
+  return deployPath;
+}
+
+void ServerSettingsDialogPrivate::buildDeployTypePage()
 {
-  WContainerWidget *container = WW<WContainerWidget>();
+  selectDeployTypeContainer->clear();
   WContainerWidget *options = new WContainerWidget();
-  WButtonGroup *btnGroup = new WButtonGroup(container);
+  WButtonGroup *btnGroup = new WButtonGroup(selectDeployTypeContainer);
+  WGroupBox *radioBox = new WGroupBox("Media Deploy Type", selectDeployTypeContainer);
   
-  btnGroup->addButton(WW<WRadioButton>("Internal", container).setInline(false), Settings::DeployType::Internal);
-  btnGroup->addButton(WW<WRadioButton>("Static Folder", container).setInline(false), Settings::DeployType::Static);
-  btnGroup->addButton(WW<WRadioButton>("Lighttpd Secure Download", container).setInline(false), Settings::DeployType::LighttpdSecureDownload);
-  btnGroup->addButton(WW<WRadioButton>("Nginx Secure Link", container).setInline(false), Settings::DeployType::NginxSecureLink);
+  btnGroup->addButton(WW<WRadioButton>("Internal", radioBox).setInline(false), Settings::DeployType::Internal);
+  btnGroup->addButton(WW<WRadioButton>("Static Folder", radioBox).setInline(false), Settings::DeployType::Static);
+  btnGroup->addButton(WW<WRadioButton>("Lighttpd Secure Download", radioBox).setInline(false), Settings::DeployType::LighttpdSecureDownload);
+  btnGroup->addButton(WW<WRadioButton>("Nginx Secure Link", radioBox).setInline(false), Settings::DeployType::NginxSecureLink);
   
   Dbo::Transaction t(*session);
   Settings::DeployType deployType = (Settings::DeployType) Setting::value<int>(Setting::deployType(), t, Settings::DeployType::Internal);
@@ -116,35 +130,35 @@ WContainerWidget* ServerSettingsDialogPrivate::selectDeployTypePage()
   auto setupDeployOptions = [=](Settings::DeployType deployType) {
     if(deployType != Settings::DeployType::Internal) {
       Dbo::Transaction t(*session);
+      
+      if(deployType == Settings::DeployType::LighttpdSecureDownload || deployType == Settings::DeployType::NginxSecureLink) {
+        WLineEdit *editPassword = WW<WLineEdit>(Setting::value(Setting::secureDownloadPassword(), t, string{}));
+        editPassword->setEchoMode(WLineEdit::EchoMode::Password);
+        WPushButton *savePassword = WW<WPushButton>("Save").css("btn btn-primary").onClick([=](WMouseEvent) {
+          Dbo::Transaction t(*session);
+          Setting::write(Setting::secureDownloadPassword(), editPassword->valueText().toUTF8(), t);
+          t.commit();
+        });
+        WW<WGroupBox>("Secure Link/Download Password", options).add(
+          WW<WContainerWidget>().css("input-append span4").add(editPassword).add(savePassword)
+        );
+      }
+      
       for(string directory: settings->mediasDirectories(session)) {
         string directoryName = fs::path(directory).filename().string();
         string value = Setting::value(Setting::deployPath(directory), t, string{});
-        WLabel *label = WW<WLabel>(string{"Deploy path for "} + directoryName, options).css("label label-info").setInline(false);
-        WInPlaceEdit *editDeployPath = WW<WInPlaceEdit>(value, options).setInline(false);
-        editDeployPath->valueChanged().connect([=](WString newValue, _n5){
-          string valueToSave = newValue.toUTF8();
-          if(valueToSave[0] != '/')
-            valueToSave = string{"/"} + valueToSave;
-          if(valueToSave[valueToSave.size()-1] != '/')
-            valueToSave += "/";
+        WLineEdit *editDeployPath = WW<WLineEdit>(value);
+        WPushButton *saveDeployPath = WW<WPushButton>("Save").css("btn btn-primary").onClick([=](WMouseEvent) {
+          string valueToSave = sanitizePath(editDeployPath->valueText().toUTF8());
           editDeployPath->setText(valueToSave);
           Dbo::Transaction t(*session);
           Setting::write(Setting::deployPath(directory), valueToSave, t);
           t.commit();
         });
-        editDeployPath->setEmptyText("click to set deploy directory");
-      }
-      if(deployType == Settings::DeployType::LighttpdSecureDownload || deployType == Settings::DeployType::NginxSecureLink) {
-        WW<WLabel>("Secret Password for Secure Download/Secure Link", options).css("label label-info").setInline(false);
-        
-        WLineEdit *editPassword = WW<WLineEdit>(Setting::value(Setting::secureDownloadPassword(), t, string{}));
-        editPassword->setEchoMode(WLineEdit::EchoMode::Password);
-        WPushButton *savePassword = WW<WPushButton>("Save").onClick([=](WMouseEvent) {
-          Dbo::Transaction t(*session);
-          Setting::write(Setting::secureDownloadPassword(), editPassword->valueText().toUTF8(), t);
-          t.commit();
-        });
-        options->addWidget(WW<WContainerWidget>().css("input-append input-block-level").add(editPassword).add(savePassword));
+        WW<WGroupBox>(string{"Deploy path for "} + directoryName, options).add(
+          WW<WContainerWidget>().css("input-append span4").add(editDeployPath).add(saveDeployPath)
+        );
+        editDeployPath->setEmptyText("Deploy directory");
       }
     }
   };
@@ -157,8 +171,7 @@ WContainerWidget* ServerSettingsDialogPrivate::selectDeployTypePage()
     setupDeployOptions(deployType);
     t.commit();
   });
-  container->addWidget(options);
-  return container;
+  selectDeployTypeContainer->addWidget(options);
 }
 
 void ServerSettingsDialog::run()
