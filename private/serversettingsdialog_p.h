@@ -39,7 +39,8 @@ public:
     Wt::WPushButton* buttonOk;
     Wt::WPushButton* buttonNext;
     Wt::WContainerWidget *selectMediaRootPage();
-    Wt::WContainerWidget *selectDeployTypePage();
+    void buildDeployTypePage();
+    Wt::WContainerWidget *selectDeployTypeContainer;
 private:
     class ServerSettingsDialog* const q;
 };

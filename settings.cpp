@@ -34,7 +34,6 @@ map<string,string> defaultValues {
 Settings::Settings() : d(new SettingsPrivate(this)) {}
 Settings::~Settings() { delete d; }
 
-
 vector< string > Settings::mediasDirectories(Dbo::Session *session) const
 {
   if(d->mediaDirectories.empty()) {
@@ -49,13 +48,15 @@ void Settings::addMediaDirectory(string directory, Dbo::Session* session)
   d->mediaDirectories.push_back(directory);
   Dbo::Transaction t(*session);
   Setting::write<string>("media_directories", d->mediaDirectories, t);
+  t.commit();
 }
 
 void Settings::removeMediaDirectory(string directory, Dbo::Session* session)
 {
-  remove_if(d->mediaDirectories.begin(), d->mediaDirectories.end(), [=](string d) { return d == directory; });
+  d->mediaDirectories.erase(remove_if(d->mediaDirectories.begin(), d->mediaDirectories.end(), [=](string d) { return d == directory; }), d->mediaDirectories.end());
   Dbo::Transaction t(*session);
   Setting::write<string>("media_directories", d->mediaDirectories, t);
+  t.commit();
 }
 
 
