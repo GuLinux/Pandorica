@@ -280,7 +280,7 @@ void FindOrphansDialogPrivate::populateMovedFiles(WApplication* app)
   WServer::instance()->post(app->sessionId(), [=] {
     nextButton->setEnabled(!skipToRemoveOrphans);
     closeButton->setEnabled(!skipToRemoveOrphans);
-    if(skipToRemoveOrphans) {
+    if(skipToRemoveOrphans && false) {
       stack->setCurrentIndex(2);
     }
     app->triggerUpdate();
