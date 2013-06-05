@@ -35,7 +35,7 @@ public:
   inline unsigned long size() const { return _data.size(); }
   inline std::vector<unsigned char> data() const { return _data; }
   
-  Wt::WLink link(Wt::Dbo::ptr< MediaAttachment > myPtr, Wt::WObject* parent = 0, bool useCacheIfAvailable = true) const;
+  Wt::WLink link(Wt::Dbo::ptr< MediaAttachment > myPtr, Wt::Dbo::Transaction &transaction, Wt::WObject* parent = 0, bool useCacheIfAvailable = true) const;
 private:
   std::string _type;
   std::string _name;

@@ -112,12 +112,12 @@ void InfoPanel::info(Media media)
   header->addWidget(WW<WText>(title).css("media-title"));
   Dbo::ptr<MediaAttachment> previewAttachment = media.preview(t, Media::PreviewPlayer);
   if(previewAttachment) {
-    WLink previewLink = previewAttachment->link(previewAttachment, header);
+    WLink previewLink = previewAttachment->link(previewAttachment, t, header);
     WLink fullImage = previewLink;
     
     Dbo::ptr<MediaAttachment> fullImageAttachment = media.preview(t, Media::PreviewFull);
     if(fullImageAttachment)
-      fullImage = fullImageAttachment->link(fullImageAttachment, header);
+      fullImage = fullImageAttachment->link(fullImageAttachment, t, header);
     
     WAnchor *fullImageLink = new WAnchor{fullImage, new WImage{previewLink, title}};
     fullImageLink->setTarget(Wt::AnchorTarget::TargetNewWindow);
@@ -289,7 +289,7 @@ void MediaCollectionBrowserPrivate::addMedia(Media &media)
   
   Dbo::ptr<MediaAttachment> preview = media.preview(t, Media::PreviewThumb);
   if(preview)
-    icon = [=](WObject *parent) { return preview->link(preview, parent).url(); };
+    icon = [=](WObject *parent) { Dbo::Transaction t(*session); return preview->link(preview, t, parent).url(); };
   
   addIcon(media.title(t), icon, onClick);
 }

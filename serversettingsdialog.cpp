@@ -32,6 +32,7 @@
 #include <Wt/WLineEdit>
 #include <Wt/WInPlaceEdit>
 #include <Wt/WGroupBox>
+#include <Wt/WCheckBox>
 #include <boost/filesystem.hpp>
 
 using namespace std;
@@ -98,7 +99,7 @@ WContainerWidget* ServerSettingsDialogPrivate::selectMediaRootPage()
     settings->removeMediaDirectory(p, session);
     buildDeployTypePage();
   }, SelectDirectories::Multiple, q );
-  selectDirectories->setHeight(450);
+  selectDirectories->setHeight(465);
   selectDirectories->addTo(groupBox);
   return groupBox;
 }
@@ -113,10 +114,30 @@ string sanitizePath(string deployPath) {
 
 WContainerWidget* ServerSettingsDialogPrivate::cachePage()
 {
-  WContainerWidget *container = new WContainerWidget;
   Dbo::Transaction t(*session);
-  string cacheDirectory = Setting::value(Setting::cacheDirectory(), t, string{});
-  string cacheDeployPath = Setting::value(Setting::cacheDeployPath(), t, string{});
+  bool useCache = Setting::value(Setting::useCache(), t, false);
+  string cacheDirectory = Setting::value<string>(Setting::cacheDirectory(), t);
+  string cacheDeployPath = Setting::value<string>(Setting::cacheDeployPath(), t);
+  
+  WGroupBox *container = WW<WGroupBox>(wtr("configure.app.cache_settings")).css("fieldset-small");
+  WContainerWidget *cacheParamsContainer = new WContainerWidget;
+  WCheckBox *cacheCheckBox = WW<WCheckBox>(wtr("configure.app.use_cache_check"));
+  
+  auto cacheParamsVisibility = [=]{
+    cacheParamsContainer->setHidden(!cacheCheckBox->isChecked(), {WAnimation::Fade});
+  };
+  cacheCheckBox->changed().connect([=](_n1){
+    cacheParamsVisibility();
+    Dbo::Transaction t(*session);
+    Setting::write(Setting::useCache(), cacheCheckBox->isChecked(), t);
+    t.commit();
+  });
+  cacheCheckBox->setChecked(useCache);
+  cacheParamsVisibility();
+  container->addWidget(cacheCheckBox);
+  container->addWidget(cacheParamsContainer);
+  
+
   
   auto getPathLabel = [] (string p) { return p.empty() ? wtr("configure.app.cache.dir.empty").toUTF8() : p; };
   WText *selectedPath = new WText{getPathLabel(cacheDirectory)};
@@ -126,10 +147,10 @@ WContainerWidget* ServerSettingsDialogPrivate::cachePage()
     t.commit();
     selectedPath->setText(getPathLabel(p));
   }, q);
-  selectDirectories->addTo(container);
-  selectDirectories->setHeight(390);
-  container->addWidget(new WText{wtr("configure.app.cache_path.label")});
-  container->addWidget(selectedPath);
+  selectDirectories->addTo(cacheParamsContainer);
+  selectDirectories->setHeight(355);
+  cacheParamsContainer->addWidget(new WText{wtr("configure.app.cache_path.label")});
+  cacheParamsContainer->addWidget(selectedPath);
   WLineEdit *editDeployPath = WW<WLineEdit>(cacheDeployPath).css("input-xlarge");
   WPushButton *saveDeployPath = WW<WPushButton>(wtr("button.save")).css("btn btn-primary").onClick([=](WMouseEvent) {
     string valueToSave = editDeployPath->valueText().empty() ? "" : sanitizePath(editDeployPath->valueText().toUTF8());
@@ -138,7 +159,7 @@ WContainerWidget* ServerSettingsDialogPrivate::cachePage()
     Setting::write(Setting::cacheDeployPath(), valueToSave, t);
     t.commit();
   });
-  WW<WGroupBox>(wtr("configure.app.cache_deploy_path"), container).css("fieldset-small").add(
+  WW<WGroupBox>(wtr("configure.app.cache_deploy_path"), cacheParamsContainer).css("fieldset-small").add(
     WW<WContainerWidget>().css("input-append").add(editDeployPath).add(saveDeployPath)
   );
   return container;
@@ -168,7 +189,7 @@ void ServerSettingsDialogPrivate::buildDeployTypePage()
       Dbo::Transaction t(*session);
       
       if(deployType == Settings::DeployType::LighttpdSecureDownload || deployType == Settings::DeployType::NginxSecureLink) {
-        WLineEdit *editPassword = WW<WLineEdit>(Setting::value(Setting::secureDownloadPassword(), t, string{})).css("input-xlarge");
+        WLineEdit *editPassword = WW<WLineEdit>(Setting::value<string>(Setting::secureDownloadPassword(), t)).css("input-xlarge");
         editPassword->setEchoMode(WLineEdit::EchoMode::Password);
         WPushButton *savePassword = WW<WPushButton>("Save").css("btn btn-primary").onClick([=](WMouseEvent) {
           Dbo::Transaction t(*session);
@@ -182,7 +203,7 @@ void ServerSettingsDialogPrivate::buildDeployTypePage()
       
       for(string directory: settings->mediasDirectories(session)) {
         string directoryName = fs::path(directory).filename().string();
-        string value = Setting::value(Setting::deployPath(directory), t, string{});
+        string value = Setting::value<string>(Setting::deployPath(directory), t);
         WLineEdit *editDeployPath = WW<WLineEdit>(value).css("input-xlarge");
         WPushButton *saveDeployPath = WW<WPushButton>(wtr("button.save")).css("btn btn-primary").onClick([=](WMouseEvent) {
           string valueToSave = sanitizePath(editDeployPath->valueText().toUTF8());
