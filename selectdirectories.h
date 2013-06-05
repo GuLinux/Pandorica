@@ -37,7 +37,9 @@ typedef std::function<void(std::string)> OnPathClicked;
 class SelectDirectories : public Wt::WObject
 {
 public:
-  SelectDirectories(std::vector<std::string> rootPaths, std::vector<std::string> selectedPaths, OnPathClicked onPathSelected, OnPathClicked onPathUnselected, Wt::WObject *parent = 0);
+  enum SelectionType { Single, Multiple };
+  SelectDirectories(std::vector<std::string> rootPaths, std::string selectedPath, OnPathClicked onPathSelected, Wt::WObject *parent = 0);
+  SelectDirectories(std::vector<std::string> rootPaths, std::vector<std::string> selectedPaths, OnPathClicked onPathSelected, OnPathClicked onPathUnselected, SelectionType selectionType, Wt::WObject *parent = 0);
   virtual ~SelectDirectories();
   void addTo(Wt::WContainerWidget *container);
   void setWidth(Wt::WLength width);

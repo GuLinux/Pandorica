@@ -250,4 +250,8 @@ clicking on the following link or copying the URL into your browser:
 <message id="button.save">Save</message>
 <message id="configure.app.deploy_dir">Deploy directory</message>
 <message id="configure.app.deploy.path.label">Deploy path for "{1}"</message>
+<message id="configure.app.cache.dir.empty">None. Click a directory to set it.</message>
+<message id="configure.app.cache_path.label">Cache Path:</message>
+<message id="configure.app.cache_deploy_path">Cache Deploy Path</message>
+<message id="configure.app.select_media_directories">Select Media Directories</message>
 </messages>

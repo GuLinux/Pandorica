@@ -39,6 +39,7 @@ public:
     Wt::WPushButton* buttonOk;
     Wt::WPushButton* buttonNext;
     Wt::WContainerWidget *selectMediaRootPage();
+    Wt::WContainerWidget *cachePage();
     void buildDeployTypePage();
     Wt::WContainerWidget *selectDeployTypeContainer;
 private:

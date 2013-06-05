@@ -223,3 +223,7 @@
   margin-left: auto;
   margin-right: auto;
 }
+
+.fieldset-small legend {
+  font-size: larger;
+}
