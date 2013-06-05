@@ -254,4 +254,6 @@ clicking on the following link or copying the URL into your browser:
 <message id="configure.app.cache_path.label">Cache Path:</message>
 <message id="configure.app.cache_deploy_path">Cache Deploy Path</message>
 <message id="configure.app.select_media_directories">Select Media Directories</message>
+<message id="configure.app.cache_settings">Cache Settings</message>
+<message id="configure.app.use_cache_check">Use cache for subtitles and media previews</message>
 </messages>

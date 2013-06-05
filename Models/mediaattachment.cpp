@@ -24,16 +24,14 @@ map<string, function<string(string)>> extensions {
   }},
 };
 
-Wt::WLink MediaAttachment::link(Dbo::ptr< MediaAttachment > myPtr, WObject* parent, bool useCacheIfAvailable) const
+Wt::WLink MediaAttachment::link(Dbo::ptr< MediaAttachment > myPtr, Dbo::Transaction &transaction, WObject* parent, bool useCacheIfAvailable) const
 {
   auto fallback = [=] { return new WMemoryResource{mimetype(), _data, parent}; };
-  if(!useCacheIfAvailable)
+  if(!useCacheIfAvailable || ! Setting::value(Setting::useCache(), transaction, false) )
     return fallback();
-  string cacheDir;
-  string thumbnailsCacheServerMap;
+  string cacheDir = Setting::value<string>(Setting::cacheDirectory(), transaction);
+  string thumbnailsCacheServerMap = Setting::value<string>(Setting::cacheDeployPath(), transaction);
   
-  WServer::instance()->readConfigurationProperty("blobs_cache_dir", cacheDir);
-  WServer::instance()->readConfigurationProperty("blobs_cache_server_map", thumbnailsCacheServerMap);
   if(cacheDir.empty() || !fs::is_directory(cacheDir))
     return {fallback()};
   auto createPath = [=](string prefix) {

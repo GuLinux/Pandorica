@@ -335,7 +335,7 @@ void FindOrphansDialogPrivate::populateRemoveOrphansModel(Wt::WApplication* app)
       WStandardItem * value = new WStandardItem{attachment->value()};
       WStandardItem * size = new WStandardItem{ Utils::formatFileSize(attachment->size() ) };
       WStandardItem *link = new WStandardItem(wtr("findorphans.attachment.view"));
-      link->setLink(attachment->link(attachment, model, false));
+      link->setLink(attachment->link(attachment, t, model, false));
       title->appendRow({new WStandardItem, type, name, value, size, link});
     }
     WServer::instance()->post(app->sessionId(), [=] {

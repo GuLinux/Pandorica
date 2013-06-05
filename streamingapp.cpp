@@ -569,16 +569,16 @@ void StreamingAppPrivate::play(Media media) {
   WContainerWidget *container = new WContainerWidget;
   if(preview) {
     if(media.mimetype().find("audio") == string::npos)
-      player->setPoster(preview->link(preview, container));
+      player->setPoster(preview->link(preview, t, container));
     else {
-      container->addWidget(WW<WImage>(preview->link(preview, container)).css("album-cover"));
+      container->addWidget(WW<WImage>(preview->link(preview, t, container)).css("album-cover"));
     }
   }
   for(MediaAttachmentPtr subtitle : media.subtitles(t)) {
     string lang = threeLangCodeToTwo[subtitle->value()];
     wApp->log("notice") << "Found subtitle " << subtitle.id() << ", " << lang;
     string label = subtitle->name().empty() ? defaultLabelFor(lang) : subtitle->name();
-    player->addSubtitles( { subtitle->link(subtitle, container).url(), lang, label} );
+    player->addSubtitles( { subtitle->link(subtitle, t, container).url(), lang, label} );
   }
   player->ended().connect([=](_n6){
     Dbo::Transaction t(session);
