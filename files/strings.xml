@@ -256,4 +256,15 @@ clicking on the following link or copying the URL into your browser:
 <message id="configure.app.select_media_directories">Select Media Directories</message>
 <message id="configure.app.cache_settings">Cache Settings</message>
 <message id="configure.app.use_cache_check">Use cache for subtitles and media previews</message>
+<message id="config.help.wt_internal_deploy.title">Wt Internal Deploy</message>
+<message id="config.help.wt_internal_deploy.content">Creates a new <a target="_blank" href="http://www.webtoolkit.eu/wt/doc/reference/html/classWt_1_1WFileResource.html">Wt::WResource</a> to provide data streaming.<br />Works in every environment, but it's a bit slower.</message>
+<message id="config.help.static_deploy.title">Static Deploy</message>
+<message id="config.help.static_deploy.content">Use a static directories to serve files.<br />You have to configure this directories in your web server.<br />If you use Wt whttpd, read <a target="_blank" href="http://www.webtoolkit.eu/wt/doc/reference/html/overview.html#wthttpd">this configuration</a><br />
+For other webservers (Apache, Lighttpd, Ngnix) read the proper documentation.
+</message>
+<message id="config.help.lighttpd_secdownload.title">Lighttpd Secure Download</message>
+<message id="config.help.lighttpd_secdownload.content">Similar to "Static Deploy", performing the same, but also offers some protection against unsecure downloads.<br /><a target="_blank" href="http://redmine.lighttpd.net/projects/1/wiki/Docs_ModSecDownload">Read More</a>.</message>
+<message id="config.help.nginx_seclink.title">Nginx Secure Link</message>
+<message id="config.help.nginx_seclink.content">Exactly as "Lighttpd Secure Download".<br />
+<a target="_blank" href="http://wiki.nginx.org/HttpSecureLinkModule">Read more</a>.</message>
 </messages>
