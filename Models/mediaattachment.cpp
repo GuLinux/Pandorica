@@ -39,7 +39,7 @@ Wt::WLink MediaAttachment::link(Dbo::ptr< MediaAttachment > myPtr, Dbo::Transact
     if(extensions.count(mimetype())>0) {
       extension = extensions[mimetype()](type()); 
     }
-    return (boost::format("%s/%s/%s_%d_%s_%s.%s")
+    return (boost::format("%s%s/%s_%d_%s_%s.%s")
       % prefix
       % type()
       % mediaId()
@@ -50,7 +50,7 @@ Wt::WLink MediaAttachment::link(Dbo::ptr< MediaAttachment > myPtr, Dbo::Transact
     ).str();
   };
   
-  fs::path cacheFile{createPath(cacheDir)};
+  fs::path cacheFile{createPath(cacheDir + '/')};
   
   if(!fs::is_directory(cacheFile.parent_path()) && ! fs::create_directory(cacheFile.parent_path()))
     return {fallback()};
