@@ -133,7 +133,7 @@ void HTML5Player::playerReady()
   string mediaelementOptions;
   /* works in theory, but it goes with double subs on chrome
    */
-  if(defaultTracks["subtitles"].isValid()) {
+  if(defaultTracks["subtitles"].isValid() && false) {
     mediaelementOptions += (mediaelementOptions.empty() ? "" : ", ") + string("startLanguage: '") + defaultTracks["subtitles"].lang + "'";
   }
   log("notice") << "player options: " << mediaelementOptions;
