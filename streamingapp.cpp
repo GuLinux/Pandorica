@@ -229,7 +229,7 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
 {
   wApp->log("notice") << "Setting up topbar links";
   navigationBar = new WNavigationBar();
-  navigationBar->addStyleClass("navbar-static-top");
+  navigationBar->addStyleClass("navbar-static-top ");
   navigationBar->setTitle(wtr("site-title"));
   navigationBar->setResponsive(true);
   

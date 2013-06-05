@@ -17,10 +17,13 @@
 
 #ifndef SERVERSETTINGSDIALOGPRIVATE_H
 #define SERVERSETTINGSDIALOGPRIVATE_H
+#include <Wt/WLength>
+#include <string>
 
 namespace Wt {
 class WPushButton;
 class WContainerWidget;
+class WInteractWidget;
 }
 
 class MediaCollection;
@@ -42,6 +45,7 @@ public:
     Wt::WContainerWidget *cachePage();
     void buildDeployTypePage();
     Wt::WContainerWidget *selectDeployTypeContainer;
+    Wt::WInteractWidget *help(std::string titleKey, std::string contentKey, std::string side, Wt::WLength size = Wt::WLength::Auto);
 private:
     class ServerSettingsDialog* const q;
 };
