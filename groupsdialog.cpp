@@ -248,6 +248,7 @@ GroupDirectoriesDialog::GroupDirectoriesDialog(Dbo::ptr< Group > group, Session*
         }
       }
     }
+    , SelectDirectories::Multiple
   );
   setHeight(400);
   

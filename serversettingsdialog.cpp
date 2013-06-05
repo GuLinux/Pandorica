@@ -63,10 +63,11 @@ ServerSettingsDialog::ServerSettingsDialog(Settings* settings, Session* session,
   setWindowTitle(wtr("menu.configure.app"));
   WStackedWidget *stack = new WStackedWidget(contents());
   setClosable(false);
-  setHeight(600);
+  setHeight(650);
   setWidth(600);
   stack->addWidget(d->selectMediaRootPage());
   stack->addWidget(d->selectDeployTypeContainer = new WContainerWidget);
+  stack->addWidget(d->cachePage());
   d->buildDeployTypePage();
   
   footer()->addWidget(d->buttonNext = WW<WPushButton>(wtr("button.next")).css("btn").onClick([=](WMouseEvent) {
@@ -89,19 +90,18 @@ ServerSettingsDialog::ServerSettingsDialog(Settings* settings, Session* session,
 
 WContainerWidget* ServerSettingsDialogPrivate::selectMediaRootPage()
 {
+  WGroupBox *groupBox = WW<WGroupBox>(wtr("configure.app.select_media_directories")).css("fieldset-small");
   SelectDirectories *selectDirectories = new SelectDirectories({"/"}, settings->mediasDirectories(session), [=](string p){
     settings->addMediaDirectory(p, session);
     buildDeployTypePage();
   }, [=](string p){
     settings->removeMediaDirectory(p, session);
     buildDeployTypePage();
-  }, q );
-  selectDirectories->setHeight(460);
-  WContainerWidget *selectDirectoriesContainer = new WContainerWidget;
-  selectDirectories->addTo(selectDirectoriesContainer);
-  return selectDirectoriesContainer;
+  }, SelectDirectories::Multiple, q );
+  selectDirectories->setHeight(450);
+  selectDirectories->addTo(groupBox);
+  return groupBox;
 }
-
 
 string sanitizePath(string deployPath) {
   if(deployPath[0] != '/')
@@ -111,12 +111,48 @@ string sanitizePath(string deployPath) {
   return deployPath;
 }
 
+WContainerWidget* ServerSettingsDialogPrivate::cachePage()
+{
+  WContainerWidget *container = new WContainerWidget;
+  Dbo::Transaction t(*session);
+  string cacheDirectory = Setting::value(Setting::cacheDirectory(), t, string{});
+  string cacheDeployPath = Setting::value(Setting::cacheDeployPath(), t, string{});
+  
+  auto getPathLabel = [] (string p) { return p.empty() ? wtr("configure.app.cache.dir.empty").toUTF8() : p; };
+  WText *selectedPath = new WText{getPathLabel(cacheDirectory)};
+  SelectDirectories *selectDirectories = new SelectDirectories({"/"}, cacheDirectory, [=](string p) {
+    Dbo::Transaction t(*session);
+    Setting::write(Setting::cacheDirectory(), p, t);
+    t.commit();
+    selectedPath->setText(getPathLabel(p));
+  }, q);
+  selectDirectories->addTo(container);
+  selectDirectories->setHeight(390);
+  container->addWidget(new WText{wtr("configure.app.cache_path.label")});
+  container->addWidget(selectedPath);
+  WLineEdit *editDeployPath = WW<WLineEdit>(cacheDeployPath).css("input-xlarge");
+  WPushButton *saveDeployPath = WW<WPushButton>(wtr("button.save")).css("btn btn-primary").onClick([=](WMouseEvent) {
+    string valueToSave = editDeployPath->valueText().empty() ? "" : sanitizePath(editDeployPath->valueText().toUTF8());
+    editDeployPath->setText(valueToSave);
+    Dbo::Transaction t(*session);
+    Setting::write(Setting::cacheDeployPath(), valueToSave, t);
+    t.commit();
+  });
+  WW<WGroupBox>(wtr("configure.app.cache_deploy_path"), container).css("fieldset-small").add(
+    WW<WContainerWidget>().css("input-append").add(editDeployPath).add(saveDeployPath)
+  );
+  return container;
+}
+
+
+
+
 void ServerSettingsDialogPrivate::buildDeployTypePage()
 {
   selectDeployTypeContainer->clear();
   WContainerWidget *options = new WContainerWidget();
   WButtonGroup *btnGroup = new WButtonGroup(selectDeployTypeContainer);
-  WGroupBox *radioBox = new WGroupBox(wtr("configure.app.deploytype"), selectDeployTypeContainer);
+  WGroupBox *radioBox = WW<WGroupBox>(wtr("configure.app.deploytype"), selectDeployTypeContainer).css("fieldset-small");
   
   btnGroup->addButton(WW<WRadioButton>(wtr("configure.app.deploytype.internal"), radioBox).setInline(false), Settings::DeployType::Internal);
   btnGroup->addButton(WW<WRadioButton>(wtr("configure.app.deploytype.static"), radioBox).setInline(false), Settings::DeployType::Static);
@@ -132,22 +168,22 @@ void ServerSettingsDialogPrivate::buildDeployTypePage()
       Dbo::Transaction t(*session);
       
       if(deployType == Settings::DeployType::LighttpdSecureDownload || deployType == Settings::DeployType::NginxSecureLink) {
-        WLineEdit *editPassword = WW<WLineEdit>(Setting::value(Setting::secureDownloadPassword(), t, string{}));
+        WLineEdit *editPassword = WW<WLineEdit>(Setting::value(Setting::secureDownloadPassword(), t, string{})).css("input-xlarge");
         editPassword->setEchoMode(WLineEdit::EchoMode::Password);
         WPushButton *savePassword = WW<WPushButton>("Save").css("btn btn-primary").onClick([=](WMouseEvent) {
           Dbo::Transaction t(*session);
           Setting::write(Setting::secureDownloadPassword(), editPassword->valueText().toUTF8(), t);
           t.commit();
         });
-        WW<WGroupBox>(wtr("configure.app.deploytype.secdl_password_label"), options).add(
-          WW<WContainerWidget>().css("input-append span4").add(editPassword).add(savePassword)
+        WW<WGroupBox>(wtr("configure.app.deploytype.secdl_password_label"), options).css("fieldset-small").add(
+          WW<WContainerWidget>().css("input-append").add(editPassword).add(savePassword)
         );
       }
       
       for(string directory: settings->mediasDirectories(session)) {
         string directoryName = fs::path(directory).filename().string();
         string value = Setting::value(Setting::deployPath(directory), t, string{});
-        WLineEdit *editDeployPath = WW<WLineEdit>(value);
+        WLineEdit *editDeployPath = WW<WLineEdit>(value).css("input-xlarge");
         WPushButton *saveDeployPath = WW<WPushButton>(wtr("button.save")).css("btn btn-primary").onClick([=](WMouseEvent) {
           string valueToSave = sanitizePath(editDeployPath->valueText().toUTF8());
           editDeployPath->setText(valueToSave);
@@ -155,8 +191,8 @@ void ServerSettingsDialogPrivate::buildDeployTypePage()
           Setting::write(Setting::deployPath(directory), valueToSave, t);
           t.commit();
         });
-        WW<WGroupBox>(wtr("configure.app.deploy.path.label").arg(directoryName), options).add(
-          WW<WContainerWidget>().css("input-append span4").add(editDeployPath).add(saveDeployPath)
+        WW<WGroupBox>(wtr("configure.app.deploy.path.label").arg(directoryName), options).css("fieldset-small").add(
+          WW<WContainerWidget>().css("input-append").add(editDeployPath).add(saveDeployPath)
         );
         editDeployPath->setEmptyText(wtr("configure.app.deploy_dir"));
       }

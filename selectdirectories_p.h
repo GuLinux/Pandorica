@@ -40,7 +40,7 @@ namespace StreamingPrivate {
 class SelectDirectoriesPrivate
 {
 public:
-  SelectDirectoriesPrivate(SelectDirectories* q, std::vector<std::string> selectedPaths);
+  SelectDirectoriesPrivate(SelectDirectories* q, std::vector<std::string> selectedPaths, SelectDirectories::SelectionType);
     virtual ~SelectDirectoriesPrivate();
     Wt::WTreeView* tree;
     Wt::WStandardItemModel* model;
@@ -48,6 +48,7 @@ public:
     Wt::WApplication *app;
     void addSubItems(Wt::WStandardItem *item, bool sync = false);
     void trySelecting(Wt::WStandardItem *item, boost::filesystem::path path);
+    SelectDirectories::SelectionType selectionType;
 private:
     Wt::WStandardItem* buildStandardItem(boost::filesystem::path path, bool addSubItems);
     class SelectDirectories* const q;

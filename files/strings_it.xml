@@ -314,4 +314,8 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
 <message id="button.save">Salva</message>
 <message id="configure.app.deploy_dir">Directory di deploy</message>
 <message id="configure.app.deploy.path.label">Percorso di deploy per "{1}"</message>
+<message id="configure.app.cache.dir.empty">Non impostata. Clicca una directory per impostarla.</message>
+<message id="configure.app.cache_path.label">Cartella Cache:</message>
+<message id="configure.app.cache_deploy_path">Cartella di deploy della cache</message>
+<message id="configure.app.select_media_directories">Seleziona Cartelle Media</message>
 </messages>

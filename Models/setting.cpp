@@ -44,3 +44,12 @@ string Setting::secureDownloadPassword()
   return "securedownload_password";
 }
 
+string Setting::cacheDeployPath()
+{
+  return "cache_deploy_path";
+}
+
+string Setting::cacheDirectory()
+{
+  return "cache_directory";
+}
