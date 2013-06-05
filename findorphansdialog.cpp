@@ -219,6 +219,7 @@ void FindOrphansDialogPrivate::populateMovedFiles(WApplication* app)
 {
   Dbo::Transaction t(*threadsSession);
   mediaCollection->rescan(t);
+  int migrationsFound = 0;
   Dbo::collection<MediaPropertiesPtr> allMedias = threadsSession->find<MediaProperties>().resultList();
   for(MediaPropertiesPtr media: allMedias) {
     if(mediaCollection->media(media->mediaId()).valid() || media->filename().empty() ) continue;
@@ -256,6 +257,7 @@ void FindOrphansDialogPrivate::populateMovedFiles(WApplication* app)
         selection = model->rowCount()-1;
       if(model->rowCount() > 4) break;
     }
+    migrationsFound++;
     WServer::instance()->post(app->sessionId(), [=] {
       WContainerWidget *fileContainer = new WContainerWidget(movedOrphansContainer);
       fileContainer->addWidget(WW<WText>(settings->relativePath(originalFilePath, session, true)).css("small-text"));
@@ -276,11 +278,13 @@ void FindOrphansDialogPrivate::populateMovedFiles(WApplication* app)
       app->triggerUpdate();
     });
   }
+  while(migrations.size() != migrationsFound)
+    this_thread::sleep_for(chrono::milliseconds(100));
   bool skipToRemoveOrphans = migrations.empty();
   WServer::instance()->post(app->sessionId(), [=] {
     nextButton->setEnabled(!skipToRemoveOrphans);
     closeButton->setEnabled(!skipToRemoveOrphans);
-    if(skipToRemoveOrphans && false) {
+    if(skipToRemoveOrphans) {
       stack->setCurrentIndex(2);
     }
     app->triggerUpdate();
