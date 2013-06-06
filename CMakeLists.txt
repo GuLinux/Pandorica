@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
-project(streamingapp)
+set(app_name Pandorica)
+project(${app_name})
 add_definitions(-std=gnu++11)
 find_package(Wt REQUIRED)
 execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_magick_cmake_conf ${CMAKE_CURRENT_BINARY_DIR}/imagemagick.cmake )
@@ -28,17 +29,8 @@ endif(${DBO_POSTGRES_FOUND})
 set(Wt_CONNECTOR_LIBRARY "${Wt_HTTP_LIBRARY}")
 set(Wt_CONNECTOR_DEBUG_LIBRARY ${Wt_HTTP_DEBUG_LIBRARY})
 
-execute_process(COMMAND hostname OUTPUT_VARIABLE HOSTNAME)
-#execute_process(COMMAND echo Shogoki OUTPUT_VARIABLE HOSTNAME)
-
-STRING(REGEX MATCH ".*Zerogoki.*" HOST_IS_ZEROGOKI "${HOSTNAME}")
-# if(NOT ${HOST_IS_ZEROGOKI} STREQUAL "")
-#   set(Wt_CONNECTOR_LIBRARY ${Wt_FCGI_LIBRARY})
-#   set(Wt_CONNECTOR_DEBUG_LIBRARY ${Wt_FCGI_DEBUG_LIBRARY})
-#   message("Zerogoki hostname: using FCGI Connector (${Wt_CONNECTOR_LIBRARY} - ${Wt_CONNECTOR_DEBUG_LIBRARY}")
-# endif(NOT ${HOST_IS_ZEROGOKI} STREQUAL "")
-
-SET(INSTALL_DIR "/home/www-data/data/streamingapp" CACHE STRING "Install directory for Wt Applications and files")
+SET(SHARED_FILES_DIR ${CMAKE_INSTALL_PREFIX}/share/${app_name})
+add_definitions(-DSHARED_FILES_DIR="${SHARED_FILES_DIR}")
 
 SET( models_srcs Models/group.cpp Models/user.cpp Models/mediarating.cpp Models/mediaattachment.cpp )
 SET( Wt_Commons_srcs Wt-Commons/whtmltemplateslocalizedstrings.cpp )
@@ -54,7 +46,7 @@ SET( player_srcs serversettingsdialog.cpp Models/setting.cpp selectdirectories.c
     player/html5player.cpp
 )
 
-add_executable(streamingapp ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs} ${player_srcs}
+add_executable(${app_name} ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs} ${player_srcs}
     authpage.cpp
     utils.cpp
     ffmpegmedia.cpp
@@ -91,12 +83,13 @@ SET(BOOST_LIBS
 -lboost_filesystem
 -lboost_thread
 -lboost_regex
+-lboost_program_options
 )
 
-target_link_libraries(streamingapp -lavformat -lavcodec -lavutil -lffmpegthumbnailer ${BOOST_LIBS} ${WT_LINK_LIBS} ${MAGICK_LIBS})
-install(TARGETS streamingapp RUNTIME DESTINATION ${INSTALL_DIR}/bin)
+target_link_libraries(${app_name} -lavformat -lavcodec -lavutil -lffmpegthumbnailer ${BOOST_LIBS} ${WT_LINK_LIBS} ${MAGICK_LIBS})
+install(TARGETS ${app_name} RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 set(TRANSLATION_FILES files/strings.xml files/strings_it.xml )
-INSTALL(FILES ${TRANSLATION_FILES} DESTINATION ${INSTALL_DIR} )
-INSTALL(FILES files/title_from_filename_replacements.json DESTINATION ${INSTALL_DIR})
-INSTALL(DIRECTORY files/html_templates DESTINATION ${INSTALL_DIR} FILES_MATCHING PATTERN "*.html" )
-INSTALL(DIRECTORY files/static DESTINATION ${INSTALL_DIR}/files)
+INSTALL(FILES ${TRANSLATION_FILES} DESTINATION ${SHARED_FILES_DIR} )
+INSTALL(FILES files/title_from_filename_replacements.json DESTINATION ${SHARED_FILES_DIR})
+INSTALL(DIRECTORY files/html_templates DESTINATION ${SHARED_FILES_DIR} FILES_MATCHING PATTERN "*.html" )
+INSTALL(DIRECTORY files/static DESTINATION ${SHARED_FILES_DIR} )

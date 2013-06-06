@@ -117,12 +117,13 @@ StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(
   setTheme(new WBootstrapTheme(this));
   enableUpdates(true);
   WMessageResourceBundle *xmlResourcesBundle = new WMessageResourceBundle;
-  xmlResourcesBundle->use("strings");
+  xmlResourcesBundle->use(SHARED_FILES_DIR "/strings");
   setLocale(d->settings.locale());
   WCombinedLocalizedStrings* combinedLocalizedStrings = new WCombinedLocalizedStrings();
   combinedLocalizedStrings->add(xmlResourcesBundle);
-  combinedLocalizedStrings->add(new WHTMLTemplatesLocalizedStrings("html_templates"));
+  combinedLocalizedStrings->add(new WHTMLTemplatesLocalizedStrings(SHARED_FILES_DIR "/html_templates"));
   setLocalizedStrings(combinedLocalizedStrings);
+  setTitle(wtr("site-title"));
 
   addMetaHeader("viewport", "width=device-width, initial-scale=1, maximum-scale=1");
   
@@ -581,6 +582,7 @@ void StreamingAppPrivate::play(Media media) {
     player->addSubtitles( { subtitle->link(subtitle, t, container).url(), lang, label} );
   }
   player->ended().connect([=](_n6){
+    wApp->setTitle( wtr("site-title"));
     Dbo::Transaction t(session);
     SessionInfoPtr sessionInfo = session.find<SessionInfo>().where("session_id = ?").bind(q->sessionId());
     for(auto detail : sessionInfo.modify()->sessionDetails())
@@ -635,7 +637,9 @@ void StreamingAppPrivate::play(Media media) {
   ratingWidget->addWidget(avgRatingWidget);
   ratingWidget->addWidget(myRating);
   infoBox->addWidget(ratingWidget);
-  
+  container->destroyed().connect([=](WObject*, _n5){
+    wApp->setTitle(wtr("site-title"));
+  });
   
   infoBox->addWidget(WW<WAnchor>(settings.shareLink(media.uid()), wtr("player.sharelink")).css("btn btn-success btn-mini"));
   infoBox->addWidget(new WText{" "});
@@ -645,7 +649,7 @@ void StreamingAppPrivate::play(Media media) {
   downloadLink->setAttributeValue("title", wtr("player.downloadlink.tooltip"));
   downloadLink->doJavaScript((boost::format("$('#%s').tooltip();") % downloadLink->id()).str() );
   infoBox->addWidget(downloadLink);
-  wApp->setTitle( media.title(t) );
+  wApp->setTitle( wtr("site-title") + " - " + media.title(t) );
   log("notice") << "using url " << mediaLink.url();
   SessionInfoPtr sessionInfo = session.find<SessionInfo>().where("session_id = ?").bind(q->sessionId());
   for(auto detail : sessionInfo.modify()->sessionDetails())
