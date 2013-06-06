@@ -212,16 +212,22 @@ string Settings::icon(Settings::Icons icon)
   return (boost::format(iconsMap[icon]) % staticDeployPath).str();
 }
 
+string staticFilesDeployPath{"/static"};
 string Settings::staticDeployPath()
 {
-  string staticDeployPath{"/static"};
-  WServer::instance()->readConfigurationProperty("static_deploy_path", staticDeployPath);
-  return staticDeployPath;
+  return staticFilesDeployPath;
 }
 
 string Settings::staticPath(const string& relativeUrl)
 {
   return staticDeployPath() + relativeUrl;
 }
+
+void Settings::init(program_options::variables_map commandLineOptions)
+{
+  if( boost::any_cast<string>(commandLineOptions["server-mode"].value()) == "managed")
+    staticFilesDeployPath = boost::any_cast<string>(commandLineOptions["static-deploy-path"].value()) ;
+}
+
 
 

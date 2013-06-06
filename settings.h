@@ -3,6 +3,7 @@
 #include <string>
 #include <Wt/WLink>
 #include <boost/filesystem.hpp>
+#include <boost/program_options/variables_map.hpp>
 #include "media.h"
 
 class Session;
@@ -12,7 +13,6 @@ namespace StreamingPrivate {
 }
 class Settings
 {
-
 public:
     Settings();
     virtual ~Settings();
@@ -36,6 +36,7 @@ public:
     static std::string staticPath(const std::string &relativeUrl);
     static std::string staticDeployPath();
     std::string relativePath(std::string mediaPath, Wt::Dbo::Session *session, bool removeTrailingSlash = false) const;
+    static void init(boost::program_options::variables_map commandLineOptions);
 private:
   StreamingPrivate::SettingsPrivate *const d;
 };
