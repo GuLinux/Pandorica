@@ -149,7 +149,6 @@ void SessionPrivate::createConnection()
 {
   string psqlConnParameters, mysqlConnParameters;
   bool havePostgresConfiguration = WServer::instance()->readConfigurationProperty("psql-connection", psqlConnParameters);
-  bool haveMySQLConfiguration = WServer::instance()->readConfigurationProperty("mysql-connection", mysqlConnParameters);
 #ifdef HAVE_POSTGRES
   if(havePostgresConfiguration && !psqlConnParameters.empty()) {
     WServer::instance()->log("notice") << "Using postgresql connection";

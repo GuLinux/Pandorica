@@ -37,6 +37,8 @@
 #include <Wt/WImage>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+#include "utils.h"
+
 
 using namespace std;
 using namespace Wt;
@@ -169,24 +171,6 @@ WContainerWidget* ServerSettingsDialogPrivate::cachePage()
 }
 
 
-WInteractWidget* ServerSettingsDialogPrivate::help(string titleKey, string contentKey, string side, WLength size)
-{
-  WImage *image = WW<WImage>(settings->staticPath("/icons/help.png")).css("link-hand")
-  .setAttribute("data-toggle", "popover")
-  .setAttribute("data-placement", side)
-  .setAttribute("data-html", "true")
-  ;
-  image->doJavaScript(
-    (boost::format("$('#%s').popover({title: %s, content: %s})") % image->id() 
-    % wtr(titleKey).jsStringLiteral()
-    % wtr(contentKey).jsStringLiteral()
-    ).str()
-  );
-  image->resize(size, size);
-  return image;  
-}
-
-
 
 void ServerSettingsDialogPrivate::buildDeployTypePage()
 {
@@ -196,16 +180,16 @@ void ServerSettingsDialogPrivate::buildDeployTypePage()
   WGroupBox *radioBox = WW<WGroupBox>(wtr("configure.app.deploytype"), selectDeployTypeContainer).css("fieldset-small");
   WRadioButton *buttonInternal, *buttonStatic, *buttonLighttpd, *buttonNginx;
   btnGroup->addButton(buttonInternal =WW<WRadioButton>(wtr("configure.app.deploytype.internal")).css("span3"), Settings::DeployType::Internal);
-  radioBox->addWidget(WW<WContainerWidget>().css("row").add(buttonInternal).add(help("config.help.wt_internal_deploy.title", "config.help.wt_internal_deploy.content", "bottom", 24)));
+  radioBox->addWidget(WW<WContainerWidget>().css("row").add(buttonInternal).add(Utils::help("config.help.wt_internal_deploy.title", "config.help.wt_internal_deploy.content", "bottom", 24)));
 
   btnGroup->addButton(buttonStatic = WW<WRadioButton>(wtr("configure.app.deploytype.static")).css("span3"), Settings::DeployType::Static);
-  radioBox->addWidget(WW<WContainerWidget>().css("row").add(buttonStatic).add(help("config.help.static_deploy.title", "config.help.static_deploy.content", "bottom", 24)));
+  radioBox->addWidget(WW<WContainerWidget>().css("row").add(buttonStatic).add(Utils::help("config.help.static_deploy.title", "config.help.static_deploy.content", "bottom", 24)));
   
   btnGroup->addButton(buttonLighttpd = WW<WRadioButton>(wtr("configure.app.deploytype.lighttpd_secdownload")).css("span3"), Settings::DeployType::LighttpdSecureDownload);
-  radioBox->addWidget(WW<WContainerWidget>().css("row").add(buttonLighttpd).add(help("config.help.lighttpd_secdownload.title", "config.help.lighttpd_secdownload.content", "bottom", 24)));
+  radioBox->addWidget(WW<WContainerWidget>().css("row").add(buttonLighttpd).add(Utils::help("config.help.lighttpd_secdownload.title", "config.help.lighttpd_secdownload.content", "bottom", 24)));
   
   btnGroup->addButton(buttonNginx = WW<WRadioButton>(wtr("configure.app.deploytype.nginx_seclink")).css("span3"), Settings::DeployType::NginxSecureLink);
-  radioBox->addWidget(WW<WContainerWidget>().css("row").add(buttonNginx).add(help("config.help.nginx_seclink.title", "config.help.nginx_seclink.content", "bottom", 24)));
+  radioBox->addWidget(WW<WContainerWidget>().css("row").add(buttonNginx).add(Utils::help("config.help.nginx_seclink.title", "config.help.nginx_seclink.content", "bottom", 24)));
   
   Dbo::Transaction t(*session);
   Settings::DeployType deployType = (Settings::DeployType) Setting::value<int>(Setting::deployType(), t, Settings::DeployType::Internal);

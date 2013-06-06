@@ -45,7 +45,6 @@ public:
     Wt::WContainerWidget *cachePage();
     void buildDeployTypePage();
     Wt::WContainerWidget *selectDeployTypeContainer;
-    Wt::WInteractWidget *help(std::string titleKey, std::string contentKey, std::string side, Wt::WLength size = Wt::WLength::Auto);
 private:
     class ServerSettingsDialog* const q;
 };

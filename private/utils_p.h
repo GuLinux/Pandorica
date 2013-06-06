@@ -19,6 +19,7 @@
 #define UTILSPRIVATE_H
 #include <vector>
 #include <Wt/Mail/Mailbox>
+#include <Wt/WLength>
 
 class Utils;
 namespace StreamingPrivate {
