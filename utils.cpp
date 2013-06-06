@@ -17,6 +17,7 @@
 
 #include "utils.h"
 #include "private/utils_p.h"
+#include "settings.h"
 #include <fstream>
 #include <Wt/Json/Parser>
 #include <Wt/Json/Object>
@@ -29,8 +30,12 @@
 #include <Wt/Mail/Client>
 #include <Wt/Mail/Mailbox>
 #include <Wt/Mail/Message>
+#include <Wt/WImage>
+#include "Wt-Commons/wt_helpers.h"
+
 using namespace std;
 using namespace Wt;
+using namespace WtCommons;
 
 using namespace StreamingPrivate;
 
@@ -98,6 +103,23 @@ Mail::Mailbox UtilsPrivate::mailboxFor(string nameProperty, string addressProper
     return defaultMailbox;
   }
   return {address, name};
+}
+
+WInteractWidget* Utils::help(string titleKey, string contentKey, string side, WLength size)
+{
+  WImage *image = WW<WImage>(Settings::staticPath("/icons/help.png")).css("link-hand")
+  .setAttribute("data-toggle", "popover")
+  .setAttribute("data-placement", side)
+  .setAttribute("data-html", "true")
+  ;
+  image->doJavaScript(
+    (boost::format("$('#%s').popover({title: %s, content: %s})") % image->id() 
+    % wtr(titleKey).jsStringLiteral()
+    % wtr(contentKey).jsStringLiteral()
+    ).str()
+  );
+  image->resize(size, size);
+  return image;  
 }
 
 
