@@ -267,4 +267,5 @@ For other webservers (Apache, Lighttpd, Ngnix) read the proper documentation.
 <message id="config.help.nginx_seclink.title">Nginx Secure Link</message>
 <message id="config.help.nginx_seclink.content">Exactly as "Lighttpd Secure Download".<br />
 <a target="_blank" href="http://wiki.nginx.org/HttpSecureLinkModule">Read more</a>.</message>
+
 </messages>
