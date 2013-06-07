@@ -49,7 +49,7 @@ AuthWidgetCustom::AuthWidgetCustom(const AuthService& baseAuth, AbstractUserData
 RegistrationModel* AuthWidgetCustom::createRegistrationModel()
 {
   RegistrationModel *model = AuthWidget::createRegistrationModel();
-  model->setEmailPolicy(RegistrationModel::EmailMandatory);
+  model->setEmailPolicy(Settings::emailVerificationMandatory() ? RegistrationModel::EmailMandatory : RegistrationModel::EmailOptional);
   return model;
 }
 
@@ -98,14 +98,14 @@ void AuthPagePrivate::authEvent() {
   WPushButton *refreshButton = WW<WPushButton>(wtr("button.retry")).css("btn btn-link").onClick([this](WMouseEvent) {
     authEvent();
   }).setAttribute("data-dismiss", "alert");
-  if(!user.unverifiedEmail().empty()) {
+  if(Settings::emailVerificationMandatory() && !user.unverifiedEmail().empty()) {
     log("notice") << "User email empty, unconfirmed?";
     Message *message = WW<Message>(wtr("user.need_mail_verification")).addCss("alert-block");
     message->bindWidget("refresh", refreshButton);
     messagesContainer->addWidget(message);
     return;
   }
-  log("notice") << "User email confirmed";
+  log("notice") << "User email confirmed, or verification not mandatory";
 
   if(seedIfNoAdmins(t, user)) return;
   
