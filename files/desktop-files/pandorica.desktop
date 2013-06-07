@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Version=0.1
+Name=Pandorica
+Comment=Pandorica Web Media Player
+Exec=Pandorica
+Icon=pandorica
+Terminal=false
+Categories=AudioVideo;Player;Network
