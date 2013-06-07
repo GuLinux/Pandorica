@@ -238,7 +238,10 @@ string Settings::sqlite3DatabasePath()
 
 bool Settings::emailVerificationMandatory()
 {
-  return true;
+  string emailVerificationMandatorySetting{"false"};
+  if(!WServer::instance()->readConfigurationProperty("email-verification-mandatory", emailVerificationMandatorySetting))
+    return false;
+  return emailVerificationMandatorySetting == "true";
 }
 
 
