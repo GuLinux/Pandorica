@@ -32,7 +32,7 @@ QtTrayIcon::~QtTrayIcon()
 
 
 
-QtTrayIcon::QtTrayIcon(Wt::WServer& wserver, QObject* parent): QObject(parent), wserver(wserver), systemTray(new QSystemTrayIcon{QIcon{SHARED_FILES_DIR "/static/icons/site-logo.png"}})
+QtTrayIcon::QtTrayIcon(Wt::WServer& wserver, QObject* parent): QObject(parent), wserver(wserver), systemTray(new QSystemTrayIcon{QIcon::fromTheme("pandorica")})
 {
   systemTray->setToolTip("Pandorica");
   connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(appClosed()));
