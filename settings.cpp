@@ -236,6 +236,11 @@ string Settings::sqlite3DatabasePath()
   return sqlite3DatabasePath_;
 }
 
+bool Settings::emailVerificationMandatory()
+{
+  return true;
+}
+
 
 
 

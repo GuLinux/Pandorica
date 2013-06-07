@@ -107,7 +107,6 @@ StreamingAppPrivate::StreamingAppPrivate(StreamingApp *q) : q(q), playSignal(q, 
 
 
 StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(environment), d(new StreamingAppPrivate(this)) {
-  
   useStyleSheet( wApp->resourcesUrl() + "form.css");
   useStyleSheet(Settings::staticPath("/streamingapp.css"));
   requireJQuery(Settings::staticPath("/jquery.min.js"));
@@ -115,6 +114,13 @@ StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(
   require(Settings::staticPath("/mediaelement/mediaelement-and-player.min.js"));
   useStyleSheet(Settings::staticPath("/mediaelement/mediaelementplayer.min.css"));
   setTheme(new WBootstrapTheme(this));
+  try {
+    d->session = new Session{true};
+  } catch(std::exception &e) {
+    root()->addWidget(new WText{string{"Database error: "} + e.what() + "<br />Please check your configuration and try again."});
+    return;
+  }  
+  
   enableUpdates(true);
   WMessageResourceBundle *xmlResourcesBundle = new WMessageResourceBundle;
   xmlResourcesBundle->use(SHARED_FILES_DIR "/strings");
@@ -127,7 +133,9 @@ StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(
 
   addMetaHeader("viewport", "width=device-width, initial-scale=1, maximum-scale=1");
   
-  root()->addWidget(d->authPage = new AuthPage(&d->session));
+
+  
+  root()->addWidget(d->authPage = new AuthPage(d->session));
   d->authPage->loggedIn().connect(this, &StreamingApp::authEvent);
   d->authPage->loggedOut().connect([=](_n6) {
     delete d->mainWidget;
@@ -140,24 +148,24 @@ StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(
 
 void StreamingApp::authEvent()
 {
-  Dbo::Transaction t(d->session);
-  d->userId = d->session.user().id();
+  Dbo::Transaction t(*d->session);
+  d->userId = d->session->user().id();
   log("notice") << "Clearing root and creating widgets";
   root()->addWidget(d->mainWidget = new WContainerWidget() );
-  auto myUser = d->session.user();
+  auto myUser = d->session->user();
   SessionInfo* sessionInfo = new SessionInfo(myUser, sessionId(), wApp->environment().clientAddress());
-  Dbo::collection<SessionInfoPtr> oldSessions = d->session.find<SessionInfo>().where("user_id = ? and session_ended = 0").bind(myUser.id());
+  Dbo::collection<SessionInfoPtr> oldSessions = d->session->find<SessionInfo>().where("user_id = ? and session_ended = 0").bind(myUser.id());
   wApp->log("notice") << "Searching for old sessions for this user: " << oldSessions.size();
   for(SessionInfoPtr oldSessionInfo: oldSessions) {
     wApp->log("notice") << "Found stale session " << oldSessionInfo->sessionId() << ", started " << oldSessionInfo->sessionStarted().toString();
     oldSessionInfo.modify()->end();
     oldSessionInfo.flush();
   }
-  auto sessionInfoPtr = d->session.add(sessionInfo);
+  auto sessionInfoPtr = d->session->add(sessionInfo);
   wApp->log("notice") << "created sessionInfo with sessionId=" << sessionInfoPtr->sessionId();
-  d->mediaCollection = new MediaCollection(&d->settings, &d->session, this);
+  d->mediaCollection = new MediaCollection(&d->settings, d->session, this);
 
-  d->setupMenus(d->session.user()->isAdmin());
+  d->setupMenus(d->session->user()->isAdmin());
   t.commit();
   d->registerSession();
   setupGui();
@@ -182,11 +190,11 @@ void StreamingAppPrivate::unregisterSession()
 
 
 void endSessionOnDatabase(string sessionId, long userId) {
-  Session session;
-  Dbo::Transaction t(session);
+  Session privateSession;
+  Dbo::Transaction t(privateSession);
   WServer::instance()->log("notice") << "Ending session on database ( sessionId = " << sessionId << ")";
   
-  SessionInfoPtr sessionInfo = session.find<SessionInfo>().where("session_id = ?").bind(sessionId);
+  SessionInfoPtr sessionInfo = privateSession.find<SessionInfo>().where("session_id = ?").bind(sessionId);
   if(!sessionInfo) {
     WServer::instance()->log("notice") << "stale session not found";
     return;
@@ -203,7 +211,7 @@ void endSessionOnDatabase(string sessionId, long userId) {
 
 StreamingApp::~StreamingApp() {
   WServer::instance()->log("notice") << "Destroying app";
-  if(d->session.login().loggedIn()) {
+  if(d->session->login().loggedIn()) {
     WServer::instance()->ioService().post(boost::bind(endSessionOnDatabase, sessionId(), d->userId));
   }
   d->unregisterSession();
@@ -218,7 +226,7 @@ void StreamingAppPrivate::updateUsersCount()
 //   string query = "SELECT COUNT(*) from session_info WHERE session_ended = 0";
 //   Dbo::Transaction t(session);
 //   int previousSessionsCount = sessionsCount;
-//   sessionsCount = session.query<long>(query).resultValue();
+//   sessionsCount = session->query<long>(query).resultValue();
 //   if(previousSessionsCount != sessionsCount) {
     activeUsersMenuItem->setText(wtr("menu.users").arg(streamingSessions.size()));
     wApp->triggerUpdate();
@@ -266,7 +274,7 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   WContainerWidget* latestCommentsContainer = WW<WContainerWidget>().css("modal fade hide comments-modal").add(latestCommentsBody);
   
   commentsMenuItem->triggered().connect([=](WMenuItem*, _n5){
-    LatestCommentsDialog *dialog = new LatestCommentsDialog{&session, mediaCollection};
+    LatestCommentsDialog *dialog = new LatestCommentsDialog{session, mediaCollection};
     dialog->setAnchorWidget(commentsMenuItem);
     dialog->animateShow({WAnimation::Fade|WAnimation::SlideInFromTop});
     dialog->mediaClicked().connect([=](Media media, _n5) { queueAndPlay(media);});
@@ -294,7 +302,7 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   }
   
   logout->triggered().connect([=](WMenuItem*, _n5) {
-    session.login().logout();
+    session->login().logout();
     wApp->quit();
     wApp->redirect(wApp->bookmarkUrl("/")); 
   });
@@ -330,7 +338,7 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   });
   suggestions->setFilterLength(-1);
   auto addSuggestions = [=](_n6) {
-    Dbo::Transaction t(session);
+    Dbo::Transaction t(*session);
     suggestionsModel->setStringList({});
     searchBox->setText({});
     for(pair<string,Media> media: mediaCollection->collection()) {
@@ -371,30 +379,30 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
   WMenuItem *cleanup = adminMenu->addItem(wtr("cleanup.orphans"));
   
   cleanup->triggered().connect([=](WMenuItem*, _n5) {
-    (new FindOrphansDialog(mediaCollection, &session, &settings))->run();
+    (new FindOrphansDialog(mediaCollection, session, &settings))->run();
   });
   groupsDialog->addStyleClass("menu-groups");
   
   allLog->triggered().connect([=](WMenuItem*, _n5){
-    (new LoggedUsersDialog{&session, &settings, true})->show();
+    (new LoggedUsersDialog{session, &settings, true})->show();
   });
   
   
   groupsDialog->triggered().connect([=](WMenuItem*, _n5) {
-    (new GroupsDialog(&session, &settings))->show();
+    (new GroupsDialog(session, &settings))->show();
   });
   
   WMenuItem *viewAs = adminMenu->addItem(wtr("menu.viewas"));
   viewAs->triggered().connect([=](WMenuItem*, _n5) {
     WDialog *dialog = new WDialog;
-    Dbo::Transaction t(session);
+    Dbo::Transaction t(*session);
     dialog->setTitleBarEnabled(true);
     dialog->setWindowTitle(wtr("menu.viewas"));
     WComboBox *combo = WW<WComboBox>(dialog->contents()).css("span5");
     WStringListModel *model = new WStringListModel(combo);
     combo->setModel(model);
     
-    Dbo::collection<Dbo::ptr<AuthInfo>> usersList = session.find<AuthInfo>().where("email <> '' AND email is not null");
+    Dbo::collection<Dbo::ptr<AuthInfo>> usersList = session->find<AuthInfo>().where("email <> '' AND email is not null");
     for(Dbo::ptr<AuthInfo> userEntry: usersList) {
       model->addString(userEntry->identity("loginname") + " (" + userEntry->email() + ")");
       model->setData(model->rowCount() -1, 0, userEntry->user().id(), UserRole);
@@ -405,8 +413,8 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
     dialog->footer()->addWidget(WW<WPushButton>(wtr("button.cancel")).css("btn btn-inverse").onClick([=](WMouseEvent) { dialog->reject(); }));
     dialog->footer()->addWidget(WW<WPushButton>(wtr("button.ok")).css("btn btn-primary").onClick([=](WMouseEvent) { dialog->accept(); }));
     dialog->finished().connect([=](WDialog::DialogCode code, _n5) {
-      Dbo::Transaction t(session);
-      long userId = session.user().id();
+      Dbo::Transaction t(*session);
+      long userId = session->user().id();
       if(code == WDialog::Accepted) {
         userId = boost::any_cast<long long>(model->data(model->index(combo->currentIndex(), 0), UserRole));
       }
@@ -417,11 +425,11 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
   
   WMenuItem *setMediaRoot = adminMenu->addItem(wtr("menu.configure.app"));
   setMediaRoot->triggered().connect([=](WMenuItem*, _n5) {
-    (new ServerSettingsDialog{&settings, &session, mediaCollection} )->run();
+    (new ServerSettingsDialog{&settings, session, mediaCollection} )->run();
   });
   
   mediaCollectionScanner->triggered().connect([=](WMenuItem*, _n5) {
-    auto dialog = new MediaScannerDialog(&session, &settings, mediaCollection, q);
+    auto dialog = new MediaScannerDialog(session, &settings, mediaCollection, q);
     dialog->scanFinished().connect([=](_n6) {
       mediaCollectionBrowser->reload();
     });
@@ -429,7 +437,7 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
   });
   
   auto activeUsersConnection = activeUsersMenuItem->triggered().connect([=](WMenuItem*, _n5){
-    (new LoggedUsersDialog{&session, &settings})->show();
+    (new LoggedUsersDialog{session, &settings})->show();
   });
   
   
@@ -456,12 +464,12 @@ void StreamingApp::setupGui()
 
   d->playerContainerWidget = new WContainerWidget;
   d->playerContainerWidget->setContentAlignment(AlignCenter);
-  d->playlist = new Playlist{&d->session};
+  d->playlist = new Playlist{d->session};
   
   contentWidget->addWidget(WW<WContainerWidget>().add(d->playlist).setContentAlignment(AlignCenter));
   contentWidget->addWidget(d->playerContainerWidget);
   
-  d->mediaCollectionBrowser = new MediaCollectionBrowser{d->mediaCollection, &d->settings, &d->session};
+  d->mediaCollectionBrowser = new MediaCollectionBrowser{d->mediaCollection, &d->settings, d->session};
   d->mediaCollectionBrowser->play().connect([=](Media media, _n5){
     d->queueAndPlay(media.path());
   });
@@ -478,7 +486,7 @@ void StreamingApp::setupGui()
   
   d->playlist->next().connect(d, &StreamingAppPrivate::play);
   WTimer::singleShot(500, [=](WMouseEvent) {
-    Dbo::Transaction t(d->session);
+    Dbo::Transaction t(*d->session);
     d->mediaCollection->rescan(t);
     d->parseFileParameter();
   });
@@ -496,7 +504,7 @@ void StreamingAppPrivate::parseFileParameter() {
 
 void StreamingApp::refresh() {
   Wt::WApplication::refresh();
-  if(!d->session.login().loggedIn())
+  if(!d->session->login().loggedIn())
     return;
   d->parseFileParameter();
   if(d->player)
@@ -560,9 +568,9 @@ void StreamingAppPrivate::play(Media media) {
     delete player;
   }
   player = settings.newPlayer();
-  Dbo::Transaction t(session);
+  Dbo::Transaction t(*session);
   
-  WLink mediaLink = settings.linkFor( media.path() , &session);
+  WLink mediaLink = settings.linkFor( media.path() , session);
   log("notice") << "found mediaLink: " << mediaLink.url();
   player->addSource( {mediaLink.url(), media.mimetype()} );
   player->setAutoplay(settings.autoplay(media));
@@ -583,8 +591,8 @@ void StreamingAppPrivate::play(Media media) {
   }
   player->ended().connect([=](_n6){
     wApp->setTitle( wtr("site-title"));
-    Dbo::Transaction t(session);
-    SessionInfoPtr sessionInfo = session.find<SessionInfo>().where("session_id = ?").bind(q->sessionId());
+    Dbo::Transaction t(*session);
+    SessionInfoPtr sessionInfo = session->find<SessionInfo>().where("session_id = ?").bind(q->sessionId());
     for(auto detail : sessionInfo.modify()->sessionDetails())
       detail.modify()->ended();
     sessionInfo.flush();
@@ -597,7 +605,7 @@ void StreamingAppPrivate::play(Media media) {
   playerContainerWidget->addWidget(container);
   WContainerWidget* infoBox = new WContainerWidget;
   playerContainerWidget->addWidget(infoBox);
-  playerContainerWidget->addWidget(new CommentsContainerWidget{media.uid(), &session});
+  playerContainerWidget->addWidget(new CommentsContainerWidget{media.uid(), session});
   infoBox->addWidget(new WText{media.title(t)});
   /** TODO: apparently unsupported :(
   infoBox->addWidget(new WBreak() );
@@ -620,8 +628,8 @@ void StreamingAppPrivate::play(Media media) {
     }
   };
   auto setRating = [=] (int rating) {
-    Dbo::Transaction t(session);
-    User::rate(session.user(), media, rating, t);
+    Dbo::Transaction t(*session);
+    User::rate(session->user(), media, rating, t);
     populateRating(t);
     t.commit();
   };
@@ -651,7 +659,7 @@ void StreamingAppPrivate::play(Media media) {
   infoBox->addWidget(downloadLink);
   wApp->setTitle( wtr("site-title") + " - " + media.title(t) );
   log("notice") << "using url " << mediaLink.url();
-  SessionInfoPtr sessionInfo = session.find<SessionInfo>().where("session_id = ?").bind(q->sessionId());
+  SessionInfoPtr sessionInfo = session->find<SessionInfo>().where("session_id = ?").bind(q->sessionId());
   for(auto detail : sessionInfo.modify()->sessionDetails())
     detail.modify()->ended();
   sessionInfo.modify()->sessionDetails().insert(new SessionDetails{media.path()});
