@@ -19,6 +19,12 @@
 #include <iostream>
 #include <fstream>
 
+
+#ifdef HAVE_QT
+#include <QtGui/QApplication>
+#include "qttrayicon.h"
+#endif
+
 using namespace Wt;
 using namespace std;
 using namespace boost;
@@ -101,6 +107,9 @@ bool initServer(int argc, char **argv, WServer &server, po::variables_map &vm) {
   ("server-mode", po::value<string>()->default_value("standalone"), "Server run mode.\nAllowed modes are:\n\
   \t* standalone: Pandorica will run without an external http server.\n\
   \t* managed:    Pandorica will run inside an http server (apache, lighttp, etc). This means you have to take care of shared resource files.")
+#ifdef HAVE_QT
+  ("disable-tray", "Disable system tray icon")
+#endif
   ("help", "shows Pandorica options")
   ("help-full", "shows full options list, including Wt.")
   ;
@@ -216,6 +225,15 @@ int main(int argc, char **argv)
 
     Session::configureAuth();
     expireStaleSessions();
+    
+#ifdef HAVE_QT
+    if(! vm.count("disable-tray")) {
+      QApplication app(argc, argv);
+      QtTrayIcon icon(server);
+      app.exec();
+      return 0;
+    }
+#endif
 
     boost::thread t([&server]{
       std::this_thread::sleep_for(std::chrono::milliseconds{30000});
@@ -224,6 +242,7 @@ int main(int argc, char **argv)
         std::this_thread::sleep_for(std::chrono::milliseconds{30000});
       }
     });
+
     if (server.start()) {
       WServer::waitForShutdown();
       server.stop();

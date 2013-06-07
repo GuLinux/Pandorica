@@ -1,14 +1,15 @@
 cmake_minimum_required(VERSION 2.8)
 set(app_name Pandorica)
 project(${app_name})
-add_definitions(-std=gnu++11)
+add_definitions(-std=gnu++11 -DWT_NO_SLOT_MACROS)
 find_package(Wt REQUIRED)
 execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_magick_cmake_conf ${CMAKE_CURRENT_BINARY_DIR}/imagemagick.cmake )
 INCLUDE (CheckIncludeFiles)
 include(${CMAKE_CURRENT_BINARY_DIR}/imagemagick.cmake)
 include(FindPackageHandleStandardArgs)
+FIND_PACKAGE(Qt4 )
 
-include_directories(${Wt_INCLUDE_DIR} ${CMAKE_SOURCE_DIR} ${MAGICK_INCLUDES} )
+include_directories(${Wt_INCLUDE_DIR} ${QT_INCLUDE_DIR} ${CMAKE_SOURCE_DIR} ${MAGICK_INCLUDES} )
 
 find_path(HAVE_DBO_MYSQL Wt/Dbo/backend/MySQL)
 find_path(HAVE_DBO_POSTGRES Wt/Dbo/backend/Postgres)
@@ -25,13 +26,11 @@ if(${DBO_POSTGRES_FOUND})
 endif(${DBO_POSTGRES_FOUND})
 
 
-
 set(Wt_CONNECTOR_LIBRARY "${Wt_HTTP_LIBRARY}")
 set(Wt_CONNECTOR_DEBUG_LIBRARY ${Wt_HTTP_DEBUG_LIBRARY})
 
 SET(SHARED_FILES_DIR ${CMAKE_INSTALL_PREFIX}/share/${app_name})
 add_definitions(-DSHARED_FILES_DIR="${SHARED_FILES_DIR}")
-
 SET( models_srcs Models/group.cpp Models/user.cpp Models/mediarating.cpp Models/mediaattachment.cpp )
 SET( Wt_Commons_srcs Wt-Commons/whtmltemplateslocalizedstrings.cpp )
 SET( mediascanner_srcs
@@ -46,7 +45,16 @@ SET( player_srcs serversettingsdialog.cpp Models/setting.cpp selectdirectories.c
     player/html5player.cpp
 )
 
-add_executable(${app_name} ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs} ${player_srcs}
+
+if(${QT_FOUND})
+  message("Qt4 headers found: compiling with system tray icon support")
+  add_definitions(-DHAVE_QT)
+  QT4_WRAP_CPP(Pandorica_HEADERS_MOC qttrayicon.h)
+  set(qt_only_classes qttrayicon.cpp ${Pandorica_HEADERS_MOC})
+endif(${QT_FOUND})
+
+add_executable(${app_name} ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs} ${player_srcs} 
+  ${qt_only_classes}
     authpage.cpp
     utils.cpp
     ffmpegmedia.cpp
@@ -86,7 +94,7 @@ SET(BOOST_LIBS
 -lboost_program_options
 )
 
-target_link_libraries(${app_name} -lavformat -lavcodec -lavutil -lffmpegthumbnailer ${BOOST_LIBS} ${WT_LINK_LIBS} ${MAGICK_LIBS})
+target_link_libraries(${app_name} ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY}  -lavformat -lavcodec -lavutil -lffmpegthumbnailer ${BOOST_LIBS} ${WT_LINK_LIBS} ${MAGICK_LIBS})
 install(TARGETS ${app_name} RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 set(TRANSLATION_FILES files/strings.xml files/strings_it.xml )
 INSTALL(FILES ${TRANSLATION_FILES} DESTINATION ${SHARED_FILES_DIR} )
