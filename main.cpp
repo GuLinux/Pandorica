@@ -21,9 +21,10 @@
 
 using namespace Wt;
 using namespace std;
-namespace fs = boost::filesystem;
+using namespace boost;
+namespace fs = filesystem;
 using namespace WtCommons;
-namespace po = boost::program_options;
+namespace po = program_options;
 
 WApplication *createApplication(const WEnvironment& env)
 {
@@ -44,7 +45,7 @@ void expireStaleSessions() {
       oldSession.modify()->end();
     t.commit();
   } catch(std::exception &e) {
-    cerr << "Database error: " << e.what() << '\n';
+    cerr << "Database error: " << e.what() << endl;
   }
 }
 
@@ -69,27 +70,27 @@ struct CmdOptions {
     char **argv_temp = new char*[strings.size()]; int current=0;
     for(string argument: strings) {
       char *pc = new char[argument.size()+1];
-      std::strcpy(pc, argument.c_str());
+      strcpy(pc, argument.c_str());
       argv_temp[current++] = pc;
     }
-    return {strings.size(), argv_temp };
+    return { lexical_cast<int>(strings.size()), argv_temp };
   }
 };
 
 template<class T> T optionValue(po::variables_map &options, string optionName) {
-  return boost::any_cast<T>(options[optionName].value());
+  return any_cast<T>(options[optionName].value());
 }
 
 bool checkForWrongOptions(bool errorCondition, string errorMessage) {
   if(errorCondition)
-    std::cerr << "Error!\t" << errorMessage << "\n\n";
+    cerr << "Error!\t" << errorMessage << "\n\n";
   return errorCondition;
 }
 
 bool initServer(int argc, char **argv, WServer &server, po::variables_map &vm) {
   string configDirectory = string{getenv("HOME")} + "/.config/Pandorica";
   try {
-    boost::filesystem::create_directories(configDirectory);
+    filesystem::create_directories(configDirectory);
   } catch(std::exception &e) {
   }
   po::options_description pandorica_visible_options("Pandorica Options");
@@ -124,7 +125,7 @@ bool initServer(int argc, char **argv, WServer &server, po::variables_map &vm) {
   
   auto po_parsed = po::command_line_parser(argc, argv).options(pandorica_all_options).allow_unregistered().run();
   po::store(po_parsed, vm);
-  vector<string> wt_options = po::collect_unrecognized(po_parsed.options, boost::program_options::include_positional); 
+  vector<string> wt_options = po::collect_unrecognized(po_parsed.options, program_options::include_positional); 
   wt_options.insert(wt_options.begin(), argv[0]);
   bool optionsAreWrong = false;
   
@@ -149,7 +150,7 @@ bool initServer(int argc, char **argv, WServer &server, po::variables_map &vm) {
   wt_options.push_back(optionValue<string>(vm, "docroot"));
   
   wt_options.push_back("--http-port");
-  wt_options.push_back(boost::lexical_cast<string>(optionValue<int>(vm, "http-port")) );
+  wt_options.push_back(lexical_cast<string>(optionValue<int>(vm, "http-port")) );
   std::cerr << "wt options: ";
   for(string option: wt_options)
     std::cerr << " " << option;
@@ -164,7 +165,7 @@ bool initServer(int argc, char **argv, WServer &server, po::variables_map &vm) {
 bool addStaticResources(WServer &server) {
   CompositeResource *staticResources = new CompositeResource();
   string staticDirectory{SHARED_FILES_DIR "/static"};
-  if(!boost::filesystem::is_directory(staticDirectory)) {
+  if(!filesystem::is_directory(staticDirectory)) {
     std::cerr << "Error! Shared files directory " << staticDirectory << " doesn't exist. Perhaps you didn't install Pandorica correctly?\n";
     return false;
   }
@@ -173,7 +174,7 @@ bool addStaticResources(WServer &server) {
     if(fs::is_regular(*it)) {
       string filePath{it->path().string()};
       string fileUrl{filePath};
-      boost::replace_first(fileUrl, staticDirectory, "");
+      replace_first(fileUrl, staticDirectory, "");
       auto resource = new WFileResource{filePath, staticResources};
       if(!extensionsMimetypes[it->path().extension().string()].empty())
         resource->setMimeType(extensionsMimetypes[it->path().extension().string()]);
@@ -205,7 +206,7 @@ int main(int argc, char **argv)
     if(vm.count("dump-schema")) {
       Session session(false);
       ofstream schema;
-      string schemaPath{boost::any_cast<string>(vm["dump-schema"].value())};
+      string schemaPath{any_cast<string>(vm["dump-schema"].value())};
       schema.open( schemaPath );
       schema << session.tableCreationSql();
       schema.close();
@@ -217,10 +218,10 @@ int main(int argc, char **argv)
     expireStaleSessions();
 
     boost::thread t([&server]{
-      this_thread::sleep_for(chrono::milliseconds{30000});
+      std::this_thread::sleep_for(std::chrono::milliseconds{30000});
       while(server.isRunning()) {
         server.expireSessions();
-        this_thread::sleep_for(chrono::milliseconds{30000});
+        std::this_thread::sleep_for(std::chrono::milliseconds{30000});
       }
     });
     if (server.start()) {
@@ -228,8 +229,8 @@ int main(int argc, char **argv)
       server.stop();
     }
   } catch (WServer::Exception& e) {
-    std::cerr << e.what() << std::endl;
+    cerr << e.what() << endl;
   } catch (std::exception &e) {
-    std::cerr << "exception: " << e.what() << std::endl;
+    cerr << "exception: " << e.what() << endl;
   }
 }
