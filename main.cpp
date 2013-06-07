@@ -36,12 +36,16 @@ extern "C" {
 }
 
 void expireStaleSessions() {
-  Session session;
-  Dbo::Transaction t(session);
-  auto oldSessions = session.find<SessionInfo>().where("session_ended = 0").resultList();
-  for(auto oldSession: oldSessions)
-    oldSession.modify()->end();
-  t.commit();
+  try {
+    Session session;
+    Dbo::Transaction t(session);
+    auto oldSessions = session.find<SessionInfo>().where("session_ended = 0").resultList();
+    for(auto oldSession: oldSessions)
+      oldSession.modify()->end();
+    t.commit();
+  } catch(std::exception &e) {
+    cerr << "Database error: " << e.what() << '\n';
+  }
 }
 
 map<string,string> extensionsMimetypes {

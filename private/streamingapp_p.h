@@ -35,7 +35,7 @@ namespace StreamingPrivate {
     Wt::WContainerWidget* playerContainerWidget;
     void setupMenus(bool isAdmin);
     void setupAdminMenus(Wt::WMenu* mainMenu);
-    Session session{true};
+    Session *session;
     StreamingApp *q;
     Wt::WContainerWidget *mainWidget = 0;
     AuthPage *authPage;

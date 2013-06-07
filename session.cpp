@@ -72,6 +72,7 @@ void Session::configureAuth()
     myOAuthServices.push_back(new Wt::Auth::FacebookService(myAuthService));
 }
 
+
 Session::Session(bool full)
   : d(new SessionPrivate)
 {

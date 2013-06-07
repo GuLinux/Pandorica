@@ -38,6 +38,7 @@ public:
     std::string relativePath(std::string mediaPath, Wt::Dbo::Session *session, bool removeTrailingSlash = false) const;
     static void init(boost::program_options::variables_map commandLineOptions);
     static std::string sqlite3DatabasePath();
+    static bool emailVerificationMandatory();
 private:
   StreamingPrivate::SettingsPrivate *const d;
 };
