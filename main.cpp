@@ -88,7 +88,10 @@ bool checkForWrongOptions(bool errorCondition, string errorMessage) {
 
 bool initServer(int argc, char **argv, WServer &server, po::variables_map &vm) {
   string configDirectory = string{getenv("HOME")} + "/.config/Pandorica";
-  boost::filesystem::create_directories(configDirectory);
+  try {
+    boost::filesystem::create_directories(configDirectory);
+  } catch(std::exception &e) {
+  }
   po::options_description pandorica_visible_options("Pandorica Options");
   po::options_description pandorica_general_options("General");
   pandorica_general_options.add_options()
