@@ -31,7 +31,7 @@ class Session : public dbo::Session
 public:
   static void configureAuth();
 
-  Session();
+  Session(bool full = false);
   ~Session();
 
   dbo::ptr<User> user();

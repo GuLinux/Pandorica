@@ -3,6 +3,7 @@
 #include <string>
 #include "media.h"
 #include "settings.h"
+#include <session.h>
 #include <boost/filesystem.hpp>
 #include <Wt/WJavaScript>
 
@@ -34,7 +35,7 @@ namespace StreamingPrivate {
     Wt::WContainerWidget* playerContainerWidget;
     void setupMenus(bool isAdmin);
     void setupAdminMenus(Wt::WMenu* mainMenu);
-    Session session;
+    Session session{true};
     StreamingApp *q;
     Wt::WContainerWidget *mainWidget = 0;
     AuthPage *authPage;

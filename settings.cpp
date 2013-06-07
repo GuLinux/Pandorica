@@ -223,11 +223,20 @@ string Settings::staticPath(const string& relativeUrl)
   return staticDeployPath() + relativeUrl;
 }
 
+string sqlite3DatabasePath_;
 void Settings::init(program_options::variables_map commandLineOptions)
 {
   if( boost::any_cast<string>(commandLineOptions["server-mode"].value()) == "managed")
     staticFilesDeployPath = boost::any_cast<string>(commandLineOptions["static-deploy-path"].value()) ;
+  sqlite3DatabasePath_ = boost::any_cast<string>(commandLineOptions["sqlite3-database-path"].value());
 }
+
+string Settings::sqlite3DatabasePath()
+{
+  return sqlite3DatabasePath_;
+}
+
+
 
 
 

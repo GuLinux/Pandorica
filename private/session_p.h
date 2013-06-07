@@ -14,7 +14,7 @@ class SessionPrivate {
 public:
     void createConnection();
     Wt::Dbo::SqlConnection *connection;
-    UserDatabase *users;
+    UserDatabase *users = 0;
     Wt::Auth::Login login;
 };
 }
