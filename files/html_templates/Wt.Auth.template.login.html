@@ -11,10 +11,12 @@
     </div>
       </div>
       ${</if:oauth>}
+      ${<if:oauth>}
       <div style="padding: 10px; text-align: center;">
     <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#login-form-collapsible">${tr:auth.regular_login_accordion}</button>
       </div>
       <div id="login-form-collapsible" class="collapse">
+      ${</if:oauth>}
       <div class="Wt-fields">
     ${<if:passwords>}
 
@@ -46,5 +48,7 @@
       <div class="Wt-buttons">
     ${lost-password} ${sep} ${register}
       </div>
+    ${<if:oauth>}
     </div>
+    ${</if:oauth>}
   </div>
