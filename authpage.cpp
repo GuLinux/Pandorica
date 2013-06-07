@@ -98,7 +98,7 @@ void AuthPagePrivate::authEvent() {
   WPushButton *refreshButton = WW<WPushButton>(wtr("button.retry")).css("btn btn-link").onClick([this](WMouseEvent) {
     authEvent();
   }).setAttribute("data-dismiss", "alert");
-  if(user.email().empty()) {
+  if(!user.unverifiedEmail().empty()) {
     log("notice") << "User email empty, unconfirmed?";
     Message *message = WW<Message>(wtr("user.need_mail_verification")).addCss("alert-block");
     message->bindWidget("refresh", refreshButton);

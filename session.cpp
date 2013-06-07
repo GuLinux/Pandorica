@@ -24,11 +24,10 @@
 #include <Wt/Dbo/backend/Sqlite3>
 #include <Wt/WApplication>
 #include <Wt/WServer>
-#include <iostream>
-#include <fstream>
 #include "private/session_p.h"
 
 #include "Models/models.h"
+#include "settings.h"
 
 namespace {
   class MyOAuth : public std::vector<const Wt::Auth::OAuthService *>
@@ -73,7 +72,7 @@ void Session::configureAuth()
     myOAuthServices.push_back(new Wt::Auth::FacebookService(myAuthService));
 }
 
-Session::Session()
+Session::Session(bool full)
   : d(new SessionPrivate)
 {
   d->createConnection();
@@ -93,10 +92,9 @@ Session::Session()
   mapClass<MediaAttachment>("media_attachment");
   mapClass<MediaRating>("media_rating");
   mapClass<Setting>("settings");
-  ofstream schema;
-  schema.open("schema.sql");
-  schema << tableCreationSql();
-  schema.close();
+  if(!full)
+    return;
+
   try {
     createTables();
     std::cerr << "Created database." << std::endl;
@@ -104,7 +102,6 @@ Session::Session()
     std::cerr << e.what() << std::endl;
     std::cerr << "Using existing database";
   }
-
   d->users = new UserDatabase(*this);
 }
 
@@ -164,8 +161,7 @@ void SessionPrivate::createConnection()
     return;
   }
 #endif
-  WServer::instance()->log("notice") << "Using sqlite3 connection";
-  connection = new dbo::backend::Sqlite3("videostreaming.sqlite");
+  connection = new dbo::backend::Sqlite3(Settings::sqlite3DatabasePath());
 }
 
 

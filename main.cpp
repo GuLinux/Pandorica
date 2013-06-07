@@ -16,6 +16,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/program_options.hpp>
+#include <iostream>
+#include <fstream>
 
 using namespace Wt;
 using namespace std;
@@ -81,6 +83,8 @@ bool checkForWrongOptions(bool errorCondition, string errorMessage) {
 }
 
 bool initServer(int argc, char **argv, WServer &server, po::variables_map &vm) {
+  string configDirectory = string{getenv("HOME")} + "/.config/Pandorica";
+  boost::filesystem::create_directories(configDirectory);
   po::options_description pandorica_visible_options("Pandorica Options");
   po::options_description pandorica_general_options("General");
   pandorica_general_options.add_options()
@@ -90,16 +94,20 @@ bool initServer(int argc, char **argv, WServer &server, po::variables_map &vm) {
   \t* standalone: Pandorica will run without an external http server.\n\
   \t* managed:    Pandorica will run inside an http server (apache, lighttp, etc). This means you have to take care of shared resource files.")
   ("help", "shows Pandorica options")
-  
   ("help-full", "shows full options list, including Wt.")
   ;
   
+  po::options_description pandorica_db_options("Database Options");
+  pandorica_db_options.add_options()
+  ("sqlite3-database-path", po::value<string>()->default_value(configDirectory + "/Pandorica.sqlite"), "sqlite3 database path.")
+  ("dump-schema", po::value<string>(), "dumps the schema to a file (argument) and exits, useful to manually execute migrations.")
+  ;
   po::options_description pandorica_managed_options("Managed Mode Options");
   pandorica_managed_options.add_options()
   ("static-deploy-path", po::value<string>(), "Path in your web server pointing to Pandorica static files directory (" SHARED_FILES_DIR "/static)")
   ;
   
-  pandorica_visible_options.add(pandorica_general_options).add(pandorica_managed_options);
+  pandorica_visible_options.add(pandorica_general_options).add(pandorica_db_options).add(pandorica_managed_options);
   po::options_description pandorica_invisible_options;
   pandorica_invisible_options.add_options()
   ("docroot", po::value<string>()->default_value("/usr/share/Wt"));
@@ -186,6 +194,17 @@ int main(int argc, char **argv)
       return 1;
     }
     
+    
+    if(vm.count("dump-schema")) {
+      Session session(false);
+      ofstream schema;
+      string schemaPath{boost::any_cast<string>(vm["dump-schema"].value())};
+      schema.open( schemaPath );
+      schema << session.tableCreationSql();
+      schema.close();
+      std::cout << "Schema correctly wrote to " << schemaPath << '\n';
+      return 0;
+  }
 
     Session::configureAuth();
     expireStaleSessions();
