@@ -16,25 +16,3 @@ GNU General Public License for more details (included the COPYING file).
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
-
-
-#include "Models/models.h"
-
-using namespace std;
-
-Group::Group(std::string groupName, bool isAdmin)
-: _groupName(groupName), _isAdmin(isAdmin)
-{
-}
-
-
-list<string> Group::allowedPaths() const
-{
-  if(isAdmin())
-    return {"/"};
-  list<string> paths;
-  for(auto path: groupPaths) {
-    paths.push_back(path->path());
-  }
-  return paths;
-}
