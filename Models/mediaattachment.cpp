@@ -51,14 +51,18 @@ Wt::WLink MediaAttachment::link(Dbo::ptr< MediaAttachment > myPtr, Dbo::Transact
   };
   
   fs::path cacheFile{createPath(cacheDir + '/')};
-  
-  if(!fs::is_directory(cacheFile.parent_path()) && ! fs::create_directory(cacheFile.parent_path()))
-    return {fallback()};
-  if(! fs::exists(cacheFile)) {
-    ofstream myfile (cacheFile.string());
-    for(auto c: _data)
-      myfile << c;
-    myfile.close();
+  try {
+    if(!fs::is_directory(cacheFile.parent_path()) && ! fs::create_directory(cacheFile.parent_path()))
+      return {fallback()};
+    if(! fs::exists(cacheFile)) {
+      ofstream myfile (cacheFile.string());
+      for(auto c: _data)
+        myfile << c;
+      myfile.close();
+    }
+  } catch(std::exception &e) {
+    log("notice") << "Error creating cache file: " << e.what();
+    return fallback();
   }
   if(thumbnailsCacheServerMap.empty()) {
     return {new WFileResource(mimetype(), cacheFile.string(), parent)};
