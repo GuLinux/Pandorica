@@ -457,7 +457,23 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
     });
   });
   adminMenuItem->setMenu(adminMenu);
+  adminMenuItem->setAttributeValue("data-toggle", "popover");
   adminMenuItem->addStyleClass("menu-admin");
+  mediaCollection->scanned().connect([=](_n6) {
+    if(!mediaCollection->collection().empty()) return;
+    adminMenuItem->doJavaScript((boost::format(JS(
+      $('#%s').popover({placement: 'bottom', trigger: 'manual', html: true, title: %s, content: %s});
+      $('#%s').popover('show');
+    ))
+      % adminMenuItem->id()
+      % wtr("empty_media_collection_title").jsStringLiteral()
+      % wtr("empty_media_collection_message").jsStringLiteral()
+      % adminMenuItem->id()
+    ).str());
+    adminMenuItem->clicked().connect([=](WMouseEvent) { adminMenuItem->doJavaScript(
+      (boost::format("$('#%s').popover('hide');") % adminMenuItem->id() ).str() );
+    });
+  });
 }
 
 
