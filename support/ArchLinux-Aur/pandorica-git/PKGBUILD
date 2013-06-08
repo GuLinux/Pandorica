@@ -1,7 +1,6 @@
 # Maintainer: Marco Gulino <marco.gulino@gmail.com> 
-
 pkgname=pandorica
-pkgver=0.1
+pkgver=20130608
 pkgrel=0
 pkgdesc="Simple yet powerful Web Media Player"
 arch=('i686' 'x86_64')
