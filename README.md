@@ -1,7 +1,7 @@
 # Pandorica #
 Simple yet powerful Web Media Player
 
-This HTML5-based Media Player will allow you to stream your multimedia collection in a local network, or over the web. 
+This HTML5-based Media Player will allow you to stream your multimedia collection in a local network, or over the web.  
 It's written in C++ (C++11,  to be precise), using [Wt](http://www.webtoolkit.eu/wt), [Twitter Bootstrap](http://twitter.github.io/bootstrap) and [MediaElement.js](http://mediaelementjs.com/)
 
 ## Dependencies ##
