@@ -1,4 +1,3 @@
-#!/bin/bash
 
 outfile="$1"
 
