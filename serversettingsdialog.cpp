@@ -165,8 +165,10 @@ WContainerWidget* ServerSettingsDialogPrivate::cachePage()
     t.commit();
   });
   WW<WGroupBox>(wtr("configure.app.cache_deploy_path"), cacheParamsContainer).css("fieldset-small").add(
-    WW<WContainerWidget>().css("input-append").add(editDeployPath).add(saveDeployPath)
-  );
+    WW<WContainerWidget>().css("input-append").setInline(true)
+      .add(editDeployPath)
+      .add(saveDeployPath)
+  ).add(Utils::help("cache-deploy-path-title", "cache-deploy-path-message", "top"));
   return container;
 }
 
