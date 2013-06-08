@@ -31,6 +31,7 @@
 #include <Wt/Mail/Mailbox>
 #include <Wt/Mail/Message>
 #include <Wt/WImage>
+#include <Wt/WTimer>
 #include "Wt-Commons/wt_helpers.h"
 
 using namespace std;
@@ -111,13 +112,37 @@ WInteractWidget* Utils::help(string titleKey, string contentKey, string side, WL
   .setAttribute("data-toggle", "popover")
   .setAttribute("data-placement", side)
   .setAttribute("data-html", "true")
+  .setAttribute("data-trigger", "manual")
   ;
+  
   image->doJavaScript(
-    (boost::format("$('#%s').popover({title: %s, content: %s})") % image->id() 
+    (boost::format("$('#%s').popover({ title: %s, content: %s, }); ") % image->id() 
     % wtr(titleKey).jsStringLiteral()
     % wtr(contentKey).jsStringLiteral()
     ).str()
   );
+  image->clicked().connect([=](WMouseEvent){
+    image->doJavaScript( (boost::format(JS(
+      var myself = '#%s';
+      var shouldShow = ! $(myself).hasClass('help-popover-shown');
+      $('.help-popover-shown').popover('hide');
+      $('.help-popover-shown').removeClass('help-popover-shown');
+      if(!shouldShow) return;
+      setTimeout(function(){
+        $(myself).addClass('help-popover-shown');
+        $(myself).popover('show');
+      }, 100);
+    ))
+      % image->id()
+    ).str());
+  });
+    
+//   image->doJavaScript(
+//     (boost::format("$('#%s').popover({title: %s, content: %s})") % image->id() 
+//     % wtr(titleKey).jsStringLiteral()
+//     % wtr(contentKey).jsStringLiteral()
+//     ).str()
+//   );
   image->resize(size, size);
   return image;  
 }
