@@ -77,7 +77,7 @@ add_executable(${app_name} ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs
 )
 
 
-string(TOLOWER ${CMAKE_BUILD_TYPE} build_type)
+string(TOLOWER "${CMAKE_BUILD_TYPE}" build_type)
 if("${build_type}" STREQUAL "debug")
   message("Linking to WT Debug Libraries")
   set(WT_LINK_LIBS ${Wt_DEBUG_LIBRARY} ${Wt_DBO_DEBUG_LIBRARY} ${Wt_DBOPOSTGRES_DEBUG_LIBRARY} ${Wt_DBOMYSQL_DEBUG_LIBRARY} ${Wt_DBOSQLITE3_DEBUG_LIBRARY} ${Wt_CONNECTOR_DEBUG_LIBRARY} )
