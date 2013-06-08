@@ -1,7 +1,7 @@
 # Pandorica #
 Simple yet powerful Web Media Player
 
-This HTML5-based Media Player will allow you to stream your multimedia collection in a local network, or over the web.
+This HTML5-based Media Player will allow you to stream your multimedia collection in a local network, or over the web.  
 It supports the most popular web media formats, such as
 * mp3
 * ogg
@@ -10,6 +10,7 @@ It supports the most popular web media formats, such as
 * mp4 (audio/video)
 * flv
 It also supports subtitles, file searching via media title or file name, media cover selection and much more.
+
 It's written in C++ (C++11,  to be precise), using [Wt](http://www.webtoolkit.eu/wt), [Twitter Bootstrap](http://twitter.github.io/bootstrap) and [MediaElement.js](http://mediaelementjs.com/)
 
 ## Dependencies ##
