@@ -115,7 +115,7 @@ GroupsDialog::GroupsDialog(Session* session, Settings* settings): WDialog()
       currentGroups->elementAt(row, 1)->addWidget(WW<WPushButton>(wtr("groups.users")).css("btn btn-small btn-primary").onClick([=](WMouseEvent) {
         (new UsersInGroupDialog{group, session})->show(); 
       }));
-      currentGroups->elementAt(row, 2)->addWidget(WW<WPushButton>(wtr("groups.paths")).css("btn btn-small btn-info").onClick([=](WMouseEvent) {
+      currentGroups->elementAt(row, 2)->addWidget(WW<WPushButton>(wtr("groups.paths")).setEnabled(!group->isAdmin()).css("btn btn-small btn-info").onClick([=](WMouseEvent) {
         (new GroupDirectoriesDialog{group, session, settings})->show();
       }));
       currentGroups->elementAt(row, 3)->addWidget(WW<WPushButton>(wtr("button.remove")).css("btn btn-small btn-danger").onClick([=](WMouseEvent) {
