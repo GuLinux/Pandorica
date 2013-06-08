@@ -1,0 +1,43 @@
+# Maintainer: Marco Gulino <marco.gulino@gmail.com> 
+
+pkgname=pandorica
+pkgver=0.1
+pkgrel=0
+pkgdesc="Simple yet powerful Web Media Player"
+arch=('i686' 'x86_64')
+url="http://blog.gulinux.net/pandorica"
+license=('GPL')
+groups=()
+depends=('wt' 'graphicsmagick' 'boost' 'ffmpeg' 'ffmpegthumbnailer' 'sqlite')
+optdepends=('qt4')
+makedepends=('git' 'cmake')
+provides=()
+conflicts=()
+replaces=()
+backup=()
+options=()
+#source=( http://gulinux.net/files/$pkgname-$pkgver.tar.gz )
+noextract=()
+
+_gitroot='https://github.com/rockman81/Pandorica.git'
+_gitname='Pandorica'
+
+build() {
+  cd "${srcdir}/"
+  if [ -d "${srcdir}"/${_gitname} ] ; then
+   cd "${srcdir}/${_gitname}" && git pull origin
+   msg "The local files are updated."
+  else
+   git clone ${_gitroot}
+   cd ${_gitname}
+  fi
+
+  git submodule init
+  git submodule update
+  mkdir build -p
+  cd build
+  cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=release -DQT_QMAKE_EXECUTABLE=qmake-qt4 ..
+  make || return 1
+  make DESTDIR=${pkgdir} install || return 1
+}
+

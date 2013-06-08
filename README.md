@@ -27,6 +27,7 @@ Also make sure to have a recent gcc version supporting C++11.
 At least one of
 * [Sqlite3](http://www.sqlite.org/)
 * [PostgreSQL](http://www.postgresql.org/)
+
 Mysql/MariaDB will probably be supported soon.
 
 ## Quick Start ##

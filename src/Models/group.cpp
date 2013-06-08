@@ -1,4 +1,5 @@
-#include "group.h"
+#include "Models/models.h"
+
 using namespace std;
 
 Group::Group(std::string groupName, bool isAdmin)
