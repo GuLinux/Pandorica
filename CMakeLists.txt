@@ -30,7 +30,8 @@ set(Wt_CONNECTOR_LIBRARY "${Wt_HTTP_LIBRARY}")
 set(Wt_CONNECTOR_DEBUG_LIBRARY ${Wt_HTTP_DEBUG_LIBRARY})
 
 SET(SHARED_FILES_DIR ${CMAKE_INSTALL_PREFIX}/share/${app_name})
-add_definitions(-DSHARED_FILES_DIR="${SHARED_FILES_DIR}")
+add_definitions(-DSHARED_FILES_DIR="${SHARED_FILES_DIR}" )
+
 SET( models_srcs Models/group.cpp Models/user.cpp Models/mediarating.cpp Models/mediaattachment.cpp )
 SET( Wt_Commons_srcs Wt-Commons/whtmltemplateslocalizedstrings.cpp )
 SET( mediascanner_srcs
@@ -77,13 +78,13 @@ add_executable(${app_name} ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs
 
 
 string(TOLOWER ${CMAKE_BUILD_TYPE} build_type)
-if(${build_type} STREQUAL "debug")
+if("${build_type}" STREQUAL "debug")
   message("Linking to WT Debug Libraries")
   set(WT_LINK_LIBS ${Wt_DEBUG_LIBRARY} ${Wt_DBO_DEBUG_LIBRARY} ${Wt_DBOPOSTGRES_DEBUG_LIBRARY} ${Wt_DBOMYSQL_DEBUG_LIBRARY} ${Wt_DBOSQLITE3_DEBUG_LIBRARY} ${Wt_CONNECTOR_DEBUG_LIBRARY} )
-else(${build_type} STREQUAL "debug")
+else("${build_type}" STREQUAL "debug")
   message("Linking to WT Release Libraries")
   set(WT_LINK_LIBS ${Wt_LIBRARY} ${Wt_DBO_LIBRARY} ${Wt_DBOPOSTGRES_LIBRARY} ${Wt_DBOMYSQL_LIBRARY} ${Wt_DBOSQLITE3_LIBRARY} ${Wt_CONNECTOR_LIBRARY})
-endif(${build_type} STREQUAL "debug")
+endif("${build_type}" STREQUAL "debug")
 
 SET(BOOST_LIBS 
 -lboost_signals
