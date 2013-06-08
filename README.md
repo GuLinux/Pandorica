@@ -19,7 +19,18 @@ Mysql/MariaDB will probably be supported soon.
 
 ## Quick Start ##
 First, make sure to have all dependencies installed (if you are compiling from source code, you need the headers packages too).
-
+Then, clone the repository and update the submodules.
+    $ git clone https://github.com/rockman81/Pandorica.git
+    $ cd Pandorica/
+    $ git submodule init
+    $ git submodule update
+Configure and build *Pandorica*
+    $ mkdir build
+    $ cd build
+    $ cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/usr
+    $ make
+    $ sudo make install
+Then, just run the '*Pandorica*' command and open your browser to http://localhost:8080.
 
 ## Advanced configuration and customization ##
 Use the --help option for the most common options,  and the --help-full option to see all command line options (including Wt default ones).
