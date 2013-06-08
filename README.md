@@ -1,7 +1,8 @@
 # Pandorica #
 Simple yet powerful Web Media Player
 
-This HTML5-based Media Player will allow you to stream your multimedia collection in a local network, or over the web.
+This HTML5-based Media Player will allow you to stream your multimedia collection in a local network, or over the web. 
+It's written in C++ (C++11,  to be precise),  using [Wt](http://www.webtoolkit.eu/wt), [Twitter Bootstrap](http://twitter.github.io/bootstrap) and [MediaElement.js](http://mediaelementjs.com/)
 
 ## Dependencies ##
 * [Wt](http://www.webtoolkit.eu/wt) 3.3.0 or above
@@ -11,6 +12,8 @@ This HTML5-based Media Player will allow you to stream your multimedia collectio
 * [FFmpeg Thumbnailer](https://code.google.com/p/ffmpegthumbnailer/)
 * [Qt4](http://qt-project.org/) (Optional, to add a system tray icon when your server is running)
 
+Also make sure to have a recent gcc version supporting C++11.
+
 ### Database ###
 At least one of
 * [Sqlite3](http://www.sqlite.org/)
@@ -19,6 +22,7 @@ Mysql/MariaDB will probably be supported soon.
 
 ## Quick Start ##
 First, make sure to have all dependencies installed (if you are compiling from source code, you need the headers packages too). 
+
 Then, clone the repository and update the submodules. 
 
     $ git clone https://github.com/rockman81/Pandorica.git
