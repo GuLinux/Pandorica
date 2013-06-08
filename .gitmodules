@@ -1,3 +1,3 @@
 [submodule "Wt-Commons"]
 	path = Wt-Commons
-	url = ssh://git@git.gulinux.net/home/git/repos/private/marco/Wt-Commons.git
+	url = http://git.gulinux.net/repos/public/Wt-Commons.git
