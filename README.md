@@ -47,7 +47,7 @@ Configure and build *Pandorica*
     $ make
     $ sudo make install
     
-Then, just run the '*Pandorica*' command and open your browser to http://localhost:8080.
+Then, just run the '*Pandorica*' command. When used with no arguments,  *Pandorica* will run on [localhost:8080](http://localhost:8080), and store your media database in $HOME/.config/Pandorica/Pandorica.sqlite
 
 ## Advanced configuration and customization ##
 Use the --help option for the most common options,  and the --help-full option to see all command line options (including Wt default ones). 
