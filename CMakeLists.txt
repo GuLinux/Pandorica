@@ -78,13 +78,13 @@ add_executable(${app_name} ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs
 
 
 string(TOLOWER "x${CMAKE_BUILD_TYPE}" build_type)
-if("x${build_type}" STREQUAL "xdebug")
+if("${build_type}" STREQUAL "xdebug")
   message("Linking to WT Debug Libraries")
   set(WT_LINK_LIBS ${Wt_DEBUG_LIBRARY} ${Wt_DBO_DEBUG_LIBRARY} ${Wt_DBOPOSTGRES_DEBUG_LIBRARY} ${Wt_DBOMYSQL_DEBUG_LIBRARY} ${Wt_DBOSQLITE3_DEBUG_LIBRARY} ${Wt_CONNECTOR_DEBUG_LIBRARY} )
-else("x${build_type}" STREQUAL "xdebug")
+else("${build_type}" STREQUAL "xdebug")
   message("Linking to WT Release Libraries")
   set(WT_LINK_LIBS ${Wt_LIBRARY} ${Wt_DBO_LIBRARY} ${Wt_DBOPOSTGRES_LIBRARY} ${Wt_DBOMYSQL_LIBRARY} ${Wt_DBOSQLITE3_LIBRARY} ${Wt_CONNECTOR_LIBRARY})
-endif("x${build_type}" STREQUAL "xdebug")
+endif("${build_type}" STREQUAL "xdebug")
 
 SET(BOOST_LIBS 
 -lboost_signals
