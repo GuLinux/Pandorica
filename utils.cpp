@@ -136,13 +136,6 @@ WInteractWidget* Utils::help(string titleKey, string contentKey, string side, WL
       % image->id()
     ).str());
   });
-    
-//   image->doJavaScript(
-//     (boost::format("$('#%s').popover({title: %s, content: %s})") % image->id() 
-//     % wtr(titleKey).jsStringLiteral()
-//     % wtr(contentKey).jsStringLiteral()
-//     ).str()
-//   );
   image->resize(size, size);
   return image;  
 }
