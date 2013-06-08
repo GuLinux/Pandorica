@@ -9,6 +9,7 @@ It supports the most popular web media formats, such as
 * webm
 * mp4 (audio/video)
 * flv
+
 It also supports subtitles, file searching via media title or file name, media cover selection and much more.
 
 It's written in C++ (C++11,  to be precise), using [Wt](http://www.webtoolkit.eu/wt), [Twitter Bootstrap](http://twitter.github.io/bootstrap) and [MediaElement.js](http://mediaelementjs.com/)
