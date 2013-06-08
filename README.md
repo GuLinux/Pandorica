@@ -4,12 +4,12 @@ Simple yet powerful Web Media Player
 This HTML5-based Media Player will allow you to stream your multimedia collection in a local network, or over the web.
 
 ## Dependencies ##
-[Wt](http://www.webtoolkit.eu/wt) 3.3.0 or above
-[Boost](http://boost.org)
-[GraphicsMagick++](http://www.graphicsmagick.org/Magick++/) ([ImageMagick++](http://www.imagemagick.org/script/index.php) should work too, but I found it much less reliable).
-[FFmpeg binary,  libavformat/libavcodec/libavutil](http://www.ffmpeg.org)
-[FFmpeg Thumbnailer](https://code.google.com/p/ffmpegthumbnailer/)
-[Qt4](http://qt-project.org/) (Optional, to add a system tray icon when your server is running)
+* [Wt](http://www.webtoolkit.eu/wt) 3.3.0 or above
+* [Boost](http://boost.org)
+* [GraphicsMagick++](http://www.graphicsmagick.org/Magick++/) ([ImageMagick++](http://www.imagemagick.org/script/index.php) should work too, but I found it much less reliable)
+* [FFmpeg binary,  libavformat/libavcodec/libavutil](http://www.ffmpeg.org)
+* [FFmpeg Thumbnailer](https://code.google.com/p/ffmpegthumbnailer/)
+* [Qt4](http://qt-project.org/) (Optional, to add a system tray icon when your server is running)
 
 ### Database ###
 At least one of
