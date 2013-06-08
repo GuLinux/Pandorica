@@ -231,3 +231,12 @@
   margin-right: auto;
 }
 
+body {
+  background-image:url('pandorica.png');
+  background-repeat:no-repeat;
+  background-attachment:fixed;
+  
+  background-position-x: 50%;
+  background-position-y: 35%;
+}
+
