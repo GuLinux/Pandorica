@@ -35,8 +35,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WProgressBar>
 #include <Wt/Dbo/backend/Postgres>
 #include <Wt/WGroupBox>
+#include <Wt/WIOService>
 #include <thread>
-#include <boost/thread.hpp>
 
 using namespace Wt;
 using namespace std;
@@ -130,7 +130,7 @@ void MediaScannerDialog::run()
       stepContainers.second.content->clear();
     wApp->triggerUpdate();
   };
-  boost::thread t( boost::bind(&MediaScannerDialogPrivate::scanMedias, d, wApp, updateProgressBar, enableCloseButton ) );
+  WServer::instance()->ioService().post(boost::bind(&MediaScannerDialogPrivate::scanMedias, d, wApp, updateProgressBar, enableCloseButton ));
 }
 
 void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, UpdateGuiProgress updateGuiProgress, OnScanFinish onScanFinish)

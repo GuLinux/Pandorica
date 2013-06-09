@@ -34,7 +34,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <mediacollection.h>
 #include <player/html5player.h>
 #include <settings.h>
-#include <boost/thread.hpp>
 #include <boost/format.hpp>
 
 #include <libffmpegthumbnailer/videothumbnailer.h>
@@ -44,6 +43,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <random>
 #include <thread>
 #include <Wt/WFileUpload>
+#include <Wt/WCheckBox>
 #include <algorithm>
 #include <iostream>
 #include <fstream>
@@ -169,6 +169,13 @@ void CreateThumbnailsPrivate::addImageChooser(Wt::WContainerWidget* container)
     ImageUploader *imageUploader = new ImageUploader;
     
     container->addWidget(imageUploader);
+    WCheckBox *skipImageCheckbox = new WCheckBox(wtr("create_thumbnails_no_image_checkbox"), container);
+    skipImageCheckbox->changed().connect([=](_n1){
+      // TODO: if we select "No Image", the thumbnail is not saved.
+      // This means that on next run, it will be asked again.
+      // Should should try and save some kind of flag instead?
+      result = skipImageCheckbox->isChecked() ? MediaScannerStep::Skip : MediaScannerStep::Waiting;
+    });
     WContainerWidget *imageContainer = new WContainerWidget;
     imageContainer->setContentAlignment(AlignCenter);
     container->addWidget(imageContainer);

@@ -26,8 +26,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <chrono>
 #include <Wt/WContainerWidget>
 #include <Wt/WText>
+#include <Wt/WIOService>
 #include <boost/format.hpp>
-#include <boost/thread.hpp>
 #include "ffmpegmedia.h"
 #include "session.h"
 #include <iostream>
@@ -80,7 +80,7 @@ void SaveSubtitlesToDatabase::run(FFMPEGMedia* ffmpegMedia, Media media, WContai
   d->media = media;
   transaction->session().execute("DELETE FROM media_attachment WHERE media_id = ? AND type = 'subtitles'").bind(media.uid());
   d->subtitlesToSave.clear();
-  boost::thread newThread(boost::bind(&SaveSubtitlesToDatabasePrivate::extractSubtitles, d, subtitles, container));
+  WServer::instance()->ioService().post(boost::bind(&SaveSubtitlesToDatabasePrivate::extractSubtitles, d, subtitles, container));
 }
 
 void SaveSubtitlesToDatabasePrivate::extractSubtitles(vector< FFMPEG::Stream > subtitles, WContainerWidget* container)

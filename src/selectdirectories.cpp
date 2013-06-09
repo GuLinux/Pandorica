@@ -27,8 +27,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WStandardItemModel>
 #include <Wt/WStandardItem>
 #include <Wt/WContainerWidget>
+#include <Wt/WIOService>
 #include <boost/filesystem.hpp>
-#include <boost/thread.hpp>
 #include "Wt-Commons/wt_helpers.h"
 
 
@@ -90,7 +90,7 @@ SelectDirectories::SelectDirectories(vector< string > rootPaths, vector< string 
     
     tree->expanded().connect([=](WModelIndex index, _n5) {
       WStandardItem *item = d->model->itemFromIndex(index);
-      boost::thread t([=] {
+      WServer::instance()->ioService().post([=] {
         for(int i=0; i<item->rowCount(); i++) {
           d->addSubItems(item->child(i));
         }

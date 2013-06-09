@@ -65,7 +65,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WStackedWidget>
 #include <Wt/WLineEdit>
 #include <boost/format.hpp>
-#include <boost/thread.hpp>
 #include <Wt/WSuggestionPopup>
 #include <Wt/WStringListModel>
 #include <Wt/WSortFilterProxyModel>
@@ -422,7 +421,11 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
         userId = boost::any_cast<long long>(model->data(model->index(combo->currentIndex(), 0), UserRole));
       }
       mediaCollection->setUserId(userId);
-      mediaCollection->rescan(t);
+      WServer::instance()->ioService().post([=] {
+        Session threadSession;
+        Dbo::Transaction t(threadSession);
+        mediaCollection->rescan(t);
+      });
     });
   });
   
@@ -504,11 +507,14 @@ void StreamingApp::setupGui()
 
   
   d->playlist->next().connect(d, &StreamingAppPrivate::play);
-  WTimer::singleShot(500, [=](WMouseEvent) {
-    Dbo::Transaction t(*d->session);
+  string sessionId = wApp->sessionId();
+  WServer::instance()->ioService().post([=]{
+    Session threadSession;
+    Dbo::Transaction t(threadSession);
     d->mediaCollection->rescan(t);
-    d->parseFileParameter();
+    WServer::instance()->post(sessionId, [=] { d->parseFileParameter(); });
   });
+  
 }
 
 

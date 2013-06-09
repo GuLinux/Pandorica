@@ -44,7 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WStringListModel>
 #include <Wt/WComboBox>
 #include <Wt/WProgressBar>
-#include <boost/thread.hpp>
+#include <Wt/WIOService>
 #include <boost/format.hpp>
 #include <boost/algorithm/string/regex.hpp>
 #include <thread>
@@ -146,13 +146,13 @@ FindOrphansDialog::FindOrphansDialog(MediaCollection* mediaCollection, Session* 
 void FindOrphansDialog::run()
 {
   show();
-  boost::thread populatMovedOrphansThread(boost::bind(&FindOrphansDialogPrivate::populateMovedFiles, d, wApp));
+  WServer::instance()->ioService().post(boost::bind(&FindOrphansDialogPrivate::populateMovedFiles, d, wApp));
 }
 
 void FindOrphansDialog::nextButtonClicked() {
   d->nextButton->disable();
   d->closeButton->disable();
-  boost::thread applyMigrationsThread(boost::bind(&FindOrphansDialogPrivate::applyMigrations, d, wApp));
+  WServer::instance()->ioService().post(boost::bind(&FindOrphansDialogPrivate::applyMigrations, d, wApp));
 }
 
 void FindOrphansDialogPrivate::applyMigrations(WApplication* app)
