@@ -30,7 +30,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WTimer>
 #include <Wt/WLabel>
 #include <Wt/WTime>
-#include <boost/thread.hpp>
 #include "Wt-Commons/wt_helpers.h"
 #include <session.h>
 #include <mediacollection.h>

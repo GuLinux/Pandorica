@@ -28,7 +28,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "mediacollection.h"
 #include "selectdirectories.h"
 #include "Models/setting.h"
-#include <boost/thread.hpp>
 #include <Wt/WPushButton>
 #include <Wt/WStackedWidget>
 #include <Wt/WButtonGroup>
@@ -40,6 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WCheckBox>
 #include <Wt/WTemplate>
 #include <Wt/WImage>
+#include <Wt/WIOService>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include "utils.h"
@@ -91,7 +91,7 @@ ServerSettingsDialog::ServerSettingsDialog(Settings* settings, Session* session,
   }));
   footer()->addWidget(d->buttonOk = WW<WPushButton>(wtr("button.ok")).disable().css("btn btn-primary").onClick([=](WMouseEvent) { accept(); }));
   finished().connect([=](WDialog::DialogCode, _n5) {
-    boost::thread t([=]{
+    WServer::instance()->ioService().post([=]{
       Session privateSession;
       Dbo::Transaction t(privateSession);
       mediaCollection->rescan(t);
