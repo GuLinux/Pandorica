@@ -37,7 +37,7 @@ namespace fs = boost::filesystem;
 
 
 map<string,string> supportedMimetypes{
-  {".mp4", "video/mp4"}, {".m4v", "video/mp4"}, {".ogv", "video/ogg"}, {".webm", "video/webm"}, {".flv", "video/x-flv"},
+  {".mp4", "video/mp4"}, {".m4v", "video/mp4"}, {".mov", "video/mp4"} /* TODO: check */, {".ogv", "video/ogg"}, {".webm", "video/webm"}, {".flv", "video/x-flv"},
   {".ogg", "audio/ogg"}, {".mp3", "audio/mpeg"}
 };
 
