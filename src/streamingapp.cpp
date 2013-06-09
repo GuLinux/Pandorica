@@ -111,6 +111,7 @@ StreamingAppPrivate::StreamingAppPrivate(StreamingApp *q) : q(q), playSignal(q, 
 StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(environment), d(new StreamingAppPrivate(this)) {
   useStyleSheet( wApp->resourcesUrl() + "form.css");
   useStyleSheet(Settings::staticPath("/streamingapp.css"));
+  addMetaLink(Settings::staticPath("/icons/favicon.png"), "shortcut icon", string{}, string{}, string{}, string{}, false);
   requireJQuery(Settings::staticPath("/jquery.min.js"));
   require(Settings::staticPath("/bootstrap/js/bootstrap.min.js"));
   require(Settings::staticPath("/mediaelement/mediaelement-and-player.min.js"));
