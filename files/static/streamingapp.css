@@ -13,6 +13,12 @@
 	margin-right: auto;
 }
 
+/** Fix for rail too big in android **/
+.mejs-rime-rail {
+  margin-right: -5px;
+  margin-left: -5px;
+}
+
 .small-text {
 	font-size: smaller!important;
 }
