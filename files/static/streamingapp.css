@@ -13,11 +13,6 @@
 	margin-right: auto;
 }
 
-/** Fix for rail too big in android **/
-.mejs-time-rail {
-  margin-right: -12px!important;
-  margin-left: -12px!important;
-}
 
 .small-text {
 	font-size: smaller!important;
