@@ -165,7 +165,7 @@ void HTML5Player::playerReady()
 {
   
   map<string,string> mediaElementOptions = {
-    //{"AndroidUseNativeControls", "true"}
+    {"AndroidUseNativeControls", "true"}
   };
   
   // works in theory, but it goes with double subs on chrome 
