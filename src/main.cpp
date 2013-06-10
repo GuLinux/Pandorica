@@ -42,6 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef HAVE_QT
 #include <QtGui/QApplication>
+#include <QtGui/QX11Info>
 #include "qttrayicon.h"
 #endif
 
@@ -247,7 +248,10 @@ int main(int argc, char **argv)
     expireStaleSessions();
     
 #ifdef HAVE_QT
-    if(! vm.count("disable-tray")) {
+    string display = getenv("DISPLAY") ? string{getenv("DISPLAY")} : string{};
+    if(display.empty())
+      cerr << "Found no X11 display available, running without Qt Tray Icon\n";
+    if(! vm.count("disable-tray") && !display.empty() ) {
       QApplication app(argc, argv);
       QtTrayIcon icon(server);
       app.exec();
