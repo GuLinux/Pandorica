@@ -1,7 +1,7 @@
 # Pandorica #
 Simple yet powerful Web Media Player
 
-This HTML5-based Media Player will allow you to stream your multimedia collection in a local network, or over the web.  
+This HTML5-based Media Player will allow you to stream your multimedia collection in a local network, or over the web.
 It supports the most popular web media formats, such as
 * mp3
 * ogg
@@ -32,37 +32,50 @@ At least one of
 Mysql/MariaDB will probably be supported soon.
 
 ## Quick Start ##
-First, make sure to have all dependencies installed (if you are compiling from source code, you need the headers packages too). 
+First, make sure to have all dependencies installed (if you are compiling from source code, you need the headers packages too).
 
-Then, clone the repository and update the submodules. 
+Then, clone the repository and update the submodules.
 
     $ git clone https://github.com/rockman81/Pandorica.git
     $ cd Pandorica/
     $ git submodule init
     $ git submodule update
-    
-Configure and build *Pandorica* 
+
+Configure and build *Pandorica*
 
     $ mkdir build
     $ cd build
     $ cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/usr
     $ make
     $ sudo make install
-    
+
 Then, just run the '*Pandorica*' command. When used with no arguments,  *Pandorica* will run on [localhost:8080](http://localhost:8080), and store your media database in $HOME/.config/Pandorica/Pandorica.sqlite
 
 ## Advanced configuration and customization ##
-Use the --help option for the most common options,  and the --help-full option to see all command line options (including Wt default ones). 
+Use the --help option for the most common options,  and the --help-full option to see all command line options (including Wt default ones).
 Lookup the official [Wt Reference Page](http://www.webtoolkit.eu:3080/wt/doc/reference/html/overview.html#wthttpd) for a detailed overview.
 
-*Pandorica* also uses some extra configuration properties. 
+*Pandorica* also uses some extra configuration properties.
 You can set them in the "properties" section of your *wt_config.xml* file (usually located in /etc/wt, you can use a different one with the "-c" option).
+
+### Running in an existing webserver ###
+If you want to publish your *Pandorica* box over the internet it is highly reccomended to run it inside an existing web server installation (like apache, lighttpd, nginx)
+Follow these steps:
+* Configure your webserver to forward requests to *Pandorica*. You can achieve this by configuring *mod_proxy* in your webserver.
+* Configure some alias paths in your webserver. For instance, you will need the Wt resources folder (/usr/share/Wt/resources/) and *Pandorica* static resources (/usr/share/Pandorica/static/). Wt resources should be aliased as "/resources" on your webserver (you can configure it in your wt_config.xml file). You can choose *Pandorica* static resources path, and tell *Pandorica* this path with the --static-deploy-path argument.
+* Optionally, but reccomended, configure a PostgreSQL connection (see below)
+* Also optional, select a different http port in *Pandorica* if the default (8080) is busy with the --http-port argument
+After completing these steps, you can run *Pandorica* in managed mode:
+    $ Pandorica --server-mode managed --static-deploy-path /pandorica-static
+Or, if you configured your webserver mod_proxy to deploy *Pandorica* as a subdirectory:
+    $ Pandorica --server-mode managed --static-deploy-path /pandorica-static --deploy-path /Pandorica
+
 
 ### PostgreSQL connection parameters ###
 Example property entry:
 
     <property name="psql-connection">application_name=streamingapp host=localhost port=5432 dbname=streaming_app_database user=streamingapp_pg_username password=streamingapp_pg_password</property>
-    
+
 If *psql-connection* property is set, *Pandorica* will **not** use the Sqlite3 connector.
 
 ### Authentication and Email settings ###
@@ -70,7 +83,7 @@ If *psql-connection* property is set, *Pandorica* will **not** use the Sqlite3 c
 Email verification (strongly suggested if you are deploying your *Pandorica* box on the internet):
 
     <property name="email-verification-mandatory">true</property>
-    
+
 Email addresses:
 
     <!-- Streaming App settings -->
@@ -80,9 +93,9 @@ Email addresses:
     <property name="admin-mail-name">StreamingApp Admin</message>
     <property name="admin-mail-address">admin@localhost</message>
 
-Remember to install a local SMTP server to relay emails, particularly if you set email-verification-mandatory true. 
+Remember to install a local SMTP server to relay emails, particularly if you set email-verification-mandatory true.
 If you don't,  your users will not be able to login!
-    
+
 You can also enable OAuth authentication: [Google](http://www.webtoolkit.eu/wt/doc/reference/html/classWt_1_1Auth_1_1GoogleService.html#details) and [Facebook](http://www.webtoolkit.eu/wt/doc/reference/html/classWt_1_1Auth_1_1FacebookService.html#details) providers are supported
 
 ## Credits ##
