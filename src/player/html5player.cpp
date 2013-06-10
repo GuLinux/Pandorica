@@ -34,7 +34,8 @@ using namespace boost;
 using namespace WtCommons;
 
 HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
-  : WContainerWidget(parent), s_ended(this, "playbackEnded"), s_playing(this, "playbackStarted"), s_playerReady(this, "playbackReady"), s_currentTime(this, "currentTime")
+  : WContainerWidget(parent), s_ended(this, "playbackEnded"), s_playing(this, "playbackStarted"),
+  s_playerReady(this, "playbackReady"), s_currentTime(this, "currentTime"), resizeSignal(this, "resizeSignal")
 {
   templateWidget = new WTemplate();
   templateWidget->setTemplateText(wtr("html5player.mediatag"), Wt::XHTMLUnsafeText);
@@ -69,7 +70,8 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
   templateContainer->addWidget(templateWidget);
   WContainerWidget *resizeLinks = new WContainerWidget();
   
-  auto resizeVideo = [=](int size) {
+  
+  resizeSignal.connect([=](int size, _n5) {
     templateWidget->doJavaScript(
       (boost::format(" $('#%s').width('%d%%'); \
       $('#%s').mediaelementplayer().resize();")
@@ -78,11 +80,12 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
         % playerId()
       ).str()
     );
-  };
-  resizeLinks->addWidget(WW<WAnchor>("", "Small").css("link-hand").padding(10).onClick([=](WMouseEvent) { resizeVideo(30); } ));
-  resizeLinks->addWidget(WW<WAnchor>("", "Medium").css("link-hand").padding(10).onClick([=](WMouseEvent) { resizeVideo(50); } ));
-  resizeLinks->addWidget(WW<WAnchor>("", "Large").css("link-hand").padding(10).onClick([=](WMouseEvent) { resizeVideo(70); } ));
-  resizeLinks->addWidget(WW<WAnchor>("", "Full").css("link-hand").padding(10).onClick([=](WMouseEvent) { resizeVideo(100); } ));
+  });
+  
+  resizeLinks->addWidget(WW<WAnchor>("#", "Small").padding(10).onClick([=](WMouseEvent) { resizeSignal.emit(30); } ));
+  resizeLinks->addWidget(WW<WAnchor>("#", "Medium").padding(10).onClick([=](WMouseEvent) { resizeSignal.emit(50); } ));
+  resizeLinks->addWidget(WW<WAnchor>("#", "Large").padding(10).onClick([=](WMouseEvent) { resizeSignal.emit(70); } ));
+  resizeLinks->addWidget(WW<WAnchor>("#", "Full").padding(10).onClick([=](WMouseEvent) { resizeSignal.emit(100); } ));
   templateContainer->setMargin(WLength::Auto, Side::Left | Side::Right);
   addWidget(resizeLinks);
   addWidget(templateContainer);
@@ -165,7 +168,14 @@ void HTML5Player::playerReady()
     mediaelementOptions += (mediaelementOptions.empty() ? "" : ", ") + string("startLanguage: '") + defaultTracks["subtitles"].lang + "'";
   }
   log("notice") << "player options: " << mediaelementOptions;
-  runJavascript((boost::format("$('video,audio').mediaelementplayer({%s});") % mediaelementOptions).str() );
+  runJavascript((
+    boost::format("$('video,audio').mediaelementplayer({%s}); \
+    var resizePlayer = function(newSize) { %s}; \
+    if(document.width > 600)\
+      resizePlayer(60); ")
+    % mediaelementOptions
+    % resizeSignal.createCall("newSize")
+  ).str() );
   // doesn't work properly without user interaction
   if(false) {
     runJavascript(JS(

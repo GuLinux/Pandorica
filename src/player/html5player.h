@@ -60,6 +60,7 @@ private:
     Wt::JSignal<> s_ended;
     Wt::JSignal<> s_playing;
     Wt::JSignal<> s_playerReady;
+    Wt::JSignal<int> resizeSignal;
     Wt::JSignal<double, double> s_currentTime;
     std::map<std::string, std::vector<Track>> tracks;
     std::vector<Source> sources;
