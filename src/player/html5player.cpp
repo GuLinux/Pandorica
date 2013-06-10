@@ -21,12 +21,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "html5player.h"
+#include <utils.h>
 #include "Wt-Commons/wt_helpers.h"
 
 #include <Wt/WApplication>
 #include <Wt/WAnchor>
 #include <Wt/WTimer>
 #include <boost/format.hpp>
+#include <boost/algorithm/string.hpp>
+
 
 using namespace Wt;
 using namespace std;
@@ -161,19 +164,27 @@ void HTML5Player::setAutoplay(bool autoplay)
 void HTML5Player::playerReady()
 {
   
-  string mediaelementOptions;
-  /* works in theory, but it goes with double subs on chrome
-   */
+  map<string,string> mediaElementOptions = {
+    //{"AndroidUseNativeControls", "true"}
+  };
+  
+  // works in theory, but it goes with double subs on chrome 
   if(defaultTracks["subtitles"].isValid() && false) {
-    mediaelementOptions += (mediaelementOptions.empty() ? "" : ", ") + string("startLanguage: '") + defaultTracks["subtitles"].lang + "'";
+      mediaElementOptions["startLanguage"] = (boost::format("'%s'") % defaultTracks["subtitles"].lang).str();
   }
-  log("notice") << "player options: " << mediaelementOptions;
+  
+  
+  string mediaElementOptionsString = boost::algorithm::join(Utils::transform(mediaElementOptions, vector<string>{}, [](pair<string,string> o){
+    return (boost::format("%s: %s") % o.first % o.second).str();
+  }), ", ");
+
+  log("notice") << "player options: " << mediaElementOptionsString;
   runJavascript((
     boost::format("$('video,audio').mediaelementplayer({%s}); \
     var resizePlayer = function(newSize) { %s}; \
     if(document.width > 600)\
       resizePlayer(60); ")
-    % mediaelementOptions
+    % mediaElementOptionsString
     % resizeSignal.createCall("newSize")
   ).str() );
   // doesn't work properly without user interaction
