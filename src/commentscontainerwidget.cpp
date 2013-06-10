@@ -83,7 +83,7 @@ public:
 
 CommentView::CommentView(CommentTuple data, WContainerWidget* parent): WContainerWidget(parent)
 {
-  setStyleClass("row comment-box");
+  setStyleClass("row-fluid comment-box");
   string username = data.get<3>();
   string email = data.get<2>();
   WDateTime commentTime = WDateTime::fromTime_t(data.get<1>());
@@ -116,7 +116,6 @@ CommentsContainerWidget::CommentsContainerWidget(string videoId, Session* sessio
   
   WTextArea* newCommentContent = new WTextArea();
   newCommentContent->setRows(3);
-  newCommentContent->setWidth(500);
   newCommentContent->setInline(false);
   WPushButton* insertComment = WW<WPushButton>(wtr("comments.addcomment.button")).css("btn btn-primary btn-small").onClick([=](WMouseEvent){
     if(newCommentContent->text().empty())
@@ -133,7 +132,10 @@ CommentsContainerWidget::CommentsContainerWidget(string videoId, Session* sessio
   });
   insertComment->setEnabled(false);
   
-  addWidget(WW<WContainerWidget>().css("add-comment-box").add(newCommentContent).add(insertComment).setContentAlignment(AlignCenter));
+//     newCommentContent->setWidth(500);
+  newCommentContent->addStyleClass("span8");
+
+  addWidget(WW<WContainerWidget>().css("add-comment-box row-fluid").add(newCommentContent).add(insertComment).setContentAlignment(AlignCenter));
   
   addWidget(d->commentsContainer = WW<WContainerWidget>().css("container") );
 
