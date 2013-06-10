@@ -137,7 +137,7 @@ bool AuthPagePrivate::seedIfNoAdmins(dbo::Transaction& transaction, Auth::User &
   }
   wApp->log("notice") << "adminUsersCount: " << adminUsersCount << ", admin groups: " << adminGroups.size();
   if(adminGroups.size() == 0 || adminUsersCount == 0) {
-    transaction.rollback();
+    // transaction.rollback();
     WDialog *addMyselfToAdmins = new WDialog{wtr("admin_missing_dialog_title")};
     addMyselfToAdmins->contents()->addWidget(new WText{wtr("admin_missing_dialog_text").arg(user.identity("loginname")) });
     WLineEdit *groupName = new WLineEdit;
