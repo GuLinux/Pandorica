@@ -25,10 +25,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "player.h"
 #include <Wt/WTemplate>
+#include <Wt/WContainerWidget>
 
 typedef std::function<void(double currentTime, double totalDuration, Wt::NoClass, Wt::NoClass, Wt::NoClass, Wt::NoClass)> GetCurrentTimeCallback;
 
-class HTML5Player : public Player, public Wt::WTemplate
+class HTML5Player : public Player, public Wt::WContainerWidget
 {
 
 public:
@@ -64,6 +65,7 @@ private:
     std::vector<Source> sources;
     bool isPlaying = false;
     std::map<std::string,Track> defaultTracks;
+    Wt::WTemplate *templateWidget;
 };
 
 #endif // HTML5PLAYER_H
