@@ -7,7 +7,7 @@ arch=('i686' 'x86_64')
 url="http://blog.gulinux.net/pandorica"
 license=('GPL')
 groups=()
-depends=('wt' 'graphicsmagick' 'boost' 'ffmpeg' 'ffmpegthumbnailer' 'sqlite')
+depends=('wt>=3.3.0' 'graphicsmagick' 'boost' 'ffmpeg' 'ffmpegthumbnailer' 'sqlite')
 optdepends=('qt4')
 makedepends=('git' 'cmake')
 provides=()
