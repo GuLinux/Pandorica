@@ -76,7 +76,7 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Sett
   InfoPanel *mobileInfoPanelWidget = d->infoPanel->add(WW<InfoPanel>(session, settings) );
   mobileInfoPanel->setCentralWidget(mobileInfoPanelWidget);
   mobileInfoPanel->titleBarWidget()->clicked().connect([=](WMouseEvent){ mobileInfoPanel->setCollapsed(!mobileInfoPanel->isCollapsed()); });
-  mobileInfoPanel->setAnimation({WAnimation::SlideInFromTop, WAnimation::EaseOut, 500});
+  mobileInfoPanel->setAnimation({WAnimation::Fade, WAnimation::EaseOut, 200});
   mobileInfoPanelWidget->gotInfo().connect([=](_n6) { mobileInfoPanel->setCollapsed(false); });
   mobileInfoPanelWidget->wasResetted().connect([=](_n6) { mobileInfoPanel->setCollapsed(true); });
   
@@ -101,8 +101,8 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Sett
   
   
   WContainerWidget *row = WW<WContainerWidget>(container).css("row-fluid");
-  row->addWidget(d->infoPanel->add(WW<InfoPanel>(session, settings).addCss("visible-desktop span4") ));
-  row->addWidget(WW<WContainerWidget>().css("mediabrowser span8").add(d->browser));
+  row->addWidget(d->infoPanel->add(WW<InfoPanel>(session, settings).addCss("visible-desktop span3") ));
+  row->addWidget(WW<WContainerWidget>().css("mediabrowser span9").add(d->browser));
   
 
   d->infoPanel->setup();
@@ -269,8 +269,8 @@ Wt::WContainerWidget *InfoPanel::labelValueBox(string label, Wt::WString value)
 WContainerWidget* InfoPanel::labelValueBox(string label, WWidget* widget)
 {
   WContainerWidget *box = WW<WContainerWidget>().css("row-fluid");
-  box->addWidget(WW<WContainerWidget>().css("span3").add(WW<WText>(wtr(label)).css("label label-info")));
-  box->addWidget(WW<WContainerWidget>().css("span9 media-info-value").setContentAlignment(AlignRight).add(widget));
+  box->addWidget(WW<WContainerWidget>().css("span2").add(WW<WText>(wtr(label)).css("label label-info")));
+  box->addWidget(WW<WContainerWidget>().css("span10 media-info-value").setContentAlignment(AlignRight).add(widget));
   return box;
 }
 
