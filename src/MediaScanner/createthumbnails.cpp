@@ -223,7 +223,7 @@ void CreateThumbnailsPrivate::chooseRandomFrame(WContainerWidget* container)
   });
 }
 
-Magick::Blob StreamingPrivate::CreateThumbnailsPrivate::resize(Blob blob, int size, uint quality)
+Magick::Blob StreamingPrivate::CreateThumbnailsPrivate::resize(Blob blob, uint size, uint quality)
 {
   Magick::Image image{blob};
   Blob output;
@@ -314,7 +314,7 @@ void CreateThumbnailsPrivate::thumbnailFor(int size, int quality)
   thumbnailer->thumbnail_image_quality = quality;
   thumbnailer->thumbnail_size = size;
   video_thumbnailer_generate_thumbnail_to_buffer(thumbnailer, currentMedia.fullPath().c_str(), imageData);
-  fullImage = {imageData->image_data_ptr, imageData->image_data_size};
+  fullImage = {imageData->image_data_ptr, (uint) imageData->image_data_size};
 //   vector<uint8_t> data{imageData->image_data_ptr, imageData->image_data_ptr + imageData->image_data_size};
   video_thumbnailer_destroy_image_data(imageData);
   video_thumbnailer_destroy(thumbnailer);
