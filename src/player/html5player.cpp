@@ -24,23 +24,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Wt-Commons/wt_helpers.h"
 
 #include <Wt/WApplication>
+#include <Wt/WAnchor>
+#include <Wt/WTimer>
 #include <boost/format.hpp>
 
 using namespace Wt;
 using namespace std;
 using namespace boost;
+using namespace WtCommons;
 
 HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
-  : WTemplate(parent), s_ended(this, "playbackEnded"), s_playing(this, "playbackStarted"), s_playerReady(this, "playbackReady"), s_currentTime(this, "currentTime")
+  : WContainerWidget(parent), s_ended(this, "playbackEnded"), s_playing(this, "playbackStarted"), s_playerReady(this, "playbackReady"), s_currentTime(this, "currentTime")
 {
-  setTemplateText(wtr("html5player.mediatag"), Wt::XHTMLUnsafeText);
-  addFunction("sources", [this](WTemplate *t, vector<WString> args, std::ostream &output) {
+  templateWidget = new WTemplate();
+  templateWidget->setTemplateText(wtr("html5player.mediatag"), Wt::XHTMLUnsafeText);
+  templateWidget->addFunction("sources", [this](WTemplate *t, vector<WString> args, std::ostream &output) {
     for(Source source: sources) {
       output << wtr("player.source").arg(source.type).arg(source.src);
     }
     return true;
   });
-  addFunction("track", [this](WTemplate *t, vector<WString> args, std::ostream &output) {
+  templateWidget->addFunction("track", [this](WTemplate *t, vector<WString> args, std::ostream &output) {
     WString trackType = args[0];
     vector<Track> tracksForType = tracks[trackType.toUTF8()];
     for(Track track: tracksForType) {
@@ -48,7 +52,7 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
     }
     return true;
   });
-  bindString("player.id",  playerId());
+  templateWidget->bindString("player.id",  playerId());
   s_playing.connect([=](_n6){
     isPlaying = true;
   });
@@ -59,7 +63,29 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
   addListener("ended", s_ended.createCall());
   s_playerReady.connect(this, &HTML5Player::playerReady);
   runJavascript(s_playerReady.createCall());
-  bindEmpty("poster_option");
+  templateWidget->bindEmpty("poster_option");
+  
+  WContainerWidget *templateContainer = new WContainerWidget();
+  templateContainer->addWidget(templateWidget);
+  WContainerWidget *resizeLinks = new WContainerWidget();
+  
+  auto resizeVideo = [=](int size) {
+    templateWidget->doJavaScript(
+      (boost::format(" $('#%s').width('%d%%'); \
+      $('#%s').mediaelementplayer().resize();")
+        % templateContainer->id()
+        % size
+        % playerId()
+      ).str()
+    );
+  };
+  resizeLinks->addWidget(WW<WAnchor>("", "Small").css("link-hand").padding(10).onClick([=](WMouseEvent) { resizeVideo(30); } ));
+  resizeLinks->addWidget(WW<WAnchor>("", "Medium").css("link-hand").padding(10).onClick([=](WMouseEvent) { resizeVideo(50); } ));
+  resizeLinks->addWidget(WW<WAnchor>("", "Large").css("link-hand").padding(10).onClick([=](WMouseEvent) { resizeVideo(70); } ));
+  resizeLinks->addWidget(WW<WAnchor>("", "Full").css("link-hand").padding(10).onClick([=](WMouseEvent) { resizeVideo(100); } ));
+  templateContainer->setMargin(WLength::Auto, Side::Left | Side::Right);
+  addWidget(resizeLinks);
+  addWidget(templateContainer);
 }
 
 HTML5Player::~HTML5Player()
@@ -69,7 +95,7 @@ HTML5Player::~HTML5Player()
 
 void HTML5Player::setPoster(const WLink& poster)
 {
-  bindString("poster_option", string("poster='") + poster.url() + "'");
+  templateWidget->bindString("poster_option", string("poster='") + poster.url() + "'");
 }
 
 
@@ -114,18 +140,18 @@ void HTML5Player::addSubtitles(const Track& track)
 void HTML5Player::addSource(const Source& source)
 {
   if(source.type.find("video/") != string::npos) {
-    bindString("media.defaultsize", "width=\"640\" height=\"264\"");
-    bindString("media.tagtype",  "video" );
+    templateWidget->bindString("media.defaultsize", "width=\"640\" height=\"264\"");
+    templateWidget->bindString("media.tagtype",  "video" );
   } else {
-    bindString("media.tagtype", "audio" );
-    bindString("media.defaultsize", "");
+    templateWidget->bindString("media.tagtype", "audio" );
+    templateWidget->bindString("media.defaultsize", "");
   }
   sources.push_back(source);
 }
 
 void HTML5Player::setAutoplay(bool autoplay)
 {
-  setCondition("autoplay", autoplay);
+  templateWidget->setCondition("autoplay", autoplay);
 }
 
 
@@ -191,7 +217,7 @@ void HTML5Player::refresh()
 
 string HTML5Player::playerId()
 {
-  return string("player_id") + id();
+  return string("player_id") + templateWidget->id();
 }
 
 void HTML5Player::getCurrentTime(GetCurrentTimeCallback callback)
