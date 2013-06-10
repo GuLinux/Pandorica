@@ -115,8 +115,8 @@
   max-height: 450px;
 }
 
-.media-icon-container .popover {
-  width: auto;
+.media-icon-container {
+  margin-left: 5px!important;
 }
 
 .tree-directory-item img {
