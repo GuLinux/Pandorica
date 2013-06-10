@@ -254,6 +254,9 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   settingsMenuItem->addStyleClass("menu-settings");
   
   navigationBar->addMenu(items);
+  items->itemSelected().connect([=](WMenuItem* i, _n5){
+    items->doJavaScript("$('.nav-collapse').collapse('hide');");
+  });
   
   mainWidget->addWidget(navigationBar);
   
