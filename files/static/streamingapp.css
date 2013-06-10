@@ -15,8 +15,8 @@
 
 /** Fix for rail too big in android **/
 .mejs-time-rail {
-  margin-right: -5px!important;
-  margin-left: -5px!important;
+  margin-right: -7px!important;
+  margin-left: -7px!important;
 }
 
 .small-text {
