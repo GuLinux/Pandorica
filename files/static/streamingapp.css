@@ -245,3 +245,11 @@ body {
   background-position-y: 35%;
 }
 
+.mejs-controls button{
+font-family: inherit;
+font-size: inherit;
+font-weight: inherit;
+line-height: inherit;
+-webkit-appearance: inherit!important;
+vertical-align: inherit;
+}
