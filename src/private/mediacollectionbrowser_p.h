@@ -51,6 +51,8 @@ public:
     inline Wt::Signal<Media> &setTitle() { return _setTitle; }
     inline Wt::Signal<Media> &setPoster() { return _setPoster; }
     inline Wt::Signal<Media> &deletePoster() { return _deletePoster; }
+    inline Wt::Signal<> &gotInfo() { return _gotInfo; }
+    inline Wt::Signal<> &wasResetted() { return _wasResetted; }
 private:
   WContainerWidget *labelValueBox(std::string label, Wt::WString value);
   WContainerWidget *labelValueBox(std::string label, Wt::WWidget *widget);
@@ -59,10 +61,33 @@ private:
   Wt::Signal<Media> _setTitle;
   Wt::Signal<Media> _setPoster;
   Wt::Signal<Media> _deletePoster;
+  Wt::Signal<> _gotInfo;
+  Wt::Signal<> _wasResetted;
   Session *session;
   Settings* settings;
   bool isAdmin;
   std::pair<Wt::WPanel*,Wt::WContainerWidget*> createPanel(std::string titleKey);
+};
+
+class InfoPanelMultiplex : public Wt::WObject {
+public:
+  InfoPanelMultiplex(Wt::WObject* parent = 0) : Wt::WObject(parent) {}
+  void info(Media media);
+  void reset();
+  inline Wt::Signal<Media> &play() { return _play; }
+  inline Wt::Signal<Media> &queue() { return _queue; }
+  inline Wt::Signal<Media> &setTitle() { return _setTitle; }
+  inline Wt::Signal<Media> &setPoster() { return _setPoster; }
+  inline Wt::Signal<Media> &deletePoster() { return _deletePoster; }
+  InfoPanel *add(InfoPanel *panel);
+  void setup();
+private:
+  Wt::Signal<Media> _play;
+  Wt::Signal<Media> _queue;
+  Wt::Signal<Media> _setTitle;
+  Wt::Signal<Media> _setPoster;
+  Wt::Signal<Media> _deletePoster;
+  std::vector<InfoPanel*> panels;
 };
 
 class CollectionPath;
@@ -115,7 +140,7 @@ public:
     Wt::WContainerWidget* browser;
     Wt::Signal<Media> playSignal;
     Wt::Signal<Media> queueSignal;
-    InfoPanel* infoPanel;
+    InfoPanelMultiplex* infoPanel;
     static std::string formatFileSize(long size);
     std::map<std::string,CollectionPath*> collectionPaths;
     

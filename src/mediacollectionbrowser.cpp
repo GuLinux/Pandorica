@@ -63,13 +63,23 @@ using namespace WtCommons;
 MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Settings* settings, Session* session, WContainerWidget* parent)
   : WContainerWidget(parent), d(new MediaCollectionBrowserPrivate(collection, settings, session, this))
 {
+  WContainerWidget *mobileContainer = WW<WContainerWidget>().css("hidden-desktop");
+  d->infoPanel = new InfoPanelMultiplex(this);
   d->breadcrumb = WW<WContainerWidget>().css("breadcrumb");
   d->breadcrumb->setList(true);
   d->browser = WW<WContainerWidget>().css("thumbnails").setMargin(WLength::Auto, Left).setMargin(WLength::Auto, Right);
   WContainerWidget *mainContainer = new WContainerWidget;
-  d->infoPanel = new InfoPanel(session, settings);
-  d->infoPanel->addStyleClass("visible-desktop");
-
+  
+  WPanel *mobileInfoPanel = WW<WPanel>(WW<WContainerWidget>(mobileContainer));
+  mobileInfoPanel->setTitle(wtr("infopanel.empty.title"));
+  mobileInfoPanel->setCollapsible(true);
+  InfoPanel *mobileInfoPanelWidget = d->infoPanel->add(WW<InfoPanel>(session, settings) );
+  mobileInfoPanel->setCentralWidget(mobileInfoPanelWidget);
+  mobileInfoPanel->titleBarWidget()->clicked().connect([=](WMouseEvent){ mobileInfoPanel->setCollapsed(!mobileInfoPanel->isCollapsed()); });
+  mobileInfoPanel->setAnimation({WAnimation::SlideInFromTop, WAnimation::EaseOut, 500});
+  mobileInfoPanelWidget->gotInfo().connect([=](_n6) { mobileInfoPanel->setCollapsed(false); });
+  mobileInfoPanelWidget->wasResetted().connect([=](_n6) { mobileInfoPanel->setCollapsed(true); });
+  
 /*  
   mainContainer->setStyleClass("row-fluid");
   mainContainer->addWidget(d->infoPanel);
@@ -77,15 +87,28 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Sett
   mainContainer->addWidget(d->browser);
   d->browser->addStyleClass("span10");
 */
+
+/*
   auto layout = new WHBoxLayout();
   mainContainer->setLayout(layout);
   layout->addWidget(d->infoPanel);
   layout->setResizable(0, true);
   d->infoPanel->setWidth(450);
   layout->addWidget(WW<WContainerWidget>().css("mediabrowser").add(d->browser), 1);
+  */
 
+  WContainerWidget *container = WW<WContainerWidget>(mainContainer).css("container-fluid");
+  
+  
+  WContainerWidget *row = WW<WContainerWidget>(container).css("row-fluid");
+  row->addWidget(d->infoPanel->add(WW<InfoPanel>(session, settings).addCss("visible-desktop span4") ));
+  row->addWidget(WW<WContainerWidget>().css("mediabrowser span8").add(d->browser));
+  
+
+  d->infoPanel->setup();
   d->browser->setList(true);
   addWidget(d->breadcrumb);
+  addWidget(mobileContainer);
   addWidget(mainContainer);
   d->currentPath = new RootCollectionPath{settings, session, collection};
   d->collectionPaths[ROOT_PATH_ID] = d->currentPath;
@@ -121,6 +144,36 @@ void InfoPanel::reset()
   );
   addWidget(new WBreak);
   addWidget(WW<WText>(wtr("infopanel.empty.message")));
+  wasResetted().emit();
+}
+
+
+InfoPanel* InfoPanelMultiplex::add(InfoPanel* panel)
+{
+  panels.push_back(panel);
+  return panel;
+}
+void InfoPanelMultiplex::setup()
+{
+  for(InfoPanel *panel: panels) {
+    panel->play().connect([=](Media &media, _n5) { play().emit(media);});
+    panel->queue().connect([=](Media &media, _n5) { queue().emit(media);});
+    panel->setTitle().connect([=](Media &media, _n5) { setTitle().emit(media);});
+    panel->setPoster().connect([=](Media &media, _n5) { setPoster().emit(media);});
+    panel->deletePoster().connect([=](Media &media, _n5) { deletePoster().emit(media);});
+  }
+}
+
+
+void InfoPanelMultiplex::info(Media media)
+{
+  for(InfoPanel *panel: panels)
+    panel->info(media);
+}
+void InfoPanelMultiplex::reset()
+{
+  for(InfoPanel *panel: panels)
+    panel->reset();
 }
 
 
@@ -189,6 +242,7 @@ void InfoPanel::info(Media media)
     adminActions.second->addWidget(WW<WPushButton>(wtr("mediabrowser.admin.deletepreview")).css("btn btn-block btn-small btn-danger").onClick([=](WMouseEvent){ deletePoster().emit(media);} ));
     addWidget(adminActions.first);
   }
+  gotInfo().emit();
 }
 
 
