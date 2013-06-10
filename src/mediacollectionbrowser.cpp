@@ -68,6 +68,7 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Sett
   d->browser = WW<WContainerWidget>().css("thumbnails").setMargin(WLength::Auto, Left).setMargin(WLength::Auto, Right);
   WContainerWidget *mainContainer = new WContainerWidget;
   d->infoPanel = new InfoPanel(session, settings);
+  d->infoPanel->addStyleClass("visible-desktop");
 
 /*  
   mainContainer->setStyleClass("row-fluid");
