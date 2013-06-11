@@ -3,7 +3,7 @@
   <!-- login -->
   <message id="oauth_login_with">Entra con il tuo account:</message>
   <message id="auth.regular_login_accordion">Oppure entra con le credenziali</message>
-  
+
   <!-- Wt Auth Widget -->
   <message id="Wt.Auth.login">Entra</message>
   <message id="Wt.Auth.register">Registrati</message>
@@ -19,7 +19,7 @@
   <message id="Wt.Auth.remember-me-info.days">Ricorda i miei dati per {1} giorni</message>
   <message id="Wt.Auth.remember-me-info.weeks">Ricorda i miei dati per {1} settimane</message>
   <message id="Wt.Auth.lost-password">Password dimenticata?</message>
-  
+
   <message id="Wt.Auth.registration-form-title">Registrazione</message>
   <message id="Wt.Auth.password-registration">Registrati con nome utente e password:</message>
   <message id="Wt.Auth.or-oauth-registration">Oppure registrati usando un servizio di terze parti:</message>
@@ -40,15 +40,15 @@
   <message id="Wt.Auth.register">Registrati</message>
   <message id="Wt.Auth.error-user-invalid">Registrazione fallita.</message>
   <message id="Wt.Auth.confirm-is-you">Utente già esistente, sei tu?</message>
-   
+
     <!-- PasswordPromptDialog -->
   <message id="Wt.Auth.enter-password">Inserici la tua password</message>
   <message id="Wt.Auth.password-prompt-form-title">Inserisci la tua password</message>
   <message id="Wt.Auth.password-invalid">Password errata</message>
-  
-  
-  
-  
+
+
+
+
   <!-- general -->
   <message id="Wt.WDate.3.Mon">Lun</message>
   <message id="Wt.WDate.3.Tue">Mar</message>
@@ -57,7 +57,7 @@
   <message id="Wt.WDate.3.Fri">Ven</message>
   <message id="Wt.WDate.3.Sat">Sab</message>
   <message id="Wt.WDate.3.Sun">Dom</message>
-  
+
   <message id="Wt.WDate.Monday">Lunedì</message>
   <message id="Wt.WDate.Tuesday">Martedì</message>
   <message id="Wt.WDate.Wednesday">Mercoledì</message>
@@ -65,7 +65,7 @@
   <message id="Wt.WDate.Friday">Venerdì</message>
   <message id="Wt.WDate.Saturday">Sabato</message>
   <message id="Wt.WDate.Sunday">Domenica</message>
-  
+
   <message id="Wt.WDate.3.Jan">Gen</message>
   <message id="Wt.WDate.3.Feb">Feb</message>
   <message id="Wt.WDate.3.Mar">Mar</message>
@@ -78,7 +78,7 @@
   <message id="Wt.WDate.3.Oct">Ott</message>
   <message id="Wt.WDate.3.Nov">Nov</message>
   <message id="Wt.WDate.3.Dec">Dic</message>
-  
+
   <message id="Wt.WDate.January">Gennaio</message>
   <message id="Wt.WDate.February">Febbraio</message>
   <message id="Wt.WDate.March">Marzo</message>
@@ -91,7 +91,7 @@
   <message id="Wt.WDate.October">Ottobre</message>
   <message id="Wt.WDate.November">Novembre</message>
   <message id="Wt.WDate.December">Dicembre</message>
-    
+
   <!-- menu -->
   <message id="menu.mediaslist">Lista Media</message>
   <message id="menu.latest.comments">Ultimi Commenti</message>
@@ -103,7 +103,7 @@
   <message id="menu.groups">Gruppi</message>
   <message id="menu.viewas">Visualizza Come...</message>
   <message id="menu.configure.app">Configura Sito</message>
-  
+
   <!-- media browser -->
   <message id="mediabrowser.play">Riproduci</message>
   <message id="mediabrowser.queue">Accoda</message>
@@ -119,31 +119,31 @@
   <message id="mediabrowser.actions">Azioni</message>
   <message id="mediabrowser.admin.actions">Gestione</message>
   <message id="mediabrowser.admin.setposter">Imposta Immagine</message>
-  
+
   <message id="infopanel.empty.title">Informazioni Media</message>
   <message id="infopanel.empty.message">Clicca su un media per vedere le sue informazioni, riprodurlo o condividerlo</message>
-  
+
   <message id="mediabrowser.admin.settitle.missingproperties.caption">Errore: Media Properties mancanti</message>
   <message id="mediabrowser.admin.settitle.missingproperties.body">Le proprietà del media selezionato non sono presenti su database<br />Dovresti prima eseguire lo script "generateFileData".</message>
   <message id="mediacollection.reload">Ricarica</message>
   <message id="mediacollection.root">Cartella Media</message>
-  
+
   <message id="mediabrowser.share">Condividi</message>
   <message id="mediabrowser.share.dialog">Per condividere {1} copia il link sottostante.<br />
   Ricorda che la persona che riceve il link dovrà prima essere abilitata dall'amministratore.<br />
   <a href="{2}">{2}</a>
   </message>
-  
+
   <!-- Media Scanner -->
   <message id="stepname.scanMediaInfoStep">Estrazione Informazioni Media</message>
   <message id="stepname.saveSubtitlesToDatabase">Estrazione Sottotitoli</message>
   <message id="stepname.createThumbnails">Crea Immagine Anteprima</message>
-  
+
   <message id="mediascanner.media.title">Titolo</message>
   <message id="mediascannerdialog.thumbnail.upload.label">Carica File</message>
   <message id="mediascannerdialog.thumbnail.upload.error">Errore aprendo il file, prova con un altro.</message>
   <message id="mediascannerdialog.thumbnail.upload.toobig">File troppo grande, prova con uno più piccolo.</message>
-  
+
   <message id="mediascannerdialog.subtitlesmessage">Estrazione sottotitoli: {1} di {2} (indice: {3}, titolo: {4}, lingua: {5})</message>
   <message id="mediascannerdialog.thumbnaillabel">Anteprima (clicca per ricrearla da posizione casuale)</message>
   <message id="mediascannerdialog.subtitles_extracted">
@@ -151,12 +151,12 @@
     <plural case="0">{1} sottotitoli estratti e pronti per il salvataggio.</plural>
     <plural case="2">{1} sottotitoli estratti e pronti per il salvataggio.</plural>
   </message>
-  
+
   <!-- comments -->
   <message id="comments.label">Commenti</message>
   <message id="comments.addcomment.button">Aggiungi Commento</message>
   <message id="comments.empty">Non ci sono ancora commenti!</message>
-  
+
   <!-- player -->
   <message id="player.sharelink">Link per la condivisione</message>
   <message id="player.downloadlink.tooltip">Per scaricare correttamente il file, clicca col tasto destro sul link e scegli "Salva con nome"</message>
@@ -166,43 +166,43 @@
     <plural case="2">Voto di {1} utenti: </plural>
   </message>
   <message id="player.do.rate">Vota: </message>
-  
+
   <message id="player.resizeSmall">Piccolo</message>
   <message id="player.resizeMedium">Medio</message>
   <message id="player.resizeLarge">Largo</message>
   <!-- settings -->
   <message id="settings.header"><h3>Impostazioni</h3></message>
   <message id="settings.footer">* Le impostazioni vengono memorizzate nei cookies, quindi ricorda che potrebbero resettarsi cancellandoli, o cambiando browser o computer.</message>
-  
+
   <message id="autoplay_never.combo">Mai</message>
   <message id="autoplay_audio_only.combo">Solo per file Audio</message>
   <message id="autoplay_video_only.combo">Solo per file Video</message>
   <message id="autoplay_always.combo">Sempre</message>
-  
+
   <message id="html5.combo">HTML5 (MediaElement)</message>
   <message id="jplayer.combo">jPlayer</message>
-  
+
   <message id="lighttpd.combo">Interno (Lighttpd)</message>
   <message id="nginx.combo">Nginx</message>
-  
+
   <message id="<browserdefault>.combo">Automatico</message>
-  
+
   <message id="download_src.label">Server di Download</message>
   <message id="download_src.description">Nginx potrebbe essere più veloce, a seconda dell'ambiente.</message>
-  
+
   <message id="player.label">Player</message>
   <message id="player.description">HTML5 è il player più completo; jPlayer potrebbe essere più stabile, ma non supporta alcune funzionalità (ad esempio, i sottotitoli)</message>
-  
+
   <message id="media_autoplay.label">AutoPlay</message>
   <message id="media_autoplay.description"></message>
   <message id="gui_language.label">Lingua</message>
-  
+
   <message id="button.close">Chiudi</message>
   <message id="users.current.title">Utenti Collegati</message>
   <message id="users.history.title">Cronologia Utenti</message>
-  
+
   <message id="tree.double.click.to.expand">Doppio click per espandere o contrarre</message>
-  
+
     <!-- groups dialog -->
   <message id="delete.group.title">Cancella Gruppo</message>
   <message id="delete.group.text">Sei sicuro di voler cancellare il gruppo "<b>{1}</b>"?</message>
@@ -215,23 +215,23 @@
   <message id="users.in.group.title">Utenti per "<b>{1}</b>"</message>
   <message id="groups.dialog.title">Gruppi</message>
   <message id="directories.for.group.dialog.title">Percorsi consentiti per "<b>{1}</b>"</message>
-  
+
     <!-- session dialog -->
   <message id="session.details.filename">File</message>
   <message id="session.details.started">Inizio</message>
   <message id="session.details.ended">Fine</message>
   <message id="session.details.fullpath">Percorso Completo File</message>
-  
+
   <message id="session.username">Utente</message>
   <message id="session.ip.address">IP</message>
   <message id="session.file.last">Ultimo file riprodotto</message>
   <message id="session.started">Inizio</message>
   <message id="session.ended">Fine</message>
   <message id="session.details">Dettagli</message>
-  
+
   <message id="session.filter.login">Filtra per nome utente</message>
   <message id="session.filter.exclude.myself">Escludi le mie sessioni</message>
-  
+
   <message id="button.add">Aggiungi</message>
   <message id="button.remove">Rimuovi</message>
   <message id="button.retry">Riprova</message>
@@ -239,14 +239,14 @@
   <message id="button.cancel">Annulla</message>
   <message id="button.skip">Salta</message>
   <message id="button.upload">Carica</message>
-  
+
   <message id="set.title.filename.hint">Suggerimento da nome file: </message>
-  
+
   <message id="admin_missing_dialog_title">Configurazione Utenza Amministrazione</message>
   <message id="admin_missing_dialog_text">Benvenuto, {1}. Questo sito web non ha ancora un amministratore. Possiamo aggiungere la tua utenza ad un gruppo di amministrazione.</message>
   <message id="admin_missing_dialog_default_groupname">Amministratori</message>
   <message id="admin_missing_dialog_groupname_label">Nome Gruppo Amministratori</message>
-  
+
   <message id="cleanup.orphans">Gestione Dati Orfani</message>
   <message id="cleanup.orphans.findmoved.title">
     <h4>Recupero Dati Media Spostati</h4>
@@ -261,7 +261,7 @@
   <message id="cleanup.orphans.findorphans.title">
     <h4>Pulizia Informazioni Media Assenti</h4>
   </message>
-  
+
   <message id="findorphans.removedata">Rimuovi Dati</message>
   <message id="findorphans.media.title">Titolo</message>
   <message id="findorphans.attachment.type">Tipo</message>
@@ -269,7 +269,7 @@
   <message id="findorphans.attachment.value">Valore</message>
   <message id="findorphans.attachment.datasize">Dimensione</message>
   <message id="findorphans.attachment.view">Vedi</message>
-  
+
   <message id="findorphans.summary">
     <plural case="0">Nessun dato orfano trovato</plural>
     <plural case="1">Trovato un media orfano, con un totale di {2} allegati ({3}).<br />
@@ -277,12 +277,12 @@
     <plural case="2">Trovati {1} media orfani, con un totale di {2} allegati ({3}).<br />
     Seleziona i dati da cancellare, e premi il pulsante "Rimuovi Dati".</plural>
   </message>
-  
+
   <message id="user.need_mail_verification">Devi verificare il tuo indirizzo email prima di entrare.<br />
     Controlla la tua casella email.<br />${refresh}</message>
   <message id="user.need_to_be_enabled">Il tuo utente deve essere prima abilitato.<br />
   L'amministratore ha ricevuto una mail riguardo la tua iscrizione, e ti abiliterà appena possibile.<br />${refresh}</message>
-  
+
   <message id="Wt.Auth.confirmmail.body">
 Ciao {1},
 
@@ -291,7 +291,7 @@ Grazie per esserti registrato alla mia App Streaming!
 Per completare la tua registrazione, conferma il tuo account
 cliccando il link seguente o copiando l'URL nel tuo browser:
 {3}
-</message>  
+</message>
 
  <message id="Wt.Auth.confirmmail.htmlbody">
     <h3>Ciao {1},</h3>
@@ -326,4 +326,9 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
 <message id="empty_media_collection_message">Sembra che la tua collezione di media sia vuota.<br />Puoi configurarla cliccando questo menù, quindi scegliendo "<b>Configura Sito</b>".</message>
 <message id="empty_media_collection_title">Collezione Media Vuota</message>
 <message id="create_thumbnails_no_image_checkbox">Nessuna Immagine</message>
+<message id="player_resize_small">Piccolo</message>
+<message id="player_resize_medium">Medio</message>
+<message id="player_resize_large">Grande</message>
+<message id="player_resize_full">Riempi Finestra</message>
+
 </messages>

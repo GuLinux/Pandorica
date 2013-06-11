@@ -3,8 +3,8 @@
   <message id="oauth_login_with">Login with an existing account:</message>
   <message id="auth.regular_login_accordion">Or use regular login</message>
   <message id="Wt.Auth.oauth"></message>
-  
-  
+
+
   <!-- general, not retranslated -->
   <message id="site-title">Pandorica</message>
   <message id="playlist.accordion">Playlist</message>
@@ -21,9 +21,9 @@
   <message id="menu.groups">Groups</message>
   <message id="menu.viewas">View Collection As...</message>
   <message id="menu.configure.app">Configure App</message>
-  
-  
-  
+
+
+
   <!-- media browser -->
   <message id="mediabrowser.play">Play</message>
   <message id="mediabrowser.queue">Queue</message>
@@ -41,13 +41,13 @@
   <message id="mediabrowser.admin.setposter">Set Poster</message>
   <message id="infopanel.empty.title">Media Information</message>
   <message id="infopanel.empty.message">Click on a media to view information, play, or share it</message>
-  
-  
+
+
   <message id="mediabrowser.admin.settitle.missingproperties.caption">Error: Media Properties Missing</message>
   <message id="mediabrowser.admin.settitle.missingproperties.body">The media properties are not stored in the current database<br />You probably want to run the "generateFileData" script first.</message>
   <message id="mediacollection.reload">Reload</message>
   <message id="mediacollection.root">Media Root</message>
-  
+
   <message id="mediabrowser.share">Share</message>
   <message id="mediabrowser.share.dialog">To share {1} just copy the link below.<br />
   Remember that who will receive the link must first be enabled by the administrator.<br />
@@ -58,7 +58,7 @@
   <message id="stepname.scanMediaInfoStep">Extract Media Information</message>
   <message id="stepname.saveSubtitlesToDatabase">Extract Subtitles</message>
   <message id="stepname.createThumbnails">Create Poster Image</message>
-  
+
   <message id="mediascanner.title">Media Scanner</message>
   <message id="mediascanner.media.title">Title</message>
   <message id="mediascannerdialog.thumbnail.upload.label">Upload File</message>
@@ -72,14 +72,14 @@
     <plural case="0">{1} subtitles extracted and ready to be saved.</plural>
     <plural case="2">{1} subtitles extracted and ready to be saved.</plural>
   </message>
-  
+
   <!-- comments -->
   <message id="comments.label">Comments</message>
   <message id="comments.addcomment.button">Add Comment</message>
   <message id="comments.empty">No comments yet!</message>
-  
-  
-  
+
+
+
   <!-- player -->
   <message id="player.sharelink">Share link</message>
   <message id="player.downloadlink">Download</message>
@@ -87,45 +87,45 @@
   <message id="player.resizeSmall">Small</message>
   <message id="player.resizeMedium">Medium</message>
   <message id="player.resizeLarge">Large</message>
-  
+
   <message id="player.avg.ratings">
     <plural case="1">Rating of one user: </plural>
     <plural case="0">Rating of {1} users: </plural>
     <plural case="2">Rating of {1} users: </plural>
   </message>
   <message id="player.do.rate">Rate: </message>
-  
+
   <!-- settings -->
   <message id="settings.header"><h3>Settings</h3></message>
   <message id="settings.footer">* Settings are stored in cookies, so be aware that they might reset if you delete them, or change your browser or computer.</message>
-  
+
   <message id="autoplay_never.combo">Never</message>
   <message id="autoplay_audio_only.combo">Only for Audio Files</message>
   <message id="autoplay_video_only.combo">Only for Video Files</message>
   <message id="autoplay_always.combo">Always</message>
-  
+
   <message id="html5.combo">HTML5 (MediaElement)</message>
   <message id="jplayer.combo">jPlayer</message>
-  
+
   <message id="en.combo">English</message>
   <message id="it.combo">Italiano</message>
   <message id="<browserdefault>.combo">Browser Default</message>
-  
+
   <message id="lighttpd.combo">Internal (Lighttpd)</message>
   <message id="nginx.combo">Nginx</message>
-  
+
   <message id="download_src.label">Download Source</message>
   <message id="download_src.description">Nginx could be faster in some environments, but it might not always work</message>
-  
+
   <message id="player.label">Player</message>
   <message id="player.description">HTML5 is the most feature complete; jPlayer might be a bit more stable, but it lacks subtitles support</message>
-  
+
   <message id="media_autoplay.label">AutoPlay</message>
   <message id="media_autoplay.description"></message>
-  
+
   <message id="gui_language.label">Language</message>
   <message id="gui_language.description"></message>
-  
+
   <!-- groups dialog -->
   <message id="delete.group.title">Delete Group</message>
   <message id="delete.group.text">Are you sure to delete the group "<b>{1}</b>"?</message>
@@ -138,24 +138,24 @@
   <message id="users.in.group.title">Users for "<b>{1}</b>"</message>
   <message id="groups.dialog.title">Groups</message>
   <message id="directories.for.group.dialog.title">Allowed paths for "<b>{1}</b>"</message>
-  
+
   <!-- session dialog -->
   <message id="session.details.filename">File Name</message>
   <message id="session.details.started">Started</message>
   <message id="session.details.ended">Ended</message>
   <message id="session.details.fullpath">File Path</message>
-  
+
   <message id="session.username">User</message>
   <message id="session.ip.address">IP</message>
   <message id="session.file.last">Last played file</message>
   <message id="session.started">Started</message>
   <message id="session.ended">Ended</message>
   <message id="session.details">Details</message>
-  
+
   <message id="session.filter.login">Filter by username</message>
   <message id="session.filter.exclude.myself">Exclude my sessions</message>
-  
-  
+
+
   <message id="button.add">Add</message>
   <message id="button.skip">Skip</message>
   <message id="button.remove">Remove</message>
@@ -165,18 +165,18 @@
   <message id="button.cancel">Cancel</message>
   <message id="button.ok">Ok</message>
   <message id="button.upload">Upload</message>
-  
+
   <message id="users.current.title">Logged Users</message>
   <message id="users.history.title">Users History</message>
-  
+
   <message id="tree.double.click.to.expand">Double click to expand or collapse</message>
   <message id="set.title.filename.hint">Hint from file name: </message>
-  
+
   <message id="admin_missing_dialog_title">Setup Administration User</message>
   <message id="admin_missing_dialog_text">Hello, {1}. This website doesn't have an administrator yet. We can add yourself to an admin group.</message>
   <message id="admin_missing_dialog_default_groupname">Administrators</message>
   <message id="admin_missing_dialog_groupname_label">Admin Group Name</message>
-  
+
   <message id="cleanup.orphans">Manage Orphan Data</message>
   <message id="cleanup.orphans.findmoved.title">
     <h4>Recovery Moved Media Information</h4>
@@ -191,7 +191,7 @@
   <message id="cleanup.orphans.findorphans.title">
     <h4>Remove Orphan Media Information</h4>
   </message>
-  
+
  <message id="findorphans.removedata">Remove Data</message>
  <message id="findorphans.media.title">Title</message>
  <message id="findorphans.attachment.type">Type</message>
@@ -199,7 +199,7 @@
  <message id="findorphans.attachment.value">Value</message>
  <message id="findorphans.attachment.datasize">Size</message>
  <message id="findorphans.attachment.view">View</message>
- 
+
  <message id="findorphans.summary">
    <plural case="0">Found no orphan medias</plural>
    <plural case="1">Found {1} orphan media, with a total of {2} attachments ({3}).<br />
@@ -207,12 +207,12 @@
    <plural case="2">Found {1} orphan medias, with a total of {2} attachments ({3}).<br />
  Select the data you want to remove, and press the "Remove Data" button.</plural>
  </message>
-  
+
  <message id="user.need_mail_verification">You need to verify your email address before logging in.<br />
  Please check you inbox.<br />${refresh}</message>
  <message id="user.need_to_be_enabled">Your user needs to be authorized first.<br />
  The administrator should already have received an email and will add you when possible.<br />${refresh}</message>
- 
+
   <message id="Wt.Auth.confirmmail.body">
 Hello {1},
 
@@ -221,7 +221,7 @@ Thank you for joining my Streaming Application!
 To complete your registration, please confirm your account by
 clicking on the following link or copying the URL into your browser:
 {3}
-</message>  
+</message>
 
  <message id="Wt.Auth.confirmmail.htmlbody">
     <h3>Hello {1},</h3>
@@ -234,7 +234,7 @@ clicking on the following link or copying the URL into your browser:
       browser:</p>
       <p><b>{3}</b></p>
   </message>
-  
+
   <message id="unauthorized_user_login_subject">VideoStreaming: unauthorized user login</message>
   <message id="unauthorized_user_login_body">The user {1} ({2}) just tried to login.
     Since it doesn't appear to be in the authorized users list, it needs to be moderated.
@@ -273,4 +273,8 @@ For other webservers (Apache, Lighttpd, Ngnix) read the proper documentation.
 <message id="empty_media_collection_message">It looks like your Media Collection is empty.<br />You can configure it by clicking this menu, then choosing "<b>Configure App</b>".</message>
 <message id="empty_media_collection_title">Empty Media Collection</message>
 <message id="create_thumbnails_no_image_checkbox">No Image</message>
+<message id="player_resize_small">Small</message>
+<message id="player_resize_medium">Medium</message>
+<message id="player_resize_large">Large</message>
+<message id="player_resize_full">Full</message>
 </messages>
