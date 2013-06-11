@@ -18,43 +18,36 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
 
-
-
-#ifndef HTML5PLAYER_H
-#define HTML5PLAYER_H
-
-#include "player.h"
-#include <Wt/WTemplate>
-#include <Wt/WContainerWidget>
+#ifndef HTML5PLAYER_P_H
+#define HTML5PLAYER_P_H
+#include <Wt/WSignal>
+#include <Wt/WJavaScriptSlot>
+#include <Wt/WJavaScript>
+#include <player/player.h>
 
 namespace StreamingPrivate {
-  class HTML5PlayerPrivate;
-}
 
-class HTML5Player : public Player, public Wt::WContainerWidget
-{
-
+class HTML5PlayerPrivate {
 public:
-    HTML5Player(Wt::WContainerWidget* parent = 0);
-    virtual ~HTML5Player();
-    
-    virtual void play();
-    virtual void stop();
-    virtual Wt::JSignal<>& ended();
-    virtual Wt::WWidget* widget();
-    virtual bool playing();
-    virtual void refresh();
-    
-    virtual void addSource(const Source& source);
-    virtual void setPoster(const Wt::WLink& poster);
-    virtual void addSubtitles(const Track& track);
-    virtual void setAutoplay(bool autoplay);
-    virtual void setPlayerSize(int width, int height = -1);
-    
-    virtual void pause();
- 
+  HTML5PlayerPrivate(HTML5Player *q);
+  Wt::JSignal<> ended;
+  Wt::JSignal<> playing;
+  Wt::JSignal<> playerReady;
+  Wt::JSignal<double, double> currentTime;
+  std::map<std::string, std::vector<Track>> tracks;
+  std::vector<Source> sources;
+  bool isPlaying = false;
+  std::map<std::string,Track> defaultTracks;
+  Wt::WTemplate *templateWidget;
+  Wt::JSlot resizeSlot;
+  Wt::JSlot scrollSlot;
+  
+  std::string playerId();
+  virtual void runJavascript(std::string js);
+  virtual void addListener(std::string eventName, std::string function);
+  virtual void playerReadySlot();
 private:
-    StreamingPrivate::HTML5PlayerPrivate *const d;
-};
-
-#endif // HTML5PLAYER_H
+  HTML5Player *q;
+};  
+}
+#endif
