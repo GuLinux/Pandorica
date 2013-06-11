@@ -61,7 +61,6 @@ public:
     virtual void stop() = 0;
     virtual void play() = 0;
     virtual void refresh() = 0;
-    virtual void setPlayerSize(int width, int height = -1) = 0;
 };
 
 #endif // PLAYER_H

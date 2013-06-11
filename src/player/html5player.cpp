@@ -35,6 +35,9 @@ using namespace WtCommons;
 using namespace StreamingPrivate;
 
 
+#define MINIMUM_DESKTOP_SIZE 980
+
+
 HTML5PlayerPrivate::HTML5PlayerPrivate(HTML5Player* q): q(q), ended(q, "playbackEnded"), playing(q, "playbackStarted"),
   playerReady(q, "playbackReady"), currentTime(q, "currentTime")
 {
@@ -104,11 +107,14 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
     % d->templateWidget->jsRef()
   ).str());
   d->scrollSlot.setJavaScript((
-    boost::format("function(o,e) { var playerWidget = %s; \
+    boost::format("function(o,e) { \
+      if( $(window).width() < %d ) return; \
+      var playerWidget = %s; \
       var currentSize = parseInt(playerWidget.currentSizeInPercent);\
       if(e.wheelDelta > 0) playerWidget.videoResize(currentSize+1); \
       if(e.wheelDelta < 0) playerWidget.videoResize(currentSize-1); \
     }")
+    % MINIMUM_DESKTOP_SIZE
     % d->templateWidget->jsRef()
   ).str());
 
@@ -213,11 +219,33 @@ void HTML5PlayerPrivate::playerReadySlot()
 
   log("notice") << "player options: " << mediaElementOptionsString;
   runJavascript((
-    boost::format("$('video,audio').mediaelementplayer({%s}); \
-    var playerWidget = %s; \
-    if(document.width > 600)\
-      playerWidget.videoResize(60); ")
+    boost::format(JS($('video,audio').mediaelementplayer({%s});
+    debugger;
+    var minimumDesktopSize = %d;
+    function autoResizeVideoPlayer() {
+      var playerWidget = %s;
+      if(playerWidget == null)
+        return;
+      if($(window).width() >= minimumDesktopSize)
+        playerWidget.videoResize(60);
+      else
+        playerWidget.videoResize(100);
+    }
+    window.currentWidth = $(window).width();
+    autoResizeVideoPlayer();
+    var resizeTimer = null;
+    $(window).resize(function(){
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function() {
+        var newWidth = $(window).width();
+        if( (window.currentWidth < minimumDesktopSize && newWidth > minimumDesktopSize) ||
+          (window.currentWidth > minimumDesktopSize && newWidth < minimumDesktopSize) ) autoResizeVideoPlayer();
+        window.currentWidth = newWidth;
+      }, 500);
+    });
+    ))
     % mediaElementOptionsString
+    % MINIMUM_DESKTOP_SIZE
     % templateWidget->jsRef()
   ).str() );
 
@@ -241,22 +269,6 @@ void HTML5PlayerPrivate::addListener(string eventName, string function)
   runJavascript(js);
 }
 
-void HTML5Player::setPlayerSize(int width, int height)
-{
-  string js = JS(
-    var currentWidth = mediaPlayer.width;
-    var currentHeight = mediaPlayer.height;
-    var newWidth = %d;
-    var newHeight = %d;
-    if(newHeight<1)
-      newHeight = newWidth / ( currentWidth / currentHeight );
-    mediaPlayer.width=newWidth;
-    mediaPlayer.height=newHeight;
-  );
-
-  js = (boost::format(js) % width % height).str();
-  d->runJavascript(js);
-}
 
 void HTML5Player::refresh()
 {
