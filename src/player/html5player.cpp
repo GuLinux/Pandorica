@@ -85,6 +85,11 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
 
   d->templateWidget->setJavaScriptMember("videoResize", d->linkResizeJS());
 
+  d->resizeSlot.setJavaScript((
+    boost::format("function(o,e) { %s.videoResize(o.attributes['resizeTo'].value); }")
+    % d->templateWidget->jsRef()
+  ).str());
+
   for(auto link: vector<pair<string,string>>{ {"small", "30"}, {"medium", "60"}, {"large", "75"}, {"full", "100"} } ) {
     WInteractWidget *button = WW<WPushButton>(wtr(string{"player_resize_"} + link.first), d->resizeLinks).css("btn btn-small")
       .setAttribute("resizeTo", link.second);
