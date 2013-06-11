@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WApplication>
 #include <Wt/WAnchor>
 #include <Wt/WTimer>
+#include <Wt/WPushButton>
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
 #include "private/html5player_p.h"
@@ -81,7 +82,32 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
   templateContainer->addWidget(d->templateWidget);
 
   WContainerWidget *resizeLinks = WW<WContainerWidget>().css("visible-desktop");
-  string resizeJs = (boost::format(JS(
+
+  d->templateWidget->setJavaScriptMember("videoResize", d->linkResizeJS());
+
+  d->resizeSlot.setJavaScript((
+    boost::format("function(o,e) { %s.videoResize(o.attributes['resizeTo'].value); }")
+    % d->templateWidget->jsRef()
+  ).str());
+  d->scrollSlot.setJavaScript(d->scrollZoomJS());
+
+  d->templateWidget->mouseWheel().preventDefaultAction();
+  d->templateWidget->mouseWheel().preventPropagation();
+  d->templateWidget->mouseWheel().connect(d->scrollSlot);
+  for(auto link: vector<pair<string,string>>{ {"small", "30"}, {"medium", "60"}, {"large", "75"}, {"full", "100"} } ) {
+    WInteractWidget *button = WW<WPushButton>(wtr(string{"player_resize_"} + link.first), resizeLinks).css("btn btn-small")
+      .setAttribute("resizeTo", link.second);
+      button->setWidth(120);
+      button->clicked().connect(d->resizeSlot);
+  }
+  templateContainer->setMargin(WLength::Auto, Side::Left | Side::Right);
+  addWidget(resizeLinks);
+  addWidget(templateContainer);
+}
+
+string HTML5PlayerPrivate::linkResizeJS() const
+{
+  return (boost::format(JS(
     function(newSize) {
       if(newSize>100) newSize = 100;
       if(newSize<5) newSize = 5;
@@ -93,42 +119,22 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
       $(playerId).mediaelementplayer().resize();
     }
   ))
-  % d->playerId()
-  % d->templateWidget->jsRef()
-  % d->templateWidget->id()
+  % playerId()
+  % templateWidget->jsRef()
+  % templateWidget->id()
   ).str();
-
-  d->templateWidget->setJavaScriptMember("videoResize", resizeJs);
-
-  log("notice") << "resizeJs=" << resizeJs;
-
-  d->resizeSlot.setJavaScript((
-    boost::format("function(o,e) { %s.videoResize(o.attributes['resizeTo'].value); }")
-    % d->templateWidget->jsRef()
-  ).str());
-  d->scrollSlot.setJavaScript((
-    boost::format("function(o,e) { \
-      if( $(window).width() < %d ) return; \
-      var playerWidget = %s; \
-      var currentSize = parseInt(playerWidget.currentSizeInPercent);\
-      if(e.wheelDelta > 0) playerWidget.videoResize(currentSize+1); \
-      if(e.wheelDelta < 0) playerWidget.videoResize(currentSize-1); \
-    }")
+}
+string HTML5PlayerPrivate::scrollZoomJS() const
+{
+  return (boost::format(JS(function(o,e) {
+      if( $(window).width() < %d ) return;
+      var playerWidget = %s;
+      var currentSize = parseInt(playerWidget.currentSizeInPercent);
+      if(e.wheelDelta > 0) playerWidget.videoResize(currentSize+2);
+      if(e.wheelDelta < 0) playerWidget.videoResize(currentSize-2);
+    }))
     % MINIMUM_DESKTOP_SIZE
-    % d->templateWidget->jsRef()
-  ).str());
-
-  d->templateWidget->mouseWheel().preventDefaultAction();
-  d->templateWidget->mouseWheel().preventPropagation();
-  d->templateWidget->mouseWheel().connect(d->scrollSlot);
-  for(auto link: vector<pair<string,string>>{ {"small", "30"}, {"medium", "60"}, {"large", "75"}, {"full", "100"} } ) {
-    WAnchor *anchor = WW<WAnchor>("#", wtr(string{"player_resize_"} + link.first), resizeLinks)
-      .setAttribute("resizeTo", link.second).padding(10);
-    anchor->clicked().connect(d->resizeSlot);
-  }
-  templateContainer->setMargin(WLength::Auto, Side::Left | Side::Right);
-  addWidget(resizeLinks);
-  addWidget(templateContainer);
+    % templateWidget->jsRef()).str();
 }
 
 
@@ -185,11 +191,9 @@ void HTML5Player::addSubtitles(const Track& track)
 void HTML5Player::addSource(const Source& source)
 {
   if(source.type.find("video/") != string::npos) {
-    d->templateWidget->bindString("media.defaultsize", "width=\"640\" height=\"264\"");
     d->templateWidget->bindString("media.tagtype",  "video" );
   } else {
     d->templateWidget->bindString("media.tagtype", "audio" );
-    d->templateWidget->bindString("media.defaultsize", "");
   }
   d->sources.push_back(source);
 }
@@ -202,11 +206,9 @@ void HTML5Player::setAutoplay(bool autoplay)
 
 void HTML5PlayerPrivate::playerReadySlot()
 {
-
   map<string,string> mediaElementOptions = {
     {"AndroidUseNativeControls", "false"}
   };
-
   // works in theory, but it goes with double subs on chrome
   if(defaultTracks["subtitles"].isValid() && false) {
       mediaElementOptions["startLanguage"] = (boost::format("'%s'") % defaultTracks["subtitles"].lang).str();
@@ -220,7 +222,6 @@ void HTML5PlayerPrivate::playerReadySlot()
   log("notice") << "player options: " << mediaElementOptionsString;
   runJavascript((
     boost::format(JS($('video,audio').mediaelementplayer({%s});
-    debugger;
     var minimumDesktopSize = %d;
     function autoResizeVideoPlayer() {
       var playerWidget = %s;
@@ -276,7 +277,7 @@ void HTML5Player::refresh()
 }
 
 
-string HTML5PlayerPrivate::playerId()
+string HTML5PlayerPrivate::playerId() const
 {
   return string("player_id") + templateWidget->id();
 }

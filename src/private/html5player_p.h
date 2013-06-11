@@ -42,12 +42,15 @@ public:
   Wt::JSlot resizeSlot;
   Wt::JSlot scrollSlot;
   
-  std::string playerId();
+  std::string playerId() const;
   virtual void runJavascript(std::string js);
   virtual void addListener(std::string eventName, std::string function);
   virtual void playerReadySlot();
+  std::string scrollZoomJS() const;
+  std::string linkResizeJS() const;
 private:
   HTML5Player *q;
-};  
+};
+
 }
 #endif
