@@ -17,9 +17,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-
-
-
 #include "html5player.h"
 #include <utils.h>
 #include "Wt-Commons/wt_helpers.h"
@@ -29,49 +26,56 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WTimer>
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
-
+#include "private/html5player_p.h"
 
 using namespace Wt;
 using namespace std;
 using namespace boost;
 using namespace WtCommons;
+using namespace StreamingPrivate;
+
+
+HTML5PlayerPrivate::HTML5PlayerPrivate(HTML5Player* q): q(q), ended(q, "playbackEnded"), playing(q, "playbackStarted"),
+  playerReady(q, "playbackReady"), currentTime(q, "currentTime")
+{
+}
+
 
 HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
-  : WContainerWidget(parent), s_ended(this, "playbackEnded"), s_playing(this, "playbackStarted"),
-  s_playerReady(this, "playbackReady"), s_currentTime(this, "currentTime")
+  : WContainerWidget(parent), d(new HTML5PlayerPrivate(this))
 {
-  templateWidget = new WTemplate();
-  templateWidget->setTemplateText(wtr("html5player.mediatag"), Wt::XHTMLUnsafeText);
-  templateWidget->setMargin(WLength::Auto, Side::Left|Side::Right);
-  templateWidget->addFunction("sources", [this](WTemplate *t, vector<WString> args, std::ostream &output) {
-    for(Source source: sources) {
+  d->templateWidget = new WTemplate();
+  d->templateWidget->setTemplateText(wtr("html5player.mediatag"), Wt::XHTMLUnsafeText);
+  d->templateWidget->setMargin(WLength::Auto, Side::Left|Side::Right);
+  d->templateWidget->addFunction("sources", [this](WTemplate *t, vector<WString> args, std::ostream &output) {
+    for(Source source: d->sources) {
       output << wtr("player.source").arg(source.type).arg(source.src);
     }
     return true;
   });
-  templateWidget->addFunction("track", [this](WTemplate *t, vector<WString> args, std::ostream &output) {
+  d->templateWidget->addFunction("track", [this](WTemplate *t, vector<WString> args, std::ostream &output) {
     WString trackType = args[0];
-    vector<Track> tracksForType = tracks[trackType.toUTF8()];
+    vector<Track> tracksForType = d->tracks[trackType.toUTF8()];
     for(Track track: tracksForType) {
       output << wtr("player.track").arg(track.src).arg(track.lang).arg(track.label).arg(trackType).arg("");
     }
     return true;
   });
-  templateWidget->bindString("player.id",  playerId());
-  s_playing.connect([=](_n6){
-    isPlaying = true;
+  d->templateWidget->bindString("player.id",  d->playerId());
+  d->playing.connect([=](_n6){
+    d->isPlaying = true;
   });
-  s_ended.connect([=](_n6) {
-    isPlaying = false;
+  d->ended.connect([=](_n6) {
+    d->isPlaying = false;
   });
-  addListener("play", s_playing.createCall());
-  addListener("ended", s_ended.createCall());
-  s_playerReady.connect(this, &HTML5Player::playerReady);
-  runJavascript(s_playerReady.createCall());
-  templateWidget->bindEmpty("poster_option");
+  d->addListener("play", d->playing.createCall());
+  d->addListener("ended", d->ended.createCall());
+  d->playerReady.connect([=](_n6){ d->playerReadySlot(); });
+  d->runJavascript(d->playerReady.createCall());
+  d->templateWidget->bindEmpty("poster_option");
   
   WContainerWidget *templateContainer = new WContainerWidget();
-  templateContainer->addWidget(templateWidget);
+  templateContainer->addWidget(d->templateWidget);
   
   WContainerWidget *resizeLinks = new WContainerWidget();
   string resizeJs = (boost::format(JS(
@@ -84,70 +88,72 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
       $(playerId).mediaelementplayer().resize();
     }
   ))
-  % playerId()
-  % templateWidget->jsRef()
-  % templateWidget->id()
+  % d->playerId()
+  % d->templateWidget->jsRef()
+  % d->templateWidget->id()
   ).str();
   
-  templateWidget->setJavaScriptMember("videoResize", resizeJs);
+  d->templateWidget->setJavaScriptMember("videoResize", resizeJs);
   
   log("notice") << "resizeJs=" << resizeJs;
   
-  resizeSlot.setJavaScript((
+  d->resizeSlot.setJavaScript((
     boost::format("function(o,e) { %s.videoResize(o.attributes['resizeTo'].value); }")
-    % templateWidget->jsRef()
+    % d->templateWidget->jsRef()
   ).str());
-  scrollSlot.setJavaScript((
+  d->scrollSlot.setJavaScript((
     boost::format("function(o,e) { var playerWidget = %s; \
       if(e.wheelDelta > 0) playerWidget.videoResize(playerWidget.newPercentSize+1); \
       if(e.wheelDelta < 0) playerWidget.videoResize(playerWidget.newPercentSize-1); \
       return false;\
     }")
-    % templateWidget->jsRef()
+    % d->templateWidget->jsRef()
   ).str());
 
-  templateWidget->mouseWheel().preventDefaultAction();
-  templateWidget->mouseWheel().preventPropagation();
-  templateWidget->mouseWheel().connect(scrollSlot);
+  d->templateWidget->mouseWheel().preventDefaultAction();
+  d->templateWidget->mouseWheel().preventPropagation();
+  d->templateWidget->mouseWheel().connect(d->scrollSlot);
   for(auto link: vector<pair<string,string>>{ {"small", "30"}, {"medium", "60"}, {"large", "75"}, {"full", "100"} } ) {
     WAnchor *anchor = WW<WAnchor>("#", wtr(string{"player_resize_"} + link.first), resizeLinks)
       .setAttribute("resizeTo", link.second).padding(10);
-    anchor->clicked().connect(resizeSlot);
+    anchor->clicked().connect(d->resizeSlot);
   }
   templateContainer->setMargin(WLength::Auto, Side::Left | Side::Right);
   addWidget(resizeLinks);
   addWidget(templateContainer);
 }
 
+
 HTML5Player::~HTML5Player()
 {
-  runJavascript("mediaPlayer.src(""); mediaPlayer.erase();");
+  d->runJavascript("mediaPlayer.src(""); mediaPlayer.erase();");
+  delete d;
 }
 
 void HTML5Player::setPoster(const WLink& poster)
 {
-  templateWidget->bindString("poster_option", string("poster='") + poster.url() + "'");
+  d->templateWidget->bindString("poster_option", string("poster='") + poster.url() + "'");
 }
 
 
 
 void HTML5Player::play()
 {
-  runJavascript("mediaPlayer.play();");
+  d->runJavascript("mediaPlayer.play();");
 }
 
 void HTML5Player::stop()
 {
-  runJavascript("mediaPlayer.stop();");
+  d->runJavascript("mediaPlayer.stop();");
 }
 void HTML5Player::pause()
 {
-  runJavascript("mediaPlayer.pause();");
+  d->runJavascript("mediaPlayer.pause();");
 }
 
 Wt::JSignal<>& HTML5Player::ended()
 {
-  return s_ended;
+  return d->ended;
 }
 
 Wt::WWidget* HTML5Player::widget()
@@ -157,36 +163,36 @@ Wt::WWidget* HTML5Player::widget()
 
 bool HTML5Player::playing()
 {
-  return isPlaying;
+  return d->isPlaying;
 }
 
 void HTML5Player::addSubtitles(const Track& track)
 {
-  tracks["subtitles"].push_back(track);
-  if(!defaultTracks["subtitles"].isValid())
-    defaultTracks["subtitles"] = track;
+  d->tracks["subtitles"].push_back(track);
+  if(!d->defaultTracks["subtitles"].isValid())
+    d->defaultTracks["subtitles"] = track;
 }
 
 
 void HTML5Player::addSource(const Source& source)
 {
   if(source.type.find("video/") != string::npos) {
-    templateWidget->bindString("media.defaultsize", "width=\"640\" height=\"264\"");
-    templateWidget->bindString("media.tagtype",  "video" );
+    d->templateWidget->bindString("media.defaultsize", "width=\"640\" height=\"264\"");
+    d->templateWidget->bindString("media.tagtype",  "video" );
   } else {
-    templateWidget->bindString("media.tagtype", "audio" );
-    templateWidget->bindString("media.defaultsize", "");
+    d->templateWidget->bindString("media.tagtype", "audio" );
+    d->templateWidget->bindString("media.defaultsize", "");
   }
-  sources.push_back(source);
+  d->sources.push_back(source);
 }
 
 void HTML5Player::setAutoplay(bool autoplay)
 {
-  templateWidget->setCondition("autoplay", autoplay);
+  d->templateWidget->setCondition("autoplay", autoplay);
 }
 
 
-void HTML5Player::playerReady()
+void HTML5PlayerPrivate::playerReadySlot()
 {
   
   map<string,string> mediaElementOptions = {
@@ -212,25 +218,20 @@ void HTML5Player::playerReady()
     % mediaElementOptionsString
     % templateWidget->jsRef()
   ).str() );
-  // doesn't work properly without user interaction
-  if(false) {
-    runJavascript(JS(
-      mediaPlayer.player.enterFullScreen();
-    ));
-  }
+
 }
 
 
-void HTML5Player::runJavascript(string js)
+void HTML5PlayerPrivate::runJavascript(string js)
 {
   string runJS = WString(JS(
     var mediaPlayer = document.getElementById('{1}');
     {2}
   )).arg(playerId()).arg(js).toUTF8();
-  doJavaScript(runJS);
+  q->doJavaScript(runJS);
 }
 
-void HTML5Player::addListener(string eventName, string function)
+void HTML5PlayerPrivate::addListener(string eventName, string function)
 {
   string js = WString(JS(
     mediaPlayer.addEventListener('{1}', function() { {2} });
@@ -252,28 +253,19 @@ void HTML5Player::setPlayerSize(int width, int height)
   );
   
   js = (boost::format(js) % width % height).str();
-  runJavascript(js);
+  d->runJavascript(js);
 }
 
 void HTML5Player::refresh()
 {
-  runJavascript(string("$('video,audio').mediaelementplayer();"));
+  d->runJavascript(string("$('video,audio').mediaelementplayer();"));
 }
 
 
-string HTML5Player::playerId()
+string HTML5PlayerPrivate::playerId()
 {
   return string("player_id") + templateWidget->id();
 }
 
-void HTML5Player::getCurrentTime(GetCurrentTimeCallback callback)
-{
-  s_currentTime.connect(callback);
-  string js = JS(
-    var mediaCurrentTime = mediaPlayer.currentTime;
-    var mediaTotalTime = mediaPlayer.duration;
-    %s ;
-  );
-  runJavascript( (boost::format(js) % s_currentTime.createCall("mediaCurrentTime", "mediaTotalTime")).str() );
-}
+
 
