@@ -49,7 +49,6 @@ public:
     virtual void setPoster(const Wt::WLink& poster);
     virtual void addSubtitles(const Track& track);
     virtual void setAutoplay(bool autoplay);
-    virtual void setPlayerSize(int width, int height = -1);
     
     virtual void pause();
  
