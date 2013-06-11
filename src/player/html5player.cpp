@@ -73,13 +73,15 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
   d->playerReady.connect([=](_n6){ d->playerReadySlot(); });
   d->runJavascript(d->playerReady.createCall());
   d->templateWidget->bindEmpty("poster_option");
-  
+
   WContainerWidget *templateContainer = new WContainerWidget();
   templateContainer->addWidget(d->templateWidget);
-  
-  WContainerWidget *resizeLinks = new WContainerWidget();
+
+  WContainerWidget *resizeLinks = WW<WContainerWidget>().css("visible-desktop");
   string resizeJs = (boost::format(JS(
     function(newSize) {
+      if(newSize>100) newSize = 100;
+      if(newSize<5) newSize = 5;
       var playerId = '#%s';
       var myself = %s;
       var myId = '#%s';
@@ -92,11 +94,11 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
   % d->templateWidget->jsRef()
   % d->templateWidget->id()
   ).str();
-  
+
   d->templateWidget->setJavaScriptMember("videoResize", resizeJs);
-  
+
   log("notice") << "resizeJs=" << resizeJs;
-  
+
   d->resizeSlot.setJavaScript((
     boost::format("function(o,e) { %s.videoResize(o.attributes['resizeTo'].value); }")
     % d->templateWidget->jsRef()
@@ -194,17 +196,17 @@ void HTML5Player::setAutoplay(bool autoplay)
 
 void HTML5PlayerPrivate::playerReadySlot()
 {
-  
+
   map<string,string> mediaElementOptions = {
     {"AndroidUseNativeControls", "false"}
   };
-  
-  // works in theory, but it goes with double subs on chrome 
+
+  // works in theory, but it goes with double subs on chrome
   if(defaultTracks["subtitles"].isValid() && false) {
       mediaElementOptions["startLanguage"] = (boost::format("'%s'") % defaultTracks["subtitles"].lang).str();
   }
-  
-  
+
+
   string mediaElementOptionsString = boost::algorithm::join(Utils::transform(mediaElementOptions, vector<string>{}, [](pair<string,string> o){
     return (boost::format("%s: %s") % o.first % o.second).str();
   }), ", ");
@@ -251,7 +253,7 @@ void HTML5Player::setPlayerSize(int width, int height)
     mediaPlayer.width=newWidth;
     mediaPlayer.height=newHeight;
   );
-  
+
   js = (boost::format(js) % width % height).str();
   d->runJavascript(js);
 }
