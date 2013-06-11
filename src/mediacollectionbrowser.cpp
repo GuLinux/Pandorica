@@ -457,7 +457,7 @@ void MediaCollectionBrowserPrivate::setTitleFor(Media media)
 }
 
 
-WContainerWidget* MediaCollectionBrowserPrivate::addIcon(WString filename, GetIconF icon, MouseEventListener onClick)
+WContainerWidget* MediaCollectionBrowserPrivate::addIcon(WString filename, GetIconF icon, OnClick onClick)
 {
     WContainerWidget *item = WW<WContainerWidget>().css("span3 media-icon-container");
     item->setContentAlignment(AlignmentFlag::AlignCenter);
