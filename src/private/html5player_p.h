@@ -47,7 +47,7 @@ public:
   virtual void runJavascript(std::string js);
   virtual void addListener(std::string eventName, std::string function);
   virtual void playerReadySlot();
-  std::string scrollZoomJS() const;
+  void setZoomScroll();
   std::string linkResizeJS() const;
 private:
   HTML5Player *q;
