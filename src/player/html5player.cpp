@@ -85,15 +85,6 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
 
   d->templateWidget->setJavaScriptMember("videoResize", d->linkResizeJS());
 
-  d->resizeSlot.setJavaScript((
-    boost::format("function(o,e) { %s.videoResize(o.attributes['resizeTo'].value); }")
-    % d->templateWidget->jsRef()
-  ).str());
-  d->scrollSlot.setJavaScript(d->scrollZoomJS());
-
-  d->templateWidget->mouseWheel().preventDefaultAction();
-  d->templateWidget->mouseWheel().preventPropagation();
-  d->templateWidget->mouseWheel().connect(d->scrollSlot);
   for(auto link: vector<pair<string,string>>{ {"small", "30"}, {"medium", "60"}, {"large", "75"}, {"full", "100"} } ) {
     WInteractWidget *button = WW<WPushButton>(wtr(string{"player_resize_"} + link.first), d->resizeLinks).css("btn btn-small")
       .setAttribute("resizeTo", link.second);
@@ -103,6 +94,21 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
   templateContainer->setMargin(WLength::Auto, Side::Left | Side::Right);
   addWidget(WW<WContainerWidget>().css("visible-desktop btn-toolbar").add(d->resizeLinks));
   addWidget(templateContainer);
+}
+void HTML5PlayerPrivate::setZoomScroll() {
+  string jsScrollZoom = (boost::format(JS(function(o,e) {
+      if( $(window).width() < %d ) return;
+      var playerWidget = %s;
+      var currentSize = parseInt(playerWidget.currentSizeInPercent);
+      if(e.wheelDelta > 0) playerWidget.videoResize(currentSize+2);
+      if(e.wheelDelta < 0) playerWidget.videoResize(currentSize-2);
+    }))
+    % MINIMUM_DESKTOP_SIZE
+    % templateWidget->jsRef()).str();
+  scrollSlot.setJavaScript(jsScrollZoom);
+  templateWidget->mouseWheel().preventDefaultAction();
+  templateWidget->mouseWheel().preventPropagation();
+  templateWidget->mouseWheel().connect(scrollSlot);
 }
 
 string HTML5PlayerPrivate::linkResizeJS() const
@@ -123,18 +129,6 @@ string HTML5PlayerPrivate::linkResizeJS() const
   % templateWidget->jsRef()
   % templateWidget->id()
   ).str();
-}
-string HTML5PlayerPrivate::scrollZoomJS() const
-{
-  return (boost::format(JS(function(o,e) {
-      if( $(window).width() < %d ) return;
-      var playerWidget = %s;
-      var currentSize = parseInt(playerWidget.currentSizeInPercent);
-      if(e.wheelDelta > 0) playerWidget.videoResize(currentSize+2);
-      if(e.wheelDelta < 0) playerWidget.videoResize(currentSize-2);
-    }))
-    % MINIMUM_DESKTOP_SIZE
-    % templateWidget->jsRef()).str();
 }
 
 
@@ -192,6 +186,7 @@ void HTML5Player::addSource(const Source& source)
 {
   if(source.type.find("video/") != string::npos) {
     d->templateWidget->bindString("media.tagtype",  "video" );
+    d->setZoomScroll();
   } else {
     d->templateWidget->bindString("media.tagtype", "audio" );
     d->resizeLinks->setHidden(true);
