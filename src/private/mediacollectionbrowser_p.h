@@ -125,6 +125,8 @@ private:
   Session* session;
 };
 
+typedef std::function<void(Wt::WMouseEvent)> OnClick;
+
 class MediaCollectionBrowserPrivate {
 public:
     MediaCollectionBrowserPrivate(MediaCollection *collection, Settings *settings, Session *session, MediaCollectionBrowser *q)
@@ -151,7 +153,7 @@ public:
 private:
     void addDirectory(CollectionPath *directory);
     void addMedia(Media& media);
-    Wt::WContainerWidget* addIcon(Wt::WString filename, GetIconF icon, WtCommons::MouseEventListener onClick);
+    Wt::WContainerWidget* addIcon(Wt::WString filename, GetIconF icon, OnClick onClick);
     MediaCollectionBrowser* q;
 };
 }

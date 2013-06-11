@@ -38,10 +38,11 @@ using namespace WtCommons;
 
 HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
   : WContainerWidget(parent), s_ended(this, "playbackEnded"), s_playing(this, "playbackStarted"),
-  s_playerReady(this, "playbackReady"), s_currentTime(this, "currentTime"), resizeSignal(this, "resizeSignal")
+  s_playerReady(this, "playbackReady"), s_currentTime(this, "currentTime")
 {
   templateWidget = new WTemplate();
   templateWidget->setTemplateText(wtr("html5player.mediatag"), Wt::XHTMLUnsafeText);
+  templateWidget->setMargin(WLength::Auto, Side::Left|Side::Right);
   templateWidget->addFunction("sources", [this](WTemplate *t, vector<WString> args, std::ostream &output) {
     for(Source source: sources) {
       output << wtr("player.source").arg(source.type).arg(source.src);
@@ -71,24 +72,48 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
   
   WContainerWidget *templateContainer = new WContainerWidget();
   templateContainer->addWidget(templateWidget);
+  
   WContainerWidget *resizeLinks = new WContainerWidget();
+  string resizeJs = (boost::format(JS(
+    function(newSize) {
+      var playerId = '#%s';
+      var myself = %s;
+      var myId = '#%s';
+      $(myId).width('' + newSize + '%%');
+      myself.newPercentSize=newSize;
+      $(playerId).mediaelementplayer().resize();
+    }
+  ))
+  % playerId()
+  % templateWidget->jsRef()
+  % templateWidget->id()
+  ).str();
   
+  templateWidget->setJavaScriptMember("videoResize", resizeJs);
   
-  resizeSignal.connect([=](int size, _n5) {
-    templateWidget->doJavaScript(
-      (boost::format(" $('#%s').width('%d%%'); \
-      $('#%s').mediaelementplayer().resize();")
-        % templateContainer->id()
-        % size
-        % playerId()
-      ).str()
-    );
-  });
+  log("notice") << "resizeJs=" << resizeJs;
   
-  resizeLinks->addWidget(WW<WAnchor>("#", "Small").padding(10).onClick([=](WMouseEvent) { resizeSignal.emit(30); } ));
-  resizeLinks->addWidget(WW<WAnchor>("#", "Medium").padding(10).onClick([=](WMouseEvent) { resizeSignal.emit(50); } ));
-  resizeLinks->addWidget(WW<WAnchor>("#", "Large").padding(10).onClick([=](WMouseEvent) { resizeSignal.emit(70); } ));
-  resizeLinks->addWidget(WW<WAnchor>("#", "Full").padding(10).onClick([=](WMouseEvent) { resizeSignal.emit(100); } ));
+  resizeSlot.setJavaScript((
+    boost::format("function(o,e) { %s.videoResize(o.attributes['resizeTo'].value); }")
+    % templateWidget->jsRef()
+  ).str());
+  scrollSlot.setJavaScript((
+    boost::format("function(o,e) { var playerWidget = %s; \
+      if(e.wheelDelta > 0) playerWidget.videoResize(playerWidget.newPercentSize+1); \
+      if(e.wheelDelta < 0) playerWidget.videoResize(playerWidget.newPercentSize-1); \
+      return false;\
+    }")
+    % templateWidget->jsRef()
+  ).str());
+
+  templateWidget->mouseWheel().preventDefaultAction();
+  templateWidget->mouseWheel().preventPropagation();
+  templateWidget->mouseWheel().connect(scrollSlot);
+  for(auto link: vector<pair<string,string>>{ {"small", "30"}, {"medium", "60"}, {"large", "75"}, {"full", "100"} } ) {
+    WAnchor *anchor = WW<WAnchor>("#", wtr(string{"player_resize_"} + link.first), resizeLinks)
+      .setAttribute("resizeTo", link.second).padding(10);
+    anchor->clicked().connect(resizeSlot);
+  }
   templateContainer->setMargin(WLength::Auto, Side::Left | Side::Right);
   addWidget(resizeLinks);
   addWidget(templateContainer);
@@ -181,11 +206,11 @@ void HTML5Player::playerReady()
   log("notice") << "player options: " << mediaElementOptionsString;
   runJavascript((
     boost::format("$('video,audio').mediaelementplayer({%s}); \
-    var resizePlayer = function(newSize) { %s}; \
+    var playerWidget = %s; \
     if(document.width > 600)\
-      resizePlayer(60); ")
+      playerWidget.videoResize(60); ")
     % mediaElementOptionsString
-    % resizeSignal.createCall("newSize")
+    % templateWidget->jsRef()
   ).str() );
   // doesn't work properly without user interaction
   if(false) {
