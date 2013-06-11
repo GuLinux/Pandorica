@@ -86,7 +86,7 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
       var myself = %s;
       var myId = '#%s';
       $(myId).width('' + newSize + '%%');
-      myself.newPercentSize=newSize;
+      myself.currentSizeInPercent=newSize;
       $(playerId).mediaelementplayer().resize();
     }
   ))
@@ -105,9 +105,9 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
   ).str());
   d->scrollSlot.setJavaScript((
     boost::format("function(o,e) { var playerWidget = %s; \
-      if(e.wheelDelta > 0) playerWidget.videoResize(playerWidget.newPercentSize+1); \
-      if(e.wheelDelta < 0) playerWidget.videoResize(playerWidget.newPercentSize-1); \
-      return false;\
+      var currentSize = parseInt(playerWidget.currentSizeInPercent);\
+      if(e.wheelDelta > 0) playerWidget.videoResize(currentSize+1); \
+      if(e.wheelDelta < 0) playerWidget.videoResize(currentSize-1); \
     }")
     % d->templateWidget->jsRef()
   ).str());
