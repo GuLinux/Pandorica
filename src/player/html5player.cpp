@@ -81,7 +81,7 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
   WContainerWidget *templateContainer = new WContainerWidget();
   templateContainer->addWidget(d->templateWidget);
 
-  WContainerWidget *resizeLinks = WW<WContainerWidget>().css("visible-desktop");
+  d->resizeLinks = WW<WContainerWidget>().css("btn-group");
 
   d->templateWidget->setJavaScriptMember("videoResize", d->linkResizeJS());
 
@@ -95,13 +95,13 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
   d->templateWidget->mouseWheel().preventPropagation();
   d->templateWidget->mouseWheel().connect(d->scrollSlot);
   for(auto link: vector<pair<string,string>>{ {"small", "30"}, {"medium", "60"}, {"large", "75"}, {"full", "100"} } ) {
-    WInteractWidget *button = WW<WPushButton>(wtr(string{"player_resize_"} + link.first), resizeLinks).css("btn btn-small")
+    WInteractWidget *button = WW<WPushButton>(wtr(string{"player_resize_"} + link.first), d->resizeLinks).css("btn btn-small")
       .setAttribute("resizeTo", link.second);
       button->setWidth(120);
       button->clicked().connect(d->resizeSlot);
   }
   templateContainer->setMargin(WLength::Auto, Side::Left | Side::Right);
-  addWidget(resizeLinks);
+  addWidget(WW<WContainerWidget>().css("visible-desktop btn-toolbar").add(d->resizeLinks));
   addWidget(templateContainer);
 }
 
@@ -194,6 +194,7 @@ void HTML5Player::addSource(const Source& source)
     d->templateWidget->bindString("media.tagtype",  "video" );
   } else {
     d->templateWidget->bindString("media.tagtype", "audio" );
+    d->resizeLinks->setHidden(true);
   }
   d->sources.push_back(source);
 }

@@ -41,6 +41,7 @@ public:
   Wt::WTemplate *templateWidget;
   Wt::JSlot resizeSlot;
   Wt::JSlot scrollSlot;
+    Wt::WContainerWidget* resizeLinks;
   
   std::string playerId() const;
   virtual void runJavascript(std::string js);
