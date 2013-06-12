@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace Wt {
 class WPanel;
+class WTable;
 }
 
 class MediaCollectionBrowser;
@@ -54,8 +55,8 @@ public:
     inline Wt::Signal<> &gotInfo() { return _gotInfo; }
     inline Wt::Signal<> &wasResetted() { return _wasResetted; }
 private:
-  WContainerWidget *labelValueBox(std::string label, Wt::WString value);
-  WContainerWidget *labelValueBox(std::string label, Wt::WWidget *widget);
+  void labelValueBox(std::string label, Wt::WString value, Wt::WTable* container);
+  void labelValueBox(std::string label, Wt::WWidget *widget, Wt::WTable* container);
   Wt::Signal<Media> _play;
   Wt::Signal<Media> _queue;
   Wt::Signal<Media> _setTitle;
