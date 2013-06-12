@@ -101,8 +101,8 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Sett
   
   
   WContainerWidget *row = WW<WContainerWidget>(container).css("row-fluid");
-  row->addWidget(d->infoPanel->add(WW<InfoPanel>(session, settings).addCss("visible-desktop span3") ));
-  row->addWidget(WW<WContainerWidget>().css("mediabrowser span9").add(d->browser));
+  row->addWidget(d->infoPanel->add(WW<InfoPanel>(session, settings).addCss("visible-desktop span4") ));
+  row->addWidget(WW<WContainerWidget>().css("mediabrowser span8").add(d->browser));
   
 
   d->infoPanel->setup();
