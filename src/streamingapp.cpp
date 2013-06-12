@@ -251,7 +251,7 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   WMenuItem *commentsMenuItem = items->addItem(wtr("menu.latest.comments"));
   commentsMenuItem->addStyleClass("menu-comments");
   WMenuItem *settingsMenuItem = items->addItem(wtr("menu.settings"));
-  settingsMenuItem->addStyleClass("menu-settings");
+  settingsMenuItem->addStyleClass("menu-settings visible-desktop");
   
   navigationBar->addMenu(items);
   items->itemSelected().connect([=](WMenuItem* i, _n5){
