@@ -21,7 +21,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
-#include "streamingapp.h"
+#include "pandorica.h"
+#include "private/pandorica_p.h"
+
 #include "player/player.h"
 #include <Wt/WTemplate>
 #include <Wt/WContainerWidget>
@@ -79,7 +81,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WPanel>
 #include <Wt/WComboBox>
 #include <Wt/Dbo/QueryModel>
-#include "private/streamingapp_p.h"
 #include "authpage.h"
 #include "findorphansdialog.h"
 #include "selectdirectories.h"
@@ -97,7 +98,7 @@ using namespace WtCommons;
 typedef std::function<void(filesystem::path)> RunOnPath;
 
 
-StreamingAppPrivate::StreamingAppPrivate(StreamingApp *q) : q(q), playSignal(q, "playSignal"), queueSignal(q, "queueSignal") {
+PandoricaPrivate::PandoricaPrivate(Pandorica *q) : q(q), playSignal(q, "playSignal"), queueSignal(q, "queueSignal") {
   playSignal.connect([=](string uid, _n5){
     queueAndPlay(mediaCollection->media(uid));
   });
@@ -108,9 +109,9 @@ StreamingAppPrivate::StreamingAppPrivate(StreamingApp *q) : q(q), playSignal(q, 
 
 
 
-StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(environment), d(new StreamingAppPrivate(this)) {
+Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(environment), d(new PandoricaPrivate(this)) {
   useStyleSheet( wApp->resourcesUrl() + "form.css");
-  useStyleSheet(Settings::staticPath("/streamingapp.css"));
+  useStyleSheet(Settings::staticPath("/Pandorica.css"));
   addMetaLink(Settings::staticPath("/icons/favicon.png"), "shortcut icon", string{}, string{}, string{}, string{}, false);
   requireJQuery(Settings::staticPath("/jquery.min.js"));
   require(Settings::staticPath("/bootstrap/js/bootstrap.min.js"));
@@ -139,7 +140,7 @@ StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(
 
   
   root()->addWidget(d->authPage = new AuthPage(d->session));
-  d->authPage->loggedIn().connect(this, &StreamingApp::authEvent);
+  d->authPage->loggedIn().connect(this, &Pandorica::authEvent);
   d->authPage->loggedOut().connect([=](_n6) {
     delete d->mainWidget;
     d->mainWidget = 0;
@@ -149,7 +150,7 @@ StreamingApp::StreamingApp( const Wt::WEnvironment& environment) : WApplication(
 }
 
 
-void StreamingApp::authEvent()
+void Pandorica::authEvent()
 {
   Dbo::Transaction t(*d->session);
   d->userId = d->session->user().id();
@@ -176,16 +177,16 @@ void StreamingApp::authEvent()
 
 void updateSessions() {
   for(StreamingSession session: streamingSessions) {
-    WServer::instance()->post(session.sessionId, boost::bind(&StreamingAppPrivate::updateUsersCount, session.d));
+    WServer::instance()->post(session.sessionId, boost::bind(&PandoricaPrivate::updateUsersCount, session.d));
   }
 }
 
-void StreamingAppPrivate::registerSession()
+void PandoricaPrivate::registerSession()
 {
   streamingSessions.push_back({wApp->sessionId(), q, this});
   updateSessions();
 }
-void StreamingAppPrivate::unregisterSession()
+void PandoricaPrivate::unregisterSession()
 {
   streamingSessions.erase(remove_if( streamingSessions.begin(), streamingSessions.end(), [this](StreamingSession s) { return q->sessionId() ==  s.sessionId; } ), streamingSessions.end() );
   updateSessions();
@@ -212,7 +213,7 @@ void endSessionOnDatabase(string sessionId, long userId) {
   t.commit();
 }
 
-StreamingApp::~StreamingApp() {
+Pandorica::~Pandorica() {
   WServer::instance()->log("notice") << "Destroying app";
   if(d->session->login().loggedIn()) {
     WServer::instance()->ioService().post(boost::bind(endSessionOnDatabase, sessionId(), d->userId));
@@ -223,21 +224,15 @@ StreamingApp::~StreamingApp() {
 }
 
 
-void StreamingAppPrivate::updateUsersCount()
+void PandoricaPrivate::updateUsersCount()
 {
   wApp->log("notice") << "refreshing users count";
-//   string query = "SELECT COUNT(*) from session_info WHERE session_ended = 0";
-//   Dbo::Transaction t(session);
-//   int previousSessionsCount = sessionsCount;
-//   sessionsCount = session->query<long>(query).resultValue();
-//   if(previousSessionsCount != sessionsCount) {
-    activeUsersMenuItem->setText(wtr("menu.users").arg(streamingSessions.size()));
-    wApp->triggerUpdate();
-//   }
+  activeUsersMenuItem->setText(wtr("menu.users").arg(streamingSessions.size()));
+  wApp->triggerUpdate();
 }
 
 
-void StreamingAppPrivate::setupMenus(bool isAdmin)
+void PandoricaPrivate::setupMenus(bool isAdmin)
 {
   wApp->log("notice") << "Setting up topbar links";
   navigationBar = new WNavigationBar();
@@ -250,7 +245,12 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   mediaListMenuItem->addStyleClass("menu-media-list");
   WMenuItem *commentsMenuItem = items->addItem(wtr("menu.latest.comments"));
   commentsMenuItem->addStyleClass("menu-comments");
-  WMenuItem *settingsMenuItem = items->addItem(wtr("menu.settings"));
+  
+  WMenuItem *userMenuItem = items->addItem(session->login().user().identity("loginname"));
+  userMenuItem->addStyleClass("menu-user");
+  userMenuItem->setSubMenu(new WPopupMenu);
+  
+  WMenuItem *settingsMenuItem = userMenuItem->menu()->addItem(wtr("menu.settings"));
   settingsMenuItem->addStyleClass("menu-settings visible-desktop");
   
   navigationBar->addMenu(items);
@@ -298,21 +298,21 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   activeUsersMenuItem = new WMenuItem(wtr("menu.users").arg(""));
   activeUsersMenuItem->addStyleClass("menu-loggedusers");
   
-  WMenuItem *logout = items->addItem(wtr("menu.logout"));
+  WMenuItem *logout = userMenuItem->menu()->addItem(wtr("menu.logout"));
   logout->addStyleClass("menu-logout");
+  logout->triggered().connect([=](WMenuItem*, _n5) {
+    session->login().logout();
+    wApp->quit();
+    wApp->redirect(wApp->bookmarkUrl("/")); 
+  });
+  
+  
   if(isAdmin) {
     setupAdminMenus(items);
   }
   else {
     setupUserMenus(items);
   }
-  
-  logout->triggered().connect([=](WMenuItem*, _n5) {
-    session->login().logout();
-    wApp->quit();
-    wApp->redirect(wApp->bookmarkUrl("/")); 
-  });
-
   WLineEdit *searchBox = new WLineEdit();
   searchBox->setStyleClass("search-query");
   searchBox->setAttributeValue("placeholder", wtr("menu.search"));
@@ -364,16 +364,16 @@ void StreamingAppPrivate::setupMenus(bool isAdmin)
   
 }
 
-void StreamingAppPrivate::setupUserMenus(WMenu *mainMenu)
+void PandoricaPrivate::setupUserMenus(WMenu *mainMenu)
 {
-  mainMenu->addItem(activeUsersMenuItem);
-  activeUsersMenuItem->triggered().connect([=](WMenuItem*, _n5) {
-    mainMenu->select(-1);
-  });
+//   mainMenu->addItem(activeUsersMenuItem);
+//   activeUsersMenuItem->triggered().connect([=](WMenuItem*, _n5) {
+//     mainMenu->select(-1);
+//   });
 }
 
 
-void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
+void PandoricaPrivate::setupAdminMenus(WMenu *mainMenu)
 {
   WPopupMenu *adminMenu = new WPopupMenu();
   adminMenu->addItem(activeUsersMenuItem);
@@ -484,7 +484,7 @@ void StreamingAppPrivate::setupAdminMenus(WMenu *mainMenu)
 }
 
 
-void StreamingApp::setupGui()
+void Pandorica::setupGui()
 {
   WContainerWidget* contentWidget = new WContainerWidget;
 
@@ -510,7 +510,7 @@ void StreamingApp::setupGui()
   d->widgetsStack->addWidget(d->mediaCollectionBrowser);
 
   
-  d->playlist->next().connect(d, &StreamingAppPrivate::play);
+  d->playlist->next().connect(d, &PandoricaPrivate::play);
   string sessionId = wApp->sessionId();
   WServer::instance()->ioService().post([=]{
     Session threadSession;
@@ -522,7 +522,7 @@ void StreamingApp::setupGui()
 }
 
 
-void StreamingAppPrivate::parseFileParameter() {
+void PandoricaPrivate::parseFileParameter() {
   if(wApp->environment().getParameter("media")) {
     log("notice") << "Got parameter file: " << *wApp->environment().getParameter("media");
     string fileHash = * wApp->environment().getParameter("media");
@@ -531,7 +531,7 @@ void StreamingAppPrivate::parseFileParameter() {
 }
 
 
-void StreamingApp::refresh() {
+void Pandorica::refresh() {
   Wt::WApplication::refresh();
   if(!d->session->login().loggedIn())
     return;
@@ -541,7 +541,7 @@ void StreamingApp::refresh() {
 }
 
 
-string StreamingAppPrivate::extensionFor ( filesystem::path p ) {
+string PandoricaPrivate::extensionFor ( filesystem::path p ) {
   string extension = p.extension().string();
   boost::algorithm::to_lower(extension);
   return extension;
@@ -549,7 +549,7 @@ string StreamingAppPrivate::extensionFor ( filesystem::path p ) {
 
 
 
-void StreamingAppPrivate::queue(Media media, bool autoplay)
+void PandoricaPrivate::queue(Media media, bool autoplay)
 {
   if(!media.valid()) return;
   playlist->queue(media);
@@ -560,7 +560,7 @@ void StreamingAppPrivate::queue(Media media, bool autoplay)
   }
 }
 
-void StreamingAppPrivate::queueAndPlay(Media media)
+void PandoricaPrivate::queueAndPlay(Media media)
 {
   if(!media.valid()) return;
   playlist->reset();
@@ -588,7 +588,7 @@ std::string defaultLabelFor(string language) {
 }
 
 
-void StreamingAppPrivate::play(Media media) {
+void PandoricaPrivate::play(Media media) {
   mediaListMenuItem->setText(wtr("menu.mediaslist"));
   widgetsStack->setCurrentIndex(0);
   log("notice") << "Playing file " << media.path();

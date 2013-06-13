@@ -32,19 +32,19 @@ namespace Wt {
   class WStandardItemModel;
 }
 namespace StreamingPrivate {
-  class StreamingAppPrivate;
+  class PandoricaPrivate;
 }
-class StreamingApp : public Wt::WApplication {
+class Pandorica : public Wt::WApplication {
 
     public:
-    StreamingApp ( const Wt::WEnvironment& environment );
-    virtual ~StreamingApp();
+    Pandorica ( const Wt::WEnvironment& environment );
+    virtual ~Pandorica();
     void setupGui();
     virtual void refresh();
     void authEvent();
     
     private:
-      StreamingPrivate::StreamingAppPrivate *const d;
+      StreamingPrivate::PandoricaPrivate *const d;
     private:
 };
 

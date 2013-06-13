@@ -160,6 +160,9 @@
 .menu-comments a span span {
   background: transparent url(icons/actions/comments.png)  center left no-repeat;
 }
+.menu-user a span span {
+  background: transparent url(icons/actions/user.png)  center left no-repeat;
+}
 .menu-settings a span span {
   background: transparent url(icons/actions/settings.png)  center left no-repeat;
 }
@@ -178,6 +181,7 @@
 .menu-users-log a span span {
   background: transparent url(icons/actions/users-log.png)  center left no-repeat;
 }
+
 
 .Wt-auth-logged-in {
   text-align: center;

@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <iostream>
 
-#include "streamingapp.h"
+#include "pandorica.h"
 #include "session.h"
 #include "Models/models.h"
 #include "Wt-Commons/compositeresource.h"
@@ -55,7 +55,7 @@ namespace po = program_options;
 
 WApplication *createApplication(const WEnvironment& env)
 {
-    return new StreamingApp(env);
+    return new Pandorica(env);
 }
 
 extern "C" {

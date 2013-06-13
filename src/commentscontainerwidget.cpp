@@ -29,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/function.hpp>
 #include "Wt-Commons/wt_helpers.h"
 
-#include "streamingapp.h"
+#include "pandorica.h"
 
 #include "Models/models.h"
 

@@ -34,20 +34,20 @@ class Playlist;
 class MediaCollection;
 class MediaCollectionBrowser;
 class Player;
-class StreamingApp;
+class Pandorica;
 namespace StreamingPrivate {
-  class StreamingAppPrivate;
+  class PandoricaPrivate;
   
   struct StreamingSession {
     std::string sessionId;
-    StreamingApp *app;
-    StreamingAppPrivate *d;
+    Pandorica *app;
+    PandoricaPrivate *d;
   };
   std::vector<StreamingSession> streamingSessions;
   
-  class StreamingAppPrivate {
+  class PandoricaPrivate {
   public:
-    StreamingAppPrivate(StreamingApp* q);
+    PandoricaPrivate(Pandorica* q);
     Player *player = 0;
     std::string extensionFor(boost::filesystem::path p);
     void parseFileParameter();
@@ -56,7 +56,7 @@ namespace StreamingPrivate {
     void setupMenus(bool isAdmin);
     void setupAdminMenus(Wt::WMenu* mainMenu);
     Session *session;
-    StreamingApp *q;
+    Pandorica *q;
     Wt::WContainerWidget *mainWidget = 0;
     AuthPage *authPage;
     Wt::WTemplate* topBarTemplate;
