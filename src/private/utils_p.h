@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WLength>
 
 class Utils;
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
 
 class UtilsPrivate
 {

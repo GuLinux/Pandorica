@@ -31,7 +31,7 @@ class WApplication;
 
 class Session;
 
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
 class ScanMediaInfoStepPrivate
 {
 public:

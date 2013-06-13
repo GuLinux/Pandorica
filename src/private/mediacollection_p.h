@@ -30,7 +30,7 @@ class WApplication;
 }
 
 class Session;
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
 class MediaCollectionPrivate {
 public:
   MediaCollectionPrivate(Settings *settings, Session *session, Wt::WApplication *app) : settings(settings), session(session), app(app) {}

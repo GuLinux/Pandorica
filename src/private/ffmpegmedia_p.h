@@ -33,7 +33,7 @@ extern "C" {
   #include <libavutil/avutil.h>
 }
 
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
 class FFMPEGMediaPrivate
 {
 public:

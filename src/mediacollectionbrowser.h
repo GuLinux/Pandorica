@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "mediacollection.h"
 
 class Session;
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
   class MediaCollectionBrowserPrivate;
 }
 class MediaCollection;
@@ -41,7 +41,7 @@ public:
   Wt::Signal<Media> &play();
   void reload();
 private:
-  StreamingPrivate::MediaCollectionBrowserPrivate *const d;
+  PandoricaPrivate::MediaCollectionBrowserPrivate *const d;
 };
 
 #endif // MEDIACOLLECTIONBROWSER_H

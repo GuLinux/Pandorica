@@ -43,7 +43,7 @@ using namespace std;
 using namespace Wt;
 using namespace WtCommons;
 
-using namespace StreamingPrivate;
+using namespace PandoricaPrivate;
 
 UtilsPrivate::UtilsPrivate(Utils* q) : q(q)
 {

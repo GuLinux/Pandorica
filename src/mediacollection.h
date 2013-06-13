@@ -34,7 +34,7 @@ class Transaction;
 }
 
 class Session;
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
   class MediaCollectionPrivate;
 }
 class MediaCollection : public Wt::WObject
@@ -49,7 +49,7 @@ public:
     void setUserId(long long userId);
     long long viewingAs() const;
 private:
-  StreamingPrivate::MediaCollectionPrivate *const d;
+  PandoricaPrivate::MediaCollectionPrivate *const d;
 };
 
 #endif // MEDIACOLLECTION_H

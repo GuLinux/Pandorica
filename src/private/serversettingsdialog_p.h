@@ -33,7 +33,7 @@ class WInteractWidget;
 class MediaCollection;
 class Session;
 class Settings;
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
 class ServerSettingsDialogPrivate
 {
 public:

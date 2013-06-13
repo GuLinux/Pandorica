@@ -62,7 +62,7 @@ using namespace ffmpegthumbnailer;
 using namespace Magick;
 using namespace WtCommons;
 
-using namespace StreamingPrivate;
+using namespace PandoricaPrivate;
 
 vector<uint8_t> vectorFrom(Blob blob) {
   return { (char*) blob.data(), (char*) blob.data() + blob.length()};
@@ -223,7 +223,7 @@ void CreateThumbnailsPrivate::chooseRandomFrame(WContainerWidget* container)
   });
 }
 
-Magick::Blob StreamingPrivate::CreateThumbnailsPrivate::resize(Blob blob, uint size, uint quality)
+Magick::Blob PandoricaPrivate::CreateThumbnailsPrivate::resize(Blob blob, uint size, uint quality)
 {
   Magick::Image image{blob};
   Blob output;

@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WContainerWidget>
 
 class Session;
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
   class CommentsContainerWidgetPrivate;
 }
 
@@ -35,7 +35,7 @@ public:
     CommentsContainerWidget(std::string videoId, Session *session, Wt::WContainerWidget* parent = 0);
     virtual ~CommentsContainerWidget();
 private:
-  StreamingPrivate::CommentsContainerWidgetPrivate *const d;
+  PandoricaPrivate::CommentsContainerWidgetPrivate *const d;
 };
 
 #endif // COMMENTSCONTAINERWIDGET_H

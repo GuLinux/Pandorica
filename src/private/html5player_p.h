@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WJavaScript>
 #include <player/player.h>
 
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
 
 class HTML5PlayerPrivate {
 public:

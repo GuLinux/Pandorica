@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/Dbo/Transaction>
 
 class Session;
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
   class AuthPagePrivate;
 }
 class AuthPage : public Wt::WContainerWidget
@@ -39,7 +39,7 @@ public:
   Wt::Signal<> &loggedOut() const;
   void initAuth();
 private:
-    StreamingPrivate::AuthPagePrivate* const d;
+    PandoricaPrivate::AuthPagePrivate* const d;
 };
 
 #endif // AUTHPAGE_H

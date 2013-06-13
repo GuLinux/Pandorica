@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace Wt {
 class WPushButton;
 }
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
   class CreateThumbnailsPrivate;
 }
 
@@ -43,7 +43,7 @@ public:
     virtual Wt::Signal<> &redo();
     inline virtual std::string stepName() const {return "createThumbnails"; }
 private:
-  StreamingPrivate::CreateThumbnailsPrivate* const d;
+  PandoricaPrivate::CreateThumbnailsPrivate* const d;
 };
 
 #endif // CREATETHUMBNAILS_H

@@ -35,15 +35,15 @@ class MediaCollection;
 class MediaCollectionBrowser;
 class Player;
 class Pandorica;
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
   class PandoricaPrivate;
   
-  struct StreamingSession {
+  struct PandoricaSession {
     std::string sessionId;
     Pandorica *app;
     PandoricaPrivate *d;
   };
-  std::vector<StreamingSession> streamingSessions;
+  std::vector<PandoricaSession> pandoricaSessions;
   
   class PandoricaPrivate {
   public:

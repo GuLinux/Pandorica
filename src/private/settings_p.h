@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/filesystem.hpp>
 
 class Settings;
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
 class SettingsPrivate {
 public:
   SettingsPrivate(Settings *q) : q(q) {}

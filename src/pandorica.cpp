@@ -91,14 +91,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using namespace Wt;
 using namespace std;
 using namespace boost;
-using namespace StreamingPrivate;
 namespace fs = boost::filesystem;
+namespace P=PandoricaPrivate;
 using namespace WtCommons;
 
 typedef std::function<void(filesystem::path)> RunOnPath;
 
 
-PandoricaPrivate::PandoricaPrivate(Pandorica *q) : q(q), playSignal(q, "playSignal"), queueSignal(q, "queueSignal") {
+P::PandoricaPrivate::PandoricaPrivate(Pandorica *q) : q(q), playSignal(q, "playSignal"), queueSignal(q, "queueSignal") {
   playSignal.connect([=](string uid, _n5){
     queueAndPlay(mediaCollection->media(uid));
   });
@@ -109,7 +109,7 @@ PandoricaPrivate::PandoricaPrivate(Pandorica *q) : q(q), playSignal(q, "playSign
 
 
 
-Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(environment), d(new PandoricaPrivate(this)) {
+Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(environment), d(new P::PandoricaPrivate(this)) {
   useStyleSheet( wApp->resourcesUrl() + "form.css");
   useStyleSheet(Settings::staticPath("/Pandorica.css"));
   addMetaLink(Settings::staticPath("/icons/favicon.png"), "shortcut icon", string{}, string{}, string{}, string{}, false);
@@ -176,19 +176,19 @@ void Pandorica::authEvent()
 }
 
 void updateSessions() {
-  for(StreamingSession session: streamingSessions) {
-    WServer::instance()->post(session.sessionId, boost::bind(&PandoricaPrivate::updateUsersCount, session.d));
+  for(P::PandoricaSession session: P::pandoricaSessions) {
+    WServer::instance()->post(session.sessionId, boost::bind(&P::PandoricaPrivate::updateUsersCount, session.d));
   }
 }
 
-void PandoricaPrivate::registerSession()
+void P::PandoricaPrivate::registerSession()
 {
-  streamingSessions.push_back({wApp->sessionId(), q, this});
+  P::pandoricaSessions.push_back({wApp->sessionId(), q, this});
   updateSessions();
 }
-void PandoricaPrivate::unregisterSession()
+void P::PandoricaPrivate::unregisterSession()
 {
-  streamingSessions.erase(remove_if( streamingSessions.begin(), streamingSessions.end(), [this](StreamingSession s) { return q->sessionId() ==  s.sessionId; } ), streamingSessions.end() );
+  P::pandoricaSessions.erase(remove_if( P::pandoricaSessions.begin(), P::pandoricaSessions.end(), [this](P::PandoricaSession s) { return q->sessionId() ==  s.sessionId; } ), P::pandoricaSessions.end() );
   updateSessions();
 }
 
@@ -224,15 +224,15 @@ Pandorica::~Pandorica() {
 }
 
 
-void PandoricaPrivate::updateUsersCount()
+void P::PandoricaPrivate::updateUsersCount()
 {
   wApp->log("notice") << "refreshing users count";
-  activeUsersMenuItem->setText(wtr("menu.users").arg(streamingSessions.size()));
+  activeUsersMenuItem->setText(wtr("menu.users").arg(P::pandoricaSessions.size()));
   wApp->triggerUpdate();
 }
 
 
-void PandoricaPrivate::setupMenus(bool isAdmin)
+void P::PandoricaPrivate::setupMenus(bool isAdmin)
 {
   wApp->log("notice") << "Setting up topbar links";
   navigationBar = new WNavigationBar();
@@ -364,7 +364,7 @@ void PandoricaPrivate::setupMenus(bool isAdmin)
   
 }
 
-void PandoricaPrivate::setupUserMenus(WMenu *mainMenu)
+void P::PandoricaPrivate::setupUserMenus(WMenu *mainMenu)
 {
 //   mainMenu->addItem(activeUsersMenuItem);
 //   activeUsersMenuItem->triggered().connect([=](WMenuItem*, _n5) {
@@ -373,7 +373,7 @@ void PandoricaPrivate::setupUserMenus(WMenu *mainMenu)
 }
 
 
-void PandoricaPrivate::setupAdminMenus(WMenu *mainMenu)
+void P::PandoricaPrivate::setupAdminMenus(WMenu *mainMenu)
 {
   WPopupMenu *adminMenu = new WPopupMenu();
   adminMenu->addItem(activeUsersMenuItem);
@@ -510,7 +510,7 @@ void Pandorica::setupGui()
   d->widgetsStack->addWidget(d->mediaCollectionBrowser);
 
   
-  d->playlist->next().connect(d, &PandoricaPrivate::play);
+  d->playlist->next().connect(d, &P::PandoricaPrivate::play);
   string sessionId = wApp->sessionId();
   WServer::instance()->ioService().post([=]{
     Session threadSession;
@@ -522,7 +522,7 @@ void Pandorica::setupGui()
 }
 
 
-void PandoricaPrivate::parseFileParameter() {
+void P::PandoricaPrivate::parseFileParameter() {
   if(wApp->environment().getParameter("media")) {
     log("notice") << "Got parameter file: " << *wApp->environment().getParameter("media");
     string fileHash = * wApp->environment().getParameter("media");
@@ -541,7 +541,7 @@ void Pandorica::refresh() {
 }
 
 
-string PandoricaPrivate::extensionFor ( filesystem::path p ) {
+string P::PandoricaPrivate::extensionFor ( filesystem::path p ) {
   string extension = p.extension().string();
   boost::algorithm::to_lower(extension);
   return extension;
@@ -549,7 +549,7 @@ string PandoricaPrivate::extensionFor ( filesystem::path p ) {
 
 
 
-void PandoricaPrivate::queue(Media media, bool autoplay)
+void P::PandoricaPrivate::queue(Media media, bool autoplay)
 {
   if(!media.valid()) return;
   playlist->queue(media);
@@ -560,7 +560,7 @@ void PandoricaPrivate::queue(Media media, bool autoplay)
   }
 }
 
-void PandoricaPrivate::queueAndPlay(Media media)
+void P::PandoricaPrivate::queueAndPlay(Media media)
 {
   if(!media.valid()) return;
   playlist->reset();
@@ -588,7 +588,7 @@ std::string defaultLabelFor(string language) {
 }
 
 
-void PandoricaPrivate::play(Media media) {
+void P::PandoricaPrivate::play(Media media) {
   mediaListMenuItem->setText(wtr("menu.mediaslist"));
   widgetsStack->setCurrentIndex(0);
   log("notice") << "Playing file " << media.path();

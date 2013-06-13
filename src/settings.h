@@ -28,7 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class Session;
 class Player;
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
   class SettingsPrivate;
 }
 class Settings
@@ -60,7 +60,7 @@ public:
     static std::string sqlite3DatabasePath();
     static bool emailVerificationMandatory();
 private:
-  StreamingPrivate::SettingsPrivate *const d;
+  PandoricaPrivate::SettingsPrivate *const d;
 };
 
 #endif // SETTINGS_H

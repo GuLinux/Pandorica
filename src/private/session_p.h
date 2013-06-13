@@ -29,7 +29,7 @@ namespace Wt {
   }
 }
 
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
 class SessionPrivate {
 public:
     void createConnection();

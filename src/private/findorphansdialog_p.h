@@ -42,7 +42,7 @@ class Session;
 class MediaCollection;
 typedef std::function<void(Wt::Dbo::Transaction &)> MigrateF;
 
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
   struct DataSummary {
     uint mediasCount = 0;
     uint attachmentsCount = 0;

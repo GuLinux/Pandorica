@@ -47,7 +47,7 @@ class WFileUpload;
 #define IMAGE_SIZE_THUMB 260
 #define IMAGE_SIZE_PLAYER 640
 
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
 typedef std::function<void(int,std::string)> UpdateGuiProgress;
 
 struct ThumbnailPosition {

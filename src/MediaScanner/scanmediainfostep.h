@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class Session;
 class MediaCollection;
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
   class ScanMediaInfoStepPrivate;
 }
 class ScanMediaInfoStep : public MediaScannerStep, Wt::WObject
@@ -40,7 +40,7 @@ public:
   virtual void save(Wt::Dbo::Transaction *transaction);
   inline virtual std::string stepName() const {return "scanMediaInfoStep"; }
 private:
-  StreamingPrivate::ScanMediaInfoStepPrivate* const d;
+  PandoricaPrivate::ScanMediaInfoStepPrivate* const d;
 };
 
 #endif // SCANMEDIAINFOPAGE_H

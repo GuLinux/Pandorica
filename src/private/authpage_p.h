@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class Session;
 class AuthPage;
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
 class AuthWidgetCustom;
 class AuthPagePrivate
 {

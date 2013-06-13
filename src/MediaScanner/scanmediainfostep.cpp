@@ -46,7 +46,7 @@ using namespace Wt;
 using namespace std;
 using namespace std::chrono;
 namespace fs = boost::filesystem;
-using namespace StreamingPrivate;
+using namespace PandoricaPrivate;
 using namespace WtCommons;
 
 ScanMediaInfoStepPrivate::ScanMediaInfoStepPrivate(ScanMediaInfoStep* q, WApplication *app)

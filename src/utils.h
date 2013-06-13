@@ -31,7 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace Wt {
 class WInteractWidget;
 }
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
   class UtilsPrivate;
 }
 class Utils
@@ -51,7 +51,7 @@ public:
       return out;
     }
 private:
-  StreamingPrivate::UtilsPrivate* const d;
+  PandoricaPrivate::UtilsPrivate* const d;
 };
 
 #endif // UTILS_H
