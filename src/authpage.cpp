@@ -33,6 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "utils.h"
 #include <Wt/Dbo/Transaction>
 #include <Wt/WTimer>
+#include <Wt/WConfig.h>
 #include <Wt/WImage>
 
 #include "Models/models.h"
@@ -93,7 +94,8 @@ void AuthPagePrivate::authEvent() {
   if(!session->login().loggedIn()) {
     loggedOut.emit();
     messagesContainer->clear();
-    q->animateShow({WAnimation::Fade});
+    if(string{"3.3.0"} != WT_VERSION_STR)
+      q->animateShow({WAnimation::Fade});
     q->removeStyleClass("hidden", true);
     return;
   }
@@ -125,7 +127,8 @@ void AuthPagePrivate::authEvent() {
     message->bindWidget("refresh", refreshButton);
     return;
   }
-  q->animateHide({WAnimation::Fade});
+  if(string{"3.3.0"} != WT_VERSION_STR)
+    q->animateHide({WAnimation::Fade});
   WTimer::singleShot(250, [=](WMouseEvent) {
     q->addStyleClass("hidden"); // workaround: for wt 3.3.x hide() doesn't seem to work...
   });
