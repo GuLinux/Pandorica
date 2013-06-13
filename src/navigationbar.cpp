@@ -129,6 +129,15 @@ void NavigationBarPrivate::resetSelection(Wt::WMenu* menu)
   }); 
 }
 
+void NavigationBar::updateUsersCount(int newUsersCount)
+{
+  if(d->activeUsersMenuItem) {
+    d->activeUsersMenuItem->setText(wtr("menu.users").arg(newUsersCount));
+    wApp->triggerUpdate();
+  }
+}
+
+
 
 void NavigationBarPrivate::setupNavigationBar()
 {

@@ -50,6 +50,7 @@ public:
     Wt::Signal<> &logout();
     
     void setPage(Page page);
+    void updateUsersCount(int newUsersCount);
 
 private:
     PandoricaPrivate::NavigationBarPrivate* const d;
