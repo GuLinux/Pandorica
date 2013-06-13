@@ -228,10 +228,7 @@ Pandorica::~Pandorica() {
 void P::PandoricaPrivate::updateUsersCount()
 {
   wApp->log("notice") << "refreshing users count";
-  if(activeUsersMenuItem) {
-    activeUsersMenuItem->setText(wtr("menu.users").arg(P::pandoricaSessions.size()));
-    wApp->triggerUpdate();
-  }
+  navigationBar->updateUsersCount(P::pandoricaSessions.size());
 }
 
 

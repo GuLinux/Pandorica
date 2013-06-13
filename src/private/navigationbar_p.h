@@ -63,11 +63,11 @@ public:
     void resetSelection(Wt::WMenu *menu);
     Wt::WMenu* mainMenu;
     Wt::WMenuItem* mediaListMenuItem;
+    Wt::WMenuItem* activeUsersMenuItem = 0;
 private:
     class NavigationBar* const q;
     MediaCollection *mediaCollection;
     Settings *settings;
-    Wt::WMenuItem* activeUsersMenuItem;
 };
 }
 #endif // NAVIGATIONBARPRIVATE_H
