@@ -33,7 +33,7 @@ using namespace Wt;
 using namespace std;
 using namespace boost;
 using namespace Wt::Utils;
-using namespace StreamingPrivate;
+using namespace PandoricaPrivate;
 
 namespace fs = boost::filesystem;
 

@@ -33,7 +33,7 @@ using namespace Wt;
 using namespace std;
 using namespace boost;
 using namespace WtCommons;
-using namespace StreamingPrivate;
+using namespace PandoricaPrivate;
 
 
 #define MINIMUM_DESKTOP_SIZE 980

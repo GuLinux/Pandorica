@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WTemplate>
 #include <Wt/WContainerWidget>
 
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
   class HTML5PlayerPrivate;
 }
 
@@ -53,7 +53,7 @@ public:
     virtual void pause();
  
 private:
-    StreamingPrivate::HTML5PlayerPrivate *const d;
+    PandoricaPrivate::HTML5PlayerPrivate *const d;
 };
 
 #endif // HTML5PLAYER_H

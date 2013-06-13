@@ -30,7 +30,7 @@ namespace Wt {
   class WApplication;
 };
 
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
 class SaveSubtitlesToDatabasePrivate
 {
 public:

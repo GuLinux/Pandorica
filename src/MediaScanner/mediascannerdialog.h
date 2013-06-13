@@ -28,7 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class Settings;
 class MediaCollection;
 class Session;
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
   class MediaScannerDialogPrivate;
 }
 class MediaScannerDialog : Wt::WDialog
@@ -39,7 +39,7 @@ public:
   void run();
   Wt::Signal<> &scanFinished();
 private:
-  StreamingPrivate::MediaScannerDialogPrivate* const d;
+  PandoricaPrivate::MediaScannerDialogPrivate* const d;
 };
 
 #endif // MEDIASCANNERDIALOG_H

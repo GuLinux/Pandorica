@@ -40,7 +40,7 @@ class WStandardItemModel;
 }
 
 class SelectDirectories;
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
 class SelectDirectoriesPrivate
 {
 public:

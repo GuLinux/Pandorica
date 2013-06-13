@@ -36,7 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using namespace Wt;
 using namespace boost;
 using namespace std;
-using namespace StreamingPrivate;
+using namespace PandoricaPrivate;
 using namespace WtCommons;
 
 //                          content, last_updated, username, email
@@ -65,7 +65,7 @@ void CommentViewers::commentAdded(string videoId, long int commentId)
 
 CommentViewers commentViewers;
 
-class StreamingPrivate::CommentsContainerWidgetPrivate {
+class PandoricaPrivate::CommentsContainerWidgetPrivate {
 public:
   string videoId;
   Session *session;

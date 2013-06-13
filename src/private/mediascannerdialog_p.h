@@ -40,7 +40,7 @@ class WGroupBox;
 }
 
 class MediaCollection;
-namespace StreamingPrivate{
+namespace PandoricaPrivate{
 typedef std::function<void(int,std::string)> UpdateGuiProgress;
 typedef std::function<void()> OnScanFinish;
 
@@ -63,7 +63,7 @@ public:
     Settings* settings;
     std::map<MediaScannerStep*, StepContent> stepsContents;
     Wt::WPushButton* buttonRetry;
-    void scanMedias(Wt::WApplication* app, StreamingPrivate::UpdateGuiProgress updateGuiProgress, StreamingPrivate::OnScanFinish onScanFinish);
+    void scanMedias(Wt::WApplication* app, PandoricaPrivate::UpdateGuiProgress updateGuiProgress, PandoricaPrivate::OnScanFinish onScanFinish);
     bool canContinue;
     bool canceled;
     bool skipped;

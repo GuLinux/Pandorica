@@ -31,7 +31,7 @@ namespace Wt {
   class WStandardItem;
   class WStandardItemModel;
 }
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
   class PandoricaPrivate;
 }
 class Pandorica : public Wt::WApplication {
@@ -44,7 +44,7 @@ class Pandorica : public Wt::WApplication {
     void authEvent();
     
     private:
-      StreamingPrivate::PandoricaPrivate *const d;
+      PandoricaPrivate::PandoricaPrivate *const d;
     private:
 };
 

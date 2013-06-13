@@ -26,7 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MediaScanner/mediascannerstep.h"
 
 class Session;
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
   class SaveSubtitlesToDatabasePrivate;
 }
 class SaveSubtitlesToDatabase :  Wt::WObject, public MediaScannerStep
@@ -39,7 +39,7 @@ public:
     virtual void save(Wt::Dbo::Transaction *transaction);
     inline virtual std::string stepName() const {return "saveSubtitlesToDatabase"; }
 private:
-  StreamingPrivate::SaveSubtitlesToDatabasePrivate* const d;
+  PandoricaPrivate::SaveSubtitlesToDatabasePrivate* const d;
 };
 
 #endif // SAVESUBTITLESTODATABASE_H

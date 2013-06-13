@@ -38,7 +38,7 @@ class MediaCollectionBrowser;
 class Session;
 class Settings;
 class MediaCollection;
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
 typedef std::pair<std::string,Media> MediaEntry;
 typedef std::function<std::string(Wt::WObject*)> GetIconF;
 

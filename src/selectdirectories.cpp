@@ -32,7 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Wt-Commons/wt_helpers.h"
 
 
-using namespace StreamingPrivate;
+using namespace PandoricaPrivate;
 using namespace std;
 using namespace Wt;
 

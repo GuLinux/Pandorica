@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class Settings;
 class Session;
 class MediaCollection;
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
   class FindOrphansDialogPrivate;
 }
 class FindOrphansDialog : public Wt::WDialog
@@ -39,7 +39,7 @@ public:
     void run();
 private:
   void nextButtonClicked();
-  StreamingPrivate::FindOrphansDialogPrivate* const d;
+  PandoricaPrivate::FindOrphansDialogPrivate* const d;
 };
 
 #endif // FINDORPHANSDIALOG_H

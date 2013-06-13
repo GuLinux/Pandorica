@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/filesystem.hpp>
 #include "media.h"
 
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
   class PlaylistPrivate;
 }
 
@@ -41,7 +41,7 @@ public:
   Media first();
   void reset();
 private:
-  StreamingPrivate::PlaylistPrivate *const d;
+  PandoricaPrivate::PlaylistPrivate *const d;
 };
 
 #endif // PLAYLIST_H

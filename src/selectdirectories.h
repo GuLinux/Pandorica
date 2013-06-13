@@ -33,7 +33,7 @@ namespace Wt {
 class WContainerWidget;
 }
 
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
   class SelectDirectoriesPrivate;
 }
 
@@ -51,7 +51,7 @@ public:
   void setHeight(Wt::WLength height);
   inline void resize(Wt::WLength &width, Wt::WLength &height) { setWidth(width); setHeight(height); }
 private:
-  StreamingPrivate::SelectDirectoriesPrivate* const d;
+  PandoricaPrivate::SelectDirectoriesPrivate* const d;
 };
 
 #endif // SELECTDIRECTORIES_H

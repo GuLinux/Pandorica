@@ -28,7 +28,7 @@ class WWidget;
 class WContainerWidget;
 }
 
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
   typedef std::pair<Wt::WWidget*,Media> QueueItem;
   
   class PlaylistPrivate {

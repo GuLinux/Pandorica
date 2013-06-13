@@ -28,7 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class MediaCollection;
 class Session;
 class Settings;
-namespace StreamingPrivate {
+namespace PandoricaPrivate {
   class ServerSettingsDialogPrivate;
 }
 class ServerSettingsDialog : public Wt::WDialog
@@ -38,7 +38,7 @@ public:
     ServerSettingsDialog(Settings* settings, Session* session, MediaCollection* mediaCollection, Wt::WObject* parent = 0);
   void run();
 private:
-  StreamingPrivate::ServerSettingsDialogPrivate* const d;
+  PandoricaPrivate::ServerSettingsDialogPrivate* const d;
 };
 
 #endif // SERVERSETTINGSDIALOG_H

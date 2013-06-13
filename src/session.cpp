@@ -63,7 +63,7 @@ namespace {
 
 using namespace std;
 using namespace Wt;
-using namespace StreamingPrivate;
+using namespace PandoricaPrivate;
 
 void Session::configureAuth()
 {
