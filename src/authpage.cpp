@@ -93,6 +93,7 @@ void AuthPagePrivate::authEvent() {
   if(!session->login().loggedIn()) {
     loggedOut.emit();
     messagesContainer->clear();
+    q->animateShow({WAnimation::Fade});
     q->removeStyleClass("hidden", true);
     return;
   }
@@ -124,7 +125,10 @@ void AuthPagePrivate::authEvent() {
     message->bindWidget("refresh", refreshButton);
     return;
   }
-  q->addStyleClass("hidden"); // workaround: for wt 3.3.x hide() doesn't seem to work...
+  q->animateHide({WAnimation::Fade});
+  WTimer::singleShot(250, [=](WMouseEvent) {
+    q->addStyleClass("hidden"); // workaround: for wt 3.3.x hide() doesn't seem to work...
+  });
   loggedIn.emit();
 }
 
