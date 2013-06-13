@@ -1,4 +1,4 @@
-
+#!/bin/bash
 outfile="$1"
 
 config_app=""
