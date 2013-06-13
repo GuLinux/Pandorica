@@ -56,6 +56,12 @@ public:
     Wt::Signal<> logout;
     
     Wt::Signal<> viewLoggedUsers;
+    Wt::Signal<> viewUsersHistory;
+    Wt::Signal<> manageGroups;
+    Wt::Signal<> mediaScanner;
+    Wt::Signal<> findOrphans;
+    Wt::Signal<> viewAs;
+    Wt::Signal<> configureApp;
     
     Wt::JSignal<std::string> playJS;
     

@@ -95,6 +95,43 @@ Signal<>& NavigationBar::logout()
   return d->logout;
 }
 
+Signal<>& NavigationBar::configureApp()
+{
+  return d->configureApp;
+}
+
+Signal<>& NavigationBar::manageGroups()
+{
+  return d->manageGroups;
+}
+
+Signal<>& NavigationBar::mediaScanner()
+{
+  return d->mediaScanner;
+}
+
+Signal<>& NavigationBar::findOrphans()
+{
+  return d->findOrphans;
+}
+
+Signal<>& NavigationBar::viewAs()
+{
+  return d->viewAs;
+}
+
+
+Signal<>& NavigationBar::viewLoggedUsers()
+{
+  return d->viewLoggedUsers;
+}
+
+Signal<>& NavigationBar::viewUsersHistory()
+{
+  return d->viewUsersHistory;
+}
+
+
 void NavigationBar::setPage(NavigationBar::Page page)
 {
   if(page == Player) {
@@ -182,21 +219,6 @@ void NavigationBarPrivate::setupNavigationBar()
   
   createItem(userMenuItem->menu(), wtr("menu.logout"), logout, "menu-logout");
   createItem(mainMenu, wtr("menu.logout"), logout, "menu-logout hidden-desktop");
-  
-  /*
-  
-  activeUsersMenuItem = new WMenuItem(wtr("menu.users").arg(""));
-  activeUsersMenuItem->addStyleClass("menu-loggedusers");
-  
-  
-  
-  if(isAdmin) {
-    setupAdminMenus(mainMenu);
-  }
-  else {
-    setupUserMenus(mainMenu);
-  }
-  */
 }
 
 
@@ -227,6 +249,12 @@ void NavigationBarPrivate::setupAdminBar()
   // Popover if Media Collection is empty END
 
   activeUsersMenuItem = createItem(adminMenu, wtr("menu.users"), [=](WMenuItem*, _n5) { viewLoggedUsers.emit();}, "menu-loggedusers");
+  createItem(adminMenu, wtr("users.history.title"), [=](WMenuItem*, _n5) { viewUsersHistory.emit();}, "menu-users-log");
+  createItem(adminMenu, wtr("menu.groups"), [=](WMenuItem*, _n5) { manageGroups.emit();}, "menu-groups");
+  createItem(adminMenu, wtr("mediascanner.title"), [=](WMenuItem*, _n5) { mediaScanner.emit();});
+  createItem(adminMenu, wtr("cleanup.orphans"), [=](WMenuItem*, _n5) { findOrphans.emit();});
+  createItem(adminMenu, wtr("menu.viewas"), [=](WMenuItem*, _n5) { viewAs.emit();});
+  createItem(adminMenu, wtr("menu.configure.app"), [=](WMenuItem*, _n5) { configureApp.emit();});
 }
 
 void NavigationBarPrivate::setupSearchBar()
