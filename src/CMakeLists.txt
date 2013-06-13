@@ -17,7 +17,7 @@ if(${QT_FOUND})
   message("Qt4 headers found: compiling with system tray icon support")
   add_definitions(-DHAVE_QT)
   QT4_WRAP_CPP(Pandorica_HEADERS_MOC qttrayicon.h)
-  set(qt_only_classes navigationbar.cpp qttrayicon.cpp ${Pandorica_HEADERS_MOC})
+  set(qt_only_classes qttrayicon.cpp ${Pandorica_HEADERS_MOC})
 endif(${QT_FOUND})
 
 add_executable(${app_name} ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs} ${player_srcs} 
@@ -39,6 +39,7 @@ add_executable(${app_name} ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs
     playlist.cpp
     session.cpp 
     pandorica.cpp
+    navigationbar.cpp 
     main.cpp
 )
 
