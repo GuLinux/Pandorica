@@ -142,6 +142,7 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
   root()->addWidget(d->authPage = new AuthPage(d->session));
   d->authPage->loggedIn().connect(this, &Pandorica::authEvent);
   d->authPage->loggedOut().connect([=](_n6) {
+    d->unregisterSession();
     delete d->mainWidget;
     d->mainWidget = 0;
     d->userId = -1;
@@ -308,10 +309,7 @@ void Pandorica::setupGui()
   d->navigationBar->showPlayer().connect(boost::bind(&WStackedWidget::setCurrentIndex, d->widgetsStack, 0));
   d->navigationBar->play().connect([=](Media media, _n5) {d->queueAndPlay(media);});
   d->navigationBar->logout().connect([=](_n6) {
-    // TODO
     d->session->login().logout();
-    wApp->quit();
-    wApp->redirect(wApp->bookmarkUrl("/"));
   });
   d->adminActions();
   
@@ -328,7 +326,6 @@ void Pandorica::setupGui()
     d->mediaCollection->rescan(t);
     WServer::instance()->post(sessionId, [=] { d->parseFileParameter(); });
   });
-  
 }
 
 
