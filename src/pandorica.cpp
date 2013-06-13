@@ -232,33 +232,22 @@ void P::PandoricaPrivate::updateUsersCount()
 }
 
 
-void P::PandoricaPrivate::setupAdminMenus(WMenu *mainMenu)
+void P::PandoricaPrivate::adminActions()
 {
-  WPopupMenu *adminMenu = new WPopupMenu();
-  adminMenu->addItem(activeUsersMenuItem);
   
-  WMenuItem *allLog = adminMenu->addItem(wtr("users.history.title"));
-  allLog->addStyleClass("menu-users-log");
-  WMenuItem *groupsDialog = adminMenu->addItem(wtr("menu.groups"));
-  WMenuItem *mediaCollectionScanner = adminMenu->addItem(wtr("mediascanner.title"));
-  WMenuItem *cleanup = adminMenu->addItem(wtr("cleanup.orphans"));
-  
-  cleanup->triggered().connect([=](WMenuItem*, _n5) {
-    (new FindOrphansDialog(mediaCollection, session, &settings))->run();
+  navigationBar->viewLoggedUsers().connect([=](_n6) {   (new LoggedUsersDialog{session, &settings})->show(); });
+  navigationBar->viewUsersHistory().connect([=](_n6) { (new LoggedUsersDialog{session, &settings, true})->show(); });
+  navigationBar->findOrphans().connect([=](_n6) { (new FindOrphansDialog(mediaCollection, session, &settings))->run(); });
+  navigationBar->manageGroups().connect([=](_n6) {  (new GroupsDialog(session, &settings))->show(); });
+  navigationBar->configureApp().connect([=](_n6) { (new ServerSettingsDialog{&settings, session, mediaCollection} )->run(); });
+  navigationBar->mediaScanner().connect([=](_n6) {
+    auto dialog = new MediaScannerDialog(session, &settings, mediaCollection, q);
+    dialog->scanFinished().connect([=](_n6) {
+      mediaCollectionBrowser->reload();
+    });
+    dialog->run();
   });
-  groupsDialog->addStyleClass("menu-groups");
-  
-  allLog->triggered().connect([=](WMenuItem*, _n5){
-    (new LoggedUsersDialog{session, &settings, true})->show();
-  });
-  
-  
-  groupsDialog->triggered().connect([=](WMenuItem*, _n5) {
-    (new GroupsDialog(session, &settings))->show();
-  });
-  
-  WMenuItem *viewAs = adminMenu->addItem(wtr("menu.viewas"));
-  viewAs->triggered().connect([=](WMenuItem*, _n5) {
+  navigationBar->viewAs().connect([=](_n6) {
     WDialog *dialog = new WDialog;
     Dbo::Transaction t(*session);
     dialog->setTitleBarEnabled(true);
@@ -289,55 +278,6 @@ void P::PandoricaPrivate::setupAdminMenus(WMenu *mainMenu)
         Dbo::Transaction t(threadSession);
         mediaCollection->rescan(t);
       });
-    });
-  });
-  
-  WMenuItem *setMediaRoot = adminMenu->addItem(wtr("menu.configure.app"));
-  setMediaRoot->triggered().connect([=](WMenuItem*, _n5) {
-    (new ServerSettingsDialog{&settings, session, mediaCollection} )->run();
-  });
-  
-  mediaCollectionScanner->triggered().connect([=](WMenuItem*, _n5) {
-    auto dialog = new MediaScannerDialog(session, &settings, mediaCollection, q);
-    dialog->scanFinished().connect([=](_n6) {
-      mediaCollectionBrowser->reload();
-    });
-    dialog->run();
-  });
-  
-  auto activeUsersConnection = activeUsersMenuItem->triggered().connect([=](WMenuItem*, _n5){
-    (new LoggedUsersDialog{session, &settings})->show();
-  });
-  
-  
-  WMenuItem *adminMenuItem = mainMenu->addItem(wtr("menu.admin"));
-  adminMenuItem->addStyleClass("hidden-phone");
-  adminMenuItem->clicked().connect([=](WMouseEvent) {
-    WTimer::singleShot(100, [=](WMouseEvent){
-      if(!adminMenuItem->widget(0)->hasStyleClass("active")) {
-      wApp->log("notice") << "trying to reset menu";
-      mainMenu->removeItem(adminMenuItem);
-      activeUsersConnection.disconnect();
-      setupAdminMenus(mainMenu);
-      }
-    });
-  });
-  adminMenuItem->setMenu(adminMenu);
-  adminMenuItem->addStyleClass("menu-admin");
-  adminMenuItem->setAttributeValue("data-toggle", "popover");
-  mediaCollection->scanned().connect([=](_n6) {
-    if(!mediaCollection->collection().empty()) return;
-    adminMenuItem->doJavaScript((boost::format(JS(
-      $('#%s').popover({placement: 'bottom', trigger: 'manual', html: true, title: %s, content: %s});
-      $('#%s').popover('show');
-    ))
-      % adminMenuItem->id()
-      % wtr("empty_media_collection_title").jsStringLiteral()
-      % wtr("empty_media_collection_message").jsStringLiteral()
-      % adminMenuItem->id()
-    ).str());
-    adminMenuItem->clicked().connect([=](WMouseEvent) { adminMenuItem->doJavaScript(
-      (boost::format("$('#%s').popover('hide');") % adminMenuItem->id() ).str() );
     });
   });
 }
@@ -373,6 +313,7 @@ void Pandorica::setupGui()
     wApp->quit();
     wApp->redirect(wApp->bookmarkUrl("/"));
   });
+  d->adminActions();
   
   d->mainWidget->addWidget(d->widgetsStack);
   d->widgetsStack->addWidget(contentWidget);

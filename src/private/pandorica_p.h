@@ -54,7 +54,7 @@ namespace PandoricaPrivate {
     void parseFileParameter();
     Playlist *playlist;
     Wt::WContainerWidget* playerContainerWidget;
-    void setupAdminMenus(Wt::WMenu* mainMenu);
+    void adminActions();
     Session *session;
     Pandorica *q;
     Wt::WContainerWidget *mainWidget = 0;
