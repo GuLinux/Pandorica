@@ -38,7 +38,7 @@ add_executable(${app_name} ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs
     loggedusersdialog.cpp
     playlist.cpp
     session.cpp 
-    streamingapp.cpp
+    pandorica.cpp
     main.cpp
 )
 
