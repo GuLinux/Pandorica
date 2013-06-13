@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/filesystem.hpp>
 #include <Wt/WJavaScript>
 
+class NavigationBar;
 class AuthPage;
 class Playlist;
 
@@ -53,7 +54,6 @@ namespace PandoricaPrivate {
     void parseFileParameter();
     Playlist *playlist;
     Wt::WContainerWidget* playerContainerWidget;
-    void setupMenus(bool isAdmin);
     void setupAdminMenus(Wt::WMenu* mainMenu);
     Session *session;
     Pandorica *q;
@@ -73,12 +73,10 @@ namespace PandoricaPrivate {
     void updateUsersCount();
     void registerSession();
     void unregisterSession();
+    NavigationBar* navigationBar;
   private:
-    void setupUserMenus(Wt::WMenu* mainMenu);
     void ratingFor(Media media, Wt::Dbo::Transaction t);
-    Wt::WMenuItem* activeUsersMenuItem;
-    Wt::WNavigationBar* navigationBar;
-    Wt::WMenuItem* mediaListMenuItem;
+    Wt::WMenuItem* activeUsersMenuItem = 0;
     long sessionsCount = -1;
   };
 }

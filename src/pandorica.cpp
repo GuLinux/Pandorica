@@ -72,7 +72,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WSortFilterProxyModel>
 #include <Wt/WMemoryResource>
 #include <Wt/WBootstrapTheme>
-#include <Wt/WNavigationBar>
 #include <Wt/WPopupMenu>
 #include <Wt/WProgressBar>
 #include <Wt/WIOService>
@@ -85,6 +84,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "findorphansdialog.h"
 #include "selectdirectories.h"
 #include "serversettingsdialog.h"
+#include "navigationbar.h"
 #include <Wt/WStringListModel>
 
 
@@ -168,8 +168,9 @@ void Pandorica::authEvent()
   auto sessionInfoPtr = d->session->add(sessionInfo);
   wApp->log("notice") << "created sessionInfo with sessionId=" << sessionInfoPtr->sessionId();
   d->mediaCollection = new MediaCollection(&d->settings, d->session, this);
+  d->mainWidget->addWidget(d->navigationBar = new NavigationBar(d->session, d->mediaCollection, &d->settings));
 
-  d->setupMenus(d->session->user()->isAdmin());
+  d->navigationBar->setup(t);
   t.commit();
   d->registerSession();
   setupGui();
@@ -227,149 +228,10 @@ Pandorica::~Pandorica() {
 void P::PandoricaPrivate::updateUsersCount()
 {
   wApp->log("notice") << "refreshing users count";
-  activeUsersMenuItem->setText(wtr("menu.users").arg(P::pandoricaSessions.size()));
-  wApp->triggerUpdate();
-}
-
-
-void P::PandoricaPrivate::setupMenus(bool isAdmin)
-{
-  wApp->log("notice") << "Setting up topbar links";
-  navigationBar = new WNavigationBar();
-  navigationBar->addStyleClass("navbar-static-top ");
-  navigationBar->setTitle(wtr("site-title"));
-  navigationBar->setResponsive(true);
-  
-  WMenu *items = new WMenu();
-  mediaListMenuItem = items->addItem(wtr("menu.mediaslist"));
-  mediaListMenuItem->addStyleClass("menu-media-list");
-  WMenuItem *commentsMenuItem = items->addItem(wtr("menu.latest.comments"));
-  commentsMenuItem->addStyleClass("menu-comments");
-  
-  WMenuItem *userMenuItem = items->addItem(session->login().user().identity("loginname"));
-  userMenuItem->addStyleClass("menu-user");
-  userMenuItem->setSubMenu(new WPopupMenu);
-  
-  WMenuItem *settingsMenuItem = userMenuItem->menu()->addItem(wtr("menu.settings"));
-  settingsMenuItem->addStyleClass("menu-settings visible-desktop");
-  
-  navigationBar->addMenu(items);
-  items->itemSelected().connect([=](WMenuItem* i, _n5){
-    items->doJavaScript("$('.nav-collapse').collapse('hide');");
-  });
-  
-  mainWidget->addWidget(navigationBar);
-  
-  auto resetSelection = [=] { WTimer::singleShot(200, [=](WMouseEvent) { items->select(-1); }); };
-  
-  mediaListMenuItem->triggered().connect([=](WMenuItem*, _n5){
-    if(widgetsStack->currentIndex()) {
-      mediaListMenuItem->setText(wtr("menu.mediaslist"));
-      widgetsStack->setCurrentIndex(0);
-    } else {
-      mediaListMenuItem->setText(wtr("menu.back.to.media"));
-      widgetsStack->setCurrentIndex(1);
-      mediaCollectionBrowser->reload();
-    }
-    resetSelection();
-  });
-  
-  
-  
-  WContainerWidget* latestCommentsBody = WW<WContainerWidget>().css("modal-body");
-  WContainerWidget* latestCommentsContainer = WW<WContainerWidget>().css("modal fade hide comments-modal").add(latestCommentsBody);
-  
-  commentsMenuItem->triggered().connect([=](WMenuItem*, _n5){
-    LatestCommentsDialog *dialog = new LatestCommentsDialog{session, mediaCollection};
-    dialog->setAnchorWidget(commentsMenuItem);
-    dialog->animateShow({WAnimation::Fade|WAnimation::SlideInFromTop});
-    dialog->mediaClicked().connect([=](Media media, _n5) { queueAndPlay(media);});
-    resetSelection();
-  });
-  
-  
-  settingsMenuItem->triggered().connect([=](WMenuItem*, _n5) {
-    SettingsDialog* settingsDialog = new SettingsDialog{&settings};
-    settingsDialog->setAnchorWidget(commentsMenuItem);
-    settingsDialog->animateShow({WAnimation::Fade|WAnimation::SlideInFromTop});
-    resetSelection();
-  });
-  
-  activeUsersMenuItem = new WMenuItem(wtr("menu.users").arg(""));
-  activeUsersMenuItem->addStyleClass("menu-loggedusers");
-  
-  WMenuItem *logout = userMenuItem->menu()->addItem(wtr("menu.logout"));
-  logout->addStyleClass("menu-logout");
-  logout->triggered().connect([=](WMenuItem*, _n5) {
-    session->login().logout();
-    wApp->quit();
-    wApp->redirect(wApp->bookmarkUrl("/")); 
-  });
-  
-  
-  if(isAdmin) {
-    setupAdminMenus(items);
+  if(activeUsersMenuItem) {
+    activeUsersMenuItem->setText(wtr("menu.users").arg(P::pandoricaSessions.size()));
+    wApp->triggerUpdate();
   }
-  else {
-    setupUserMenus(items);
-  }
-  WLineEdit *searchBox = new WLineEdit();
-  searchBox->setStyleClass("search-query");
-  searchBox->setAttributeValue("placeholder", wtr("menu.search"));
-
-  navigationBar->addSearch(searchBox, Wt::AlignRight);
-
-  
-  string jsMatcher = JS( function (editElement) {
-    return function(suggestion) {
-      if(suggestion==null) return editElement.value;
-      return { match :true, suggestion: suggestion.replace(new RegExp("(" + editElement.value + ")", "gi"), "<u><b>$1</b></u>") };
-    }
-  });
-  string jsReplace = (boost::format(JS( function (editElement, suggestionText, suggestionValue) {
-    console.log("suggestionValue: " + suggestionValue);
-    editElement.value = "";
-    %s
-  })) % playSignal.createCall("suggestionValue")).str();
-  WStringListModel *suggestionsModel = new WStringListModel(wApp);
-  WSortFilterProxyModel *suggestionFilterModel = new WSortFilterProxyModel(wApp);
-  suggestionFilterModel->setFilterFlags(RegExpFlag::MatchCaseInsensitive);
-  suggestionFilterModel->setFilterKeyColumn(0);
-  suggestionFilterModel->setSourceModel(suggestionsModel);
-  suggestionFilterModel->setFilterRole(Wt::UserRole+1);
-  WSuggestionPopup* suggestions = new WSuggestionPopup(jsMatcher, jsReplace, wApp->root());
-  suggestions->filterModel().connect([=](WString &filter, _n5) {
-    WString filterRegex = WString(".*{1}.*").arg(filter);
-    suggestionFilterModel->setFilterRegExp(filterRegex);
-  });
-  suggestions->setFilterLength(-1);
-  auto addSuggestions = [=](_n6) {
-    Dbo::Transaction t(*session);
-    suggestionsModel->setStringList({});
-    searchBox->setText({});
-    for(pair<string,Media> media: mediaCollection->collection()) {
-      int row = suggestionsModel->rowCount();
-      WString title{media.second.title(t)};
-      suggestionsModel->addString(title);
-      suggestionsModel->setData(row, 0, media.first, Wt::UserRole);
-      suggestionsModel->setData(row, 0, media.second.filename() + ";;" + title.toUTF8(), Wt::UserRole+1);
-    }
-    suggestionsModel->sort(0);
-    suggestions->setModel(suggestionFilterModel);
-    suggestions->forEdit(searchBox, WSuggestionPopup::Editing);
-  };
-  
-
-  mediaCollection->scanned().connect(addSuggestions );
-  
-}
-
-void P::PandoricaPrivate::setupUserMenus(WMenu *mainMenu)
-{
-//   mainMenu->addItem(activeUsersMenuItem);
-//   activeUsersMenuItem->triggered().connect([=](WMenuItem*, _n5) {
-//     mainMenu->select(-1);
-//   });
 }
 
 
@@ -464,8 +326,8 @@ void P::PandoricaPrivate::setupAdminMenus(WMenu *mainMenu)
     });
   });
   adminMenuItem->setMenu(adminMenu);
-  adminMenuItem->setAttributeValue("data-toggle", "popover");
   adminMenuItem->addStyleClass("menu-admin");
+  adminMenuItem->setAttributeValue("data-toggle", "popover");
   mediaCollection->scanned().connect([=](_n6) {
     if(!mediaCollection->collection().empty()) return;
     adminMenuItem->doJavaScript((boost::format(JS(
@@ -504,6 +366,16 @@ void Pandorica::setupGui()
   });
   
   d->widgetsStack = new WStackedWidget();
+  
+  d->navigationBar->showMediaCollectionBrowser().connect(boost::bind(&WStackedWidget::setCurrentIndex, d->widgetsStack, 1));
+  d->navigationBar->showPlayer().connect(boost::bind(&WStackedWidget::setCurrentIndex, d->widgetsStack, 0));
+  d->navigationBar->play().connect([=](Media media, _n5) {d->queueAndPlay(media);});
+  d->navigationBar->logout().connect([=](_n6) {
+    // TODO
+    d->session->login().logout();
+    wApp->quit();
+    wApp->redirect(wApp->bookmarkUrl("/"));
+  });
   
   d->mainWidget->addWidget(d->widgetsStack);
   d->widgetsStack->addWidget(contentWidget);
@@ -589,7 +461,7 @@ std::string defaultLabelFor(string language) {
 
 
 void P::PandoricaPrivate::play(Media media) {
-  mediaListMenuItem->setText(wtr("menu.mediaslist"));
+  navigationBar->setPage(NavigationBar::Player);
   widgetsStack->setCurrentIndex(0);
   log("notice") << "Playing file " << media.path();
   if(player) {
@@ -636,13 +508,6 @@ void P::PandoricaPrivate::play(Media media) {
   playerContainerWidget->addWidget(infoBox);
   playerContainerWidget->addWidget(new CommentsContainerWidget{media.uid(), session});
   infoBox->addWidget(new WText{media.title(t)});
-  /** TODO: apparently unsupported :(
-  infoBox->addWidget(new WBreak() );
-  WAnchor *resizeSmall = WW(WAnchor, "#", wtr("player.resizeSmall")).css("btn btn-info btn-mini").onClick([=](WMouseEvent){player->setPlayerSize(640);});
-  WAnchor *resizeMedium = WW(WAnchor, "#", wtr("player.resizeMedium")).css("btn btn-info btn-mini").onClick([=](WMouseEvent){player->setPlayerSize(900);});
-  WAnchor *resizeLarge = WW(WAnchor, "#", wtr("player.resizeLarge")).css("btn btn-info btn-mini").onClick([=](WMouseEvent){player->setPlayerSize(1420);});
-  infoBox->addWidget(WW(WContainerWidget).add(resizeSmall).add(resizeMedium).add(resizeLarge));
-  */
   
   WContainerWidget *ratingWidget = WW<WContainerWidget>().css("rating-container");
   WContainerWidget *avgRatingWidget = WW<WContainerWidget>().css("rating-box");
