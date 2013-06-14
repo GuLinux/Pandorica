@@ -95,8 +95,9 @@ void AuthPagePrivate::authEvent() {
     loggedOut.emit();
     messagesContainer->clear();
     q->removeStyleClass("hidden", true);
-    if(string{"3.3.0"} != WT_VERSION_STR)
-      q->animateShow({WAnimation::Fade});
+    if(string{"3.3.0"} != WT_VERSION_STR) {
+      WTimer::singleShot(250, [=](WMouseEvent) { q->animateShow({WAnimation::Fade}); });
+    }
     return;
   }
   log("notice") << "User logged in";
