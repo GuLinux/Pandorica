@@ -94,9 +94,9 @@ void AuthPagePrivate::authEvent() {
   if(!session->login().loggedIn()) {
     loggedOut.emit();
     messagesContainer->clear();
+    q->removeStyleClass("hidden", true);
     if(string{"3.3.0"} != WT_VERSION_STR)
       q->animateShow({WAnimation::Fade});
-    q->removeStyleClass("hidden", true);
     return;
   }
   log("notice") << "User logged in";
