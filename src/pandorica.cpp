@@ -86,6 +86,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "serversettingsdialog.h"
 #include "navigationbar.h"
 #include <Wt/WStringListModel>
+#include <Wt/WConfig.h>
 
 
 using namespace Wt;
@@ -142,6 +143,11 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
   root()->addWidget(d->authPage = new AuthPage(d->session));
   d->authPage->loggedIn().connect(this, &Pandorica::authEvent);
   d->authPage->loggedOut().connect([=](_n6) {
+    if(string{"3.3.0"} == WT_VERSION_STR) {
+      wApp->quit();
+      wApp->redirect(wApp->bookmarkUrl("/"));
+      return;
+    }
     d->unregisterSession();
     delete d->mainWidget;
     d->mainWidget = 0;

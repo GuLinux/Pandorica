@@ -127,11 +127,11 @@ void AuthPagePrivate::authEvent() {
     message->bindWidget("refresh", refreshButton);
     return;
   }
-  if(string{"3.3.0"} != WT_VERSION_STR)
+  if(string{"3.3.0"} != WT_VERSION_STR) {
     q->animateHide({WAnimation::Fade});
-  WTimer::singleShot(250, [=](WMouseEvent) {
-    q->addStyleClass("hidden"); // workaround: for wt 3.3.x hide() doesn't seem to work...
-  });
+    WTimer::singleShot(250, [=](WMouseEvent) { q->addStyleClass("hidden"); });
+  } else
+    q->addStyleClass("hidden");
   loggedIn.emit();
 }
 
