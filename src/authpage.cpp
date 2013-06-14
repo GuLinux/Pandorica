@@ -97,7 +97,7 @@ void AuthPagePrivate::authEvent() {
     q->animateShow({WAnimation::Fade});
     
     if(string{"3.3.0"} != WT_VERSION_STR) {
-      WTimer::singleShot(750, [=](WMouseEvent) { q->removeStyleClass("hidden", true); });
+      WTimer::singleShot(250, [=](WMouseEvent) { q->removeStyleClass("hidden", true); });
     }
     return;
   }
