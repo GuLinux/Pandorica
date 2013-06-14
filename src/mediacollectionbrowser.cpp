@@ -66,21 +66,26 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Sett
   : WContainerWidget(parent), d(new MediaCollectionBrowserPrivate(collection, settings, session, this))
 {
   d->infoPanel = new InfoPanelMultiplex(this);
-  d->breadcrumb = WW<WContainerWidget>().css("breadcrumb");
+  d->breadcrumb = WW<WContainerWidget>().css("breadcrumb visible-desktop");
   d->breadcrumb->setList(true);
   d->browser = WW<WContainerWidget>().css("thumbnails").setMargin(WLength::Auto, Left).setMargin(WLength::Auto, Right);
   WContainerWidget *mainContainer = new WContainerWidget;
   
-  WPanel *mobileInfoPanel = WW<WPanel>(WW<WContainerWidget>()).addCss("hidden-desktop");
-  mobileInfoPanel->setTitle(wtr("infopanel.empty.title"));
-  mobileInfoPanel->setCollapsible(true);
-  mobileInfoPanel->collapse();
+//   WPanel *mobileInfoPanel = WW<WPanel>(WW<WContainerWidget>()).addCss("hidden-desktop");
+//   mobileInfoPanel->setTitle(wtr("infopanel.empty.title"));
+//   mobileInfoPanel->setCollapsible(true);
+//   mobileInfoPanel->collapse();
   InfoPanel *mobileInfoPanelWidget = d->infoPanel->add(WW<InfoPanel>(session, settings) );
-  mobileInfoPanel->setCentralWidget(mobileInfoPanelWidget);
-  setHeaderCollapsible(mobileInfoPanel);
-  mobileInfoPanel->setAnimation({WAnimation::Fade, WAnimation::EaseOut});
-  mobileInfoPanelWidget->gotInfo().connect(mobileInfoPanel, &WPanel::expand);
-  mobileInfoPanelWidget->wasResetted().connect(mobileInfoPanel, &WPanel::collapse);
+  mobileInfoPanelWidget->setHidden(true);
+//   mobileInfoPanel->setCentralWidget(mobileInfoPanelWidget);
+//   setHeaderCollapsible(mobileInfoPanel);
+//   mobileInfoPanel->setAnimation({WAnimation::Fade, WAnimation::EaseOut});
+  mobileInfoPanelWidget->gotInfo().connect([=](_n6) {
+    mobileInfoPanelWidget->animateShow({WAnimation::Fade | WAnimation::SlideInFromTop, WAnimation::EaseOut});
+  });
+  mobileInfoPanelWidget->wasResetted().connect([=](_n6) {
+    mobileInfoPanelWidget->animateHide({WAnimation::Fade | WAnimation::SlideInFromBottom, WAnimation::EaseOut});
+  });
   
   WContainerWidget *container = WW<WContainerWidget>(mainContainer).css("container-fluid");
   
@@ -93,7 +98,10 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Sett
   d->infoPanel->setup();
   d->browser->setList(true);
   addWidget(d->breadcrumb);
-  addWidget(mobileInfoPanel);
+  addWidget(d->goToParent = WW<WPushButton>(wtr("button.parent.directory")).css("btn btn-block hidden-desktop").onClick([=](WMouseEvent){
+    d->browse(d->currentPath->parent());
+  }));
+  addWidget(WW<WContainerWidget>().css("hidden-desktop").add(mobileInfoPanelWidget));
   addWidget(mainContainer);
   d->currentPath = new RootCollectionPath{settings, session, collection};
   d->collectionPaths[ROOT_PATH_ID] = d->currentPath;
@@ -217,12 +225,15 @@ void InfoPanel::info(Media media)
     shareMessageBox->button(Ok)->clicked().connect([=](WMouseEvent) { shareMessageBox->accept(); });
     shareMessageBox->show();
   } ));
+  addWidget(WW<WPushButton>(wtr("button.close.info")).css("btn btn-primary btn-block hidden-desktop")
+    .onClick([=](WMouseEvent){ wasResetted().emit(); }));
   addWidget(header);
   addWidget(mediaInfoPanel.first);
   addWidget(actions.first);
   
   if(isAdmin) {
     auto adminActions = createPanel("mediabrowser.admin.actions");
+    adminActions.first->addStyleClass("visible-desktop");
     adminActions.first->collapse();
     adminActions.second->addWidget(WW<WPushButton>(wtr("mediabrowser.admin.settitle")).css("btn btn-block btn-small btn-primary").onClick([=](WMouseEvent){ setTitle().emit(media);} ));
     adminActions.second->addWidget(WW<WPushButton>(wtr("mediabrowser.admin.setposter")).css("btn btn-block btn-small btn-primary").onClick([=](WMouseEvent){ setPoster().emit(media);} ));
@@ -461,7 +472,8 @@ WContainerWidget* MediaCollectionBrowserPrivate::addIcon(WString filename, GetIc
 void MediaCollectionBrowserPrivate::rebuildBreadcrumb()
 {
   breadcrumb->clear();
-  breadcrumb->addWidget(WW<WPushButton>(wtr("mediacollection.reload")).css("btn btn-small").onClick([=](WMouseEvent) {
+  breadcrumb->addWidget(WW<WPushButton>(wtr("mediacollection.reload")).css("btn btn-small")
+  .onClick([=](WMouseEvent) {
     Dbo::Transaction t(*session);
     for(auto path: collectionPaths) {
       if(path.first == ROOT_PATH_ID) continue;
@@ -477,6 +489,8 @@ void MediaCollectionBrowserPrivate::rebuildBreadcrumb()
     paths.push_front(current);
     current = current->parent();
   }
+  
+  goToParent->setEnabled(paths.size()>1);
   
   for(CollectionPath *path: paths) {
     WContainerWidget *item = new WContainerWidget;

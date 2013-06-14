@@ -146,6 +146,7 @@ public:
     InfoPanelMultiplex* infoPanel;
     static std::string formatFileSize(long size);
     std::map<std::string,CollectionPath*> collectionPaths;
+    Wt::WPushButton* goToParent;
     
     
     void setTitleFor(Media media);

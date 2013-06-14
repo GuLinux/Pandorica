@@ -330,5 +330,6 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
 <message id="player_resize_medium">Medio</message>
 <message id="player_resize_large">Grande</message>
 <message id="player_resize_full">Riempi Finestra</message>
-
+<message id="button.parent.directory">Vai alla Cartella Superiore</message>
+<message id="button.close.info">Chiudi Informazioni</message>
 </messages>

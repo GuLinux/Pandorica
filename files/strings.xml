@@ -277,4 +277,6 @@ For other webservers (Apache, Lighttpd, Ngnix) read the proper documentation.
 <message id="player_resize_medium">Medium</message>
 <message id="player_resize_large">Large</message>
 <message id="player_resize_full">Full</message>
+<message id="button.parent.directory">Go to Parent Directory</message>
+<message id="button.close.info">Close Information</message>
 </messages>
