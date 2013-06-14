@@ -46,11 +46,11 @@ Playlist::Playlist(Session* session, WContainerWidget* parent)
   setTitleBar(true);
   addStyleClass("playlist");
   titleBarWidget()->addWidget(WW<WContainerWidget>().add(new WText{"Playlist"}).css("playlist-toggle accordion-toggle"));
-  titleBarWidget()->clicked().connect([=](WMouseEvent){ setCollapsed(!isCollapsed()); });
+  setHeaderCollapsible(this);
   titleBarWidget()->addStyleClass("playtlist-titlebar");
   setAnimation({WAnimation::SlideInFromTop, WAnimation::EaseOut});
   setCollapsible(true);
-  setCollapsed(true);
+  collapse();
   d->container->setList(true);
   d->container->addStyleClass("nav nav-pills nav-stacked");
   d->container->setMargin(5, Side::Bottom);

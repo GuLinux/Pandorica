@@ -61,6 +61,7 @@ using namespace PandoricaPrivate;
 namespace fs = boost::filesystem;
 using namespace WtCommons;
 
+
 MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Settings* settings, Session* session, WContainerWidget* parent)
   : WContainerWidget(parent), d(new MediaCollectionBrowserPrivate(collection, settings, session, this))
 {
@@ -76,10 +77,10 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Sett
   mobileInfoPanel->setCollapsible(true);
   InfoPanel *mobileInfoPanelWidget = d->infoPanel->add(WW<InfoPanel>(session, settings) );
   mobileInfoPanel->setCentralWidget(mobileInfoPanelWidget);
-  mobileInfoPanel->titleBarWidget()->clicked().connect([=](WMouseEvent){ mobileInfoPanel->setCollapsed(!mobileInfoPanel->isCollapsed()); });
+  setHeaderCollapsible(mobileInfoPanel);
   mobileInfoPanel->setAnimation({WAnimation::Fade, WAnimation::EaseOut, 200});
-  mobileInfoPanelWidget->gotInfo().connect([=](_n6) { mobileInfoPanel->setCollapsed(false); });
-  mobileInfoPanelWidget->wasResetted().connect([=](_n6) { mobileInfoPanel->setCollapsed(true); });
+  mobileInfoPanelWidget->gotInfo().connect(mobileInfoPanel, &WPanel::expand);
+  mobileInfoPanelWidget->wasResetted().connect(mobileInfoPanel, &WPanel::collapse);
   
 /*  
   mainContainer->setStyleClass("row-fluid");
@@ -239,7 +240,7 @@ void InfoPanel::info(Media media)
   
   if(isAdmin) {
     auto adminActions = createPanel("mediabrowser.admin.actions");
-    adminActions.first->setCollapsed(true);
+    adminActions.first->collapse();
     adminActions.second->addWidget(WW<WPushButton>(wtr("mediabrowser.admin.settitle")).css("btn btn-block btn-small btn-primary").onClick([=](WMouseEvent){ setTitle().emit(media);} ));
     adminActions.second->addWidget(WW<WPushButton>(wtr("mediabrowser.admin.setposter")).css("btn btn-block btn-small btn-primary").onClick([=](WMouseEvent){ setPoster().emit(media);} ));
     adminActions.second->addWidget(WW<WPushButton>(wtr("mediabrowser.admin.deletepreview")).css("btn btn-block btn-small btn-danger").onClick([=](WMouseEvent){ deletePoster().emit(media);} ));
@@ -256,7 +257,7 @@ pair<WPanel*,WContainerWidget*> InfoPanel::createPanel(string titleKey)
   panel->setCollapsible(true);
   panel->setMargin(10, Wt::Side::Top);
   panel->setAnimation({WAnimation::SlideInFromTop, WAnimation::EaseOut, 500});
-  panel->titleBarWidget()->clicked().connect([=](WMouseEvent){ panel->setCollapsed(!panel->isCollapsed());});
+  setHeaderCollapsible(panel);
   WContainerWidget *container = new WContainerWidget();
   panel->setCentralWidget(container);
   return {panel, container};
