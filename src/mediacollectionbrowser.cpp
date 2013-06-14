@@ -65,40 +65,23 @@ using namespace WtCommons;
 MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Settings* settings, Session* session, WContainerWidget* parent)
   : WContainerWidget(parent), d(new MediaCollectionBrowserPrivate(collection, settings, session, this))
 {
-  WContainerWidget *mobileContainer = WW<WContainerWidget>().css("hidden-desktop");
   d->infoPanel = new InfoPanelMultiplex(this);
   d->breadcrumb = WW<WContainerWidget>().css("breadcrumb");
   d->breadcrumb->setList(true);
   d->browser = WW<WContainerWidget>().css("thumbnails").setMargin(WLength::Auto, Left).setMargin(WLength::Auto, Right);
   WContainerWidget *mainContainer = new WContainerWidget;
   
-  WPanel *mobileInfoPanel = WW<WPanel>(WW<WContainerWidget>(mobileContainer));
+  WPanel *mobileInfoPanel = WW<WPanel>(WW<WContainerWidget>()).addCss("hidden-desktop");
   mobileInfoPanel->setTitle(wtr("infopanel.empty.title"));
   mobileInfoPanel->setCollapsible(true);
+  mobileInfoPanel->collapse();
   InfoPanel *mobileInfoPanelWidget = d->infoPanel->add(WW<InfoPanel>(session, settings) );
   mobileInfoPanel->setCentralWidget(mobileInfoPanelWidget);
   setHeaderCollapsible(mobileInfoPanel);
-  mobileInfoPanel->setAnimation({WAnimation::Fade, WAnimation::EaseOut, 200});
+  mobileInfoPanel->setAnimation({WAnimation::Fade, WAnimation::EaseOut});
   mobileInfoPanelWidget->gotInfo().connect(mobileInfoPanel, &WPanel::expand);
   mobileInfoPanelWidget->wasResetted().connect(mobileInfoPanel, &WPanel::collapse);
   
-/*  
-  mainContainer->setStyleClass("row-fluid");
-  mainContainer->addWidget(d->infoPanel);
-  d->infoPanel->addStyleClass("span2");
-  mainContainer->addWidget(d->browser);
-  d->browser->addStyleClass("span10");
-*/
-
-/*
-  auto layout = new WHBoxLayout();
-  mainContainer->setLayout(layout);
-  layout->addWidget(d->infoPanel);
-  layout->setResizable(0, true);
-  d->infoPanel->setWidth(450);
-  layout->addWidget(WW<WContainerWidget>().css("mediabrowser").add(d->browser), 1);
-  */
-
   WContainerWidget *container = WW<WContainerWidget>(mainContainer).css("container-fluid");
   
   
@@ -110,7 +93,7 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Sett
   d->infoPanel->setup();
   d->browser->setList(true);
   addWidget(d->breadcrumb);
-  addWidget(mobileContainer);
+  addWidget(mobileInfoPanel);
   addWidget(mainContainer);
   d->currentPath = new RootCollectionPath{settings, session, collection};
   d->collectionPaths[ROOT_PATH_ID] = d->currentPath;
