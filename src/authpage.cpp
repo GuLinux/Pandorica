@@ -95,9 +95,10 @@ void AuthPagePrivate::authEvent() {
     loggedOut.emit();
     messagesContainer->clear();
     if(string{"3.3.0"} != WT_VERSION_STR) {
-      q->animateShow({WAnimation::Fade});
+      WTimer::singleShot(250, [=](WMouseEvent) { q->animateShow({WAnimation::Fade}; });
     }
-//     WTimer::singleShot(250, [=](WMouseEvent) { q->removeStyleClass("hidden", true); });
+    else
+      WTimer::singleShot(250, [=](WMouseEvent) { q->removeStyleClass("hidden", true); });
     return;
   }
   log("notice") << "User logged in";
@@ -130,7 +131,6 @@ void AuthPagePrivate::authEvent() {
   }
   if(string{"3.3.0"} != WT_VERSION_STR) {
     q->animateHide({WAnimation::Fade});
-//     WTimer::singleShot(250, [=](WMouseEvent) { q->addStyleClass("hidden"); });
   } else
     q->addStyleClass("hidden");
   loggedIn.emit();
