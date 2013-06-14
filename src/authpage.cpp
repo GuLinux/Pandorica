@@ -94,12 +94,7 @@ void AuthPagePrivate::authEvent() {
   if(!session->login().loggedIn()) {
     loggedOut.emit();
     messagesContainer->clear();
-    if(string{"3.3.0"} != WT_VERSION_STR) {
-      q->setHidden(false);
-      WTimer::singleShot(500, [=](WMouseEvent) { q->animateShow({WAnimation::Fade}); });
-    }
-    else
-      WTimer::singleShot(250, [=](WMouseEvent) { q->removeStyleClass("hidden", true); });
+    q->removeStyleClass("hidden", true);
     return;
   }
   log("notice") << "User logged in";
@@ -130,10 +125,7 @@ void AuthPagePrivate::authEvent() {
     message->bindWidget("refresh", refreshButton);
     return;
   }
-  if(string{"3.3.0"} != WT_VERSION_STR) {
-    q->animateHide({WAnimation::Fade});
-  } else
-    q->addStyleClass("hidden");
+  q->addStyleClass("hidden");
   loggedIn.emit();
 }
 
