@@ -143,6 +143,7 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
   root()->addWidget(d->authPage = new AuthPage(d->session));
   d->authPage->loggedIn().connect(this, &Pandorica::authEvent);
   d->authPage->loggedOut().connect([=](_n6) {
+    d->navigationBar->hide();
     d->mainWidget->animateHide({WAnimation::Fade});
     if(string{"3.3.0"} == WT_VERSION_STR) {
       wApp->quit();
