@@ -95,6 +95,7 @@ void AuthPagePrivate::authEvent() {
     loggedOut.emit();
     messagesContainer->clear();
     if(string{"3.3.0"} != WT_VERSION_STR) {
+      q->setHidden(false);
       WTimer::singleShot(500, [=](WMouseEvent) { q->animateShow({WAnimation::Fade}); });
     }
     else
