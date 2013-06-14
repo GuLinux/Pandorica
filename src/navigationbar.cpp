@@ -68,9 +68,9 @@ NavigationBar::NavigationBar(Session *session, MediaCollection *mediaCollection,
 void NavigationBar::setup(Dbo::Transaction& transaction)
 {
   show();
-  d->setupNavigationBar();
+  d->setupNavigationBar(transaction);
   if(d->session->user()->isAdmin())
-    d->setupAdminBar();
+    d->setupAdminBar(transaction);
   d->setupSearchBar();
 }
 
@@ -176,7 +176,7 @@ void NavigationBar::updateUsersCount(int newUsersCount)
 
 
 
-void NavigationBarPrivate::setupNavigationBar()
+void NavigationBarPrivate::setupNavigationBar(Dbo::Transaction& transaction)
 {
   wApp->log("notice") << "Setting up topbar links";
   navigationBar->addStyleClass("navbar-static-top ");
@@ -222,7 +222,7 @@ void NavigationBarPrivate::setupNavigationBar()
 }
 
 
-void NavigationBarPrivate::setupAdminBar()
+void NavigationBarPrivate::setupAdminBar(Dbo::Transaction& transaction)
 {
   WMenuItem *adminMenuItem = mainMenu->addItem(wtr("menu.admin"));
   WPopupMenu *adminMenu = new WPopupMenu();

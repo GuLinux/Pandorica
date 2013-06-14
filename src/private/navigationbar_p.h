@@ -30,6 +30,11 @@ class Settings;
 class MediaCollection;
 class Session;
 namespace Wt {
+namespace Dbo {
+
+class Transaction;
+}
+
 class WNavigationBar;
 class WMenu;
 class WMenuItem;
@@ -44,8 +49,8 @@ public:
     Wt::WNavigationBar* navigationBar;
     Session *session;
     bool isShowingMediaCollectionBrowser = false;
-    void setupNavigationBar();
-    void setupAdminBar();
+    void setupNavigationBar(Wt::Dbo::Transaction& transaction);
+    void setupAdminBar(Wt::Dbo::Transaction& transaction);
     void setupSearchBar();
     template<typename OnItemTriggered>
     Wt::WMenuItem *createItem(Wt::WMenu *menu, Wt::WString text, OnItemTriggered onItemTriggered, std::string cssClass = std::string{});

@@ -143,15 +143,18 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
   root()->addWidget(d->authPage = new AuthPage(d->session));
   d->authPage->loggedIn().connect(this, &Pandorica::authEvent);
   d->authPage->loggedOut().connect([=](_n6) {
+    d->mainWidget->animateHide({WAnimation::Fade});
     if(string{"3.3.0"} == WT_VERSION_STR) {
       wApp->quit();
       wApp->redirect(wApp->bookmarkUrl("/"));
       return;
     }
     d->unregisterSession();
-    delete d->mainWidget;
-    d->mainWidget = 0;
-    d->userId = -1;
+    WTimer::singleShot(500, [=](WMouseEvent) {
+      delete d->mainWidget;
+      d->mainWidget = 0;
+      d->userId = -1;
+    });
   });
   d->authPage->initAuth();
 }
@@ -292,8 +295,8 @@ void P::PandoricaPrivate::adminActions()
 
 void Pandorica::setupGui()
 {
+  d->mainWidget->setHidden(true);
   WContainerWidget* contentWidget = new WContainerWidget;
-
   d->playerContainerWidget = new WContainerWidget;
   d->playerContainerWidget->setContentAlignment(AlignCenter);
   d->playlist = new Playlist{d->session};
@@ -332,6 +335,7 @@ void Pandorica::setupGui()
     d->mediaCollection->rescan(t);
     WServer::instance()->post(sessionId, [=] { d->parseFileParameter(); });
   });
+  d->mainWidget->animateShow({WAnimation::Fade});
 }
 
 

@@ -131,6 +131,7 @@ void MediaCollectionBrowser::reload()
 InfoPanel::InfoPanel(Session *session, Settings *settings, Wt::WContainerWidget* parent): WContainerWidget(parent), session(session), settings(settings)
 {
   setStyleClass("browser-info-panel");
+  Dbo::Transaction t(*session);
   isAdmin = session->user()->isAdmin();
   reset();
 }

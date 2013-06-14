@@ -38,6 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Models/models.h"
 #include "settings.h"
+#include <boost/format.hpp>
 
 using namespace PandoricaPrivate;
 using namespace std;
@@ -90,11 +91,15 @@ Message::Message(Wt::WString text, Wt::WContainerWidget* parent): WTemplate(pare
   setTemplateText(WString("<button type=\"button\" class=\"close\" data-dismiss=\"alert\">&times;</button>{1}").arg(text), Wt::XHTMLUnsafeText);
 }
 
+string animationJs(WWidget *widget, string animation) {
+  return (boost::format("$('#%s').%s();") % widget->id() % animation).str();
+}
+
 void AuthPagePrivate::authEvent() {
   if(!session->login().loggedIn()) {
     loggedOut.emit();
     messagesContainer->clear();
-    q->removeStyleClass("hidden", true);
+    q->doJavaScript(animationJs(q, "fadeIn"));
     return;
   }
   log("notice") << "User logged in";
@@ -125,8 +130,9 @@ void AuthPagePrivate::authEvent() {
     message->bindWidget("refresh", refreshButton);
     return;
   }
-  q->addStyleClass("hidden");
-  loggedIn.emit();
+//   q->addStyleClass("hidden");
+  q->doJavaScript(animationJs(q, "fadeOut"));
+  WTimer::singleShot(400, [=](WMouseEvent){ loggedIn.emit();});
 }
 
 bool AuthPagePrivate::seedIfNoAdmins(dbo::Transaction& transaction, Auth::User &user)
