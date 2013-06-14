@@ -202,7 +202,7 @@ void NavigationBarPrivate::setupNavigationBar(Dbo::Transaction& transaction)
   }, "menu-comments");
   
   WMenuItem *userMenuItem = mainMenu->addItem(session->login().user().identity("loginname"));
-  userMenuItem->addStyleClass("menu-user");
+  userMenuItem->addStyleClass("menu-user visible-desktop");
   userMenuItem->setSubMenu(new WPopupMenu);
   
   createItem(userMenuItem->menu(), wtr("menu.settings"), [=](WMenuItem *item, _n5) {
