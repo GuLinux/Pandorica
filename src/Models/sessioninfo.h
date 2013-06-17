@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/Dbo/ptr>
 #include <Wt/WGlobal>
 #include <Wt/WDateTime>
+#include <Wt/WApplication>
 
 class User;
 class SessionDetails;
@@ -42,6 +43,7 @@ public:
   Wt::WDateTime sessionEnded() const { return Wt::WDateTime::fromTime_t(_sessionEnded); }
   Wt::Dbo::collection<Wt::Dbo::ptr<SessionDetails>> sessionDetails() { return _sessionDetails; }
   void end() { _sessionEnded = Wt::WDateTime::currentDateTime().toTime_t(); }
+  inline static void endStale(Wt::Dbo::Transaction &transaction);
   
 private:
   std::string _sessionId;
@@ -77,6 +79,13 @@ namespace Wt {
       static const char *versionField() { return 0; }
     };
   }
+}
+void SessionInfo::endStale(Wt::Dbo::Transaction& transaction)
+{
+  transaction.session().execute("UPDATE session_info SET session_ended = ? WHERE session_id <> ?")
+    .bind(Wt::WDateTime::currentDateTime().toTime_t())
+    .bind(wApp->sessionId())
+  ;
 }
 
 #endif // SESSIONINFO_H_

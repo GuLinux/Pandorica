@@ -171,13 +171,7 @@ void Pandorica::authEvent()
   root()->addWidget(d->mainWidget = new WContainerWidget() );
   auto myUser = d->session->user();
   SessionInfo* sessionInfo = new SessionInfo(myUser, sessionId(), wApp->environment().clientAddress());
-  Dbo::collection<SessionInfoPtr> oldSessions = d->session->find<SessionInfo>().where("user_id = ? and session_ended = 0").bind(myUser.id());
-  wApp->log("notice") << "Searching for old sessions for this user: " << oldSessions.size();
-  for(SessionInfoPtr oldSessionInfo: oldSessions) {
-    wApp->log("notice") << "Found stale session " << oldSessionInfo->sessionId() << ", started " << oldSessionInfo->sessionStarted().toString();
-    oldSessionInfo.modify()->end();
-    oldSessionInfo.flush();
-  }
+  SessionInfo::endStale(t);
   auto sessionInfoPtr = d->session->add(sessionInfo);
   wApp->log("notice") << "created sessionInfo with sessionId=" << sessionInfoPtr->sessionId();
   d->mediaCollection = new MediaCollection(&d->settings, d->session, this);
