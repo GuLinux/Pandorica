@@ -52,7 +52,7 @@ public:
     
     template<class Type>
     static void write(std::string key, Type value, Wt::Dbo::Transaction &transaction) {
-      transaction.session().execute("DELETE FROM settings WHERE key = ?").bind(key);
+      transaction.session().execute("DELETE FROM settings WHERE \"key\" = ?").bind(key);
       Setting *setting = new Setting;
       setting->_key = key;
       setting->_value = boost::lexical_cast<std::string>(value);
@@ -61,7 +61,7 @@ public:
     
     template<typename Type, class Cont>
     static void write(std::string key, Cont values, Wt::Dbo::Transaction &transaction) {
-      transaction.session().execute("DELETE FROM settings WHERE key = ?").bind(key);
+      transaction.session().execute("DELETE FROM settings WHERE \"key\" = ?").bind(key);
       for(Type value: values) {
         Setting *setting = new Setting;
         setting->_key = key;
@@ -72,7 +72,7 @@ public:
     
     template<class Type>
     static Type value(std::string key, Wt::Dbo::Transaction &transaction, Type defaultValue = Type{} ) {
-      Wt::Dbo::ptr<Setting> setting = transaction.session().find<Setting>().where("key = ?").bind(key);
+      Wt::Dbo::ptr<Setting> setting = transaction.session().find<Setting>().where("\"key\" = ?").bind(key);
       if(!setting)
         return defaultValue;
       return boost::lexical_cast<Type>(setting->_value);
@@ -81,7 +81,7 @@ public:
     template<class Type>
     static std::vector<Type> values(std::string key, Wt::Dbo::Transaction &transaction) {
       std::vector<Type> collection;
-      Wt::Dbo::collection<Wt::Dbo::ptr<Setting>> dboValues = transaction.session().find<Setting>().where("key = ?").bind(key);
+      Wt::Dbo::collection<Wt::Dbo::ptr<Setting>> dboValues = transaction.session().find<Setting>().where("\"key\" = ?").bind(key);
       std::transform(dboValues.begin(), dboValues.end(), std::back_insert_iterator<std::vector<Type>>(collection),
                      [=](Wt::Dbo::ptr<Setting> setting) { return boost::lexical_cast<Type>(setting->_value); });
       return collection;

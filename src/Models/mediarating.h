@@ -43,7 +43,7 @@ public:
   void persist(Action& a) {
     Wt::Dbo::belongsTo(a, _user, "user");
     Wt::Dbo::field(a, _rating, "rating");
-    Wt::Dbo::field(a, _mediaId, "media_id");
+    Wt::Dbo::field(a, _mediaId, "media_id", 32);
   }
   
   Wt::Dbo::ptr<User> user() { return _user; }

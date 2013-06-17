@@ -36,7 +36,7 @@ class MediaAttachment {
 public:
   template<class Action>
   void persist(Action& a) {
-    Wt::Dbo::field(a, _mediaId, "media_id");
+    Wt::Dbo::field(a, _mediaId, "media_id", 32);
     Wt::Dbo::field(a, _type, "type");
     Wt::Dbo::field(a, _name, "name");
     Wt::Dbo::field(a, _value, "value");

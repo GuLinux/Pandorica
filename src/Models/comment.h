@@ -50,7 +50,7 @@ public:
   void persist(Action& a)
   {
     Wt::Dbo::field(a, _content, "content");
-    Wt::Dbo::field(a, _mediaId, "media_id");
+    Wt::Dbo::field(a, _mediaId, "media_id", 32);
     Wt::Dbo::field(a, _lastUpdated, "last_updated");
     Wt::Dbo::belongsTo(a, _user, "user");
   }

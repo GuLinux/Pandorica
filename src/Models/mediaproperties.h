@@ -30,7 +30,7 @@ class MediaProperties {
 public:
   template<class Action>
   void persist(Action& a) {
-    Wt::Dbo::id(a, _mediaId, "media_id");
+    Wt::Dbo::id(a, _mediaId, "media_id", 32);
     Wt::Dbo::field(a, _title, "title");
     Wt::Dbo::field(a, _filename, "filename");
     Wt::Dbo::field(a, _duration, "duration");
