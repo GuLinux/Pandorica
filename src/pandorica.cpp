@@ -499,7 +499,6 @@ void P::PandoricaPrivate::play(Media media) {
   for(auto detail : sessionInfo.modify()->sessionDetails())
     detail.modify()->ended();
   sessionInfo.modify()->sessionDetails().insert(new SessionDetails{media.path()});
-  sessionInfo.flush();
   t.commit();
   playlist->collapse();
 }
