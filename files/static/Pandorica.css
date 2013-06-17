@@ -56,10 +56,6 @@
   max-height: 128px;
 }
 
-.mejs-captions-text {
-  font-size: medium;
-}
-
 .playlist {
   max-width: 750px;
   margin-bottom: 10px!important;
@@ -94,21 +90,8 @@
   cursor: pointer;
 }
 
-.mejs-mediaelement {
-  cursor: none;
-}
-
 .Wt-auth-icon {
   display: block;
-}
-
-.mejs-poster img {
-        width: auto;
-        height: auto;
-        margin-left: auto;
-        margin-right: auto;
-        max-height: 100%;
-        max-width: 100%;
 }
 
 .album-cover {
@@ -240,6 +223,7 @@
   margin-right: auto;
 }
 
+
 body {
   background-image:url('pandorica.png');
   background-repeat:no-repeat;
@@ -249,11 +233,19 @@ body {
   background-position-y: 35%;
 }
 
-.mejs-controls button{
-font-family: inherit;
-font-size: inherit;
-font-weight: inherit;
-line-height: inherit;
--webkit-appearance: inherit!important;
-vertical-align: inherit;
+.mejs-mediaelement {
+  cursor: none;
 }
+.mejs-captions-text {
+  font-size: medium;
+}
+
+.mejs-poster img {
+        width: auto;
+        height: auto;
+        margin-left: auto;
+        margin-right: auto;
+        max-height: 100%;
+        max-width: 100%;
+}
+
