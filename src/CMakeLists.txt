@@ -10,6 +10,7 @@ SET( player_srcs serversettingsdialog.cpp Models/setting.cpp selectdirectories.c
     player/videojs.cpp
     player/wmediaplayerwrapper.cpp
     player/html5player.cpp
+    player/mediaelementjs.cpp
 )
 
 

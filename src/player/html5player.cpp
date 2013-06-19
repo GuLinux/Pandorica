@@ -36,14 +36,15 @@ using namespace WtCommons;
 using namespace PandoricaPrivate;
 
 
-#define MINIMUM_DESKTOP_SIZE 980
-
-
 HTML5PlayerPrivate::HTML5PlayerPrivate(HTML5Player* q): q(q), ended(q, "playbackEnded"), playing(q, "playbackStarted"),
   playerReady(q, "playbackReady"), currentTime(q, "currentTime")
 {
 }
 
+string HTML5Player::widgetJSRef()
+{
+  return d->templateWidget->jsRef();
+}
 
 HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
   : WContainerWidget(parent), d(new HTML5PlayerPrivate(this))
@@ -74,8 +75,8 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
   });
   d->addListener("play", d->playing.createCall());
   d->addListener("ended", d->ended.createCall());
-  d->playerReady.connect([=](_n6){ d->playerReadySlot(); });
-  d->runJavascript(d->playerReady.createCall());
+  d->playerReady.connect(this, &HTML5Player::onPlayerReady);
+  runJavascript(d->playerReady.createCall());
   d->templateWidget->bindEmpty("poster_option");
 
   WContainerWidget *templateContainer = new WContainerWidget();
@@ -100,6 +101,12 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
   addWidget(WW<WContainerWidget>().css("visible-desktop btn-toolbar").add(d->resizeLinks));
   addWidget(templateContainer);
 }
+
+void HTML5Player::onPlayerReady()
+{
+}
+
+
 void HTML5PlayerPrivate::setZoomScroll() {
   string jsScrollZoom = (boost::format(JS(function(o,e) {
       if( $(window).width() < %d ) return;
@@ -127,7 +134,7 @@ string HTML5PlayerPrivate::linkResizeJS() const
       var myId = '#%s';
       $(myId).width('' + newSize + '%%');
       myself.currentSizeInPercent=newSize;
-      $(playerId).mediaelementplayer().resize();
+//       $(playerId).mediaelementplayer().resize();
     }
   ))
   % playerId()
@@ -139,7 +146,7 @@ string HTML5PlayerPrivate::linkResizeJS() const
 
 HTML5Player::~HTML5Player()
 {
-  d->runJavascript("mediaPlayer.src(""); mediaPlayer.erase();");
+  runJavascript("mediaPlayer.src(""); mediaPlayer.erase();");
   delete d;
 }
 
@@ -152,16 +159,16 @@ void HTML5Player::setPoster(const WLink& poster)
 
 void HTML5Player::play()
 {
-  d->runJavascript("mediaPlayer.play();");
+  runJavascript("mediaPlayer.play();");
 }
 
 void HTML5Player::stop()
 {
-  d->runJavascript("mediaPlayer.stop();");
+  runJavascript("mediaPlayer.stop();");
 }
 void HTML5Player::pause()
 {
-  d->runJavascript("mediaPlayer.pause();");
+  runJavascript("mediaPlayer.pause();");
 }
 
 Wt::JSignal<>& HTML5Player::ended()
@@ -207,60 +214,15 @@ void HTML5Player::setAutoplay(bool autoplay)
 
 void HTML5PlayerPrivate::playerReadySlot()
 {
-  map<string,string> mediaElementOptions = {
-    {"AndroidUseNativeControls", "false"}
-  };
-  // works in theory, but it goes with double subs on chrome
-  if(defaultTracks["subtitles"].isValid() && false) {
-      mediaElementOptions["startLanguage"] = (boost::format("'%s'") % defaultTracks["subtitles"].lang).str();
-  }
-
-
-  string mediaElementOptionsString = boost::algorithm::join(Utils::transform(mediaElementOptions, vector<string>{}, [](pair<string,string> o){
-    return (boost::format("%s: %s") % o.first % o.second).str();
-  }), ", ");
-
-  log("notice") << "player options: " << mediaElementOptionsString;
-  runJavascript((
-    boost::format(JS($('video,audio').mediaelementplayer({%s});
-    var minimumDesktopSize = %d;
-    function autoResizeVideoPlayer() {
-      var playerWidget = %s;
-      if(playerWidget == null)
-        return;
-      if($(window).width() >= minimumDesktopSize)
-        playerWidget.videoResize(60);
-      else
-        playerWidget.videoResize(100);
-    }
-    window.currentWidth = $(window).width();
-    autoResizeVideoPlayer();
-    var resizeTimer = null;
-    $(window).resize(function(){
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(function() {
-        var newWidth = $(window).width();
-        if( (window.currentWidth < minimumDesktopSize && newWidth > minimumDesktopSize) ||
-          (window.currentWidth > minimumDesktopSize && newWidth < minimumDesktopSize) ) autoResizeVideoPlayer();
-        window.currentWidth = newWidth;
-      }, 500);
-    });
-    ))
-    % mediaElementOptionsString
-    % MINIMUM_DESKTOP_SIZE
-    % templateWidget->jsRef()
-  ).str() );
-
 }
 
-
-void HTML5PlayerPrivate::runJavascript(string js)
+void HTML5Player::runJavascript(string js)
 {
   string runJS = WString(JS(
     var mediaPlayer = document.getElementById('{1}');
     {2}
-  )).arg(playerId()).arg(js).toUTF8();
-  q->doJavaScript(runJS);
+  )).arg(d->playerId()).arg(js).toUTF8();
+  doJavaScript(runJS);
 }
 
 void HTML5PlayerPrivate::addListener(string eventName, string function)
@@ -268,13 +230,13 @@ void HTML5PlayerPrivate::addListener(string eventName, string function)
   string js = WString(JS(
     mediaPlayer.addEventListener('{1}', function() { {2} });
   )).arg(eventName).arg(function).toUTF8();
-  runJavascript(js);
+  q->runJavascript(js);
 }
 
 
 void HTML5Player::refresh()
 {
-  d->runJavascript(string("$('video,audio').mediaelementplayer();"));
+  runJavascript(string("$('video,audio').mediaelementplayer();"));
 }
 
 

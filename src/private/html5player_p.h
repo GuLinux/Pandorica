@@ -44,7 +44,6 @@ public:
     Wt::WContainerWidget* resizeLinks;
   
   std::string playerId() const;
-  virtual void runJavascript(std::string js);
   virtual void addListener(std::string eventName, std::string function);
   virtual void playerReadySlot();
   void setZoomScroll();

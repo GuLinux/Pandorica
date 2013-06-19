@@ -27,6 +27,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WTemplate>
 #include <Wt/WContainerWidget>
 
+#define MINIMUM_DESKTOP_SIZE 980
+
 namespace PandoricaPrivate {
   class HTML5PlayerPrivate;
 }
@@ -51,7 +53,10 @@ public:
     virtual void setAutoplay(bool autoplay);
     
     virtual void pause();
- 
+    virtual void runJavascript(std::string js);
+protected:
+  virtual void onPlayerReady();
+  std::string widgetJSRef();
 private:
     PandoricaPrivate::HTML5PlayerPrivate *const d;
 };
