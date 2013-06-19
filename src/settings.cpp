@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
+#include <Wt/WPanel>
 #include "player/html5player.h"
 #include "player/wmediaplayerwrapper.h"
 #include "private/settings_p.h"
@@ -265,6 +266,18 @@ bool Settings::emailVerificationMandatory()
 }
 
 
+map<Settings::AnimationType, PandoricaPrivate::Animation> Settings::animations {
+  {Settings::PanelAnimation, { {WAnimation::SlideInFromTop, WAnimation::EaseOut, 200}, {WAnimation::SlideInFromTop, WAnimation::Linear, 100}  }},
+  {Settings::PlaylistAnimation, { {WAnimation::SlideInFromTop, WAnimation::EaseOut, 200}, {WAnimation::SlideInFromTop, WAnimation::Linear, 100}  }},
+  {Settings::ShowMediaInfoAnimation, { {0}, {WAnimation::SlideInFromTop, WAnimation::Linear, 100}  }},
+  {Settings::HideMediaInfoAnimation, { {0}, {WAnimation::SlideInFromBottom, WAnimation::Linear, 100}  }},
+};
+
+WAnimation Animation::get()
+{
+  return (wApp->environment().agentIsIEMobile() || wApp->environment().agentIsMobileWebKit() )
+  ? mobile : desktop;
+}
 
 
 

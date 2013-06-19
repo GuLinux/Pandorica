@@ -296,7 +296,7 @@ void Pandorica::setupGui()
   WContainerWidget* contentWidget = new WContainerWidget;
   d->playerContainerWidget = new WContainerWidget;
   d->playerContainerWidget->setContentAlignment(AlignCenter);
-  d->playlist = new Playlist{d->session};
+  d->playlist = new Playlist{d->session, &d->settings};
   
   contentWidget->addWidget(WW<WContainerWidget>().add(d->playlist).setContentAlignment(AlignCenter));
   contentWidget->addWidget(d->playerContainerWidget);
@@ -502,5 +502,3 @@ void P::PandoricaPrivate::play(Media media) {
   t.commit();
   playlist->collapse();
 }
-
-

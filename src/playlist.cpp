@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WText>
 #include "Wt-Commons/wt_helpers.h"
 #include "private/playlist_p.h"
+#include "settings.h"
 
 using namespace Wt;
 using namespace std;
@@ -39,7 +40,7 @@ PlaylistPrivate::PlaylistPrivate(Session* session) : session(session)
 
 
 
-Playlist::Playlist(Session* session, WContainerWidget* parent)
+Playlist::Playlist(Session* session, Settings* settings, WContainerWidget* parent)
 : WPanel(parent), d(new PlaylistPrivate{session})
 {
   setCentralWidget(d->container = new WContainerWidget);
@@ -48,7 +49,7 @@ Playlist::Playlist(Session* session, WContainerWidget* parent)
   titleBarWidget()->addWidget(WW<WContainerWidget>().add(new WText{"Playlist"}).css("playlist-toggle accordion-toggle"));
   setHeaderCollapsible(this);
   titleBarWidget()->addStyleClass("playtlist-titlebar");
-  setAnimation({WAnimation::SlideInFromTop, WAnimation::EaseOut});
+  settings->setAnimation(Settings::PlaylistAnimation, this);
   setCollapsible(true);
   collapse();
   d->container->setList(true);

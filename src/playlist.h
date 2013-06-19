@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/filesystem.hpp>
 #include "media.h"
 
+class Settings;
 namespace PandoricaPrivate {
   class PlaylistPrivate;
 }
@@ -33,7 +34,7 @@ class Playlist : public Wt::WPanel
 {
 
 public:
-  Playlist(Session *session, Wt::WContainerWidget* parent = 0);
+  Playlist(Session *session, Settings *settings, Wt::WContainerWidget* parent = 0);
   virtual ~Playlist();
   void queue(Media media);
   void nextItem(WWidget* itemToPlay = 0);

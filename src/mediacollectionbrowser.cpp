@@ -70,21 +70,13 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Sett
   d->breadcrumb->setList(true);
   d->browser = WW<WContainerWidget>().css("thumbnails").setMargin(WLength::Auto, Left).setMargin(WLength::Auto, Right);
   WContainerWidget *mainContainer = new WContainerWidget;
-  
-//   WPanel *mobileInfoPanel = WW<WPanel>(WW<WContainerWidget>()).addCss("hidden-desktop");
-//   mobileInfoPanel->setTitle(wtr("infopanel.empty.title"));
-//   mobileInfoPanel->setCollapsible(true);
-//   mobileInfoPanel->collapse();
   InfoPanel *mobileInfoPanelWidget = d->infoPanel->add(WW<InfoPanel>(session, settings) );
   mobileInfoPanelWidget->setHidden(true);
-//   mobileInfoPanel->setCentralWidget(mobileInfoPanelWidget);
-//   setHeaderCollapsible(mobileInfoPanel);
-//   mobileInfoPanel->setAnimation({WAnimation::Fade, WAnimation::EaseOut});
   mobileInfoPanelWidget->gotInfo().connect([=](_n6) {
-    mobileInfoPanelWidget->animateShow({WAnimation::Fade | WAnimation::SlideInFromTop, WAnimation::EaseOut});
+    settings->animateShow(Settings::ShowMediaInfoAnimation, mobileInfoPanelWidget);
   });
   mobileInfoPanelWidget->wasResetted().connect([=](_n6) {
-    mobileInfoPanelWidget->animateHide({WAnimation::Fade | WAnimation::SlideInFromBottom, WAnimation::EaseOut});
+    settings->animateHide(Settings::HideMediaInfoAnimation, mobileInfoPanelWidget);
   });
   
   WContainerWidget *container = WW<WContainerWidget>(mainContainer).css("container-fluid");
@@ -250,7 +242,7 @@ pair<WPanel*,WContainerWidget*> InfoPanel::createPanel(string titleKey)
   panel->setTitle(wtr(titleKey));
   panel->setCollapsible(true);
   panel->setMargin(10, Wt::Side::Top);
-  panel->setAnimation({WAnimation::SlideInFromTop, WAnimation::EaseOut, 500});
+  settings->setAnimation(Settings::PanelAnimation, panel);
   setHeaderCollapsible(panel);
   WContainerWidget *container = new WContainerWidget();
   panel->setCentralWidget(container);
