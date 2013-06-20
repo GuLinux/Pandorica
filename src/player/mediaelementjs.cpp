@@ -21,6 +21,7 @@
 #include "mediaelementjs.h"
 #include "Wt-Commons/wt_helpers.h"
 #include "utils.h"
+#include <private/html5player_p.h>
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
 
@@ -30,10 +31,16 @@ using namespace std;
 MediaElementJs::~MediaElementJs()
 {
 }
-MediaElementJs::MediaElementJs(WContainerWidget* parent): HTML5Player(parent)
+MediaElementJs::MediaElementJs(PandoricaPrivate::HTML5PlayerPrivate*const d, WObject* parent)
+  : PlayerJavascript(d, parent)
 {
-
 }
+
+string MediaElementJs::resizeJs()
+{
+  return "$(playerId).mediaelementplayer().resize();";
+}
+
 
 void MediaElementJs::onPlayerReady()
 {
@@ -46,7 +53,8 @@ void MediaElementJs::onPlayerReady()
 //   }
 
 
-  string mediaElementOptionsString = boost::algorithm::join(Utils::transform(mediaElementOptions, vector<string>{}, [](pair<string,string> o){
+  string mediaElementOptionsString = boost::algorithm::join(
+    Utils::transform(mediaElementOptions, vector<string>{}, [](pair<string,string> o){
     return (boost::format("%s: %s") % o.first % o.second).str();
   }), ", ");
 
@@ -78,6 +86,6 @@ void MediaElementJs::onPlayerReady()
     ))
     % mediaElementOptionsString
     % MINIMUM_DESKTOP_SIZE
-    % widgetJSRef()
+    % d->templateWidget->jsRef()
   ).str() );
 }

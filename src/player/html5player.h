@@ -33,9 +33,18 @@ namespace PandoricaPrivate {
   class HTML5PlayerPrivate;
 }
 
+class PlayerJavascript : public Wt::WObject {
+public:
+  PlayerJavascript(PandoricaPrivate::HTML5PlayerPrivate *const d, Wt::WObject* parent = 0);
+  virtual void onPlayerReady() = 0;
+  virtual std::string resizeJs() = 0;
+  void runJavascript(std::string js);
+protected:
+  PandoricaPrivate::HTML5PlayerPrivate *const d;
+};
+
 class HTML5Player : public Player, public Wt::WContainerWidget
 {
-
 public:
     HTML5Player(Wt::WContainerWidget* parent = 0);
     virtual ~HTML5Player();
@@ -53,10 +62,6 @@ public:
     virtual void setAutoplay(bool autoplay);
     
     virtual void pause();
-    virtual void runJavascript(std::string js);
-protected:
-  virtual void onPlayerReady();
-  std::string widgetJSRef();
 private:
     PandoricaPrivate::HTML5PlayerPrivate *const d;
 };

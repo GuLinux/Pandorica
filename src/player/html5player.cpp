@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
 #include "html5player.h"
+#include "mediaelementjs.h"
 #include <utils.h>
 #include "Wt-Commons/wt_helpers.h"
 
@@ -41,14 +42,26 @@ HTML5PlayerPrivate::HTML5PlayerPrivate(HTML5Player* q): q(q), ended(q, "playback
 {
 }
 
-string HTML5Player::widgetJSRef()
+
+PlayerJavascript::PlayerJavascript(HTML5PlayerPrivate*const d, WObject* parent): WObject(parent), d(d)
 {
-  return d->templateWidget->jsRef();
 }
+
+void PlayerJavascript::runJavascript(string js)
+{
+  string runJS = WString(JS(
+    var mediaPlayer = document.getElementById('{1}');
+    {2}
+  )).arg(d->playerId()).arg(js).toUTF8();
+  d->templateWidget->doJavaScript(runJS);
+}
+
 
 HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
   : WContainerWidget(parent), d(new HTML5PlayerPrivate(this))
 {
+  d->playerJavascript = new MediaElementJs(d, this);
+//   d->playerJavascript = new PureHTML5Javascript(d, this);
   d->templateWidget = new WTemplate();
   d->templateWidget->setTemplateText(wtr("html5player.mediatag"), Wt::XHTMLUnsafeText);
   d->templateWidget->setMargin(WLength::Auto, Side::Left|Side::Right);
@@ -75,8 +88,10 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
   });
   d->addListener("play", d->playing.createCall());
   d->addListener("ended", d->ended.createCall());
-  d->playerReady.connect(this, &HTML5Player::onPlayerReady);
-  runJavascript(d->playerReady.createCall());
+  d->playerReady.connect([=](_n6) {
+    log("notice") << "Player ready!";
+    d->playerJavascript->onPlayerReady();
+  });
   d->templateWidget->bindEmpty("poster_option");
 
   WContainerWidget *templateContainer = new WContainerWidget();
@@ -100,12 +115,9 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
   templateContainer->setMargin(WLength::Auto, Side::Left | Side::Right);
   addWidget(WW<WContainerWidget>().css("visible-desktop btn-toolbar").add(d->resizeLinks));
   addWidget(templateContainer);
-}
 
-void HTML5Player::onPlayerReady()
-{
+  d->playerJavascript->runJavascript(d->playerReady.createCall());
 }
-
 
 void HTML5PlayerPrivate::setZoomScroll() {
   string jsScrollZoom = (boost::format(JS(function(o,e) {
@@ -134,19 +146,20 @@ string HTML5PlayerPrivate::linkResizeJS() const
       var myId = '#%s';
       $(myId).width('' + newSize + '%%');
       myself.currentSizeInPercent=newSize;
-//       $(playerId).mediaelementplayer().resize();
+      %s
     }
   ))
   % playerId()
   % templateWidget->jsRef()
   % templateWidget->id()
+  % playerJavascript->resizeJs()
   ).str();
 }
 
 
 HTML5Player::~HTML5Player()
 {
-  runJavascript("mediaPlayer.src(""); mediaPlayer.erase();");
+  d->playerJavascript->runJavascript("mediaPlayer.src(""); mediaPlayer.erase();");
   delete d;
 }
 
@@ -159,16 +172,16 @@ void HTML5Player::setPoster(const WLink& poster)
 
 void HTML5Player::play()
 {
-  runJavascript("mediaPlayer.play();");
+  d->playerJavascript->runJavascript("mediaPlayer.play();");
 }
 
 void HTML5Player::stop()
 {
-  runJavascript("mediaPlayer.stop();");
+  d->playerJavascript->runJavascript("mediaPlayer.stop();");
 }
 void HTML5Player::pause()
 {
-  runJavascript("mediaPlayer.pause();");
+  d->playerJavascript->runJavascript("mediaPlayer.pause();");
 }
 
 Wt::JSignal<>& HTML5Player::ended()
@@ -216,27 +229,18 @@ void HTML5PlayerPrivate::playerReadySlot()
 {
 }
 
-void HTML5Player::runJavascript(string js)
-{
-  string runJS = WString(JS(
-    var mediaPlayer = document.getElementById('{1}');
-    {2}
-  )).arg(d->playerId()).arg(js).toUTF8();
-  doJavaScript(runJS);
-}
-
 void HTML5PlayerPrivate::addListener(string eventName, string function)
 {
   string js = WString(JS(
     mediaPlayer.addEventListener('{1}', function() { {2} });
   )).arg(eventName).arg(function).toUTF8();
-  q->runJavascript(js);
+  playerJavascript->runJavascript(js);
 }
 
 
 void HTML5Player::refresh()
 {
-  runJavascript(string("$('video,audio').mediaelementplayer();"));
+  d->playerJavascript->runJavascript(string("$('video,audio').mediaelementplayer();"));
 }
 
 

@@ -25,13 +25,13 @@
 namespace Wt {
   class WContainerWidget;
 }
-class MediaElementJs : public HTML5Player
+class MediaElementJs : public PlayerJavascript
 {
 public:
     ~MediaElementJs();
-    MediaElementJs(Wt::WContainerWidget* parent);
-protected:
+    MediaElementJs(PandoricaPrivate::HTML5PlayerPrivate*const d, WObject* parent = 0);
     virtual void onPlayerReady();
+    virtual std::string resizeJs();
 };
 
 #endif // MEDIAELEMENTJS_H
