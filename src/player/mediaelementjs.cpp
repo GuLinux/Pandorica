@@ -19,6 +19,7 @@
  */
 
 #include "mediaelementjs.h"
+#include "purehtml5js.h"
 #include "Wt-Commons/wt_helpers.h"
 #include "utils.h"
 #include <private/html5player_p.h>
@@ -32,7 +33,7 @@ MediaElementJs::~MediaElementJs()
 {
 }
 MediaElementJs::MediaElementJs(PandoricaPrivate::HTML5PlayerPrivate*const d, WObject* parent)
-  : PlayerJavascript(d, parent)
+  : PlayerJavascript(d, parent), pureHTML5Js(new PureHTML5Js(d, this))
 {
 }
 
@@ -52,7 +53,6 @@ void MediaElementJs::onPlayerReady()
 //       mediaElementOptions["startLanguage"] = (boost::format("'%s'") % defaultTracks["subtitles"].lang).str();
 //   }
 
-
   string mediaElementOptionsString = boost::algorithm::join(
     Utils::transform(mediaElementOptions, vector<string>{}, [](pair<string,string> o){
     return (boost::format("%s: %s") % o.first % o.second).str();
@@ -60,32 +60,8 @@ void MediaElementJs::onPlayerReady()
 
   log("notice") << "player options: " << mediaElementOptionsString;
   runJavascript((
-    boost::format(JS($('video,audio').mediaelementplayer({%s});
-    var minimumDesktopSize = %d;
-    function autoResizeVideoPlayer() {
-      var playerWidget = %s;
-      if(playerWidget == null)
-        return;
-      if($(window).width() >= minimumDesktopSize)
-        playerWidget.videoResize(60);
-      else
-        playerWidget.videoResize(100);
-    }
-    window.currentWidth = $(window).width();
-    autoResizeVideoPlayer();
-    var resizeTimer = null;
-    $(window).resize(function(){
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(function() {
-        var newWidth = $(window).width();
-        if( (window.currentWidth < minimumDesktopSize && newWidth > minimumDesktopSize) ||
-          (window.currentWidth > minimumDesktopSize && newWidth < minimumDesktopSize) ) autoResizeVideoPlayer();
-        window.currentWidth = newWidth;
-      }, 500);
-    });
-    ))
+    boost::format("$('video,audio').mediaelementplayer({%s});")
     % mediaElementOptionsString
-    % MINIMUM_DESKTOP_SIZE
-    % d->templateWidget->jsRef()
   ).str() );
+  pureHTML5Js->onPlayerReady();
 }

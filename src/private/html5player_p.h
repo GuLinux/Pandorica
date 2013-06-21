@@ -28,15 +28,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace PandoricaPrivate {
   
-class PureHTML5Javascript : public PlayerJavascript {
-public:
-    PureHTML5Javascript(HTML5PlayerPrivate*const d, WObject* parent = 0)
-      : PlayerJavascript(d, this) {}
-    virtual void onPlayerReady() {}
-    virtual std::string resizeJs() { return ""; }
-};
-
-
 class HTML5PlayerPrivate {
 public:
   HTML5PlayerPrivate(HTML5Player *q);

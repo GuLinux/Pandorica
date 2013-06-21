@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "html5player.h"
 #include "mediaelementjs.h"
+#include "purehtml5js.h"
 #include <utils.h>
 #include "Wt-Commons/wt_helpers.h"
 
@@ -61,7 +62,7 @@ HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
   : WContainerWidget(parent), d(new HTML5PlayerPrivate(this))
 {
   d->playerJavascript = new MediaElementJs(d, this);
-//   d->playerJavascript = new PureHTML5Javascript(d, this);
+//   d->playerJavascript = new PureHTML5Js(d, this);
   d->templateWidget = new WTemplate();
   d->templateWidget->setTemplateText(wtr("html5player.mediatag"), Wt::XHTMLUnsafeText);
   d->templateWidget->setMargin(WLength::Auto, Side::Left|Side::Right);
