@@ -195,7 +195,7 @@ void NavigationBarPrivate::setupNavigationBar(Dbo::Transaction& transaction)
   
   createItem(mainMenu, wtr("menu.latest.comments"), [=](WMenuItem *item, _n5) {
     LatestCommentsDialog *dialog = new LatestCommentsDialog{session, mediaCollection};
-    dialog->setAnchorWidget(item);
+//     dialog->setAnchorWidget(item);
     dialog->animateShow({WAnimation::Fade|WAnimation::SlideInFromTop});
     dialog->mediaClicked().connect([=](Media media, _n5) { play.emit(media); });
     resetSelection(mainMenu);
@@ -207,7 +207,7 @@ void NavigationBarPrivate::setupNavigationBar(Dbo::Transaction& transaction)
   
   createItem(userMenuItem->menu(), wtr("menu.settings"), [=](WMenuItem *item, _n5) {
     SettingsDialog* settingsDialog = new SettingsDialog{settings};
-    settingsDialog->setAnchorWidget(item);
+//     settingsDialog->setAnchorWidget(item);
     settingsDialog->animateShow({WAnimation::Fade|WAnimation::SlideInFromTop});
     resetSelection(mainMenu);    
   }, "menu-settings visible-desktop");

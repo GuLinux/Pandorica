@@ -92,9 +92,11 @@ HTML5Player::HTML5Player(HTML5Player::SubType subType, WContainerWidget* parent)
   });
   d->templateWidget->bindString("player.id",  d->playerId());
   d->playing.connect([=](_n6){
+    log("notice") << "HTML5Player: Playing from source file " << d->sources[0].src << " started";
     d->isPlaying = true;
   });
   d->ended.connect([=](_n6) {
+    log("notice") << "HTML5Player: Playing from source file " << d->sources[0].src << " ended";
     d->isPlaying = false;
   });
   d->addListener("play", d->playing.createCall());

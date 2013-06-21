@@ -45,7 +45,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "mediacollection.h"
 #include "mediacollectionbrowser.h"
 #include "settings.h"
-#include "settingspage.h"
 #include "groupsdialog.h"
 #include "latestcommentsdialog.h"
 #include "MediaScanner/mediascannerdialog.h"
