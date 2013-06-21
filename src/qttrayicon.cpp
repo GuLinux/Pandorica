@@ -22,12 +22,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WServer>
 
 #include "qttrayicon.h"
+#include "utils.h"
 #include <QtGui/qicon.h>
 #include <QtGui/QApplication>
 #include <QtGui/QSystemTrayIcon>
-#include <QtGui/qmenu.h>
+#include <QtGui/QMenu>
+#include <QtGui/QClipboard>
 #include <QtCore/qtimer.h>
 #include <QtCore/QProcess>
+#include <QtNetwork/QNetworkInterface>
 
 QtTrayIcon::~QtTrayIcon()
 {
@@ -44,6 +47,7 @@ QtTrayIcon::QtTrayIcon(Wt::WServer& wserver, QObject* parent): QObject(parent), 
   QTimer::singleShot(1000, this, SLOT(appStarted()));
   QMenu *menu = new QMenu{"Pandorica"};
   menu->addAction("Open in a browser window", this, SLOT(openInBrowser()));
+  menu->addAction("Copy link address", this, SLOT(copyLinkAddress()));
   menu->addAction("Quit", qApp, SLOT(quit()));
   systemTray->setContextMenu(menu);
   systemTray->show();
@@ -56,10 +60,15 @@ void QtTrayIcon::activated(QSystemTrayIcon::ActivationReason reason)
     openInBrowser();
 }
 
+QString QtTrayIcon::httpAddress() const
+{
+  return QString("http://%1:%2/").arg(networkAddress).arg(wserver.httpPort());
+}
+
+
 void QtTrayIcon::openInBrowser()
 {
-  QString url = QString("http://localhost:%1/").arg(wserver.httpPort());
-  QProcess::execute("xdg-open", {url});
+  QProcess::execute("xdg-open", {httpAddress()});
 }
 
 
@@ -84,12 +93,25 @@ void QtTrayIcon::checkServerStatus()
   }
 }
 
+void QtTrayIcon::copyLinkAddress()
+{
+  QApplication::clipboard()->setText(httpAddress());
+}
+
+
 void QtTrayIcon::appStarted()
 {
   QTimer *timer = new QTimer(this);
   connect(timer, SIGNAL(timeout()), this, SLOT(checkServerStatus()));
   timer->start(500);
   try {
+    networkAddress = "localhost";
+    for(QString addr: Utils::transform(QNetworkInterface::allAddresses(), std::vector<QString>{}, [](QHostAddress a){ return a.toString(); }) ) {
+      if(addr.startsWith("192.168.") || addr.startsWith("10.0.")) {
+        networkAddress = addr;
+        break;
+      }
+    }
     wserver.start();
   } catch(std::exception &e) {
     closing = true;

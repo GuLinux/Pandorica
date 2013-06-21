@@ -41,10 +41,14 @@ public slots:
   void checkServerStatus();
   void activated(QSystemTrayIcon::ActivationReason reason);
 private:
+  QString httpAddress() const;
+  QString networkAddress;
   Wt::WServer &wserver;
   QSystemTrayIcon *systemTray;
   bool started = false;
   bool closing = false;
+private slots:
+  void copyLinkAddress();
 };
 
 #endif // QTTRAYICON_H
