@@ -25,24 +25,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "private/pandorica_p.h"
 
 #include "player/player.h"
-#include <Wt/WTemplate>
 #include <Wt/WContainerWidget>
 #include <Wt/WAnchor>
-#include <Wt/WFileResource>
 #include <Wt/WTimer>
 #include <Wt/WEnvironment>
-#include <Wt/WFileResource>
 #include <Wt/WMenu>
 #include <Wt/WImage>
 #include <Wt/WText>
 #include <Wt/Utils>
-#include <Wt/Auth/AuthWidget>
 #include <Wt/Auth/Dbo/AuthInfo>
-#include <Wt/WPushButton>
-#include <boost/algorithm/string.hpp>
-#include <functional>
-#include <iostream>
-#include <fstream>
 
 #include "playlist.h"
 #include "session.h"
@@ -65,28 +56,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WOverlayLoadingIndicator>
 #include <Wt/WCombinedLocalizedStrings>
 #include <Wt/WStackedWidget>
-#include <Wt/WLineEdit>
 #include <boost/format.hpp>
-#include <Wt/WSuggestionPopup>
-#include <Wt/WStringListModel>
-#include <Wt/WSortFilterProxyModel>
-#include <Wt/WMemoryResource>
 #include <Wt/WBootstrapTheme>
-#include <Wt/WPopupMenu>
-#include <Wt/WProgressBar>
 #include <Wt/WIOService>
-#include <Wt/WIOService>
-#include <Wt/WLabel>
-#include <Wt/WPanel>
-#include <Wt/WComboBox>
-#include <Wt/Dbo/QueryModel>
 #include "authpage.h"
 #include "findorphansdialog.h"
 #include "selectdirectories.h"
 #include "serversettingsdialog.h"
 #include "navigationbar.h"
-#include <Wt/WStringListModel>
 #include <Wt/WConfig.h>
+#include <Wt/WStringListModel>
+#include <Wt/WComboBox>
+#include <Wt/WPushButton>
 
 
 using namespace Wt;
