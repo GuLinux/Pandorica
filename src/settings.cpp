@@ -48,7 +48,7 @@ const std::string Settings::guiLanguage = "gui_language";
 
 map<string,string> defaultValues {
   {Settings::mediaAutoplay, "autoplay_always"},
-  {Settings::preferredPlayer, "html5"},
+  {Settings::preferredPlayer, "mediaelementjs"},
   {Settings::guiLanguage, "<browserdefault>"},
   };
 
@@ -133,6 +133,12 @@ Player* Settings::newPlayer()
   string playerSetting = value(Settings::preferredPlayer);
   if(playerSetting == "jplayer")
     return new WMediaPlayerWrapper();
+  if(playerSetting == "purehtml5")
+    return new HTML5Player(HTML5Player::PureHTML5);
+  if(playerSetting == "videojs")
+    return new HTML5Player(HTML5Player::VideoJs);
+  if(playerSetting == "mediaelementjs")
+    return new HTML5Player(HTML5Player::MediaElementJs);
   return new HTML5Player();
 }
 

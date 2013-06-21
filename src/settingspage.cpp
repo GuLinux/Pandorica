@@ -58,7 +58,7 @@ SettingsDialog::SettingsDialog(Settings* settings, WObject* parent): WDialog(par
   contents()->addWidget(content);
   addSetting(Settings::mediaAutoplay, createCombo(Settings::mediaAutoplay, { "autoplay_never", "autoplay_audio_only", "autoplay_video_only", "autoplay_always" }));
   
-  addSetting(Settings::preferredPlayer, createCombo(Settings::preferredPlayer, { "html5", "jplayer"} ) );
+  addSetting(Settings::preferredPlayer, createCombo(Settings::preferredPlayer, { "mediaelementjs", "purehtml5", "videojs", "jplayer"} ) );
   addSetting(Settings::guiLanguage, createCombo(Settings::guiLanguage, {"<browserdefault>", "en", "it"}) );
   contents()->addWidget(new WText{wtr("settings.footer")});
 }

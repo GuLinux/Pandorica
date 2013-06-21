@@ -65,3 +65,8 @@ void MediaElementJs::onPlayerReady()
   ).str() );
   pureHTML5Js->onPlayerReady();
 }
+
+string MediaElementJs::customPlayerHTML()
+{
+  return {};
+}

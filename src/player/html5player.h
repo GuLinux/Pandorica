@@ -37,6 +37,7 @@ class PlayerJavascript : public Wt::WObject {
 public:
   PlayerJavascript(PandoricaPrivate::HTML5PlayerPrivate *const d, Wt::WObject* parent = 0);
   virtual void onPlayerReady() = 0;
+  virtual std::string customPlayerHTML() = 0;
   virtual std::string resizeJs() = 0;
   void runJavascript(std::string js);
 protected:
@@ -46,7 +47,8 @@ protected:
 class HTML5Player : public Player, public Wt::WContainerWidget
 {
 public:
-    HTML5Player(Wt::WContainerWidget* parent = 0);
+    enum SubType { PureHTML5, MediaElementJs, VideoJs };
+    HTML5Player(SubType subType = MediaElementJs, Wt::WContainerWidget* parent = 0);
     virtual ~HTML5Player();
     
     virtual void play();

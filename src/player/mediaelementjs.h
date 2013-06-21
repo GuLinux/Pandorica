@@ -33,8 +33,9 @@ public:
     MediaElementJs(PandoricaPrivate::HTML5PlayerPrivate*const d, WObject* parent = 0);
     virtual void onPlayerReady();
     virtual std::string resizeJs();
+    virtual std::string customPlayerHTML();
 private:
-  PureHTML5Js *pureHTML5Js;
+  PureHTML5Js *const pureHTML5Js;
 };
 
 #endif // MEDIAELEMENTJS_H

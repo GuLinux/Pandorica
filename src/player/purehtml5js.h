@@ -29,7 +29,7 @@ public:
     virtual std::string resizeJs();
     virtual void onPlayerReady();
     PureHTML5Js(PandoricaPrivate::HTML5PlayerPrivate* const d, Wt::WObject* parent);
-
+    virtual std::string customPlayerHTML();
 };
 
 #endif // PUREHTML5JS_H

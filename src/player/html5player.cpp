@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "html5player.h"
 #include "mediaelementjs.h"
 #include "purehtml5js.h"
+#include "videojs.h"
 #include <utils.h>
 #include "Wt-Commons/wt_helpers.h"
 
@@ -58,11 +59,20 @@ void PlayerJavascript::runJavascript(string js)
 }
 
 
-HTML5Player::HTML5Player(Wt::WContainerWidget* parent)
+HTML5Player::HTML5Player(HTML5Player::SubType subType, WContainerWidget* parent)
   : WContainerWidget(parent), d(new HTML5PlayerPrivate(this))
 {
-  d->playerJavascript = new MediaElementJs(d, this);
-//   d->playerJavascript = new PureHTML5Js(d, this);
+  switch(subType) {
+    case PureHTML5:
+      d->playerJavascript = new PureHTML5Js(d, this);
+      break;
+    case MediaElementJs:
+      d->playerJavascript = new ::MediaElementJs(d, this);
+      break;
+    case VideoJs:
+      d->playerJavascript = new ::VideoJs(d, this);
+      break;
+  }
   d->templateWidget = new WTemplate();
   d->templateWidget->setTemplateText(wtr("html5player.mediatag"), Wt::XHTMLUnsafeText);
   d->templateWidget->setMargin(WLength::Auto, Side::Left|Side::Right);
@@ -218,6 +228,7 @@ void HTML5Player::addSource(const Source& source)
     d->resizeLinks->setHidden(true);
   }
   d->sources.push_back(source);
+  d->templateWidget->bindString("html5_custom_tags", d->playerJavascript->customPlayerHTML());
 }
 
 void HTML5Player::setAutoplay(bool autoplay)

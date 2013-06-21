@@ -32,6 +32,11 @@ PureHTML5Js::PureHTML5Js(PandoricaPrivate::HTML5PlayerPrivate* const d, Wt::WObj
 {
 }
 
+string PureHTML5Js::customPlayerHTML()
+{
+  return {};
+}
+
 string PureHTML5Js::resizeJs()
 {
   return {};
