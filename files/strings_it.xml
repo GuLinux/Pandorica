@@ -179,7 +179,9 @@
   <message id="autoplay_video_only.combo">Solo per file Video</message>
   <message id="autoplay_always.combo">Sempre</message>
 
-  <message id="html5.combo">HTML5 (MediaElement)</message>
+  <message id="mediaelementjs.combo">MediaElement.JS</message>
+  <message id="videojs.combo">Video.JS</message>
+  <message id="purehtml5.combo">HTML5 Puro</message>
   <message id="jplayer.combo">jPlayer</message>
 
   <message id="lighttpd.combo">Interno (Lighttpd)</message>
@@ -191,7 +193,7 @@
   <message id="download_src.description">Nginx potrebbe essere più veloce, a seconda dell'ambiente.</message>
 
   <message id="player.label">Player</message>
-  <message id="player.description">HTML5 è il player più completo; jPlayer potrebbe essere più stabile, ma non supporta alcune funzionalità (ad esempio, i sottotitoli)</message>
+  <message id="player.description">I player basati su HTML5 (particolarmente MediaElement.JS e Video.JS) sono i più completi; jPlayer potrebbe essere più stabile, ma non supporta alcune funzionalità (ad esempio, i sottotitoli)</message>
 
   <message id="media_autoplay.label">AutoPlay</message>
   <message id="media_autoplay.description"></message>

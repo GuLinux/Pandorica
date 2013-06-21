@@ -104,7 +104,9 @@
   <message id="autoplay_video_only.combo">Only for Video Files</message>
   <message id="autoplay_always.combo">Always</message>
 
-  <message id="html5.combo">HTML5 (MediaElement)</message>
+  <message id="mediaelementjs.combo">MediaElement.JS</message>
+  <message id="videojs.combo">Video.JS</message>
+  <message id="purehtml5.combo">HTML5 Puro</message>
   <message id="jplayer.combo">jPlayer</message>
 
   <message id="en.combo">English</message>
@@ -118,7 +120,7 @@
   <message id="download_src.description">Nginx could be faster in some environments, but it might not always work</message>
 
   <message id="player.label">Player</message>
-  <message id="player.description">HTML5 is the most feature complete; jPlayer might be a bit more stable, but it lacks subtitles support</message>
+  <message id="player.description">HTML5 based players (particulary MediaElement.JS and Video.js) are the most feature complete; jPlayer might be a bit more stable, but it lacks subtitles support</message>
 
   <message id="media_autoplay.label">AutoPlay</message>
   <message id="media_autoplay.description"></message>
