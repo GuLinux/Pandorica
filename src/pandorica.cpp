@@ -97,8 +97,14 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
   addMetaLink(Settings::staticPath("/icons/favicon.png"), "shortcut icon", string{}, string{}, string{}, string{}, false);
   requireJQuery(Settings::staticPath("/jquery.min.js"));
   require(Settings::staticPath("/bootstrap/js/bootstrap.min.js"));
+  
+  // MediaElement.js
   require(Settings::staticPath("/mediaelement/mediaelement-and-player.min.js"));
   useStyleSheet(Settings::staticPath("/mediaelement/mediaelementplayer.min.css"));
+  
+  // Video.js
+  useStyleSheet("http://vjs.zencdn.net/4.0/video-js.css");
+  require("http://vjs.zencdn.net/4.0/video.js");
   setTheme(new WBootstrapTheme(this));
   try {
     d->session = new Session{true};

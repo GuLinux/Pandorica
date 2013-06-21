@@ -18,23 +18,24 @@
  *
  */
 
-#ifndef VIDEOJS_H
-#define VIDEOJS_H
+#ifndef MEDIAELEMENTJS_H
+#define MEDIAELEMENTJS_H
 
-#include <player/html5player.h>
-
+#include "player/html5player.h"
+namespace Wt {
+  class WContainerWidget;
+}
 class PureHTML5Js;
-class VideoJs : public PlayerJavascript
+class MediaElementJs : public PlayerJavascript
 {
 public:
-    ~VideoJs();
-    virtual std::string resizeJs();
+    ~MediaElementJs();
+    MediaElementJs(PandoricaPrivate::HTML5PlayerPrivate*const d, WObject* parent = 0);
     virtual void onPlayerReady();
-    VideoJs(PandoricaPrivate::HTML5PlayerPrivate* const d, Wt::WObject* parent);
+    virtual std::string resizeJs();
     virtual std::string customPlayerHTML();
 private:
   PureHTML5Js *const pureHTML5Js;
 };
 
-#endif
-
+#endif // MEDIAELEMENTJS_H

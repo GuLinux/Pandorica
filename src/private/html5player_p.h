@@ -24,9 +24,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WJavaScriptSlot>
 #include <Wt/WJavaScript>
 #include <player/player.h>
+#include <player/html5player.h>
 
 namespace PandoricaPrivate {
-
+  
 class HTML5PlayerPrivate {
 public:
   HTML5PlayerPrivate(HTML5Player *q);
@@ -44,11 +45,11 @@ public:
     Wt::WContainerWidget* resizeLinks;
   
   std::string playerId() const;
-  virtual void runJavascript(std::string js);
   virtual void addListener(std::string eventName, std::string function);
   virtual void playerReadySlot();
   void setZoomScroll();
   std::string linkResizeJS() const;
+  PlayerJavascript *playerJavascript;
 private:
   HTML5Player *q;
 };

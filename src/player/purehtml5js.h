@@ -18,23 +18,18 @@
  *
  */
 
-#ifndef VIDEOJS_H
-#define VIDEOJS_H
+#ifndef PUREHTML5JS_H
+#define PUREHTML5JS_H
 
-#include <player/html5player.h>
+#include "player/html5player.h"
 
-class PureHTML5Js;
-class VideoJs : public PlayerJavascript
+class PureHTML5Js : public PlayerJavascript
 {
 public:
-    ~VideoJs();
     virtual std::string resizeJs();
     virtual void onPlayerReady();
-    VideoJs(PandoricaPrivate::HTML5PlayerPrivate* const d, Wt::WObject* parent);
+    PureHTML5Js(PandoricaPrivate::HTML5PlayerPrivate* const d, Wt::WObject* parent);
     virtual std::string customPlayerHTML();
-private:
-  PureHTML5Js *const pureHTML5Js;
 };
 
-#endif
-
+#endif // PUREHTML5JS_H
