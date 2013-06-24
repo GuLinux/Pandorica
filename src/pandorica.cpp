@@ -91,7 +91,6 @@ P::PandoricaPrivate::PandoricaPrivate(Pandorica *q) : q(q), playSignal(q, "playS
 
 
 Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(environment), d(new P::PandoricaPrivate(this)) {
-//   useStyleSheet( wApp->resourcesUrl() + "filesystemorm.css");
   useStyleSheet(Settings::staticPath("/Pandorica.css"));
   addMetaLink(Settings::staticPath("/icons/favicon.png"), "shortcut icon", {}, {}, {}, {}, false);
   requireJQuery(Settings::staticPath("/jquery.min.js"));
