@@ -12,9 +12,10 @@ It supports the most popular web media formats, such as
 
 It also supports subtitles, file searching via media title or file name, media cover selection and much more.
 
-It's written in C++ (C++11,  to be precise), using [Wt](http://www.webtoolkit.eu/wt), [Twitter Bootstrap](http://twitter.github.io/bootstrap) and [MediaElement.js](http://mediaelementjs.com/)
+It's written in C++ (C++11,  to be precise), using [Wt](http://www.webtoolkit.eu/wt), [Twitter Bootstrap](http://twitter.github.io/bootstrap), [MediaElement.js](http://mediaelementjs.com/) and [Video.js](http://www.videojs.com)
 
 ## Dependencies ##
+* [gcc](http://gcc.gnu.org/gcc-4.7/) 4.7 or above
 * [Wt](http://www.webtoolkit.eu/wt) 3.3.0 or above
 * [Boost](http://boost.org)
 * [GraphicsMagick++](http://www.graphicsmagick.org/Magick++/) ([ImageMagick++](http://www.imagemagick.org/script/index.php) should work too, but I found it much less reliable)
