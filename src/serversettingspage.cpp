@@ -20,8 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
-#include "serversettingsdialog.h"
-#include "private/serversettingsdialog_p.h"
+#include "serversettingspage.h"
+#include "private/serversettingspage_p.h"
 #include "settings.h"
 #include "session.h"
 #include "Wt-Commons/wt_helpers.h"
@@ -52,24 +52,24 @@ using namespace WtCommons;
 
 namespace fs = boost::filesystem;
 
-ServerSettingsDialogPrivate::ServerSettingsDialogPrivate(Settings* settings, Session* session, MediaCollection *mediaCollection, ServerSettingsDialog* q)
+ServerSettingsPagePrivate::ServerSettingsPagePrivate(Settings* settings, Session* session, MediaCollection *mediaCollection, ServerSettingsPage* q)
   : settings(settings), session(session), mediaCollection(mediaCollection), q(q)
 {
 
 }
 
-ServerSettingsDialogPrivate::~ServerSettingsDialogPrivate()
+ServerSettingsPagePrivate::~ServerSettingsPagePrivate()
 {
 }
 
-ServerSettingsDialog::~ServerSettingsDialog()
+ServerSettingsPage::~ServerSettingsPage()
 {
     delete d;
 
 }
 
-ServerSettingsDialog::ServerSettingsDialog(Settings* settings, Session* session, MediaCollection *mediaCollection, WObject* parent)
-    : WDialog(parent), d(new ServerSettingsDialogPrivate(settings, session, mediaCollection, this))
+ServerSettingsPage::ServerSettingsPage(Settings* settings, Session* session, MediaCollection *mediaCollection, WObject* parent)
+    : WDialog(parent), d(new ServerSettingsPagePrivate(settings, session, mediaCollection, this))
 {
   setWindowTitle(wtr("menu.configure.app"));
   WStackedWidget *stack = new WStackedWidget(contents());
@@ -99,7 +99,7 @@ ServerSettingsDialog::ServerSettingsDialog(Settings* settings, Session* session,
   });
 }
 
-WContainerWidget* ServerSettingsDialogPrivate::selectMediaRootPage()
+WContainerWidget* ServerSettingsPagePrivate::selectMediaRootPage()
 {
   WGroupBox *groupBox = WW<WGroupBox>(wtr("configure.app.select_media_directories")).css("fieldset-small");
   SelectDirectories *selectDirectories = new SelectDirectories({"/"}, settings->mediasDirectories(session), [=](string p){
@@ -122,7 +122,7 @@ string sanitizePath(string deployPath) {
   return deployPath;
 }
 
-WContainerWidget* ServerSettingsDialogPrivate::cachePage()
+WContainerWidget* ServerSettingsPagePrivate::cachePage()
 {
   Dbo::Transaction t(*session);
   bool useCache = Setting::value(Setting::useCache(), t, false);
@@ -179,7 +179,7 @@ WContainerWidget* ServerSettingsDialogPrivate::cachePage()
 
 
 
-void ServerSettingsDialogPrivate::buildDeployTypePage()
+void ServerSettingsPagePrivate::buildDeployTypePage()
 {
   selectDeployTypeContainer->clear();
   WContainerWidget *options = new WContainerWidget();
@@ -258,7 +258,8 @@ void ServerSettingsDialogPrivate::buildDeployTypePage()
   selectDeployTypeContainer->addWidget(options);
 }
 
-void ServerSettingsDialog::run()
+void ServerSettingsPage::dialog(Settings* settings, Session* session, MediaCollection* mediaCollection, WObject* parent)
 {
-  show();
+  (new ServerSettingsPage(settings, session, mediaCollection, parent))->show();
 }
+

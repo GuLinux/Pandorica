@@ -207,7 +207,6 @@ void NavigationBarPrivate::setupNavigationBar(Dbo::Transaction& transaction)
   
   createItem(userMenuItem->menu(), wtr("menu.settings"), [=](WMenuItem *item, _n5) {
     SettingsDialog* settingsDialog = new SettingsDialog{settings};
-//     settingsDialog->setAnchorWidget(item);
     settingsDialog->animateShow({WAnimation::Fade|WAnimation::SlideInFromTop});
     resetSelection(mainMenu);    
   }, "menu-settings visible-desktop");

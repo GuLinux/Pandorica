@@ -29,16 +29,16 @@ class MediaCollection;
 class Session;
 class Settings;
 namespace PandoricaPrivate {
-  class ServerSettingsDialogPrivate;
+  class ServerSettingsPagePrivate;
 }
-class ServerSettingsDialog : public Wt::WDialog
+class ServerSettingsPage : public Wt::WDialog
 {
 public:
-    ~ServerSettingsDialog();
-    ServerSettingsDialog(Settings* settings, Session* session, MediaCollection* mediaCollection, Wt::WObject* parent = 0);
-  void run();
+    ~ServerSettingsPage();
+    ServerSettingsPage(Settings* settings, Session* session, MediaCollection* mediaCollection, Wt::WObject* parent = 0);
+    static void dialog(Settings *settings, Session *session, MediaCollection *mediaCollection, Wt::WObject *parent = 0);
 private:
-  PandoricaPrivate::ServerSettingsDialogPrivate* const d;
+  PandoricaPrivate::ServerSettingsPagePrivate* const d;
 };
 
 #endif // SERVERSETTINGSDIALOG_H

@@ -34,11 +34,11 @@ class MediaCollection;
 class Session;
 class Settings;
 namespace PandoricaPrivate {
-class ServerSettingsDialogPrivate
+class ServerSettingsPagePrivate
 {
 public:
-  ServerSettingsDialogPrivate(Settings* settings, Session* session, MediaCollection* mediaCollection, ServerSettingsDialog* q);
-    virtual ~ServerSettingsDialogPrivate();
+  ServerSettingsPagePrivate(Settings* settings, Session* session, MediaCollection* mediaCollection, ServerSettingsPage* q);
+    virtual ~ServerSettingsPagePrivate();
 
     Settings *settings;
     Session *session;
@@ -50,7 +50,7 @@ public:
     void buildDeployTypePage();
     Wt::WContainerWidget *selectDeployTypeContainer;
 private:
-    class ServerSettingsDialog* const q;
+    class ServerSettingsPage* const q;
 };
 }
 #endif // SERVERSETTINGSDIALOGPRIVATE_H

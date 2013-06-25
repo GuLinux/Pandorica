@@ -61,7 +61,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "authpage.h"
 #include "findorphansdialog.h"
 #include "selectdirectories.h"
-#include "serversettingsdialog.h"
+#include "serversettingspage.h"
 #include "navigationbar.h"
 #include <Wt/WConfig.h>
 #include <Wt/WStringListModel>
@@ -231,7 +231,7 @@ void P::PandoricaPrivate::adminActions()
   navigationBar->viewUsersHistory().connect([=](_n6) { (new LoggedUsersDialog{session, &settings, true})->show(); });
   navigationBar->findOrphans().connect([=](_n6) { (new FindOrphansDialog(mediaCollection, session, &settings))->run(); });
   navigationBar->manageGroups().connect([=](_n6) {  (new GroupsDialog(session, &settings))->show(); });
-  navigationBar->configureApp().connect([=](_n6) { (new ServerSettingsDialog{&settings, session, mediaCollection} )->run(); });
+  navigationBar->configureApp().connect([=](_n6) { ServerSettingsPage::dialog(&settings, session, mediaCollection); });
   navigationBar->mediaScanner().connect([=](_n6) {
     auto dialog = new MediaScannerDialog(session, &settings, mediaCollection, q);
     dialog->scanFinished().connect([=](_n6) {
