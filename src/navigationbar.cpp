@@ -131,6 +131,11 @@ Signal<>& NavigationBar::viewUsersHistory()
   return d->viewUsersHistory;
 }
 
+Signal<>& NavigationBar::showUserSettings()
+{
+  return d->showUserSettings;
+}
+
 
 void NavigationBar::setPage(NavigationBar::Page page)
 {
@@ -145,8 +150,6 @@ void NavigationBar::setPage(NavigationBar::Page page)
   d->resetSelection(d->mainMenu);
   d->currentPage = page;
 }
-
-
 
 
 template<typename OnItemTriggered>
@@ -185,9 +188,11 @@ void NavigationBarPrivate::setupNavigationBar(Dbo::Transaction& transaction)
   
   mainMenu = new WMenu();
   navigationBar->addMenu(mainMenu);
-  mainMenu->itemSelected().connect([=](WMenuItem*, _n5){
-    mainMenu->doJavaScript("$('.nav-collapse').collapse('hide');");
-  });
+//   mainMenu->itemSelected().connect([=](WMenuItem*, _n5){
+//     WTimer::singleShot(1000, [=](WMouseEvent){
+//       mainMenu->doJavaScript("$('.nav-collapse').collapse('hide');");
+//     });
+//   });
   
   mediaListMenuItem = createItem(mainMenu, wtr("menu.mediaslist"), [=](WMenuItem*, _n5){
     q->setPage(currentPage == NavigationBar::MediaCollectionBrowser ? NavigationBar::Player : NavigationBar::MediaCollectionBrowser);
@@ -206,8 +211,7 @@ void NavigationBarPrivate::setupNavigationBar(Dbo::Transaction& transaction)
   userMenuItem->setSubMenu(new WPopupMenu);
   
   createItem(userMenuItem->menu(), wtr("menu.settings"), [=](WMenuItem *item, _n5) {
-    SettingsDialog* settingsDialog = new SettingsDialog{settings};
-    settingsDialog->animateShow({WAnimation::Fade|WAnimation::SlideInFromTop});
+      SettingsPage::dialog(settings);
     resetSelection(mainMenu);    
   }, "menu-settings visible-desktop");
   
@@ -215,7 +219,7 @@ void NavigationBarPrivate::setupNavigationBar(Dbo::Transaction& transaction)
     this->logout.emit();
   };
   
-  
+  createItem(mainMenu, wtr("menu.settings"), [=](WMenuItem*, _n5) { showUserSettings.emit(); }, "hidden-desktop menu-settings");
   createItem(userMenuItem->menu(), wtr("menu.logout"), logout, "menu-logout");
   createItem(mainMenu, wtr("menu.logout"), logout, "menu-logout hidden-desktop");
 }

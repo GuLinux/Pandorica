@@ -56,6 +56,7 @@ public:
     Wt::Signal<> &findOrphans();
     Wt::Signal<> &viewAs();
     Wt::Signal<> &configureApp();
+    Wt::Signal<> &showUserSettings();
     
     void setPage(Page page);
     void updateUsersCount(int newUsersCount);

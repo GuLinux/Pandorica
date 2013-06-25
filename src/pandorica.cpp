@@ -63,6 +63,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "selectdirectories.h"
 #include "serversettingspage.h"
 #include "navigationbar.h"
+#include "settingspage.h"
 #include <Wt/WConfig.h>
 #include <Wt/WStringListModel>
 #include <Wt/WComboBox>
@@ -302,11 +303,18 @@ void Pandorica::setupGui()
   d->navigationBar->logout().connect([=](_n6) {
     d->session->login().logout();
   });
+  d->navigationBar->showUserSettings().connect([=](_n6) {
+    d->userSettingsPage->clear();
+    d->userSettingsPage->addWidget(new SettingsPage(&d->settings));
+    d->widgetsStack->setCurrentWidget(d->userSettingsPage);
+  });
   d->adminActions();
   
   d->mainWidget->addWidget(d->widgetsStack);
   d->widgetsStack->addWidget(contentWidget);
   d->widgetsStack->addWidget(d->mediaCollectionBrowser);
+  d->widgetsStack->addWidget(d->userSettingsPage = new WContainerWidget());
+  d->userSettingsPage->setPadding(20);
 
   
   d->playlist->next().connect(d, &P::PandoricaPrivate::play);

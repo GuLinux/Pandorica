@@ -67,6 +67,7 @@ public:
     Wt::Signal<> findOrphans;
     Wt::Signal<> viewAs;
     Wt::Signal<> configureApp;
+    Wt::Signal<> showUserSettings;
     
     Wt::JSignal<std::string> playJS;
     

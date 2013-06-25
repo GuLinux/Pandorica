@@ -6,3 +6,4 @@ webroot/uploads
 *.db
 .directory
 wt_config_pg_zerogoki.xml
+nbproject/

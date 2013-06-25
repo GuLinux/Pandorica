@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WLabel>
 #include <Wt/WAbstractListModel>
 #include <Wt/WPushButton>
+#include <Wt/WDialog>
 
 using namespace Wt;
 using namespace std;
@@ -46,24 +47,28 @@ ComboPairModel::ComboPairModel(vector<string> items, WObject* parent)
 {
 }
 
+void SettingsPage::dialog(Settings* settings, Wt::WObject* parent) {
+  WDialog *dialog = new WDialog(parent);
+  dialog->contents()->addWidget(new SettingsPage(settings));
+  dialog->setWindowTitle(wtr("settings.header"));
+  dialog->setClosable(true);
+  dialog->setResizable(true);
+  dialog->animateShow({WAnimation::Fade|WAnimation::SlideInFromTop});
+}
 
 
-SettingsDialog::SettingsDialog(Settings* settings, WObject* parent): WDialog(parent), settings(settings)
+SettingsPage::SettingsPage(Settings* settings, WContainerWidget* parent): WContainerWidget(parent), settings(settings)
 {
-  setWindowTitle(wtr("settings.header"));
-  setClosable(true);
-  setResizable(true);
   setMaximumSize(700, WLength::Auto);
-  content = WW<WContainerWidget>().css("form-horizontal");
-  contents()->addWidget(content);
+  addStyleClass("form-horizontal");
   addSetting(Settings::mediaAutoplay, createCombo(Settings::mediaAutoplay, { "autoplay_never", "autoplay_audio_only", "autoplay_video_only", "autoplay_always" }));
   
   addSetting(Settings::preferredPlayer, createCombo(Settings::preferredPlayer, { "mediaelementjs", "purehtml5", "videojs", "jplayer"} ) );
   addSetting(Settings::guiLanguage, createCombo(Settings::guiLanguage, {"<browserdefault>", "en", "it"}) );
-  contents()->addWidget(new WText{wtr("settings.footer")});
+  addWidget(new WText{wtr("settings.footer")});
 }
 
-WComboBox* SettingsDialog::createCombo(string name, vector<string> values)
+WComboBox* SettingsPage::createCombo(string name, vector<string> values)
 {
   string defaultValue = settings->value(name);
   WComboBox *combo = new WComboBox();
@@ -80,7 +85,7 @@ WComboBox* SettingsDialog::createCombo(string name, vector<string> values)
 }
 
 
-void SettingsDialog::addSetting(const string& settingName, WFormWidget* widget)
+void SettingsPage::addSetting(const string& settingName, WFormWidget* widget)
 {
   WString label = wtr(settingName + ".label");
   WString helpText = wtr(settingName + ".description");
@@ -91,13 +96,13 @@ void SettingsDialog::addSetting(const string& settingName, WFormWidget* widget)
   if(!helpText.empty()) {
     control->addWidget(WW<WText>(helpText).css("help-block") );
   }
-  content->addWidget(WW<WContainerWidget>().css("control-group")
+  addWidget(WW<WContainerWidget>().css("control-group")
     .add(labelWidget)
     .add( control ));
 }
 
 
-SettingsDialog::~SettingsDialog()
+SettingsPage::~SettingsPage()
 {
 
 }

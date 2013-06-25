@@ -21,23 +21,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef SETTINGSPAGE_H
 #define SETTINGSPAGE_H
 
-#include <Wt/WDialog>
+#include <Wt/WContainerWidget>
 
 class Settings;
 namespace Wt {
   class WComboBox;
 }
 
-class SettingsDialog : public Wt::WDialog
+class SettingsPage : public Wt::WContainerWidget
 {
 
 public:
-    SettingsDialog(Settings *settings, Wt::WObject* parent = 0);
-    virtual ~SettingsDialog();
+    SettingsPage(Settings *settings, Wt::WContainerWidget* parent = 0);
+    virtual ~SettingsPage();
+    static void dialog(Settings *settings, Wt::WObject *parent = 0);
 private:
   void addSetting(const std::string& settingName, Wt::WFormWidget* widget);
   Wt::WComboBox *createCombo(std::string name, std::vector<std::string> values);
-  Wt::WContainerWidget *content;
   Settings *settings;
 };
 

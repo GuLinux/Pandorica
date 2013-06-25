@@ -68,6 +68,7 @@ namespace PandoricaPrivate {
     Wt::JSignal<std::string> queueSignal;
     Settings settings;
     MediaCollectionBrowser* mediaCollectionBrowser;
+    Wt::WContainerWidget *userSettingsPage;
     MediaCollection* mediaCollection;
     long userId = -1;
     void updateUsersCount();
