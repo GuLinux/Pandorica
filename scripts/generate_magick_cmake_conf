@@ -2,9 +2,25 @@
 outfile="$1"
 
 config_app=""
+
+MAGICK_TYPE=""
+
 if which GraphicsMagick++-config >/dev/null; then
   config_app="GraphicsMagick++-config"
-  echo "Found GraphicsMagick instead" >&2
+  echo "Found GraphicsMagick" >&2
+  MAGICK_TYPE="GraphicsMagick"
+fi
+
+
+if test -z "$MAGICK_TYPE" &&  which Magick++-config >/dev/null; then
+  config_app="Magick++-config"
+  echo "Found ImageMagick" >&2
+  MAGICK_TYPE="ImageMagick"
+fi
+
+if test -z "$MAGICK_TYPE"; then
+  echo "Neither GraphicsMagick nor ImageMagick were found on your system." >&2
+  exit 1
 fi
 
 function cfg() {
@@ -27,13 +43,25 @@ for definition in $cppflags; do
 	fi
 done
 
+if test -z "$MAGICK_INCLUDES"; then
+  if [ -d "/usr/include/$MAGICK_TYPE" ]; then
+    MAGICK_INCLUDES="/usr/include/$MAGICK_TYPE"
+    echo "$config_app could not found includes, manually selecting $MAGICK_INCLUDES" >&2
+  fi
+fi
+
+if test -z "$MAGICK_INCLUDES"; then
+  echo "$config_app was found, but no includes were found." >&2
+  exit 1
+fi
+
 cfg "set(MAGICK_INCLUDES $MAGICK_INCLUDES)"
-cfg "message(\"Found ImageMagick Includes: \${MAGICK_INCLUDES}\")"
+cfg "message(\"Found Magick++ Includes: \${MAGICK_INCLUDES}\")"
 
 ldflags="$( $config_app --libs )"
 for lib in $ldflags; do
 	MAGICK_LIBS="$MAGICK_LIBS $( echo "$lib")"
 done
 cfg "set(MAGICK_LIBS $MAGICK_LIBS)"
-cfg "message(\"Found ImageMagick Libs: \${MAGICK_LIBS}\")"
+cfg "message(\"Found Magick++ Libs: \${MAGICK_LIBS}\")"
 
