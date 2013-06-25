@@ -65,7 +65,7 @@ NavigationBar::NavigationBar(Session *session, MediaCollection *mediaCollection,
   });
 }
 
-void NavigationBar::setup(Dbo::Transaction& transaction)
+void NavigationBar::setup(Dbo::Transaction& transaction, PagesMap pagesMap)
 {
   show();
   d->setupNavigationBar(transaction);
@@ -188,6 +188,7 @@ void NavigationBarPrivate::setupNavigationBar(Dbo::Transaction& transaction)
   
   mainMenu = new WMenu();
   navigationBar->addMenu(mainMenu);
+// TODO: restore in some way...
 //   mainMenu->itemSelected().connect([=](WMenuItem*, _n5){
 //     WTimer::singleShot(1000, [=](WMouseEvent){
 //       mainMenu->doJavaScript("$('.nav-collapse').collapse('hide');");
@@ -195,8 +196,12 @@ void NavigationBarPrivate::setupNavigationBar(Dbo::Transaction& transaction)
 //   });
   
   mediaListMenuItem = createItem(mainMenu, wtr("menu.mediaslist"), [=](WMenuItem*, _n5){
-    q->setPage(currentPage == NavigationBar::MediaCollectionBrowser ? NavigationBar::Player : NavigationBar::MediaCollectionBrowser);
-  }, "menu-media-list");
+    showMediaCollectionBrowser.emit();
+  }, "menu-collection");
+  
+  mediaListMenuItem = createItem(mainMenu, wtr("menu.back.to.media"), [=](WMenuItem*, _n5){
+    showPlayer.emit();
+  }, "menu-player");
   
   createItem(mainMenu, wtr("menu.latest.comments"), [=](WMenuItem *item, _n5) {
     LatestCommentsDialog *dialog = new LatestCommentsDialog{session, mediaCollection};
@@ -204,7 +209,7 @@ void NavigationBarPrivate::setupNavigationBar(Dbo::Transaction& transaction)
     dialog->animateShow({WAnimation::Fade|WAnimation::SlideInFromTop});
     dialog->mediaClicked().connect([=](Media media, _n5) { play.emit(media); });
     resetSelection(mainMenu);
-  }, "menu-comments");
+  }, "menu-comments visible-desktop");
   
   WMenuItem *userMenuItem = mainMenu->addItem(session->login().user().identity("loginname"));
   userMenuItem->addStyleClass("menu-user visible-desktop");
@@ -212,7 +217,7 @@ void NavigationBarPrivate::setupNavigationBar(Dbo::Transaction& transaction)
   
   createItem(userMenuItem->menu(), wtr("menu.settings"), [=](WMenuItem *item, _n5) {
       SettingsPage::dialog(settings);
-    resetSelection(mainMenu);    
+      resetSelection(mainMenu);    
   }, "menu-settings visible-desktop");
   
   auto logout = [=](WMenuItem*, _n5) {

@@ -10,9 +10,9 @@
   <message id="playlist.accordion">Playlist</message>
 
  <!-- menu -->
-  <message id="menu.mediaslist">Media List</message>
+  <message id="menu.mediaslist">Collection</message>
   <message id="menu.latest.comments">Latest Comments</message>
-  <message id="menu.back.to.media">Show Media</message>
+  <message id="menu.back.to.media">Player</message>
   <message id="menu.users">Users: {1}</message>
   <message id="menu.settings">Settings</message>
   <message id="menu.logout">Logout</message>

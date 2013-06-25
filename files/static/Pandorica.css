@@ -137,8 +137,12 @@
   background: transparent url(icons/actions/playlist.png)  center left no-repeat;
 }
 
-.menu-media-list a span span {
+.menu-collection a span span {
   background: transparent url(icons/actions/nav_media.png)  center left no-repeat;
+}
+
+.menu-player a span span {
+  background: transparent url(icons/actions/player.png)  center left no-repeat;
 }
 .menu-comments a span span {
   background: transparent url(icons/actions/comments.png)  center left no-repeat;

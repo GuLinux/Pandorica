@@ -93,9 +93,9 @@
   <message id="Wt.WDate.December">Dicembre</message>
 
   <!-- menu -->
-  <message id="menu.mediaslist">Lista Media</message>
+  <message id="menu.mediaslist">Collezione</message>
+  <message id="menu.back.to.media">Player</message>
   <message id="menu.latest.comments">Ultimi Commenti</message>
-  <message id="menu.back.to.media">Mostra Media</message>
   <message id="menu.users">Utenti: {1}</message>
   <message id="menu.settings">Impostazioni</message>
   <message id="menu.search">Cerca</message>

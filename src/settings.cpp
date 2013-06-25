@@ -48,7 +48,7 @@ const std::string Settings::guiLanguage = "gui_language";
 
 map<string,string> defaultValues {
   {Settings::mediaAutoplay, "autoplay_always"},
-  {Settings::preferredPlayer, "videojs"},
+  {Settings::preferredPlayer, "mediaelementjs"},
   {Settings::guiLanguage, "<browserdefault>"},
   };
 

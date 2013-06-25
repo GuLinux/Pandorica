@@ -23,6 +23,7 @@
 
 #include <Wt/WContainerWidget>
 #include "media.h"
+#include <map>
 
 class Settings;
 class MediaCollection;
@@ -33,16 +34,19 @@ class Transaction;
 }
 }
 
+
 namespace PandoricaPrivate { class NavigationBarPrivate; }
 
 class NavigationBar : public Wt::WContainerWidget
 {
 public:
-    enum Page { Player, MediaCollectionBrowser };
+    enum Page { Player, MediaCollectionBrowser, UserSettings };
 
     ~NavigationBar();
     NavigationBar(Session* session, MediaCollection* mediaCollection, Settings* settings, Wt::WContainerWidget* parent = 0);
-    void setup(Wt::Dbo::Transaction &transaction);
+    typedef std::map<Page, Wt::WWidget*> PagesMap;
+
+    void setup(Wt::Dbo::Transaction &transaction, PagesMap pagesMap = PagesMap{} );
 
     Wt::Signal<> &showMediaCollectionBrowser();
     Wt::Signal<> &showPlayer();
