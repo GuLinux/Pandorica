@@ -162,8 +162,12 @@ void Pandorica::authEvent()
   wApp->log("notice") << "created sessionInfo with sessionId=" << sessionInfoPtr->sessionId();
   d->mediaCollection = new MediaCollection(&d->settings, d->session, this);
   d->mainWidget->addWidget(d->navigationBar = new NavigationBar(d->session, d->mediaCollection, &d->settings));
-
-  d->navigationBar->setup(t);
+  d->widgetsStack = new WStackedWidget();
+  d->navigationBar->setup(t, d->widgetsStack, {
+    {NavigationBar::Player, d->playerPage = new WContainerWidget},
+    {NavigationBar::MediaCollectionBrowser, d->collectionPage = new WContainerWidget},
+    {NavigationBar::UserSettings, d->userSettingsPage = new WContainerWidget},
+  });
   t.commit();
   d->registerSession();
   setupGui();
@@ -279,13 +283,12 @@ void P::PandoricaPrivate::adminActions()
 void Pandorica::setupGui()
 {
   d->mainWidget->setHidden(true);
-  WContainerWidget* contentWidget = new WContainerWidget;
   d->playerContainerWidget = new WContainerWidget;
   d->playerContainerWidget->setContentAlignment(AlignCenter);
   d->playlist = new Playlist{d->session, &d->settings};
   
-  contentWidget->addWidget(WW<WContainerWidget>().add(d->playlist).setContentAlignment(AlignCenter));
-  contentWidget->addWidget(d->playerContainerWidget);
+  d->playerPage->addWidget(WW<WContainerWidget>().add(d->playlist).setContentAlignment(AlignCenter));
+  d->playerPage->addWidget(d->playerContainerWidget);
   
   d->mediaCollectionBrowser = new MediaCollectionBrowser{d->mediaCollection, &d->settings, d->session};
   d->mediaCollectionBrowser->play().connect([=](Media media, _n5){
@@ -294,8 +297,6 @@ void Pandorica::setupGui()
   d->mediaCollectionBrowser->queue().connect([=](Media media, _n5){
     d->queue(media.path(), false);
   });
-  
-  d->widgetsStack = new WStackedWidget();
   
   d->navigationBar->showMediaCollectionBrowser().connect(boost::bind(&WStackedWidget::setCurrentIndex, d->widgetsStack, 1));
   d->navigationBar->showPlayer().connect(boost::bind(&WStackedWidget::setCurrentIndex, d->widgetsStack, 0));
@@ -310,10 +311,11 @@ void Pandorica::setupGui()
   });
   d->adminActions();
   
+  d->collectionPage->addWidget(d->mediaCollectionBrowser);
   d->mainWidget->addWidget(d->widgetsStack);
-  d->widgetsStack->addWidget(contentWidget);
-  d->widgetsStack->addWidget(d->mediaCollectionBrowser);
-  d->widgetsStack->addWidget(d->userSettingsPage = new WContainerWidget());
+  d->widgetsStack->addWidget(d->playerPage);
+  d->widgetsStack->addWidget(d->collectionPage);
+  d->widgetsStack->addWidget(d->userSettingsPage);
   d->userSettingsPage->setPadding(20);
 
   

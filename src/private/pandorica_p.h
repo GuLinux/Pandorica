@@ -68,13 +68,15 @@ namespace PandoricaPrivate {
     Wt::JSignal<std::string> queueSignal;
     Settings settings;
     MediaCollectionBrowser* mediaCollectionBrowser;
-    Wt::WContainerWidget *userSettingsPage;
     MediaCollection* mediaCollection;
     long userId = -1;
     void updateUsersCount();
     void registerSession();
     void unregisterSession();
     NavigationBar* navigationBar;
+    Wt::WContainerWidget *playerPage;
+    Wt::WContainerWidget *collectionPage;
+    Wt::WContainerWidget *userSettingsPage;
   private:
     void ratingFor(Media media, Wt::Dbo::Transaction t);
     Wt::WMenuItem* activeUsersMenuItem = 0;

@@ -49,7 +49,7 @@ public:
     Wt::WNavigationBar* navigationBar;
     Session *session;
     bool isShowingMediaCollectionBrowser = false;
-    void setupNavigationBar(Wt::Dbo::Transaction& transaction);
+    void setupNavigationBar(Wt::Dbo::Transaction& transaction, Wt::WStackedWidget* stackedWidget, NavigationBar::PagesMap pagesMap);
     void setupAdminBar(Wt::Dbo::Transaction& transaction);
     void setupSearchBar();
     template<typename OnItemTriggered>

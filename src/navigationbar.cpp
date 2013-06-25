@@ -33,6 +33,7 @@
 #include <Wt/WLineEdit>
 #include "Wt-Commons/wt_helpers.h"
 #include <boost/format.hpp>
+#include <Wt/WStackedWidget>
 #include <Wt/WStringListModel>
 #include <Wt/WSortFilterProxyModel>
 #include "mediacollection.h"
@@ -65,10 +66,10 @@ NavigationBar::NavigationBar(Session *session, MediaCollection *mediaCollection,
   });
 }
 
-void NavigationBar::setup(Dbo::Transaction& transaction, PagesMap pagesMap)
+void NavigationBar::setup(Dbo::Transaction& transaction, WStackedWidget* stackedWidget, NavigationBar::PagesMap pagesMap)
 {
   show();
-  d->setupNavigationBar(transaction);
+  d->setupNavigationBar(transaction, stackedWidget, pagesMap);
   if(d->session->user()->isAdmin())
     d->setupAdminBar(transaction);
   d->setupSearchBar();
@@ -179,7 +180,7 @@ void NavigationBar::updateUsersCount(int newUsersCount)
 
 
 
-void NavigationBarPrivate::setupNavigationBar(Dbo::Transaction& transaction)
+void NavigationBarPrivate::setupNavigationBar(Dbo::Transaction& transaction,  WStackedWidget* stackedWidget, NavigationBar::PagesMap pagesMap)
 {
   wApp->log("notice") << "Setting up topbar links";
   navigationBar->addStyleClass("navbar-static-top ");

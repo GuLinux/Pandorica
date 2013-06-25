@@ -32,6 +32,7 @@ namespace Wt {
 namespace Dbo {
 class Transaction;
 }
+class WStackedWidget;
 }
 
 
@@ -46,7 +47,7 @@ public:
     NavigationBar(Session* session, MediaCollection* mediaCollection, Settings* settings, Wt::WContainerWidget* parent = 0);
     typedef std::map<Page, Wt::WWidget*> PagesMap;
 
-    void setup(Wt::Dbo::Transaction &transaction, PagesMap pagesMap = PagesMap{} );
+    void setup(Wt::Dbo::Transaction &transaction, Wt::WStackedWidget* stackedWidget, PagesMap pagesMap = PagesMap{} );
 
     Wt::Signal<> &showMediaCollectionBrowser();
     Wt::Signal<> &showPlayer();
