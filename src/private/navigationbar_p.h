@@ -54,8 +54,6 @@ public:
     void setupNavigationBar(Wt::Dbo::Transaction& transaction, Wt::WStackedWidget* stackedWidget, NavigationBar::PagesMap pagesMap);
     void setupAdminBar(Wt::Dbo::Transaction& transaction);
     void setupSearchBar();
-    Wt::WMenuItem *createItem(Wt::WMenu *menu, Wt::WString text, OnItemTriggered onItemTriggered, std::string cssClass = std::string{});
-    Wt::WMenuItem *createItem(Wt::WMenu *menu, Wt::WString text, Wt::WWidget *parentWidget, std::string cssClass = std::string{});
     Wt::WMenuItem *createItem(Wt::WMenu *menu, Wt::WString text, Wt::WWidget *parentWidget, OnItemTriggered onItemTriggered, std::string cssClass = std::string{});
 
     Wt::Signal<Media> play;

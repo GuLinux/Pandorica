@@ -128,15 +128,8 @@ Signal<>& NavigationBar::showUserSettings()
   return d->showUserSettings;
 }
 
+auto onItemTriggered_noop = [](WMenuItem*,_n5) {};
 
-WMenuItem* NavigationBarPrivate::createItem(WMenu* menu, WString text, WWidget* parentWidget, string cssClass)
-{
-  return createItem(menu, text, parentWidget, [](WMenuItem*, _n5){}, cssClass);
-}
-WMenuItem* NavigationBarPrivate::createItem(WMenu* menu, WString text, OnItemTriggered onItemTriggered, string cssClass)
-{
-  return createItem(menu, text, 0, onItemTriggered, cssClass);
-}
 WMenuItem* NavigationBarPrivate::createItem(WMenu* menu, WString text, WWidget* parentWidget, OnItemTriggered onItemTriggered, string cssClass)
 {
   WMenuItem *item = menu->addItem(text, parentWidget);
@@ -189,10 +182,10 @@ void NavigationBarPrivate::setupNavigationBar(Dbo::Transaction& transaction,  WS
 //     });
 //   });
   
-  createItem(mainMenu, wtr("menu.mediaslist"), pagesMap[NavigationBar::MediaCollectionBrowser], "menu-collection");
-  playerItem = createItem(mainMenu, wtr("menu.back.to.media"), pagesMap[NavigationBar::Player], "menu-player");
+  createItem(mainMenu, wtr("menu.mediaslist"), pagesMap[NavigationBar::MediaCollectionBrowser], onItemTriggered_noop, "menu-collection");
+  playerItem = createItem(mainMenu, wtr("menu.back.to.media"), pagesMap[NavigationBar::Player], onItemTriggered_noop, "menu-player");
   
-  createItem(mainMenu, wtr("menu.latest.comments"), [=](WMenuItem *item, _n5) {
+  createItem(mainMenu, wtr("menu.latest.comments"), 0, [=](WMenuItem *item, _n5) {
     LatestCommentsDialog *dialog = new LatestCommentsDialog{session, mediaCollection};
 //     dialog->setAnchorWidget(item);
     dialog->animateShow({WAnimation::Fade|WAnimation::SlideInFromTop});
@@ -204,7 +197,7 @@ void NavigationBarPrivate::setupNavigationBar(Dbo::Transaction& transaction,  WS
   userMenuItem->addStyleClass("menu-user visible-desktop");
   userMenuItem->setSubMenu(new WPopupMenu);
   
-  createItem(userMenuItem->menu(), wtr("menu.settings"), [=](WMenuItem *item, _n5) {
+  createItem(userMenuItem->menu(), wtr("menu.settings"), 0, [=](WMenuItem *item, _n5) {
       SettingsPage::dialog(settings);
       resetSelection(mainMenu);    
   }, "menu-settings visible-desktop");
@@ -214,8 +207,8 @@ void NavigationBarPrivate::setupNavigationBar(Dbo::Transaction& transaction,  WS
   };
   
   createItem(mainMenu, wtr("menu.settings"), pagesMap[NavigationBar::UserSettings], [=](WMenuItem*, _n5) { showUserSettings.emit(); }, "hidden-desktop menu-settings");
-  createItem(userMenuItem->menu(), wtr("menu.logout"), logout, "menu-logout");
-  createItem(mainMenu, wtr("menu.logout"), logout, "menu-logout hidden-desktop");
+  createItem(userMenuItem->menu(), wtr("menu.logout"), 0, logout, "menu-logout");
+  createItem(mainMenu, wtr("menu.logout"), 0, logout, "menu-logout hidden-desktop");
 }
 
 
@@ -245,13 +238,13 @@ void NavigationBarPrivate::setupAdminBar(Dbo::Transaction& transaction)
   });
   // Popover if Media Collection is empty END
 
-  activeUsersMenuItem = createItem(adminMenu, wtr("menu.users"), [=](WMenuItem*, _n5) { viewLoggedUsers.emit();}, "menu-loggedusers");
-  createItem(adminMenu, wtr("users.history.title"), [=](WMenuItem*, _n5) { viewUsersHistory.emit();}, "menu-users-log");
-  createItem(adminMenu, wtr("menu.groups"), [=](WMenuItem*, _n5) { manageGroups.emit();}, "menu-groups");
-  createItem(adminMenu, wtr("mediascanner.title"), [=](WMenuItem*, _n5) { mediaScanner.emit();});
-  createItem(adminMenu, wtr("cleanup.orphans"), [=](WMenuItem*, _n5) { findOrphans.emit();});
-  createItem(adminMenu, wtr("menu.viewas"), [=](WMenuItem*, _n5) { viewAs.emit();});
-  createItem(adminMenu, wtr("menu.configure.app"), [=](WMenuItem*, _n5) { configureApp.emit();});
+  activeUsersMenuItem = createItem(adminMenu, wtr("menu.users"), 0, [=](WMenuItem*, _n5) { viewLoggedUsers.emit();}, "menu-loggedusers");
+  createItem(adminMenu, wtr("users.history.title"), 0, [=](WMenuItem*, _n5) { viewUsersHistory.emit();}, "menu-users-log");
+  createItem(adminMenu, wtr("menu.groups"), 0, [=](WMenuItem*, _n5) { manageGroups.emit();}, "menu-groups");
+  createItem(adminMenu, wtr("mediascanner.title"), 0, [=](WMenuItem*, _n5) { mediaScanner.emit();});
+  createItem(adminMenu, wtr("cleanup.orphans"), 0, [=](WMenuItem*, _n5) { findOrphans.emit();});
+  createItem(adminMenu, wtr("menu.viewas"), 0, [=](WMenuItem*, _n5) { viewAs.emit();});
+  createItem(adminMenu, wtr("menu.configure.app"), 0, [=](WMenuItem*, _n5) { configureApp.emit();});
 }
 
 void NavigationBarPrivate::setupSearchBar()
