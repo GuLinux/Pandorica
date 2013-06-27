@@ -49,8 +49,6 @@ public:
 
     void setup(Wt::Dbo::Transaction &transaction, Wt::WStackedWidget* stackedWidget, PagesMap pagesMap = PagesMap{} );
 
-    Wt::Signal<> &showMediaCollectionBrowser();
-    Wt::Signal<> &showPlayer();
     Wt::Signal<Media> &play();
     Wt::Signal<> &logout();
     
@@ -63,7 +61,7 @@ public:
     Wt::Signal<> &configureApp();
     Wt::Signal<> &showUserSettings();
     
-    void setPage(Page page);
+    void switchToPlayer();
     void updateUsersCount(int newUsersCount);
 
 private:

@@ -25,6 +25,7 @@
 #include <Wt/WSignal>
 #include <Wt/WJavaScript>
 #include <media.h>
+#include "Wt-Commons/wt_helpers.h"
 
 class Settings;
 class MediaCollection;
@@ -41,6 +42,7 @@ class WMenuItem;
 }
 
 namespace PandoricaPrivate {
+  typedef std::function<void(Wt::WMenuItem*, _n5)> OnItemTriggered;
 class NavigationBarPrivate
 {
 public:
@@ -52,11 +54,10 @@ public:
     void setupNavigationBar(Wt::Dbo::Transaction& transaction, Wt::WStackedWidget* stackedWidget, NavigationBar::PagesMap pagesMap);
     void setupAdminBar(Wt::Dbo::Transaction& transaction);
     void setupSearchBar();
-    template<typename OnItemTriggered>
     Wt::WMenuItem *createItem(Wt::WMenu *menu, Wt::WString text, OnItemTriggered onItemTriggered, std::string cssClass = std::string{});
+    Wt::WMenuItem *createItem(Wt::WMenu *menu, Wt::WString text, Wt::WWidget *parentWidget, std::string cssClass = std::string{});
+    Wt::WMenuItem *createItem(Wt::WMenu *menu, Wt::WString text, Wt::WWidget *parentWidget, OnItemTriggered onItemTriggered, std::string cssClass = std::string{});
 
-    Wt::Signal<> showMediaCollectionBrowser;
-    Wt::Signal<> showPlayer;
     Wt::Signal<Media> play;
     Wt::Signal<> logout;
     
@@ -74,8 +75,9 @@ public:
     NavigationBar::Page currentPage;
     void resetSelection(Wt::WMenu *menu);
     Wt::WMenu* mainMenu;
-    Wt::WMenuItem* mediaListMenuItem;
     Wt::WMenuItem* activeUsersMenuItem = 0;
+    int previousItemIndex, currentItemIndex = -1;
+    Wt::WMenuItem* playerItem;
 private:
     class NavigationBar* const q;
     MediaCollection *mediaCollection;

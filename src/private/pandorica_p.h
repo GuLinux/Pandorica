@@ -74,9 +74,9 @@ namespace PandoricaPrivate {
     void registerSession();
     void unregisterSession();
     NavigationBar* navigationBar;
-    Wt::WContainerWidget *playerPage;
-    Wt::WContainerWidget *collectionPage;
-    Wt::WContainerWidget *userSettingsPage;
+    Wt::WContainerWidget * playerPage;
+    Wt::WContainerWidget * collectionPage;
+    Wt::WContainerWidget * userSettingsPage;
   private:
     void ratingFor(Media media, Wt::Dbo::Transaction t);
     Wt::WMenuItem* activeUsersMenuItem = 0;

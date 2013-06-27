@@ -69,20 +69,11 @@ NavigationBar::NavigationBar(Session *session, MediaCollection *mediaCollection,
 void NavigationBar::setup(Dbo::Transaction& transaction, WStackedWidget* stackedWidget, NavigationBar::PagesMap pagesMap)
 {
   show();
+  for(auto item: pagesMap) log("notice") << "Item " << item.first << ": " << item.second;
   d->setupNavigationBar(transaction, stackedWidget, pagesMap);
   if(d->session->user()->isAdmin())
     d->setupAdminBar(transaction);
   d->setupSearchBar();
-}
-
-Signal<>& NavigationBar::showMediaCollectionBrowser()
-{
-  return d->showMediaCollectionBrowser;
-}
-
-Signal<>& NavigationBar::showPlayer()
-{
-  return d->showPlayer;
 }
 
 Signal< Media >& NavigationBar::play()
@@ -138,25 +129,17 @@ Signal<>& NavigationBar::showUserSettings()
 }
 
 
-void NavigationBar::setPage(NavigationBar::Page page)
+WMenuItem* NavigationBarPrivate::createItem(WMenu* menu, WString text, WWidget* parentWidget, string cssClass)
 {
-  if(page == Player) {
-    d->showPlayer.emit();
-    d->mediaListMenuItem->setText(wtr("menu.mediaslist"));
-  }
-  if(page == MediaCollectionBrowser) {
-    d->showMediaCollectionBrowser.emit();
-    d->mediaListMenuItem->setText(wtr("menu.back.to.media"));
-  }
-  d->resetSelection(d->mainMenu);
-  d->currentPage = page;
+  return createItem(menu, text, parentWidget, [](WMenuItem*, _n5){}, cssClass);
 }
-
-
-template<typename OnItemTriggered>
 WMenuItem* NavigationBarPrivate::createItem(WMenu* menu, WString text, OnItemTriggered onItemTriggered, string cssClass)
 {
-  WMenuItem *item = menu->addItem(text);
+  return createItem(menu, text, 0, onItemTriggered, cssClass);
+}
+WMenuItem* NavigationBarPrivate::createItem(WMenu* menu, WString text, WWidget* parentWidget, OnItemTriggered onItemTriggered, string cssClass)
+{
+  WMenuItem *item = menu->addItem(text, parentWidget);
   item->triggered().connect(onItemTriggered);
   if(!cssClass.empty())
     item->addStyleClass(cssClass);
@@ -166,7 +149,8 @@ WMenuItem* NavigationBarPrivate::createItem(WMenu* menu, WString text, OnItemTri
 void NavigationBarPrivate::resetSelection(Wt::WMenu* menu)
 {
   WTimer::singleShot(200, [=](WMouseEvent) {
-    menu->select(-1);
+    menu->select(previousItemIndex);
+    currentItemIndex = previousItemIndex;
   }); 
 }
 
@@ -178,6 +162,10 @@ void NavigationBar::updateUsersCount(int newUsersCount)
   }
 }
 
+void NavigationBar::switchToPlayer()
+{
+  d->mainMenu->select(d->playerItem);
+}
 
 
 void NavigationBarPrivate::setupNavigationBar(Dbo::Transaction& transaction,  WStackedWidget* stackedWidget, NavigationBar::PagesMap pagesMap)
@@ -186,8 +174,13 @@ void NavigationBarPrivate::setupNavigationBar(Dbo::Transaction& transaction,  WS
   navigationBar->addStyleClass("navbar-static-top ");
   navigationBar->setTitle(wtr("site-title"));
   navigationBar->setResponsive(true);
+  log("notice") << "Setting up navigation bar";
   
-  mainMenu = new WMenu();
+  mainMenu = new WMenu(stackedWidget);
+  mainMenu->itemSelected().connect([=](WMenuItem *item, _n5) {
+    previousItemIndex = currentItemIndex;
+    currentItemIndex = mainMenu->indexOf(item);
+  });
   navigationBar->addMenu(mainMenu);
 // TODO: restore in some way...
 //   mainMenu->itemSelected().connect([=](WMenuItem*, _n5){
@@ -196,13 +189,8 @@ void NavigationBarPrivate::setupNavigationBar(Dbo::Transaction& transaction,  WS
 //     });
 //   });
   
-  mediaListMenuItem = createItem(mainMenu, wtr("menu.mediaslist"), [=](WMenuItem*, _n5){
-    showMediaCollectionBrowser.emit();
-  }, "menu-collection");
-  
-  mediaListMenuItem = createItem(mainMenu, wtr("menu.back.to.media"), [=](WMenuItem*, _n5){
-    showPlayer.emit();
-  }, "menu-player");
+  createItem(mainMenu, wtr("menu.mediaslist"), pagesMap[NavigationBar::MediaCollectionBrowser], "menu-collection");
+  playerItem = createItem(mainMenu, wtr("menu.back.to.media"), pagesMap[NavigationBar::Player], "menu-player");
   
   createItem(mainMenu, wtr("menu.latest.comments"), [=](WMenuItem *item, _n5) {
     LatestCommentsDialog *dialog = new LatestCommentsDialog{session, mediaCollection};
@@ -225,7 +213,7 @@ void NavigationBarPrivate::setupNavigationBar(Dbo::Transaction& transaction,  WS
     this->logout.emit();
   };
   
-  createItem(mainMenu, wtr("menu.settings"), [=](WMenuItem*, _n5) { showUserSettings.emit(); }, "hidden-desktop menu-settings");
+  createItem(mainMenu, wtr("menu.settings"), pagesMap[NavigationBar::UserSettings], [=](WMenuItem*, _n5) { showUserSettings.emit(); }, "hidden-desktop menu-settings");
   createItem(userMenuItem->menu(), wtr("menu.logout"), logout, "menu-logout");
   createItem(mainMenu, wtr("menu.logout"), logout, "menu-logout hidden-desktop");
 }

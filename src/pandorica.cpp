@@ -80,7 +80,9 @@ using namespace WtCommons;
 typedef std::function<void(filesystem::path)> RunOnPath;
 
 
-P::PandoricaPrivate::PandoricaPrivate(Pandorica *q) : q(q), playSignal(q, "playSignal"), queueSignal(q, "queueSignal") {
+P::PandoricaPrivate::PandoricaPrivate(Pandorica *q)
+  : q(q), playSignal(q, "playSignal"), queueSignal(q, "queueSignal")
+{
   playSignal.connect([=](string uid, _n5){
     queueAndPlay(mediaCollection->media(uid));
   });
@@ -163,6 +165,7 @@ void Pandorica::authEvent()
   d->mediaCollection = new MediaCollection(&d->settings, d->session, this);
   d->mainWidget->addWidget(d->navigationBar = new NavigationBar(d->session, d->mediaCollection, &d->settings));
   d->widgetsStack = new WStackedWidget();
+  d->widgetsStack->setTransitionAnimation({WAnimation::Fade});
   d->navigationBar->setup(t, d->widgetsStack, {
     {NavigationBar::Player, d->playerPage = new WContainerWidget},
     {NavigationBar::MediaCollectionBrowser, d->collectionPage = new WContainerWidget},
@@ -298,8 +301,6 @@ void Pandorica::setupGui()
     d->queue(media.path(), false);
   });
   
-  d->navigationBar->showMediaCollectionBrowser().connect(boost::bind(&WStackedWidget::setCurrentIndex, d->widgetsStack, 1));
-  d->navigationBar->showPlayer().connect(boost::bind(&WStackedWidget::setCurrentIndex, d->widgetsStack, 0));
   d->navigationBar->play().connect([=](Media media, _n5) {d->queueAndPlay(media);});
   d->navigationBar->logout().connect([=](_n6) {
     d->session->login().logout();
@@ -307,15 +308,12 @@ void Pandorica::setupGui()
   d->navigationBar->showUserSettings().connect([=](_n6) {
     d->userSettingsPage->clear();
     d->userSettingsPage->addWidget(new SettingsPage(&d->settings));
-    d->widgetsStack->setCurrentWidget(d->userSettingsPage);
   });
   d->adminActions();
   
   d->collectionPage->addWidget(d->mediaCollectionBrowser);
   d->mainWidget->addWidget(d->widgetsStack);
-  d->widgetsStack->addWidget(d->playerPage);
-  d->widgetsStack->addWidget(d->collectionPage);
-  d->widgetsStack->addWidget(d->userSettingsPage);
+  
   d->userSettingsPage->setPadding(20);
 
   
@@ -398,8 +396,7 @@ std::string defaultLabelFor(string language) {
 
 
 void P::PandoricaPrivate::play(Media media) {
-  navigationBar->setPage(NavigationBar::Player);
-  widgetsStack->setCurrentIndex(0);
+  navigationBar->switchToPlayer();
   log("notice") << "Playing file " << media.path();
   if(player) {
     player->stop();
