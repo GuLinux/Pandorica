@@ -48,6 +48,7 @@ public:
     Wt::Signal<> &scanned();
     void setUserId(long long userId);
     long long viewingAs() const;
+    std::vector<Media> sortedMediasList() const;
 private:
   PandoricaPrivate::MediaCollectionPrivate *const d;
 };
