@@ -54,6 +54,8 @@ public:
     inline Wt::Signal<Media> &deletePoster() { return _deletePoster; }
     inline Wt::Signal<> &gotInfo() { return _gotInfo; }
     inline Wt::Signal<> &wasResetted() { return _wasResetted; }
+    inline Wt::Signal<> &playFolder() { return _playFolder; }
+    inline Wt::Signal<> &playFolderRecursive() { return _playFolderRecursive; }
 private:
   void labelValueBox(std::string label, Wt::WString value, Wt::WTable* container);
   void labelValueBox(std::string label, Wt::WWidget *widget, Wt::WTable* container);
@@ -64,6 +66,8 @@ private:
   Wt::Signal<Media> _deletePoster;
   Wt::Signal<> _gotInfo;
   Wt::Signal<> _wasResetted;
+  Wt::Signal<> _playFolder;
+  Wt::Signal<> _playFolderRecursive;
   Session *session;
   Settings* settings;
   bool isAdmin;
@@ -101,6 +105,8 @@ public:
   virtual void render(OnDirectoryAdded directoryAdded, OnMediaAdded mediaAdded ) = 0;
   virtual std::string label() const = 0;
   CollectionPath *parent() { return parent_; }
+  virtual bool hasMedia(Media &media) = 0;
+  virtual bool hasMediaInSubPath(Media &media) = 0;
 private:
   CollectionPath *parent_;
 };
@@ -110,6 +116,8 @@ public:
   DirectoryCollectionPath(boost::filesystem::path path, MediaCollection *mediaCollection, CollectionPath *parent) : CollectionPath(parent), path(path), mediaCollection(mediaCollection) {}
   virtual void render(OnDirectoryAdded directoryAdded, OnMediaAdded mediaAdded);
   virtual std::string label() const;
+  virtual bool hasMedia(Media& media);
+  virtual bool hasMediaInSubPath(Media& media);
 private:
   boost::filesystem::path path;
   MediaCollection *mediaCollection;
@@ -120,6 +128,8 @@ public:
   RootCollectionPath(Settings *settings, Session *session, MediaCollection *mediaCollection) : CollectionPath(), settings(settings), session(session), mediaCollection(mediaCollection) {}
   virtual void render(OnDirectoryAdded directoryAdded, OnMediaAdded mediaAdded);
   virtual std::string label() const;
+  virtual bool hasMedia(Media& media) { return false; }
+  virtual bool hasMediaInSubPath(Media& media) { return true; }
 private:
   Settings *settings;
   MediaCollection *mediaCollection;

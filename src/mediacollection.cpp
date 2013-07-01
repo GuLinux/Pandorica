@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "private/mediacollection_p.h"
 #include "Models/models.h"
 #include "settings.h"
+#include <boost/algorithm/string.hpp>
 
 using namespace Wt;
 using namespace std;
@@ -126,6 +127,17 @@ Media MediaCollection::media(string uid) const
 Signal<>& MediaCollection::scanned()
 {
     return d->scanned;
+}
+
+vector< Media > MediaCollection::sortedMediasList() const
+{
+  vector<Media> medias;
+  transform(d->collection.begin(), d->collection.end(),
+            back_insert_iterator<vector<Media>>(medias), [](pair<string,Media> mediaElement) {
+              return mediaElement.second;
+            });
+  sort(medias.begin(), medias.end(), [](const Media &first, const Media &second) { return lexicographical_compare(first.fullPath(), second.fullPath(), is_iless()); });
+  return medias;
 }
 
 

@@ -83,7 +83,8 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Sett
   
   
   WContainerWidget *row = WW<WContainerWidget>(container).css("row-fluid");
-  row->addWidget(d->infoPanel->add(WW<InfoPanel>(session, settings).addCss("visible-desktop span4") ));
+  InfoPanel *desktopInfoPanel = WW<InfoPanel>(session, settings).addCss("visible-desktop span4");
+  row->addWidget(d->infoPanel->add(desktopInfoPanel ));
   row->addWidget(WW<WContainerWidget>().css("mediabrowser span8").add(d->browser));
   
 
@@ -103,6 +104,18 @@ MediaCollectionBrowser::MediaCollectionBrowser(MediaCollection* collection, Sett
   d->infoPanel->setTitle().connect(d, &MediaCollectionBrowserPrivate::setTitleFor);
   d->infoPanel->setPoster().connect(d, &MediaCollectionBrowserPrivate::setPosterFor);
   d->infoPanel->deletePoster().connect(d, &MediaCollectionBrowserPrivate::clearThumbnailsFor);
+  desktopInfoPanel->playFolder().connect([=](_n6){
+    for(Media media: collection->sortedMediasList() ) {
+      if(d->currentPath->hasMedia(media))
+        d->queueSignal.emit(media);
+    }
+  });
+  desktopInfoPanel->playFolderRecursive().connect([=](_n6){
+    for(Media media: collection->sortedMediasList() ) {
+      if(d->currentPath->hasMediaInSubPath(media))
+        d->queueSignal.emit(media);
+    }
+  });
 }
 
 void MediaCollectionBrowser::reload()
@@ -121,17 +134,6 @@ InfoPanel::InfoPanel(Session *session, Settings *settings, Wt::WContainerWidget*
 }
 
 
-void InfoPanel::reset()
-{
-  clear();
-  addWidget(WW<WContainerWidget>().setContentAlignment(AlignCenter)
-    .add(WW<WText>(wtr("infopanel.empty.title")).css("media-title"))
-    .add(WW<WImage>(Settings::staticPath("/icons/site-logo-big.png")))
-  );
-  addWidget(new WBreak);
-  addWidget(WW<WText>(wtr("infopanel.empty.message")));
-  wasResetted().emit();
-}
 
 
 InfoPanel* InfoPanelMultiplex::add(InfoPanel* panel)
@@ -160,6 +162,22 @@ void InfoPanelMultiplex::reset()
 {
   for(InfoPanel *panel: panels)
     panel->reset();
+}
+
+void InfoPanel::reset()
+{
+  clear();
+  addWidget(WW<WContainerWidget>().setContentAlignment(AlignCenter)
+    .add(WW<WText>(wtr("infopanel.empty.title")).css("media-title"))
+    .add(WW<WImage>(Settings::staticPath("/icons/site-logo-big.png")))
+  );
+  addWidget(new WBreak);
+  addWidget(WW<WText>(wtr("infopanel.empty.message")));
+  auto folderActions = createPanel("mediabrowser.folderActions");
+  folderActions.second->addWidget(WW<WPushButton>(wtr("mediabrowser.folderActions.playFolder")).css("btn btn-block btn-small btn-primary").onClick([=](WMouseEvent){ _playFolder.emit(); }));
+  folderActions.second->addWidget(WW<WPushButton>(wtr("mediabrowser.folderActions.playFolderRecursive")).css("btn btn-block btn-small").onClick([=](WMouseEvent){ _playFolderRecursive.emit(); }));
+  addWidget(folderActions.first);
+  wasResetted().emit();
 }
 
 
@@ -308,6 +326,18 @@ void DirectoryCollectionPath::render(OnDirectoryAdded directoryAdded, OnMediaAdd
   }
   for(Media media: medias) mediaAdded(media);
 }
+
+
+bool DirectoryCollectionPath::hasMedia(Media& media)
+{
+  return media.parentDirectory() == path;
+}
+
+bool DirectoryCollectionPath::hasMediaInSubPath(Media& media)
+{
+  return media.parentDirectory().string().find(path.string()) != string::npos;
+}
+
 
 void RootCollectionPath::render(OnDirectoryAdded directoryAdded, OnMediaAdded mediaAdded)
 {
