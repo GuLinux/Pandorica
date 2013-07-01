@@ -47,10 +47,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <fstream>
 #include <ctime>
+#include <Wt/WTemplate>
 #include <Wt/WPanel>
 #include <Wt/WGroupBox>
 #include <Wt/WTimer>
-#include <Wt/WTable>
 
 #define ROOT_PATH_ID "///ROOT///"
 
@@ -206,16 +206,17 @@ void InfoPanel::info(Media media)
     header->addWidget(icon);
   }
   auto mediaInfoPanel = createPanel("mediabrowser.information");
-  WTable *table = new WTable(mediaInfoPanel.second);
-  table->setWidth(WLength(100, WLength::Percentage));
-  labelValueBox("mediabrowser.filename", media.filename(), table );
-  labelValueBox("mediabrowser.filesize", Utils::formatFileSize(fs::file_size(media.path())), table );
+  WTemplate *table = new WTemplate("<dl class='dl-horizontal'>${content}</dl>", mediaInfoPanel.second);
+  WContainerWidget *content = new WContainerWidget;
+  table->bindWidget("content", content);
+  labelValueBox("mediabrowser.filename", media.filename(), content );
+  labelValueBox("mediabrowser.filesize", Utils::formatFileSize(fs::file_size(media.path())), content );
   
   MediaPropertiesPtr mediaProperties = media.properties(t);
   if(mediaProperties) {
-    labelValueBox("mediabrowser.medialength", WTime(0,0,0).addSecs(mediaProperties->duration()).toString(), table);
+    labelValueBox("mediabrowser.medialength", WTime(0,0,0).addSecs(mediaProperties->duration()).toString(), content);
     if(media.mimetype().find("video") != string::npos && mediaProperties->width() > 0 && mediaProperties->height() > 0)
-      labelValueBox("mediabrowser.resolution", WString("{1}x{2}").arg(mediaProperties->width()).arg(mediaProperties->height()), table );
+      labelValueBox("mediabrowser.resolution", WString("{1}x{2}").arg(mediaProperties->width()).arg(mediaProperties->height()), content );
   }
   Ratings rating = MediaRating::ratingFor(media, t);
   if(rating.users > 0) {
@@ -223,7 +224,7 @@ void InfoPanel::info(Media media)
     for(int i=1; i<=5; i++) {
       avgRatingWidget->addWidget(WW<WImage>(Settings::staticPath("/icons/rating_small.png")).css(rating.ratingAverage <i ? "rating-unrated" : ""));
     }
-    labelValueBox("mediabrowser.rating", avgRatingWidget, table);
+    labelValueBox("mediabrowser.rating", avgRatingWidget, content);
   }
   
   auto actions = createPanel("mediabrowser.actions");
@@ -267,16 +268,17 @@ pair<WPanel*,WContainerWidget*> InfoPanel::createPanel(string titleKey)
   return {panel, container};
 }
 
-void InfoPanel::labelValueBox(string label, Wt::WString value, WTable *container)
+void InfoPanel::labelValueBox(string label, WWidget *value, WContainerWidget *container)
 {
-  return labelValueBox(label, new WText{value}, container);
+   WString content = WString("<dt>{1}</dt><dd>${content}</dd>").arg(wtr(label));
+   WTemplate *templateWidget = new WTemplate(content);
+   templateWidget->bindWidget("content", value);
+   container->addWidget(templateWidget);
 }
-
-void InfoPanel::labelValueBox(string label, WWidget* widget, WTable *container)
+void InfoPanel::labelValueBox(string label, Wt::WString value, WContainerWidget *container)
 {
-  int currentRow = container->rowCount();
-  container->elementAt(currentRow, 0)->addWidget(WW<WText>(wtr(label)).css("label label-info"));
-  container->elementAt(currentRow, 1)->addWidget(WW<WContainerWidget>().css("media-info-value").setContentAlignment(AlignRight).add(widget));
+  WString content = WString("<dt>{1}</dt><dd>{2}</dd>").arg(wtr(label)).arg(value);
+  container->addWidget(new WText{content});
 }
 
 

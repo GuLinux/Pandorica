@@ -57,8 +57,8 @@ public:
     inline Wt::Signal<> &playFolder() { return _playFolder; }
     inline Wt::Signal<> &playFolderRecursive() { return _playFolderRecursive; }
 private:
-  void labelValueBox(std::string label, Wt::WString value, Wt::WTable* container);
-  void labelValueBox(std::string label, Wt::WWidget *widget, Wt::WTable* container);
+  void labelValueBox(std::string label, Wt::WString value, Wt::WContainerWidget* container);
+  void labelValueBox(std::string label, Wt::WWidget *value, Wt::WContainerWidget* container);
   Wt::Signal<Media> _play;
   Wt::Signal<Media> _queue;
   Wt::Signal<Media> _setTitle;
