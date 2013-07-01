@@ -189,6 +189,7 @@
 .media-info-value {
   word-wrap:break-word;
   font-size: smaller;
+  max-width: 70%;
 }
 
 .step-groupbox legend {
