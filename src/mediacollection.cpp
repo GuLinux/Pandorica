@@ -74,6 +74,11 @@ bool MediaCollectionPrivate::isAllowed(filesystem::path path)
     return false;
 }
 
+bool MediaCollection::isAllowed(const filesystem::path& path) const
+{
+  return d->isAllowed(path);
+}
+
 void MediaCollection::setUserId(long long int userId)
 {
   d->userId = userId;
