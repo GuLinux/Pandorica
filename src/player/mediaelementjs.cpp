@@ -25,9 +25,11 @@
 #include <private/html5player_p.h>
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
+#include <Wt/WPushButton>
 
 using namespace Wt;
 using namespace std;
+using namespace WtCommons;
 
 MediaElementJs::~MediaElementJs()
 {
@@ -35,6 +37,10 @@ MediaElementJs::~MediaElementJs()
 MediaElementJs::MediaElementJs(PandoricaPrivate::HTML5PlayerPrivate*const d, WObject* parent)
   : PlayerJavascript(d, parent), pureHTML5Js(new PureHTML5Js(d, this))
 {
+  d->templateWidget->bindEmpty("media.footer");
+    d->templateWidget->bindWidget("media.header", WW<WPushButton>("Fullscreen").css("btn btn-block hidden-desktop").onClick([=](WMouseEvent){
+    runJavascript("(new MediaElementPlayer('video')).enterFullScreen();");
+  }));
 }
 
 string MediaElementJs::resizeJs()
