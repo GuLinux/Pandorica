@@ -59,8 +59,13 @@ void MediaElementJs::onPlayerReady()
   }), ", ");
 
   log("notice") << "player options: " << mediaElementOptionsString;
+  // Adding workaround for mediaelementjs bug https://github.com/johndyer/mediaelement/issues/902
   runJavascript((
-    boost::format("$('video,audio').mediaelementplayer({%s});")
+    boost::format("$('video,audio').mediaelementplayer({%s});\
+    var captionTracks = $('video,audio')[0].textTracks; \
+      for(var i=0; i<tracks.length; i++) \
+        if(captionTracks[i].kind == 'subtitles') captionTracks[i].mode='hidden'; \
+    ")
     % mediaElementOptionsString
   ).str() );
   pureHTML5Js->onPlayerReady();
