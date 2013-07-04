@@ -57,9 +57,9 @@ void MediaElementJs::onPlayerReady()
     {"AndroidUseNativeControls", "false"}
   };
   // works in theory, but it goes with double subs on chrome
-//   if(defaultTracks["subtitles"].isValid() && false) {
-//       mediaElementOptions["startLanguage"] = (boost::format("'%s'") % defaultTracks["subtitles"].lang).str();
-//   }
+  if(d->defaultTracks["subtitles"].isValid() && false) {
+      mediaElementOptions["startLanguage"] = (boost::format("'%s'") % d->defaultTracks["subtitles"].lang).str();
+  }
 
   string mediaElementOptionsString = boost::algorithm::join(
     Utils::transform(mediaElementOptions, vector<string>{}, [](pair<string,string> o){
