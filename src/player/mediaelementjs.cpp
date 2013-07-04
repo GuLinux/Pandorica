@@ -52,7 +52,7 @@ string MediaElementJs::resizeJs()
 void MediaElementJs::onPlayerReady()
 {
   if(d->sources[0].type.find("video/") == string::npos)
-    d->templateWidget->find("media.header")->hide();
+    d->templateWidget->resolveWidget("media.header")->addStyleClass("hidden-phone hidden-tablet");
   map<string,string> mediaElementOptions = {
     {"AndroidUseNativeControls", "false"}
   };

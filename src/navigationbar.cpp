@@ -263,7 +263,6 @@ void NavigationBarPrivate::setupSearchBar()
     }
   });
   string jsReplace = (boost::format(JS( function (editElement, suggestionText, suggestionValue) {
-    console.log("suggestionValue: " + suggestionValue);
     editElement.value = "";
     %s
   })) % playJS.createCall("suggestionValue")).str();
