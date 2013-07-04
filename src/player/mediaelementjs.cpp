@@ -38,7 +38,7 @@ MediaElementJs::MediaElementJs(PandoricaPrivate::HTML5PlayerPrivate*const d, WOb
   : PlayerJavascript(d, parent), pureHTML5Js(new PureHTML5Js(d, this))
 {
   d->templateWidget->bindEmpty("media.footer");
-    d->templateWidget->bindWidget("media.header", WW<WPushButton>("Fullscreen").css("btn btn-block hidden-desktop").onClick([=](WMouseEvent){
+  d->templateWidget->bindWidget("media.header", WW<WPushButton>("Fullscreen").css("btn btn-block hidden-desktop").onClick([=](WMouseEvent){
     runJavascript("(new MediaElementPlayer('video')).enterFullScreen();");
   }));
 }
@@ -51,6 +51,8 @@ string MediaElementJs::resizeJs()
 
 void MediaElementJs::onPlayerReady()
 {
+  if(d->sources[0].type.find("video/") == string::npos)
+    d->templateWidget->find("media.header")->hide();
   map<string,string> mediaElementOptions = {
     {"AndroidUseNativeControls", "false"}
   };
@@ -71,6 +73,13 @@ void MediaElementJs::onPlayerReady()
     var captionTracks = $('video,audio')[0].textTracks; \
       for(var i=0; i<captionTracks.length; i++) \
         if(captionTracks[i].kind == 'subtitles') captionTracks[i].mode='hidden'; \
+          if($('video').length > 0) { \
+            $('video')[0].addEventListener('dblclick', function(o){\
+              var player = new MediaElementPlayer('video');\
+              if(player.isFullScreen) player.exitFullScreen();\
+              else player.enterFullScreen();\
+            }); \
+          }\
     ")
     % mediaElementOptionsString
   ).str() );
