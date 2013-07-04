@@ -106,11 +106,37 @@ void Playlist::queue(Media media)
 {
   Dbo::Transaction t(*d->session);
   WAnchor *widget = WW<WAnchor>("");
-  widget->addWidget(WW<WText>(media.title(t)).css("link-hand").onClick([=](WMouseEvent&){ nextItem(widget); }));
-  widget->addWidget(WW<WText>("<button class='close pull-right'>&times;</button>").onClick([=](WMouseEvent){
+  auto title = media.title(t);
+  auto dumpContent = [=] { for(auto element: d->internalQueue) log("notice") << element.first->objectName(); };
+  widget->setObjectName(title.toUTF8() + string{"_"} + boost::lexical_cast<string>(d->internalQueue.size()));
+  widget->addWidget(WW<WText>(title).css("link-hand").onClick([=](WMouseEvent&){ nextItem(widget); }));
+  WContainerWidget *actionsContainer = WW<WContainerWidget>(widget).css("pull-right");
+  
+  auto moveElement = [=](int direction) {
+    auto element = find_if(d->internalQueue.begin(), d->internalQueue.end(), [=](QueueItem i) { return i.first == widget; });
+    auto nextElement = element;
+    direction>0 ? nextElement++ : nextElement--;
+    swap(*nextElement, *element);
+    int index = d->container->indexOf(widget);
+    d->container->removeWidget(widget);
+    d->container->insertWidget(index + direction, widget);
+    dumpContent();
+  };
+  
+  actionsContainer->addWidget(WW<WImage>(Settings::staticPath("/icons/actions/up.png")).onClick([=](WMouseEvent e){
+    if(d->internalQueue.front().first == widget) return;
+    moveElement(-1);
+  }));
+  actionsContainer->addWidget(WW<WImage>(Settings::staticPath("/icons/actions/down.png")).onClick([=](WMouseEvent e){
+    if(d->internalQueue.back().first == widget) return;
+    moveElement(+1);
+  }));
+  actionsContainer->addWidget(WW<WImage>(Settings::staticPath("/icons/actions/delete.png")).onClick([=](WMouseEvent){
     d->internalQueue.erase(remove_if(d->internalQueue.begin(), d->internalQueue.end(), [=](QueueItem item) { return item.first == widget; }));
     delete widget;
   }));
+  new WBreak{widget};
   d->container->addWidget(widget);
   d->internalQueue.push_back({widget, media});
+  dumpContent();
 }
