@@ -35,7 +35,7 @@ namespace PandoricaPrivate {
   public:
     PlaylistPrivate(Session *session);
     Session *session;
-    std::list<QueueItem> internalQueue;
+    std::vector<QueueItem> internalQueue;
     Wt::Signal<Media> next;
     Wt::WContainerWidget *container;
   };

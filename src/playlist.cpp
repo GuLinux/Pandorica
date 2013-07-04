@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Wt-Commons/wt_helpers.h"
 #include "private/playlist_p.h"
 #include "settings.h"
+#include <Wt/WImage>
 
 using namespace Wt;
 using namespace std;
@@ -89,7 +90,7 @@ void Playlist::nextItem(WWidget* itemToPlay)
   wApp->log("notice") << "outside the loop: internalQueue.size(): " << d->internalQueue.size();
   if(d->internalQueue.empty()) return;
   QueueItem next = *d->internalQueue.begin();
-  next.first->parent()->addStyleClass("active");
+  next.first->addStyleClass("active");
   d->next.emit(next.second);
 }
 
@@ -104,9 +105,12 @@ void Playlist::reset()
 void Playlist::queue(Media media)
 {
   Dbo::Transaction t(*d->session);
-  WAnchor* playlistEntry = WW<WAnchor>("", media.title(t)).css("link-hand");
-  playlistEntry->addWidget(new WBreak());
-  playlistEntry->clicked().connect([this,media, playlistEntry](WMouseEvent&){ nextItem(playlistEntry); });
-  d->container->addWidget(WW<WContainerWidget>().add(playlistEntry));
-  d->internalQueue.push_back(QueueItem(playlistEntry, media));
+  WAnchor *widget = WW<WAnchor>("");
+  widget->addWidget(WW<WText>(media.title(t)).css("link-hand").onClick([=](WMouseEvent&){ nextItem(widget); }));
+  widget->addWidget(WW<WText>("<button class='close pull-right'>&times;</button>").onClick([=](WMouseEvent){
+    d->internalQueue.erase(remove_if(d->internalQueue.begin(), d->internalQueue.end(), [=](QueueItem item) { return item.first == widget; }));
+    delete widget;
+  }));
+  d->container->addWidget(widget);
+  d->internalQueue.push_back({widget, media});
 }
