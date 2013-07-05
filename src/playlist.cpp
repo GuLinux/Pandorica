@@ -83,6 +83,8 @@ QueueItem::QueueItem(Media media, std::list< QueueItem* >& queue, WContainerWidg
     delete queueItem;
     fixButtons();
   }));
+  upButton->setHiddenKeepsGeometry(true);
+  downButton->setHiddenKeepsGeometry(true);
   container->addWidget(this);
   queue.push_back(this);
   fixButtons();
