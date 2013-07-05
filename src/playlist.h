@@ -27,8 +27,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class Settings;
 namespace PandoricaPrivate {
+  class QueueItem;
   class PlaylistPrivate;
 }
+
+class PlaylistItem {
+public:
+  PlaylistItem(Media media) : mediaItem(media) {}
+  Media media() const { return mediaItem; }
+private:
+  Media mediaItem;
+};
 
 class Playlist : public Wt::WPanel
 {
@@ -36,10 +45,11 @@ class Playlist : public Wt::WPanel
 public:
   Playlist(Session *session, Settings *settings, Wt::WContainerWidget* parent = 0);
   virtual ~Playlist();
-  void queue(Media media);
-  void nextItem(WWidget* itemToPlay = 0);
-  Wt::Signal<Media> &next();
-  Media first();
+  PlaylistItem *queue(Media media);
+  void nextItem(PandoricaPrivate::QueueItem* itemToPlay = 0);
+  void playing(PlaylistItem* currentItem);
+  Wt::Signal<PlaylistItem*> &next();
+  PlaylistItem *first();
   void reset();
 private:
   PandoricaPrivate::PlaylistPrivate *const d;

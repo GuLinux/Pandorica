@@ -39,6 +39,54 @@ PlaylistPrivate::PlaylistPrivate(Session* session) : session(session)
 {
 }
 
+  
+QueueItem::QueueItem(Media media, std::list< QueueItem* >& queue, WContainerWidget* container, Session* session, WContainerWidget* parent)
+  : WContainerWidget(parent), PlaylistItem(media)
+{
+  QueueItem *queueItem = this;
+  Dbo::Transaction t(*session);
+  WAnchor *anchor = new WAnchor{this};
+  anchor->addWidget(WW<WText>(media.title(t)).css("link-hand").onClick([=](WMouseEvent&){ playSignal.emit(this); }));
+  WContainerWidget *actionsContainer = WW<WContainerWidget>(anchor).css("pull-right");
+  auto fixButtons = [=,&queue] {
+    for(QueueItem *item: queue) {
+      item->upButton->setHidden(item == queue.front());
+      item->downButton->setHidden(item == queue.back());
+    }
+  };
+  
+  auto moveElement = [=,&queue](int direction) {
+    auto element = std::find(queue.begin(), queue.end(), queueItem);
+    auto nextElement = element;
+    direction>0 ? nextElement++ : nextElement--;
+    swap(*nextElement, *element);
+    int index = container->indexOf(queueItem);
+    container->removeWidget(queueItem);
+    container->insertWidget(index + direction, queueItem);
+    fixButtons();
+  };
+  
+  actionsContainer->addWidget(upButton = WW<WImage>(Settings::staticPath("/icons/actions/up.png"))
+    .css("link-hand").onClick([=,&queue](WMouseEvent){
+    if(queue.front() == queueItem) return;
+    moveElement(-1);
+  }));
+  actionsContainer->addWidget(downButton = WW<WImage>(Settings::staticPath("/icons/actions/down.png"))
+    .css("link-hand").onClick([=,&queue](WMouseEvent){
+    if(queue.back() == queueItem) return;
+    moveElement(+1);
+  }));
+  actionsContainer->addWidget(removeButton = WW<WImage>(Settings::staticPath("/icons/actions/delete.png"))
+    .css("link-hand").onClick([=,&queue](WMouseEvent){
+    queue.erase(std::remove(queue.begin(), queue.end(), queueItem));
+    delete queueItem;
+  }));
+  container->addWidget(this);
+  queue.push_back(this);
+  fixButtons();
+}
+
+
 
 
 Playlist::Playlist(Session* session, Settings* settings, WContainerWidget* parent)
@@ -64,34 +112,41 @@ Playlist::~Playlist()
 }
 
 
-Signal<Media>& Playlist::next()
+Wt::Signal<PlaylistItem*>& Playlist::next()
 {
   return d->next;
 }
 
-Media Playlist::first()
+void Playlist::playing(PlaylistItem* currentItem)
 {
-  return d->internalQueue.front().second;
+  for(auto item: d->internalQueue) {
+    item->removeStyleClass("active");
+  }
+  ((QueueItem*)currentItem)->addStyleClass("active");
 }
 
-void Playlist::nextItem(WWidget* itemToPlay)
+PlaylistItem* Playlist::first()
+{
+  return d->internalQueue.front();
+}
+
+void Playlist::nextItem(QueueItem* itemToPlay)
 {
   wApp->log("notice") << "itemToPlay==" << itemToPlay;
   if(d->internalQueue.empty()) return;
 
   auto itemToSkip = d->internalQueue.begin();
-  while(itemToSkip->first != itemToPlay) {
-    d->container->removeWidget(itemToSkip->first);
-    delete itemToSkip->first;
+  while(*itemToSkip != itemToPlay) {
+    delete *itemToSkip;
     itemToSkip = d->internalQueue.erase(itemToSkip);
-    if(!itemToPlay) break;
+    if(itemToSkip == d->internalQueue.end()) break;
   }
   
   wApp->log("notice") << "outside the loop: internalQueue.size(): " << d->internalQueue.size();
   if(d->internalQueue.empty()) return;
-  QueueItem next = *d->internalQueue.begin();
-  next.first->addStyleClass("active");
-  d->next.emit(next.second);
+  QueueItem *next = *d->internalQueue.begin();
+  next->addStyleClass("active");
+  d->next.emit(next);
 }
 
 void Playlist::reset()
@@ -101,42 +156,9 @@ void Playlist::reset()
 }
 
 
-
-void Playlist::queue(Media media)
+PlaylistItem* Playlist::queue(Media media)
 {
-  Dbo::Transaction t(*d->session);
-  WAnchor *widget = WW<WAnchor>("");
-  auto title = media.title(t);
-  auto dumpContent = [=] { for(auto element: d->internalQueue) log("notice") << element.first->objectName(); };
-  widget->setObjectName(title.toUTF8() + string{"_"} + boost::lexical_cast<string>(d->internalQueue.size()));
-  widget->addWidget(WW<WText>(title).css("link-hand").onClick([=](WMouseEvent&){ nextItem(widget); }));
-  WContainerWidget *actionsContainer = WW<WContainerWidget>(widget).css("pull-right");
-  
-  auto moveElement = [=](int direction) {
-    auto element = find_if(d->internalQueue.begin(), d->internalQueue.end(), [=](QueueItem i) { return i.first == widget; });
-    auto nextElement = element;
-    direction>0 ? nextElement++ : nextElement--;
-    swap(*nextElement, *element);
-    int index = d->container->indexOf(widget);
-    d->container->removeWidget(widget);
-    d->container->insertWidget(index + direction, widget);
-    dumpContent();
-  };
-  
-  actionsContainer->addWidget(WW<WImage>(Settings::staticPath("/icons/actions/up.png")).onClick([=](WMouseEvent e){
-    if(d->internalQueue.front().first == widget) return;
-    moveElement(-1);
-  }));
-  actionsContainer->addWidget(WW<WImage>(Settings::staticPath("/icons/actions/down.png")).onClick([=](WMouseEvent e){
-    if(d->internalQueue.back().first == widget) return;
-    moveElement(+1);
-  }));
-  actionsContainer->addWidget(WW<WImage>(Settings::staticPath("/icons/actions/delete.png")).onClick([=](WMouseEvent){
-    d->internalQueue.erase(remove_if(d->internalQueue.begin(), d->internalQueue.end(), [=](QueueItem item) { return item.first == widget; }));
-    delete widget;
-  }));
-  new WBreak{widget};
-  d->container->addWidget(widget);
-  d->internalQueue.push_back({widget, media});
-  dumpContent();
+  auto item = new QueueItem(media, d->internalQueue, d->container, d->session);
+  item->play().connect(this, &Playlist::nextItem);
+  return item;
 }

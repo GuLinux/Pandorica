@@ -21,7 +21,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef PLAYLIST_PRIVATE
 #define PLAYLIST_PRIVATE
 #include <Wt/WSignal>
+#include <Wt/WAnchor>
 #include "media.h"
+#include <playlist.h>
 
 namespace Wt {
 class WWidget;
@@ -29,14 +31,24 @@ class WContainerWidget;
 }
 
 namespace PandoricaPrivate {
-  typedef std::pair<Wt::WWidget*,Media> QueueItem;
+  
+  class QueueItem : public Wt::WContainerWidget, public PlaylistItem {
+  public:
+    QueueItem(Media media, std::list<QueueItem*> &queue, Wt::WContainerWidget *container, Session *session, WContainerWidget* parent = 0);
+    Wt::Signal<QueueItem*> &play() { return playSignal; }
+  private:
+    Wt::Signal<QueueItem*> playSignal;
+    Wt::WImage *removeButton;
+    Wt::WImage *upButton;
+    Wt::WImage *downButton;
+  };
   
   class PlaylistPrivate {
   public:
     PlaylistPrivate(Session *session);
     Session *session;
-    std::list<QueueItem> internalQueue;
-    Wt::Signal<Media> next;
+    std::list<QueueItem*> internalQueue;
+    Wt::Signal<PlaylistItem*> next;
     Wt::WContainerWidget *container;
   };
 }

@@ -289,7 +289,7 @@ void Pandorica::setupGui()
   d->playerContainerWidget = new WContainerWidget;
   d->playerContainerWidget->setContentAlignment(AlignCenter);
   d->playlist = new Playlist{d->session, &d->settings};
-  
+  d->nowPlaying.connect(d->playlist, &Playlist::playing);
   d->playerPage->addWidget(WW<WContainerWidget>().add(d->playlist).setContentAlignment(AlignCenter));
   d->playerPage->addWidget(d->playerContainerWidget);
   
@@ -395,7 +395,8 @@ std::string defaultLabelFor(string language) {
 }
 
 
-void P::PandoricaPrivate::play(Media media) {
+void P::PandoricaPrivate::play(PlaylistItem *playlistItem) {
+  Media media = playlistItem->media();
   navigationBar->switchToPlayer();
   log("notice") << "Playing file " << media.path();
   if(player) {
@@ -493,4 +494,5 @@ void P::PandoricaPrivate::play(Media media) {
   sessionInfo.modify()->sessionDetails().insert(new SessionDetails{media.path()});
   t.commit();
   playlist->collapse();
+  nowPlaying.emit(playlistItem);
 }
