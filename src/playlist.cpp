@@ -80,6 +80,7 @@ QueueItem::QueueItem(Media media, std::list< QueueItem* >& queue, WContainerWidg
     .css("link-hand").onClick([=,&queue](WMouseEvent){
     queue.erase(std::remove(queue.begin(), queue.end(), queueItem));
     delete queueItem;
+    fixButtons();
   }));
   container->addWidget(this);
   queue.push_back(this);
