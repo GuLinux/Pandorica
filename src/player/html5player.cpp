@@ -86,7 +86,8 @@ HTML5Player::HTML5Player(HTML5Player::SubType subType, WContainerWidget* parent)
     WString trackType = args[0];
     vector<Track> tracksForType = d->tracks[trackType.toUTF8()];
     for(Track track: tracksForType) {
-      output << wtr("player.track").arg(track.src).arg(track.lang).arg(track.label).arg(trackType).arg("");
+      output << wtr("player.track").arg(track.src).arg(track.lang).arg(track.label).arg(trackType)
+        .arg(d->defaultTracks[trackType.toUTF8()] == track ? "default" : "");
     }
     return true;
   });
