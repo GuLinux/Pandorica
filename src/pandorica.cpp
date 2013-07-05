@@ -359,10 +359,10 @@ string P::PandoricaPrivate::extensionFor ( filesystem::path p ) {
 void P::PandoricaPrivate::queue(Media media, bool autoplay)
 {
   if(!media.valid()) return;
-  playlist->queue(media);
+  PlaylistItem *item = playlist->queue(media);
   if( (!player || !player->playing()) && autoplay) {
     WTimer::singleShot(500, [=](WMouseEvent) {
-      playlist->nextItem();
+      playlist->nextItem(item);
     });
   }
 }
@@ -370,7 +370,6 @@ void P::PandoricaPrivate::queue(Media media, bool autoplay)
 void P::PandoricaPrivate::queueAndPlay(Media media)
 {
   if(!media.valid()) return;
-  playlist->reset();
   if(player && player->playing()) {
     player->stop();
     delete player;

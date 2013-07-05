@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "private/playlist_p.h"
 #include "settings.h"
 #include <Wt/WImage>
+#include <Wt/WPushButton>
 
 using namespace Wt;
 using namespace std;
@@ -118,6 +119,11 @@ Playlist::Playlist(Session* session, Settings* settings, WContainerWidget* paren
   d->container->setList(true);
   d->container->addStyleClass("nav nav-pills nav-stacked");
   d->container->setMargin(5, Side::Bottom);
+  d->container->addWidget(WW<WPushButton>("Clear Playlist").css("btn btn-block btn-warning").onClick([=](WMouseEvent){
+    for(auto item: d->internalQueue)
+      delete item;
+    d->internalQueue.clear();
+  }));
 }
 
 Playlist::~Playlist()
@@ -138,12 +144,16 @@ void Playlist::playing(PlaylistItem* currentItem)
   }
 }
 
-void Playlist::nextItem(QueueItem* itemToPlay)
+void Playlist::nextItem(PlaylistItem* itemToPlay)
 {
   wApp->log("notice") << "itemToPlay==" << itemToPlay;
   if(d->internalQueue.empty()) return;
   if(itemToPlay && std::find(d->internalQueue.begin(), d->internalQueue.end(), itemToPlay) != d->internalQueue.end()) {
     d->next.emit(itemToPlay);
+    return;
+  }
+  if(!itemToPlay && 0 == count_if(d->internalQueue.begin(), d->internalQueue.end(), [=](QueueItem *i) { return i->isCurrent(); } )) {
+    d->next.emit(d->internalQueue.front());
     return;
   }
   auto playingItem = find_if(d->internalQueue.begin(), d->internalQueue.end(), [=](QueueItem *i){ return i->isCurrent();});
