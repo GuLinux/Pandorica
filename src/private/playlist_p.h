@@ -49,11 +49,15 @@ namespace PandoricaPrivate {
   
   class PlaylistPrivate {
   public:
-    PlaylistPrivate(Session *session);
+    enum Direction { Forwards, Backwards };
+    PlaylistPrivate(Playlist *playlist, Session *session);
     Session *session;
     std::list<QueueItem*> internalQueue;
-    Wt::Signal<PlaylistItem*> next;
+    Wt::Signal<PlaylistItem*> playSignal;
     Wt::WContainerWidget *container;
+    void playlistIncrement(Direction direction);
+  private:
+    Playlist *q;
   };
 }
 #endif

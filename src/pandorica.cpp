@@ -317,7 +317,7 @@ void Pandorica::setupGui()
   d->userSettingsPage->setPadding(20);
 
   
-  d->playlist->next().connect(d, &P::PandoricaPrivate::play);
+  d->playlist->play().connect(d, &P::PandoricaPrivate::play);
   string sessionId = wApp->sessionId();
   WServer::instance()->ioService().post([=]{
     Session threadSession;
@@ -362,7 +362,7 @@ void P::PandoricaPrivate::queue(Media media, bool autoplay)
   PlaylistItem *item = playlist->queue(media);
   if( (!player || !player->playing()) && autoplay) {
     WTimer::singleShot(500, [=](WMouseEvent) {
-      playlist->nextItem(item);
+      playlist->play(item);
     });
   }
 }
@@ -432,7 +432,7 @@ void P::PandoricaPrivate::play(PlaylistItem *playlistItem) {
       detail.modify()->ended();
     sessionInfo.flush();
     t.commit();
-    playlist->nextItem();
+    playlist->next();
   });
 
   playerContainerWidget->clear();

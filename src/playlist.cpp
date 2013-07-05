@@ -36,7 +36,7 @@ using namespace PandoricaPrivate;
 namespace fs = boost::filesystem;
 using namespace WtCommons;
 
-PlaylistPrivate::PlaylistPrivate(Session* session) : session(session)
+PlaylistPrivate::PlaylistPrivate(Playlist* playlist, Session* session) : q(playlist), session(session)
 {
 }
 
@@ -107,7 +107,7 @@ void QueueItem::setActive(bool active)
 
 
 Playlist::Playlist(Session* session, Settings* settings, WContainerWidget* parent)
-: WPanel(parent), d(new PlaylistPrivate{session})
+: WPanel(parent), d(new PlaylistPrivate{this, session})
 {
   setCentralWidget(d->container = new WContainerWidget);
   setTitleBar(true);
@@ -134,9 +134,9 @@ Playlist::~Playlist()
 }
 
 
-Wt::Signal<PlaylistItem*>& Playlist::next()
+Wt::Signal<PlaylistItem*>& Playlist::play()
 {
-  return d->next;
+  return d->playSignal;
 }
 
 void Playlist::playing(PlaylistItem* currentItem)
@@ -146,30 +146,35 @@ void Playlist::playing(PlaylistItem* currentItem)
   }
 }
 
-void Playlist::nextItem(PlaylistItem* itemToPlay)
+void Playlist::next()
 {
-  wApp->log("notice") << "itemToPlay==" << itemToPlay;
-  if(d->internalQueue.empty()) return;
+  d->playlistIncrement(PlaylistPrivate::Forwards);
+}
+
+void Playlist::previous()
+{
+  d->playlistIncrement(PlaylistPrivate::Backwards);
+}
+
+void PlaylistPrivate::playlistIncrement(PlaylistPrivate::Direction direction)
+{
+  if(0 == count_if(internalQueue.begin(), internalQueue.end(), [=](QueueItem *i) { return i->isCurrent(); } )) {
+    playSignal.emit(internalQueue.front());
+    return;
+  }
+  
+  auto playingItem = find_if(internalQueue.begin(), internalQueue.end(), [=](QueueItem *i){ return i->isCurrent();});
+  if(playingItem == internalQueue.end()) {
+    return;
+  }
+  q->play( direction == Forwards ? *++playingItem : *--playingItem);
+}
+
+void Playlist::play(PlaylistItem* itemToPlay)
+{
   if(itemToPlay && std::find(d->internalQueue.begin(), d->internalQueue.end(), itemToPlay) != d->internalQueue.end()) {
-    d->next.emit(itemToPlay);
-    return;
+    d->playSignal.emit(itemToPlay);
   }
-  if(!itemToPlay && 0 == count_if(d->internalQueue.begin(), d->internalQueue.end(), [=](QueueItem *i) { return i->isCurrent(); } )) {
-    d->next.emit(d->internalQueue.front());
-    return;
-  }
-  auto playingItem = find_if(d->internalQueue.begin(), d->internalQueue.end(), [=](QueueItem *i){ return i->isCurrent();});
-  if(playingItem == d->internalQueue.end()) {
-    return;
-  }
-  if(*playingItem == d->internalQueue.back()) {
-    (*playingItem)->unsetCurrent();
-    return;
-  }
-  
-  playingItem++;
-  
-  d->next.emit(*playingItem);
 }
 
 void Playlist::reset()
@@ -182,6 +187,6 @@ void Playlist::reset()
 PlaylistItem* Playlist::queue(Media media)
 {
   auto item = new QueueItem(media, d->internalQueue, d->container, d->session);
-  item->play().connect(this, &Playlist::nextItem);
+  item->play().connect(this, &Playlist::play);
   return item;
 }

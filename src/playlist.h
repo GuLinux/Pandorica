@@ -46,9 +46,11 @@ public:
   Playlist(Session *session, Settings *settings, Wt::WContainerWidget* parent = 0);
   virtual ~Playlist();
   PlaylistItem *queue(Media media);
-  void nextItem(PlaylistItem* itemToPlay = 0);
+  void play(PlaylistItem* itemToPlay);
+  void next();
+  void previous();
   void playing(PlaylistItem* currentItem);
-  Wt::Signal<PlaylistItem*> &next();
+  Wt::Signal<PlaylistItem*> &play();
   void reset();
 private:
   PandoricaPrivate::PlaylistPrivate *const d;
