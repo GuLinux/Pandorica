@@ -36,6 +36,10 @@ namespace PandoricaPrivate {
   public:
     QueueItem(Media media, std::list<QueueItem*> &queue, Wt::WContainerWidget *container, Session *session, WContainerWidget* parent = 0);
     Wt::Signal<QueueItem*> &play() { return playSignal; }
+    bool isCurrent();
+    void setCurrent() { setActive(true); }
+    void unsetCurrent() { setActive(false); }
+    void setActive(bool active);
   private:
     Wt::Signal<QueueItem*> playSignal;
     Wt::WImage *removeButton;

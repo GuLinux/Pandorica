@@ -362,7 +362,7 @@ void P::PandoricaPrivate::queue(Media media, bool autoplay)
   playlist->queue(media);
   if( (!player || !player->playing()) && autoplay) {
     WTimer::singleShot(500, [=](WMouseEvent) {
-      play(playlist->first());
+      playlist->nextItem();
     });
   }
 }

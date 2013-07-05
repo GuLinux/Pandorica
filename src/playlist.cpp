@@ -87,6 +87,19 @@ QueueItem::QueueItem(Media media, std::list< QueueItem* >& queue, WContainerWidg
 }
 
 
+  
+bool QueueItem::isCurrent()
+{
+  return hasStyleClass("active");
+}
+
+void QueueItem::setActive(bool active)
+{
+  if(active)
+    addStyleClass("active");
+  else
+    removeStyleClass("active");
+}
 
 
 Playlist::Playlist(Session* session, Settings* settings, WContainerWidget* parent)
@@ -120,33 +133,30 @@ Wt::Signal<PlaylistItem*>& Playlist::next()
 void Playlist::playing(PlaylistItem* currentItem)
 {
   for(auto item: d->internalQueue) {
-    item->removeStyleClass("active");
+    item->setActive(currentItem == item);
   }
-  ((QueueItem*)currentItem)->addStyleClass("active");
-}
-
-PlaylistItem* Playlist::first()
-{
-  return d->internalQueue.front();
 }
 
 void Playlist::nextItem(QueueItem* itemToPlay)
 {
   wApp->log("notice") << "itemToPlay==" << itemToPlay;
   if(d->internalQueue.empty()) return;
-
-  auto itemToSkip = d->internalQueue.begin();
-  while(*itemToSkip != itemToPlay) {
-    delete *itemToSkip;
-    itemToSkip = d->internalQueue.erase(itemToSkip);
-    if(itemToSkip == d->internalQueue.end()) break;
+  if(itemToPlay && std::find(d->internalQueue.begin(), d->internalQueue.end(), itemToPlay) != d->internalQueue.end()) {
+    d->next.emit(itemToPlay);
+    return;
+  }
+  auto playingItem = find_if(d->internalQueue.begin(), d->internalQueue.end(), [=](QueueItem *i){ return i->isCurrent();});
+  if(playingItem == d->internalQueue.end()) {
+    return;
+  }
+  if(*playingItem == d->internalQueue.back()) {
+    (*playingItem)->unsetCurrent();
+    return;
   }
   
-  wApp->log("notice") << "outside the loop: internalQueue.size(): " << d->internalQueue.size();
-  if(d->internalQueue.empty()) return;
-  QueueItem *next = *d->internalQueue.begin();
-  next->addStyleClass("active");
-  d->next.emit(next);
+  playingItem++;
+  
+  d->next.emit(*playingItem);
 }
 
 void Playlist::reset()

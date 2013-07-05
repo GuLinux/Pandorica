@@ -49,7 +49,6 @@ public:
   void nextItem(PandoricaPrivate::QueueItem* itemToPlay = 0);
   void playing(PlaylistItem* currentItem);
   Wt::Signal<PlaylistItem*> &next();
-  PlaylistItem *first();
   void reset();
 private:
   PandoricaPrivate::PlaylistPrivate *const d;
