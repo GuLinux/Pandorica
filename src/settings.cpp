@@ -274,7 +274,7 @@ bool Settings::emailVerificationMandatory()
 
 map<Settings::AnimationType, PandoricaPrivate::Animation> Settings::animations {
   {Settings::PanelAnimation, { {WAnimation::SlideInFromTop, WAnimation::EaseOut, 200}, {WAnimation::SlideInFromTop, WAnimation::Linear, 100}  }},
-  {Settings::PlaylistAnimation, { {WAnimation::SlideInFromTop, WAnimation::EaseOut, 200}, {WAnimation::SlideInFromTop, WAnimation::Linear, 100}  }},
+  {Settings::PlaylistAnimation, { {WAnimation::SlideInFromTop | WAnimation::Fade, WAnimation::EaseOut, 600}, {WAnimation::SlideInFromTop, WAnimation::Linear, 100}  }},
   {Settings::ShowMediaInfoAnimation, { {0}, {WAnimation::SlideInFromTop, WAnimation::Linear, 100}  }},
   {Settings::HideMediaInfoAnimation, { {0}, {WAnimation::SlideInFromBottom, WAnimation::Linear, 100}  }},
 };
