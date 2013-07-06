@@ -492,6 +492,5 @@ void P::PandoricaPrivate::play(PlaylistItem *playlistItem) {
     detail.modify()->ended();
   sessionInfo.modify()->sessionDetails().insert(new SessionDetails{media.path()});
   t.commit();
-  playlist->collapse();
   nowPlaying.emit(playlistItem);
 }

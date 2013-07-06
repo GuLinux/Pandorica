@@ -112,20 +112,53 @@ Playlist::Playlist(Session* session, Settings* settings, WContainerWidget* paren
   setCentralWidget(d->container = new WContainerWidget);
   setTitleBar(true);
   addStyleClass("playlist");
-  titleBarWidget()->addWidget(WW<WContainerWidget>().add(new WText{"Playlist"}).css("playlist-toggle accordion-toggle"));
   setHeaderCollapsible(this);
   titleBarWidget()->addStyleClass("playtlist-titlebar");
-  settings->setAnimation(Settings::PlaylistAnimation, this);
-  setCollapsible(true);
-  collapse();
+  setCollapsible(false);
+
+  d->container->hide();
   d->container->setList(true);
   d->container->addStyleClass("nav nav-pills nav-stacked");
   d->container->setMargin(5, Side::Bottom);
-  d->container->addWidget(WW<WPushButton>("Clear Playlist").css("btn btn-block btn-warning").onClick([=](WMouseEvent){
+  WText *showHideButtonText = WW<WText>();
+  
+  d->setPlaylistVisible = [=](bool visible) {
+    if(!visible) {
+      showHideButtonText->setText(wtr("playlist.show"));
+      settings->animateHide(Settings::PlaylistAnimation, d->container);
+    }
+    else {
+      showHideButtonText->setText(wtr("playlist.hide"));
+      settings->animateShow(Settings::PlaylistAnimation, d->container);
+    }
+  };
+  
+  d->playSignal.connect([=](PlaylistItem*,_n5){ d->setPlaylistVisible(false); });
+
+  WContainerWidget *firstGroup = WW<WContainerWidget>().css("btn-group");
+  firstGroup->addWidget(WW<WAnchor>().css("btn btn-mini")
+    .setImage(WW<WImage>(Settings::staticPath("/icons/actions/playlist.png")).setMargin(5, Side::Right))
+    .add(showHideButtonText)
+    .onClick([=](WMouseEvent){
+      d->setPlaylistVisible(!d->container->isVisible());
+    }));
+  firstGroup->addWidget(WW<WAnchor>().css("btn btn-mini")
+    .setImage(WW<WImage>(Settings::staticPath("/icons/actions/playlist.clear.png")).setMargin(5, Side::Right))
+    .setText(wtr("playlist.clear"))
+    .onClick([=](WMouseEvent){
     for(auto item: d->internalQueue)
       delete item;
     d->internalQueue.clear();
   }));
+
+  WContainerWidget *secondGroup = WW<WContainerWidget>().css("btn-group");
+  WWidget *prev = WW<WAnchor>(secondGroup).css("btn btn-mini")
+    .add(new WImage{Settings::staticPath("/icons/actions/previous.png")}).onClick(boost::bind(&Playlist::previous, this));
+  WWidget *next = WW<WAnchor>(secondGroup).css("btn btn-mini")
+    .add(new WImage{Settings::staticPath("/icons/actions/next.png")}).onClick(boost::bind(&Playlist::next, this));
+  WContainerWidget *playlistButtonsContainer = WW<WContainerWidget>(titleBarWidget()).css("btn-toolbar")
+  .add(firstGroup).add(secondGroup);
+  d->setPlaylistVisible(false);
 }
 
 Playlist::~Playlist()
@@ -158,6 +191,7 @@ void Playlist::previous()
 
 void PlaylistPrivate::playlistIncrement(PlaylistPrivate::Direction direction)
 {
+  if(internalQueue.empty()) return;
   if(0 == count_if(internalQueue.begin(), internalQueue.end(), [=](QueueItem *i) { return i->isCurrent(); } )) {
     playSignal.emit(internalQueue.front());
     return;

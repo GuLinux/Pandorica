@@ -55,6 +55,7 @@ namespace PandoricaPrivate {
     std::list<QueueItem*> internalQueue;
     Wt::Signal<PlaylistItem*> playSignal;
     Wt::WContainerWidget *container;
+    std::function<void(bool)> setPlaylistVisible;
     void playlistIncrement(Direction direction);
   private:
     Playlist *q;
