@@ -56,8 +56,7 @@ void MediaElementJs::onPlayerReady()
   map<string,string> mediaElementOptions = {
     {"AndroidUseNativeControls", "false"}
   };
-  // works in theory, but it goes with double subs on chrome
-  if(d->defaultTracks["subtitles"].isValid() && false) {
+  if(d->defaultTracks["subtitles"].isValid()) {
       mediaElementOptions["startLanguage"] = (boost::format("'%s'") % d->defaultTracks["subtitles"].lang).str();
   }
 
@@ -67,22 +66,23 @@ void MediaElementJs::onPlayerReady()
   }), ", ");
 
   log("notice") << "player options: " << mediaElementOptionsString;
-  // Adding workaround for mediaelementjs bug https://github.com/johndyer/mediaelement/issues/902
-  runJavascript((
-    boost::format("$('video,audio').mediaelementplayer({%s});\
-    var captionTracks = $('video,audio')[0].textTracks; \
-      for(var i=0; i<captionTracks.length; i++) \
-        if(captionTracks[i].kind == 'subtitles') captionTracks[i].mode='hidden'; \
-          if($('video').length > 0) { \
-            $('video')[0].addEventListener('dblclick', function(o){\
-              var player = new MediaElementPlayer('video');\
-              if(player.isFullScreen) player.exitFullScreen();\
-              else player.enterFullScreen();\
-            }); \
-          }\
-    ")
-    % mediaElementOptionsString
-  ).str() );
+  string onPlayerReadyJs = JS(
+    $('video,audio').mediaelementplayer({%s});
+    
+    // Adding workaround for mediaelementjs bug https://github.com/johndyer/mediaelement/issues/902
+    var captionTracks = $('video,audio')[0].textTracks;
+    for(var i=0; i<captionTracks.length; i++)
+      if(captionTracks[i].kind == 'subtitles') captionTracks[i].mode='hidden';
+                              
+    if($('video').length > 0) {
+      $('.mejs-video')[0].addEventListener('dblclick', function(o){
+        var player = new MediaElementPlayer('video');
+        if(player.isFullScreen) player.exitFullScreen();
+        else player.enterFullScreen();
+      });
+    }
+  );
+  runJavascript((boost::format(onPlayerReadyJs) % mediaElementOptionsString).str() );
   pureHTML5Js->onPlayerReady();
 }
 
