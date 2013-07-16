@@ -73,7 +73,6 @@ void MediaElementJs::onPlayerReady()
     var captionTracks = $('video,audio')[0].textTracks;
     for(var i=0; i<captionTracks.length; i++)
       if(captionTracks[i].kind == 'subtitles') captionTracks[i].mode='hidden';
-                              
     if($('video').length > 0) {
       $('.mejs-video')[0].addEventListener('dblclick', function(o){
         var player = new MediaElementPlayer('video');

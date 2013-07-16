@@ -52,6 +52,13 @@ Configure and build *Pandorica*
 
 Then, just run the '*Pandorica*' command. When used with no arguments,  *Pandorica* will run on [localhost:8080](http://localhost:8080), and store your media database in $HOME/.config/Pandorica/Pandorica.sqlite
 
+## Mobile ##
+*Pandorica* is already mostly mobile ready.
+You just need to set
+    <progressive-bootstrap>true</progressive-bootstrap>
+in your wt_config.xml file.
+
+
 ## Advanced configuration and customization ##
 Use the --help option for the most common options,  and the --help-full option to see all command line options (including Wt default ones).
 Lookup the official [Wt Reference Page](http://www.webtoolkit.eu:3080/wt/doc/reference/html/overview.html#wthttpd) for a detailed overview.
