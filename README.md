@@ -55,7 +55,9 @@ Then, just run the '*Pandorica*' command. When used with no arguments,  *Pandori
 ## Mobile ##
 *Pandorica* is already mostly mobile ready.
 You just need to set
+
     <progressive-bootstrap>true</progressive-bootstrap>
+
 in your wt_config.xml file.
 
 
