@@ -42,7 +42,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef HAVE_QT
 #include <QtGui/QApplication>
-#include <QtGui/QX11Info>
 #include "qttrayicon.h"
 #endif
 
