@@ -7,7 +7,6 @@
 
   <!-- general, not retranslated -->
   <message id="site-title">Pandorica</message>
-  <message id="playlist.accordion">Playlist</message>
 
  <!-- menu -->
   <message id="menu.mediaslist">Collection</message>
@@ -284,4 +283,9 @@ For other webservers (Apache, Lighttpd, Ngnix) read the proper documentation.
 <message id="mediabrowser.folderActions">Folder Actions</message>
 <message id="mediabrowser.folderActions.playFolder">Add to Playlist</message>
 <message id="mediabrowser.folderActions.playFolderRecursive">Add to Playlist (recursive)</message>
+
+
+<message id="playlist.show">Show Playlist</message>
+<message id="playlist.hide">Hide Playlist</message>
+<message id="playlist.clear">Clear Playlist</message>
 </messages>

@@ -52,6 +52,15 @@ Configure and build *Pandorica*
 
 Then, just run the '*Pandorica*' command. When used with no arguments,  *Pandorica* will run on [localhost:8080](http://localhost:8080), and store your media database in $HOME/.config/Pandorica/Pandorica.sqlite
 
+## Mobile ##
+*Pandorica* is already mostly mobile ready.
+You just need to set
+
+    <progressive-bootstrap>true</progressive-bootstrap>
+
+in your wt_config.xml file.
+
+
 ## Advanced configuration and customization ##
 Use the --help option for the most common options,  and the --help-full option to see all command line options (including Wt default ones).
 Lookup the official [Wt Reference Page](http://www.webtoolkit.eu:3080/wt/doc/reference/html/overview.html#wthttpd) for a detailed overview.
@@ -98,6 +107,14 @@ Remember to install a local SMTP server to relay emails, particularly if you set
 If you don't,  your users will not be able to login!
 
 You can also enable OAuth authentication: [Google](http://www.webtoolkit.eu/wt/doc/reference/html/classWt_1_1Auth_1_1GoogleService.html#details) and [Facebook](http://www.webtoolkit.eu/wt/doc/reference/html/classWt_1_1Auth_1_1FacebookService.html#details) providers are supported
+
+### Other useful properties ###
+* quit-password: if you define this property, you can quit or restart the application by calling either:
+
+        http://pandorica_url/graceful-quit?pwd=<your-password> (waits for existing sessions to shutdown)
+        http://pandorica_url/force-quit?pwd=<your-password>
+        http://pandorica_url/graceful-restart?pwd=<your-password> (waits for existing sessions to shutdown) 
+        http://pandorica_url/force-restart?pwd=<your-password>
 
 ## Credits ##
 * icons: [Humano2 icon theme](http://schollidesign.deviantart.com/art/Human-O2-Iconset-105344123)

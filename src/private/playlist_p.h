@@ -21,7 +21,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef PLAYLIST_PRIVATE
 #define PLAYLIST_PRIVATE
 #include <Wt/WSignal>
+#include <Wt/WAnchor>
 #include "media.h"
+#include <playlist.h>
 
 namespace Wt {
 class WWidget;
@@ -29,15 +31,34 @@ class WContainerWidget;
 }
 
 namespace PandoricaPrivate {
-  typedef std::pair<Wt::WWidget*,Media> QueueItem;
+  
+  class QueueItem : public Wt::WContainerWidget, public PlaylistItem {
+  public:
+    QueueItem(Media media, std::list<QueueItem*> &queue, Wt::WContainerWidget *container, Session *session, WContainerWidget* parent = 0);
+    Wt::Signal<PlaylistItem*> &play() { return playSignal; }
+    bool isCurrent();
+    void setCurrent() { setActive(true); }
+    void unsetCurrent() { setActive(false); }
+    void setActive(bool active);
+  private:
+    Wt::Signal<PlaylistItem*> playSignal;
+    Wt::WImage *removeButton;
+    Wt::WImage *upButton;
+    Wt::WImage *downButton;
+  };
   
   class PlaylistPrivate {
   public:
-    PlaylistPrivate(Session *session);
+    enum Direction { Forwards, Backwards };
+    PlaylistPrivate(Playlist *playlist, Session *session);
     Session *session;
-    std::list<QueueItem> internalQueue;
-    Wt::Signal<Media> next;
+    std::list<QueueItem*> internalQueue;
+    Wt::Signal<PlaylistItem*> playSignal;
     Wt::WContainerWidget *container;
+    std::function<void(bool)> setPlaylistVisible;
+    void playlistIncrement(Direction direction);
+  private:
+    Playlist *q;
   };
 }
 #endif

@@ -342,7 +342,8 @@ bool DirectoryCollectionPath::hasMediaInSubPath(Media& media)
 void RootCollectionPath::render(OnDirectoryAdded directoryAdded, OnMediaAdded mediaAdded)
 {
   for(string directory: settings->mediasDirectories(session)) {
-    directoryAdded(directory, new DirectoryCollectionPath{directory, mediaCollection, this});
+    if(mediaCollection->isAllowed(directory))
+      directoryAdded(directory, new DirectoryCollectionPath{directory, mediaCollection, this});
   }
 }
 

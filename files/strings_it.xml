@@ -337,4 +337,7 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
 <message id="mediabrowser.folderActions">Azioni Cartella</message>
 <message id="mediabrowser.folderActions.playFolder">Aggiungi alla Playlist</message>
 <message id="mediabrowser.folderActions.playFolderRecursive">Aggiungi alla Playlist (ricorsivo)</message>
+<message id="playlist.show">Mostra Playlist</message>
+<message id="playlist.hide">Nascondi Playlist</message>
+<message id="playlist.clear">Cancella Playlist</message>
 </messages>

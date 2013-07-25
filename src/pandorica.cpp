@@ -92,6 +92,10 @@ P::PandoricaPrivate::PandoricaPrivate(Pandorica *q)
 }
 
 
+Signal<Wt::WApplication*>& Pandorica::aboutToQuit() const
+{
+  return d->aboutToQuit;
+}
 
 Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(environment), d(new P::PandoricaPrivate(this)) {
   useStyleSheet(Settings::staticPath("/Pandorica.css"));
@@ -215,6 +219,7 @@ void endSessionOnDatabase(string sessionId, long userId) {
 }
 
 Pandorica::~Pandorica() {
+  d->aboutToQuit.emit(this);
   WServer::instance()->log("notice") << "Destroying app";
   if(d->session->login().loggedIn()) {
     WServer::instance()->ioService().post(boost::bind(endSessionOnDatabase, sessionId(), d->userId));
@@ -289,7 +294,7 @@ void Pandorica::setupGui()
   d->playerContainerWidget = new WContainerWidget;
   d->playerContainerWidget->setContentAlignment(AlignCenter);
   d->playlist = new Playlist{d->session, &d->settings};
-  
+  d->nowPlaying.connect(d->playlist, &Playlist::playing);
   d->playerPage->addWidget(WW<WContainerWidget>().add(d->playlist).setContentAlignment(AlignCenter));
   d->playerPage->addWidget(d->playerContainerWidget);
   
@@ -317,7 +322,7 @@ void Pandorica::setupGui()
   d->userSettingsPage->setPadding(20);
 
   
-  d->playlist->next().connect(d, &P::PandoricaPrivate::play);
+  d->playlist->play().connect(d, &P::PandoricaPrivate::play);
   string sessionId = wApp->sessionId();
   WServer::instance()->ioService().post([=]{
     Session threadSession;
@@ -359,10 +364,10 @@ string P::PandoricaPrivate::extensionFor ( filesystem::path p ) {
 void P::PandoricaPrivate::queue(Media media, bool autoplay)
 {
   if(!media.valid()) return;
-  playlist->queue(media);
+  PlaylistItem *item = playlist->queue(media);
   if( (!player || !player->playing()) && autoplay) {
     WTimer::singleShot(500, [=](WMouseEvent) {
-      play(playlist->first());
+      playlist->play(item);
     });
   }
 }
@@ -370,7 +375,6 @@ void P::PandoricaPrivate::queue(Media media, bool autoplay)
 void P::PandoricaPrivate::queueAndPlay(Media media)
 {
   if(!media.valid()) return;
-  playlist->reset();
   if(player && player->playing()) {
     player->stop();
     delete player;
@@ -395,7 +399,8 @@ std::string defaultLabelFor(string language) {
 }
 
 
-void P::PandoricaPrivate::play(Media media) {
+void P::PandoricaPrivate::play(PlaylistItem *playlistItem) {
+  Media media = playlistItem->media();
   navigationBar->switchToPlayer();
   log("notice") << "Playing file " << media.path();
   if(player) {
@@ -432,7 +437,7 @@ void P::PandoricaPrivate::play(Media media) {
       detail.modify()->ended();
     sessionInfo.flush();
     t.commit();
-    playlist->nextItem();
+    playlist->next();
   });
 
   playerContainerWidget->clear();
@@ -492,5 +497,5 @@ void P::PandoricaPrivate::play(Media media) {
     detail.modify()->ended();
   sessionInfo.modify()->sessionDetails().insert(new SessionDetails{media.path()});
   t.commit();
-  playlist->collapse();
+  nowPlaying.emit(playlistItem);
 }

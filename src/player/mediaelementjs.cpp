@@ -25,9 +25,11 @@
 #include <private/html5player_p.h>
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
+#include <Wt/WPushButton>
 
 using namespace Wt;
 using namespace std;
+using namespace WtCommons;
 
 MediaElementJs::~MediaElementJs()
 {
@@ -35,6 +37,10 @@ MediaElementJs::~MediaElementJs()
 MediaElementJs::MediaElementJs(PandoricaPrivate::HTML5PlayerPrivate*const d, WObject* parent)
   : PlayerJavascript(d, parent), pureHTML5Js(new PureHTML5Js(d, this))
 {
+  d->templateWidget->bindEmpty("media.footer");
+  d->templateWidget->bindWidget("media.header", WW<WPushButton>("Fullscreen").css("btn btn-block hidden-desktop").onClick([=](WMouseEvent){
+    runJavascript("(new MediaElementPlayer('video')).enterFullScreen();");
+  }));
 }
 
 string MediaElementJs::resizeJs()
@@ -45,13 +51,14 @@ string MediaElementJs::resizeJs()
 
 void MediaElementJs::onPlayerReady()
 {
+  if(d->sources[0].type.find("video/") == string::npos)
+    d->templateWidget->resolveWidget("media.header")->addStyleClass("hidden-phone hidden-tablet");
   map<string,string> mediaElementOptions = {
     {"AndroidUseNativeControls", "false"}
   };
-  // works in theory, but it goes with double subs on chrome
-//   if(defaultTracks["subtitles"].isValid() && false) {
-//       mediaElementOptions["startLanguage"] = (boost::format("'%s'") % defaultTracks["subtitles"].lang).str();
-//   }
+  if(d->defaultTracks["subtitles"].isValid()) {
+      mediaElementOptions["startLanguage"] = (boost::format("'%s'") % d->defaultTracks["subtitles"].lang).str();
+  }
 
   string mediaElementOptionsString = boost::algorithm::join(
     Utils::transform(mediaElementOptions, vector<string>{}, [](pair<string,string> o){
@@ -59,10 +66,22 @@ void MediaElementJs::onPlayerReady()
   }), ", ");
 
   log("notice") << "player options: " << mediaElementOptionsString;
-  runJavascript((
-    boost::format("$('video,audio').mediaelementplayer({%s});")
-    % mediaElementOptionsString
-  ).str() );
+  string onPlayerReadyJs = JS(
+    $('video,audio').mediaelementplayer({%s});
+    
+    // Adding workaround for mediaelementjs bug https://github.com/johndyer/mediaelement/issues/902
+    var captionTracks = $('video,audio')[0].textTracks;
+    for(var i=0; i<captionTracks.length; i++)
+      if(captionTracks[i].kind == 'subtitles') captionTracks[i].mode='hidden';
+    if($('video').length > 0) {
+      $('.mejs-video')[0].addEventListener('dblclick', function(o){
+        var player = new MediaElementPlayer('video');
+        if(player.isFullScreen) player.exitFullScreen();
+        else player.enterFullScreen();
+      });
+    }
+  );
+  runJavascript((boost::format(onPlayerReadyJs) % mediaElementOptionsString).str() );
   pureHTML5Js->onPlayerReady();
 }
 

@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/filesystem.hpp>
 #include <Wt/WJavaScript>
 
+class PlaylistItem;
 class NavigationBar;
 class AuthPage;
 class Playlist;
@@ -63,7 +64,7 @@ namespace PandoricaPrivate {
     Wt::WStackedWidget* widgetsStack;
     void queue(Media media, bool autoplay = true);
     void queueAndPlay(Media media);
-    void play(Media media);
+    void play(PlaylistItem *playlistItem);
     Wt::JSignal<std::string> playSignal;
     Wt::JSignal<std::string> queueSignal;
     Settings settings;
@@ -77,6 +78,8 @@ namespace PandoricaPrivate {
     Wt::WContainerWidget * playerPage;
     Wt::WContainerWidget * collectionPage;
     Wt::WContainerWidget * userSettingsPage;
+    Wt::Signal<PlaylistItem*> nowPlaying;
+    Wt::Signal<Wt::WApplication*> aboutToQuit;
   private:
     void ratingFor(Media media, Wt::Dbo::Transaction t);
     Wt::WMenuItem* activeUsersMenuItem = 0;

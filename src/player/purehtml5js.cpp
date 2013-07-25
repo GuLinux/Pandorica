@@ -30,6 +30,8 @@ using namespace std;
 PureHTML5Js::PureHTML5Js(PandoricaPrivate::HTML5PlayerPrivate* const d, Wt::WObject* parent)
   : PlayerJavascript(d, parent)
 {
+  d->templateWidget->bindEmpty("media.footer");
+  d->templateWidget->bindEmpty("media.header");
 }
 
 string PureHTML5Js::customPlayerHTML()

@@ -35,7 +35,8 @@ using namespace boost;
 VideoJs::VideoJs(PandoricaPrivate::HTML5PlayerPrivate*const d, WObject* parent)
   : PlayerJavascript(d, parent), pureHTML5Js(new PureHTML5Js(d, this))
 {
-
+  d->templateWidget->bindEmpty("media.footer");
+  d->templateWidget->bindEmpty("media.header");
 }
 
 VideoJs::~VideoJs()

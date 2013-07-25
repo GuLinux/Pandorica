@@ -62,6 +62,8 @@ void PlayerJavascript::runJavascript(string js)
 HTML5Player::HTML5Player(HTML5Player::SubType subType, WContainerWidget* parent)
   : WContainerWidget(parent), d(new HTML5PlayerPrivate(this))
 {
+  d->templateWidget = new WTemplate();
+  d->templateWidget->setTemplateText(wtr("html5player.mediatag"), Wt::XHTMLUnsafeText);
   switch(subType) {
     case PureHTML5:
       d->playerJavascript = new PureHTML5Js(d, this);
@@ -73,8 +75,6 @@ HTML5Player::HTML5Player(HTML5Player::SubType subType, WContainerWidget* parent)
       d->playerJavascript = new ::VideoJs(d, this);
       break;
   }
-  d->templateWidget = new WTemplate();
-  d->templateWidget->setTemplateText(wtr("html5player.mediatag"), Wt::XHTMLUnsafeText);
   d->templateWidget->setMargin(WLength::Auto, Side::Left|Side::Right);
   d->templateWidget->addFunction("sources", [this](WTemplate *t, vector<WString> args, std::ostream &output) {
     for(Source source: d->sources) {
@@ -86,7 +86,8 @@ HTML5Player::HTML5Player(HTML5Player::SubType subType, WContainerWidget* parent)
     WString trackType = args[0];
     vector<Track> tracksForType = d->tracks[trackType.toUTF8()];
     for(Track track: tracksForType) {
-      output << wtr("player.track").arg(track.src).arg(track.lang).arg(track.label).arg(trackType).arg("");
+      output << wtr("player.track").arg(track.src).arg(track.lang).arg(track.label).arg(trackType)
+        .arg(d->defaultTracks[trackType.toUTF8()] == track ? "default" : "");
     }
     return true;
   });

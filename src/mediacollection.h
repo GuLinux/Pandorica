@@ -49,6 +49,7 @@ public:
     void setUserId(long long userId);
     long long viewingAs() const;
     std::vector<Media> sortedMediasList() const;
+    bool isAllowed(const boost::filesystem::path &path) const;
 private:
   PandoricaPrivate::MediaCollectionPrivate *const d;
 };
