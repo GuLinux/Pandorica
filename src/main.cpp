@@ -285,7 +285,6 @@ int main(int argc, char **argv, char **envp)
       return 0;
     }
 #endif
-
     if (server.start()) {
       WServer::waitForShutdown();
       server.stop();
