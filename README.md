@@ -111,8 +111,8 @@ You can also enable OAuth authentication: [Google](http://www.webtoolkit.eu/wt/d
 ### Other useful properties ###
 * quit-password: if you define this property, you can quit or restart the application by calling either:
 
-    http://pandorica_url/graceful-quit?pwd=<your-password>
-    http://pandorica_url/graceful-restart?pwd=<your-password>
+        http://pandorica_url/graceful-quit?pwd=<your-password> 
+        http://pandorica_url/graceful-restart?pwd=<your-password> 
 
 ## Credits ##
 * icons: [Humano2 icon theme](http://schollidesign.deviantart.com/art/Human-O2-Iconset-105344123)
