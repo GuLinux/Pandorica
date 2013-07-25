@@ -108,6 +108,12 @@ If you don't,  your users will not be able to login!
 
 You can also enable OAuth authentication: [Google](http://www.webtoolkit.eu/wt/doc/reference/html/classWt_1_1Auth_1_1GoogleService.html#details) and [Facebook](http://www.webtoolkit.eu/wt/doc/reference/html/classWt_1_1Auth_1_1FacebookService.html#details) providers are supported
 
+### Other useful properties ###
+* quit-password: if you define this property, you can quit or restart the application by calling either:
+
+    http://pandorica_url/graceful-quit?pwd=<your-password>
+    http://pandorica_url/graceful-restart?pwd=<your-password>
+
 ## Credits ##
 * icons: [Humano2 icon theme](http://schollidesign.deviantart.com/art/Human-O2-Iconset-105344123)
 * Web framework: [Wt](http://www.webtoolkit.eu/wt)

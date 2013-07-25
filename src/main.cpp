@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "session.h"
 #include "Models/models.h"
 #include "Wt-Commons/compositeresource.h"
+#include <Wt-Commons/quitresource.h>
 #include "settings.h"
 
 
@@ -38,6 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/program_options.hpp>
 #include <iostream>
 #include <fstream>
+#include <csignal>
 
 
 #ifdef HAVE_QT
@@ -216,7 +218,7 @@ bool addStaticResources(WServer &server) {
   return true;
 }
 
-int main(int argc, char **argv)
+int main(int argc, char **argv, char **envp)
 {
   try {
     av_register_all();
@@ -226,7 +228,11 @@ int main(int argc, char **argv)
     if(!initServer(argc, argv, server, vm)) return 1;
     Settings::init(vm);
     server.addEntryPoint(Application, createApplication);
-    
+    string quitPassword;
+    server.readConfigurationProperty("quit-password", quitPassword);
+    server.addResource((new QuitResource{quitPassword}), "/graceful-quit");
+    server.addResource((new QuitResource{quitPassword})->setRestart(argc, argv, envp), "/graceful-restart");
+
     
     if(optionValue<string>(vm, "server-mode") == "standalone" && ! addStaticResources(server)) {
       return 1;
@@ -266,7 +272,7 @@ int main(int argc, char **argv)
         std::this_thread::sleep_for(std::chrono::milliseconds{30000});
       }
     });
-
+    
     if (server.start()) {
       WServer::waitForShutdown();
       server.stop();

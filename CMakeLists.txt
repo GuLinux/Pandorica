@@ -9,6 +9,8 @@ include(${CMAKE_CURRENT_BINARY_DIR}/imagemagick.cmake)
 include(FindPackageHandleStandardArgs)
 FIND_PACKAGE(Qt4 )
 
+add_definitions(-DBOOST_SIGNALS_NO_DEPRECATION_WARNING)
+
 include_directories(${Wt_INCLUDE_DIR} ${QT_INCLUDE_DIR} ${CMAKE_SOURCE_DIR} ${MAGICK_INCLUDES} src )
 
 find_path(HAVE_DBO_MYSQL Wt/Dbo/backend/MySQL)
