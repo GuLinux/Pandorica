@@ -239,7 +239,6 @@ void P::PandoricaPrivate::updateUsersCount()
 
 void P::PandoricaPrivate::adminActions()
 {
-  
   navigationBar->viewLoggedUsers().connect([=](_n6) {   (new LoggedUsersDialog{session, &settings})->show(); });
   navigationBar->viewUsersHistory().connect([=](_n6) { (new LoggedUsersDialog{session, &settings, true})->show(); });
   navigationBar->findOrphans().connect([=](_n6) { (new FindOrphansDialog(mediaCollection, session, &settings))->run(); });
