@@ -41,7 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <fstream>
 #include <csignal>
 
-
+#include <Wt-Commons/wt_helpers.h>
 #ifdef HAVE_QT
 #include <QtGui/QApplication>
 #include <QtGui/QX11Info>
@@ -55,9 +55,16 @@ namespace fs = filesystem;
 using namespace WtCommons;
 namespace po = program_options;
 
+list<WApplication*> instances;
+
 WApplication *createApplication(const WEnvironment& env)
 {
-    return new Pandorica(env);
+    auto app = new Pandorica(env);
+    app->aboutToQuit().connect([=](WApplication* app, _n5) {
+      instances.erase(std::remove(instances.begin(), instances.end(), app));
+    });
+    instances.push_back(app);
+    return app;
 }
 
 extern "C" {
@@ -230,14 +237,28 @@ int main(int argc, char **argv, char **envp)
     server.addEntryPoint(Application, createApplication);
     string quitPassword;
     server.readConfigurationProperty("quit-password", quitPassword);
-    server.addResource((new QuitResource{quitPassword}), "/graceful-quit");
-    server.addResource((new QuitResource{quitPassword})->setRestart(argc, argv, envp), "/graceful-restart");
+    
+    auto checkForActiveSessions = [=]() {
+      return instances.size() == 0;
+    };
+    
+    server.addResource((new QuitResource{quitPassword, checkForActiveSessions}), "/graceful-quit");
+    server.addResource((new QuitResource{quitPassword, checkForActiveSessions})->setRestart(argc, argv, envp), "/graceful-restart");
+    server.addResource((new QuitResource{quitPassword}), "/force-quit");
+    server.addResource((new QuitResource{quitPassword})->setRestart(argc, argv, envp), "/force-restart");
 
     
     if(optionValue<string>(vm, "server-mode") == "standalone" && ! addStaticResources(server)) {
       return 1;
     }
-    
+
+    boost::thread t([&server]{
+      std::this_thread::sleep_for(std::chrono::milliseconds{30000});
+      while(server.isRunning()) {
+        server.expireSessions();
+        std::this_thread::sleep_for(std::chrono::milliseconds{30000});
+      }
+    });
     
     if(vm.count("dump-schema")) {
       Session session(false);
@@ -265,14 +286,6 @@ int main(int argc, char **argv, char **envp)
     }
 #endif
 
-    boost::thread t([&server]{
-      std::this_thread::sleep_for(std::chrono::milliseconds{30000});
-      while(server.isRunning()) {
-        server.expireSessions();
-        std::this_thread::sleep_for(std::chrono::milliseconds{30000});
-      }
-    });
-    
     if (server.start()) {
       WServer::waitForShutdown();
       server.stop();

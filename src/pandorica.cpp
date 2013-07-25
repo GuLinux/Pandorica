@@ -92,6 +92,10 @@ P::PandoricaPrivate::PandoricaPrivate(Pandorica *q)
 }
 
 
+Signal<Wt::WApplication*>& Pandorica::aboutToQuit() const
+{
+  return d->aboutToQuit;
+}
 
 Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(environment), d(new P::PandoricaPrivate(this)) {
   useStyleSheet(Settings::staticPath("/Pandorica.css"));
@@ -215,6 +219,7 @@ void endSessionOnDatabase(string sessionId, long userId) {
 }
 
 Pandorica::~Pandorica() {
+  d->aboutToQuit.emit(this);
   WServer::instance()->log("notice") << "Destroying app";
   if(d->session->login().loggedIn()) {
     WServer::instance()->ioService().post(boost::bind(endSessionOnDatabase, sessionId(), d->userId));

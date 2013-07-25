@@ -42,6 +42,7 @@ class Pandorica : public Wt::WApplication {
     void setupGui();
     virtual void refresh();
     void authEvent();
+    Wt::Signal<Wt::WApplication*> &aboutToQuit() const;
     
     private:
       PandoricaPrivate::PandoricaPrivate *const d;
