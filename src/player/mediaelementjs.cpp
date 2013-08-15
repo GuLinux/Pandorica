@@ -55,7 +55,7 @@ void MediaElementJs::onPlayerReady()
     d->templateWidget->resolveWidget("media.header")->addStyleClass("hidden-phone hidden-tablet");
   map<string,string> mediaElementOptions = {
     {"AndroidUseNativeControls", "false"},
-    {"defaultSeekBackwardInterval", "function(media) { console.log( return 5; }"},
+    {"defaultSeekBackwardInterval", "function(media) { return 5; }"},
     {"defaultSeekForwardInterval", "function(media) { return 5; }"},
   };
   if(d->defaultTracks["subtitles"].isValid()) {
