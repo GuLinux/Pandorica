@@ -97,7 +97,7 @@ Signal<>& NavigationBar::manageGroups()
   return d->manageGroups;
 }
 
-Signal<>& NavigationBar::mediaScanner()
+Signal< bool >& NavigationBar::mediaScanner()
 {
   return d->mediaScanner;
 }
@@ -241,7 +241,8 @@ void NavigationBarPrivate::setupAdminBar(Dbo::Transaction& transaction)
   activeUsersMenuItem = createItem(adminMenu, wtr("menu.users"), 0, [=](WMenuItem*, _n5) { viewLoggedUsers.emit();}, "menu-loggedusers");
   createItem(adminMenu, wtr("users.history.title"), 0, [=](WMenuItem*, _n5) { viewUsersHistory.emit();}, "menu-users-log");
   createItem(adminMenu, wtr("menu.groups"), 0, [=](WMenuItem*, _n5) { manageGroups.emit();}, "menu-groups");
-  createItem(adminMenu, wtr("mediascanner.title"), 0, [=](WMenuItem*, _n5) { mediaScanner.emit();});
+  createItem(adminMenu, wtr("mediascanner.title"), 0, [=](WMenuItem*, _n5) { mediaScanner.emit(false);});
+  createItem(adminMenu, wtr("mediascanner.cd.title"), 0, [=](WMenuItem*, _n5) { mediaScanner.emit(true);});
   createItem(adminMenu, wtr("cleanup.orphans"), 0, [=](WMenuItem*, _n5) { findOrphans.emit();});
   createItem(adminMenu, wtr("menu.viewas"), 0, [=](WMenuItem*, _n5) { viewAs.emit();});
   createItem(adminMenu, wtr("menu.configure.app"), 0, [=](WMenuItem*, _n5) { configureApp.emit();});

@@ -55,7 +55,7 @@ public:
     Wt::Signal<> &viewLoggedUsers();
     Wt::Signal<> &viewUsersHistory();
     Wt::Signal<> &manageGroups();
-    Wt::Signal<> &mediaScanner();
+    Wt::Signal<bool> &mediaScanner();
     Wt::Signal<> &findOrphans();
     Wt::Signal<> &viewAs();
     Wt::Signal<> &configureApp();

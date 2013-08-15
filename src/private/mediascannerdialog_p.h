@@ -52,7 +52,7 @@ struct StepContent {
 class MediaScannerDialogPrivate
 {
 public:
-    MediaScannerDialogPrivate(MediaScannerDialog* q, MediaCollection* mediaCollection, Session *session, Settings* settings);
+    MediaScannerDialogPrivate(MediaScannerDialog* q, MediaCollection* mediaCollection, Session *session, Settings* settings, std::function<bool(Media&)> scanFilter);
     virtual ~MediaScannerDialogPrivate();
     Wt::WPushButton* buttonNext;
     Wt::WPushButton* buttonClose;
@@ -71,7 +71,7 @@ public:
     Wt::WPushButton* buttonSkip;
     Wt::Signal<> scanFinished;
     Session* session;
-    
+    std::function<bool(Media&)> scanFilter;
 private:
     class MediaScannerDialog* const q;
     void runStepsFor(Media media, Wt::WApplication* app, Session& session);

@@ -297,6 +297,12 @@ void MediaCollectionBrowserPrivate::browse(CollectionPath *currentPath)
   }, [=](Media media){ addMedia(media);});
 }
 
+bool MediaCollectionBrowser::currentDirectoryHas(Media& media) const
+{
+  return d->currentPath->hasMedia(media);
+}
+
+
 void DirectoryCollectionPath::render(OnDirectoryAdded directoryAdded, OnMediaAdded mediaAdded)
 {
   auto belongsToCurrent = [=](fs::path p){

@@ -140,6 +140,7 @@
   <message id="stepname.createThumbnails">Crea Immagine Anteprima</message>
 
   <message id="mediascanner.media.title">Titolo</message>
+    <message id="mediascanner.cd.title">Media Scanner (Cartella Corrente)</message>
   <message id="mediascannerdialog.thumbnail.upload.label">Carica File</message>
   <message id="mediascannerdialog.thumbnail.upload.error">Errore aprendo il file, prova con un altro.</message>
   <message id="mediascannerdialog.thumbnail.upload.toobig">File troppo grande, prova con uno più piccolo.</message>

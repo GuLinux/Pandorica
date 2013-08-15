@@ -39,6 +39,7 @@ public:
   virtual ~MediaCollectionBrowser();
   Wt::Signal<Media> &queue();
   Wt::Signal<Media> &play();
+  bool currentDirectoryHas(Media &media) const;
   void reload();
 private:
   PandoricaPrivate::MediaCollectionBrowserPrivate *const d;

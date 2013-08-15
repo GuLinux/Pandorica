@@ -244,8 +244,15 @@ void P::PandoricaPrivate::adminActions()
   navigationBar->findOrphans().connect([=](_n6) { (new FindOrphansDialog(mediaCollection, session, &settings))->run(); });
   navigationBar->manageGroups().connect([=](_n6) {  (new GroupsDialog(session, &settings))->show(); });
   navigationBar->configureApp().connect([=](_n6) { ServerSettingsPage::dialog(&settings, session, mediaCollection); });
-  navigationBar->mediaScanner().connect([=](_n6) {
-    auto dialog = new MediaScannerDialog(session, &settings, mediaCollection, q);
+  navigationBar->mediaScanner().connect([=](bool onlyCurrentDirectory, _n5) {
+    auto filterMediaCD = [=](Media& m) {
+      return mediaCollectionBrowser->currentDirectoryHas(m);
+    };
+    MediaScannerDialog *dialog;
+    if(onlyCurrentDirectory)
+      dialog = new MediaScannerDialog(session, &settings, mediaCollection, q, filterMediaCD);
+    else
+      dialog = new MediaScannerDialog(session, &settings, mediaCollection, q);
     dialog->scanFinished().connect([=](_n6) {
       mediaCollectionBrowser->reload();
     });

@@ -43,16 +43,16 @@ using namespace std;
 using namespace PandoricaPrivate;
 using namespace WtCommons;
 
-MediaScannerDialogPrivate::MediaScannerDialogPrivate(MediaScannerDialog* q, MediaCollection *mediaCollection, Session *session, Settings* settings)
-  : q(q), mediaCollection(mediaCollection), session(session), settings(settings)
+MediaScannerDialogPrivate::MediaScannerDialogPrivate(MediaScannerDialog* q, MediaCollection *mediaCollection, Session *session, Settings* settings, std::function<bool(Media&)> scanFilter)
+  : q(q), mediaCollection(mediaCollection), session(session), settings(settings), scanFilter(scanFilter)
 {
 }
 MediaScannerDialogPrivate::~MediaScannerDialogPrivate()
 {
 }
 
-MediaScannerDialog::MediaScannerDialog(Session *session, Settings* settings, MediaCollection* mediaCollection, WObject* parent)
-    : d(new MediaScannerDialogPrivate(this, mediaCollection, session, settings))
+MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, MediaCollection* mediaCollection, WObject* parent, function<bool(Media&)> scanFilter)
+    : d(new MediaScannerDialogPrivate(this, mediaCollection, session, settings, scanFilter))
 {
   resize(700, 650);
   setWindowTitle(wtr("mediascanner.title"));
@@ -153,7 +153,8 @@ void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, UpdateGuiProgr
         stepContent.second.groupBox->hide();
       updateGuiProgress(current, media.filename());
     });
-    runStepsFor(media, app, session);
+    if(scanFilter(media))
+      runStepsFor(media, app, session);
   }
   this_thread::sleep_for(chrono::milliseconds{10});
   guiRun(app, [=] { onScanFinish(); });

@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <Wt/WDialog>
 
+class Media;
 class Settings;
 class MediaCollection;
 class Session;
@@ -34,7 +35,7 @@ namespace PandoricaPrivate {
 class MediaScannerDialog : Wt::WDialog
 {
 public:
-  MediaScannerDialog(Session* session, Settings* settings, MediaCollection* mediaCollection, Wt::WObject* parent);
+  MediaScannerDialog(Session* session, Settings* settings, MediaCollection* mediaCollection, Wt::WObject* parent = 0, std::function<bool(Media&)> scanFilter = [](Media&){ return true; });
     virtual ~MediaScannerDialog();
   void run();
   Wt::Signal<> &scanFinished();
