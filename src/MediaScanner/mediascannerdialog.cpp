@@ -146,6 +146,8 @@ void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, UpdateGuiProgr
       return;
     Media media = mediaPair.second;
     current++;
+    if(!scanFilter(media))
+      continue;
     guiRun(app, [=] {
       buttonNext->disable();
       buttonSkip->disable();
@@ -153,7 +155,6 @@ void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, UpdateGuiProgr
         stepContent.second.groupBox->hide();
       updateGuiProgress(current, media.filename());
     });
-    if(scanFilter(media))
       runStepsFor(media, app, session);
   }
   this_thread::sleep_for(chrono::milliseconds{10});
