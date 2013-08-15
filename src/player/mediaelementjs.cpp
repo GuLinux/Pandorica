@@ -54,7 +54,9 @@ void MediaElementJs::onPlayerReady()
   if(d->sources[0].type.find("video/") == string::npos)
     d->templateWidget->resolveWidget("media.header")->addStyleClass("hidden-phone hidden-tablet");
   map<string,string> mediaElementOptions = {
-    {"AndroidUseNativeControls", "false"}
+    {"AndroidUseNativeControls", "false"},
+    {"defaultSeekBackwardInterval", "function(media) { console.log( return 5; }"},
+    {"defaultSeekForwardInterval", "function(media) { return 5; }"},
   };
   if(d->defaultTracks["subtitles"].isValid()) {
       mediaElementOptions["startLanguage"] = (boost::format("'%s'") % d->defaultTracks["subtitles"].lang).str();
