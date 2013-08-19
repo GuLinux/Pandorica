@@ -73,7 +73,7 @@ void MediaElementJs::onPlayerReady()
     
     // Adding workaround for mediaelementjs bug https://github.com/johndyer/mediaelement/issues/902
     var captionTracks = $('video,audio')[0].textTracks;
-    if(captionTracks != undefined) return;
+    if(captionTracks == undefined) return;
     for(var i=0; i<captionTracks.length; i++)
       if(captionTracks[i].kind == 'subtitles') captionTracks[i].mode='hidden';
     if($('video').length > 0) {
