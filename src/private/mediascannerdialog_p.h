@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MEDIASCANNERDIALOGPRIVATE_H
 #include <vector>
 #include <Wt/WSignal>
+#include <boost/concept_check.hpp>
 #include <media.h>
 
 class User;
@@ -41,12 +42,14 @@ class WGroupBox;
 
 class MediaCollection;
 namespace PandoricaPrivate{
-typedef std::function<void(int,std::string)> UpdateGuiProgress;
-typedef std::function<void()> OnScanFinish;
 
 struct StepContent {
   Wt::WGroupBox *groupBox;
   Wt::WContainerWidget *content;
+};
+struct ScanningProgress {
+  uint16_t progress;
+  std::string currentFile;
 };
 
 class MediaScannerDialogPrivate
@@ -63,7 +66,7 @@ public:
     Settings* settings;
     std::map<MediaScannerStep*, StepContent> stepsContents;
     Wt::WPushButton* buttonRetry;
-    void scanMedias(Wt::WApplication* app, PandoricaPrivate::UpdateGuiProgress updateGuiProgress, PandoricaPrivate::OnScanFinish onScanFinish);
+    void scanMedias(Wt::WApplication* app, std::function<void()> updateGuiProgress, std::function<void()> onScanFinish);
     bool canContinue;
     bool canceled;
     bool skipped;
@@ -72,6 +75,7 @@ public:
     Wt::Signal<> scanFinished;
     Session* session;
     std::function<bool(Media&)> scanFilter;
+    ScanningProgress scanningProgress;
 private:
     class MediaScannerDialog* const q;
     void runStepsFor(Media media, Wt::WApplication* app, Session& session);

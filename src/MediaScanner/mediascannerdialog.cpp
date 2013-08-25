@@ -115,14 +115,14 @@ void MediaScannerDialog::run()
 {
   show();
   d->progressBar->setMaximum(d->mediaCollection->collection().size());
-  UpdateGuiProgress updateProgressBar = [=] (int progress, string text) {
-    d->progressBar->setValue(progress);
-    d->progressBarTitle->setText(text);
+  auto updateProgressBar = [=] {
+    d->progressBar->setValue(d->scanningProgress.progress);
+    d->progressBarTitle->setText(d->scanningProgress.currentFile);
     for(auto stepContainers : d->stepsContents)
       stepContainers.second.content->clear();
     wApp->triggerUpdate();
   };
-  OnScanFinish enableCloseButton = [=] {
+  auto enableCloseButton = [=] {
     d->buttonClose->enable();
     d->buttonCancel->disable();
     d->progressBarTitle->setText("");
@@ -133,7 +133,7 @@ void MediaScannerDialog::run()
   WServer::instance()->ioService().post(boost::bind(&MediaScannerDialogPrivate::scanMedias, d, wApp, updateProgressBar, enableCloseButton ));
 }
 
-void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, UpdateGuiProgress updateGuiProgress, OnScanFinish onScanFinish)
+void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, function<void()> updateGuiProgress, function<void()> onScanFinish)
 {
   canceled = false;
   uint current = 0;
@@ -146,6 +146,7 @@ void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, UpdateGuiProgr
       return;
     Media media = mediaPair.second;
     current++;
+    scanningProgress = {current, media.filename()};
     if(!scanFilter(media))
       continue;
     guiRun(app, [=] {
@@ -153,7 +154,7 @@ void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, UpdateGuiProgr
       buttonSkip->disable();
       for(auto stepContent: stepsContents)
         stepContent.second.groupBox->hide();
-      updateGuiProgress(current, media.filename());
+      updateGuiProgress();
     });
       runStepsFor(media, app, session);
   }
