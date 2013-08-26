@@ -148,8 +148,10 @@ void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, function<void(
     scanningProgress.progress++;
     scanningProgress.currentFile = media.filename();
     log("notice") << "Scanning file " << scanningProgress.progress << " of " << mediaCollection->collection().size() << ": " << scanningProgress.currentFile;
-    if(!scanFilter(media))
+    if(!scanFilter(media)) {
+      updateGuiProgress();
       continue;
+    }
     guiRun(app, [=] {
       buttonNext->disable();
       buttonSkip->disable();
