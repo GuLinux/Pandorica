@@ -136,7 +136,7 @@ void MediaScannerDialog::run()
 void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, function<void()> updateGuiProgress, function<void()> onScanFinish)
 {
   canceled = false;
-  uint current = 0;
+  scanningProgress = {0, {}};
   Session session;
   Dbo::Transaction transaction(session);
   mediaCollection->rescan(transaction);
@@ -145,8 +145,9 @@ void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, function<void(
     if(canceled)
       return;
     Media media = mediaPair.second;
-    current++;
-    scanningProgress = {current, media.filename()};
+    scanningProgress.progress++;
+    scanningProgress.currentFile = media.filename();
+    log("notice") << "Scanning file " << scanningProgress.progress << " of " << mediaCollection->collection().size() << ": " << scanningProgress.currentFile;
     if(!scanFilter(media))
       continue;
     guiRun(app, [=] {
