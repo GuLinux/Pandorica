@@ -76,7 +76,6 @@ public:
     Session* session;
     std::function<bool(Media&)> scanFilter;
     ScanningProgress scanningProgress;
-    void updateProgress();
 private:
     class MediaScannerDialog* const q;
     void runStepsFor(Media media, Wt::WApplication* app, Session& session);

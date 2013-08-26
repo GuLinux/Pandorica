@@ -111,27 +111,30 @@ Signal<>& MediaScannerDialog::scanFinished()
 }
 
 
-void MediaScannerDialogPrivate::updateProgress() {
-    progressBar->setValue(scanningProgress.progress);
-    progressBarTitle->setText(scanningProgress.currentFile);
-    for(auto stepContainers : stepsContents)
-      stepContainers.second.content->clear();
-    wApp->triggerUpdate();
-}
-
 void MediaScannerDialog::run()
 {
   show();
   d->progressBar->setMaximum(d->mediaCollection->collection().size());
-  auto enableCloseButton = [=] {
+  auto updateGuiProgress = [=] {
+    d->progressBar->setValue(d->scanningProgress.progress);
+    d->progressBarTitle->setText(d->scanningProgress.currentFile);
+    for(auto stepContainers : d->stepsContents)
+      stepContainers.second.content->clear();
+    wApp->triggerUpdate();
+  };
+  auto onScanFinished = [=] {
     d->buttonClose->enable();
+    d->buttonNext->disable();
     d->buttonCancel->disable();
+    d->buttonSkip->disable();
+    for(auto stepContent: d->stepsContents)
+      stepContent.second.groupBox->hide();
     d->progressBarTitle->setText("");
     for(auto stepContainers : d->stepsContents)
       stepContainers.second.content->clear();
     wApp->triggerUpdate();
   };
-  WServer::instance()->ioService().post(boost::bind(&MediaScannerDialogPrivate::scanMedias, d, wApp, bind(&MediaScannerDialogPrivate::updateProgress, d), enableCloseButton ));
+  WServer::instance()->ioService().post(boost::bind(&MediaScannerDialogPrivate::scanMedias, d, wApp, updateGuiProgress, onScanFinished ));
 }
 
 void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, function<void()> updateGuiProgress, function<void()> onScanFinish)
@@ -150,6 +153,7 @@ void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, function<void(
     scanningProgress.currentFile = media.filename();
     log("notice") << "Scanning file " << scanningProgress.progress << " of " << mediaCollection->collection().size() << ": " << scanningProgress.currentFile;
     if(!scanFilter(media)) {
+      guiRun(app, updateGuiProgress);
       continue;
     }
     guiRun(app, [=] {
@@ -161,7 +165,7 @@ void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, function<void(
     });
       runStepsFor(media, app, session);
   }
-  this_thread::sleep_for(chrono::milliseconds{10});
+  this_thread::sleep_for(chrono::milliseconds{500});
   guiRun(app, [=] { updateGuiProgress(); onScanFinish(); });
 }
 
