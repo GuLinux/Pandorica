@@ -61,7 +61,7 @@ public:
     Wt::WPushButton* buttonClose;
     std::vector<MediaScannerStep*> steps;
     MediaCollection* mediaCollection;
-    Wt::WProgressBar* progressBar;
+    Wt::WProgressBar* progressBar = 0;
     Wt::WText* progressBarTitle;
     Settings* settings;
     std::map<MediaScannerStep*, StepContent> stepsContents;
@@ -76,6 +76,7 @@ public:
     Session* session;
     std::function<bool(Media&)> scanFilter;
     ScanningProgress scanningProgress;
+    void updateProgress();
 private:
     class MediaScannerDialog* const q;
     void runStepsFor(Media media, Wt::WApplication* app, Session& session);

@@ -250,9 +250,9 @@ void P::PandoricaPrivate::adminActions()
     };
     MediaScannerDialog *dialog;
     if(onlyCurrentDirectory)
-      dialog = new MediaScannerDialog(session, &settings, mediaCollection, q, filterMediaCD);
+      dialog = new MediaScannerDialog(session, &settings, mediaCollection, 0, filterMediaCD);
     else
-      dialog = new MediaScannerDialog(session, &settings, mediaCollection, q);
+      dialog = new MediaScannerDialog(session, &settings, mediaCollection, 0);
     dialog->scanFinished().connect([=](_n6) {
       mediaCollectionBrowser->reload();
     });

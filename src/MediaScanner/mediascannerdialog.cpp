@@ -111,17 +111,18 @@ Signal<>& MediaScannerDialog::scanFinished()
 }
 
 
+void MediaScannerDialogPrivate::updateProgress() {
+    progressBar->setValue(scanningProgress.progress);
+    progressBarTitle->setText(scanningProgress.currentFile);
+    for(auto stepContainers : stepsContents)
+      stepContainers.second.content->clear();
+    wApp->triggerUpdate();
+}
+
 void MediaScannerDialog::run()
 {
   show();
   d->progressBar->setMaximum(d->mediaCollection->collection().size());
-  auto updateProgressBar = [=] {
-    d->progressBar->setValue(d->scanningProgress.progress);
-    d->progressBarTitle->setText(d->scanningProgress.currentFile);
-    for(auto stepContainers : d->stepsContents)
-      stepContainers.second.content->clear();
-    wApp->triggerUpdate();
-  };
   auto enableCloseButton = [=] {
     d->buttonClose->enable();
     d->buttonCancel->disable();
@@ -130,7 +131,7 @@ void MediaScannerDialog::run()
       stepContainers.second.content->clear();
     wApp->triggerUpdate();
   };
-  WServer::instance()->ioService().post(boost::bind(&MediaScannerDialogPrivate::scanMedias, d, wApp, updateProgressBar, enableCloseButton ));
+  WServer::instance()->ioService().post(boost::bind(&MediaScannerDialogPrivate::scanMedias, d, wApp, bind(&MediaScannerDialogPrivate::updateProgress, d), enableCloseButton ));
 }
 
 void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, function<void()> updateGuiProgress, function<void()> onScanFinish)
@@ -149,7 +150,6 @@ void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, function<void(
     scanningProgress.currentFile = media.filename();
     log("notice") << "Scanning file " << scanningProgress.progress << " of " << mediaCollection->collection().size() << ": " << scanningProgress.currentFile;
     if(!scanFilter(media)) {
-      updateGuiProgress();
       continue;
     }
     guiRun(app, [=] {
@@ -162,7 +162,7 @@ void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, function<void(
       runStepsFor(media, app, session);
   }
   this_thread::sleep_for(chrono::milliseconds{10});
-  guiRun(app, [=] { onScanFinish(); });
+  guiRun(app, [=] { updateGuiProgress(); onScanFinish(); });
 }
 
 
