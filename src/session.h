@@ -53,6 +53,7 @@ public:
 
   Wt::Auth::AbstractUserDatabase& users();
   Wt::Auth::Login& login();
+  Wt::Dbo::SqlConnection *connection() const;
 
   static const Wt::Auth::AuthService& auth();
   static const Wt::Auth::PasswordService& passwordAuth();

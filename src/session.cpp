@@ -121,6 +121,12 @@ Session::Session(bool full)
   d->users = new UserDatabase(*this);
 }
 
+Wt::Dbo::SqlConnection *Session::connection() const
+{
+  return d->connection;
+}
+
+
 Auth::Login& Session::login()
 {
   return d->login;
@@ -221,3 +227,4 @@ const std::vector<const Wt::Auth::OAuthService *>& Session::oAuth()
 {
   return myOAuthServices;
 }
+
