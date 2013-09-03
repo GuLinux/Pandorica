@@ -268,6 +268,16 @@ bool addStaticResources( WServer &server )
   return true;
 }
 
+void migrate()
+{
+  Session session( false );
+  WtCommons::DbMigrationManager migrationManager( session, session.connection(), ::Migrations::migrations );
+
+  std::cout << "Applying migrations\n";
+  migrationManager.migrate();
+
+}
+
 int main( int argc, char **argv, char **envp )
 {
   try
@@ -312,10 +322,10 @@ int main( int argc, char **argv, char **envp )
         std::this_thread::sleep_for( std::chrono::milliseconds {30000} );
       }
     } );
+    migrate();
 
     {
       Session session( false );
-      WtCommons::DbMigrationManager migrationManager( session, session.connection(), ::Migrations::migrations );
 
       if( vm.count( "dump-schema" ) )
       {
@@ -327,8 +337,6 @@ int main( int argc, char **argv, char **envp )
         std::cout << "Schema correctly wrote to " << schemaPath << '\n';
         return 0;
       }
-      std::cout << "Applying migrations\n";
-      migrationManager.migrate();
     }
 
     Session::configureAuth();
