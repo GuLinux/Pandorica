@@ -327,7 +327,8 @@ int main( int argc, char **argv, char **envp )
         std::cout << "Schema correctly wrote to " << schemaPath << '\n';
         return 0;
       }
-
+      std::cout << "Applying migrations\n";
+      migrationManager.migrate();
     }
 
     Session::configureAuth();
