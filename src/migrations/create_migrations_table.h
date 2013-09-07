@@ -13,15 +13,10 @@ namespace Migrations
     []( Wt::Dbo::Transaction & t, Wt::Dbo::SqlConnection * c )
     {
       std::cerr << __PRETTY_FUNCTION__ << std::endl;
-      boost::format query {"\
-          create table \"wt_migrations\"(\
-            \"migration_id\" %s,\
-            \"when\" %s,\
-            primary key( \"migration_id\" )\
-          )"
-      };
+      boost::format query {"create table \"wt_migrations\"(\"migration_id\" %s, \"when\" %s, primary key( \"migration_id\" ));"};
       query % Wt::Dbo::sql_value_traits<int64_t>().type( c, -1 )
             % c->dateTimeType( Wt::Dbo::SqlDateTime );
+      std::cerr << "Query: " << query.str() << std::endl;
       t.session().execute( query.str() );
     },
   };

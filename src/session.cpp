@@ -110,7 +110,7 @@ Session::Session(bool full)
   mapClass<Setting>("settings");
   if(!full)
     return;
-
+/*
   try {
     createTables();
     std::cerr << "Created database." << std::endl;
@@ -118,6 +118,7 @@ Session::Session(bool full)
     std::cerr << e.what() << std::endl;
     std::cerr << "Using existing database";
   }
+*/
   d->users = new UserDatabase(*this);
 }
 
