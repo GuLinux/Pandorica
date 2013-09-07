@@ -1,12 +1,15 @@
 #ifndef MIGRATIONS_H
 #define MIGRATIONS_H
-#include "Wt-Commons/dbmigrationmanager.h"
+#include "Wt-Commons/migratedbo.h"
 #include "migrations/create_migrations_table.h"
 namespace Migrations
 {
-  WtCommons::MigrationsList migrations
+  WtCommons::Migrations migrations
   {
-    createMigrationTable,
+    std::shared_ptr<WtCommons::DboMigration>(createMigrationTable()),
+    std::shared_ptr<WtCommons::DboMigration>(addNameToMigrationTable()),
+    std::shared_ptr<WtCommons::DboMigration>(renameWhenColumnToWhenApplied()),
+    std::shared_ptr<WtCommons::DboMigration>(addMigrationCreationColumn()),
   };
 }
 #endif
