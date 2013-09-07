@@ -12,7 +12,7 @@ namespace Migrations
   CREATE_MIGRATION( addNameToMigrationTable, "2013-09-07 10:10:13",
     {
       try {
-        m.addColumn<std::string>("wt_migrations", "migration_name", "''");
+        m.addColumn<std::string>("wt_migrations", "migration_name", {"''"});
       } catch(...) {
       }
     }
