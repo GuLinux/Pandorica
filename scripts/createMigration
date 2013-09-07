@@ -1,0 +1,25 @@
+#!/usr/bin/bash
+migration_name="$1"
+if test "$migration_name" == ""; then
+	echo "Usage: $0 migration_name [options]"
+	exit 1
+fi
+
+MIGRATION_NAME="$( tr 'a-z' 'A-Z' <<< "$migration_name")"
+migration_filename="src/migrations/$( tr 'A-Z' 'a-z' <<< "$migration_name").h"
+cat > "$migration_filename" <<EOF
+#ifndef MIGRATIONS_${MIGRATION_NAME}_TABLE_H
+#define MIGRATIONS_${MIGRATION_NAME}_TABLE_H
+#include "Wt-Commons/migratedbo.h"
+
+namespace Migrations
+{
+  CREATE_MIGRATION( $migration_name, "$( TZ=UTC date +"%F %T")",
+    {
+    }
+  )
+}
+#endif
+
+EOF
+
