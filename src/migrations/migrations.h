@@ -7,9 +7,6 @@ namespace Migrations
   WtCommons::Migrations migrations
   {
     std::shared_ptr<WtCommons::DboMigration>(createMigrationTable()),
-    std::shared_ptr<WtCommons::DboMigration>(addNameToMigrationTable()),
-    std::shared_ptr<WtCommons::DboMigration>(renameWhenColumnToWhenApplied()),
-    std::shared_ptr<WtCommons::DboMigration>(addMigrationCreationColumn()),
   };
 }
 #endif
