@@ -1,12 +1,25 @@
 #!/usr/bin/bash
-migration_name="$1"
+namespace="$1"
+migration_name="$2"
+
+function replace_placeholder() {
+  file="$1"
+  placeholder="$2"
+  replacement="$3"
+  sed -i "s|\s*// $placeholder|${replacement}\n// $placeholder|g" "$file"
+}
+
 if test "$migration_name" == ""; then
-	echo "Usage: $0 migration_name [options]"
+	echo "Usage: $0 namespace migration"
 	exit 1
 fi
 
 MIGRATION_NAME="$( tr 'a-z' 'A-Z' <<< "$migration_name")"
-migration_filename="src/migrations/$( tr 'A-Z' 'a-z' <<< "$migration_name").h"
+migration_filename="src/migrations/$( tr 'A-Z' 'a-z' <<< "$namespace").h"
+
+migration_code="    CREATE_MIGRATION( $migration_name, "$( TZ=UTC date +"%F %T")",\n      {\n      }\n    )"
+add_migration_code="    std::shared_ptr<WtCommons::DboMigration>($namespace::$migration_name()),"
+if ! [ -r "$migration_filename" ]; then
 cat > "$migration_filename" <<EOF
 #ifndef MIGRATIONS_${MIGRATION_NAME}_TABLE_H
 #define MIGRATIONS_${MIGRATION_NAME}_TABLE_H
@@ -14,12 +27,24 @@ cat > "$migration_filename" <<EOF
 
 namespace Migrations
 {
-  CREATE_MIGRATION( $migration_name, "$( TZ=UTC date +"%F %T")",
-    {
-    }
-  )
+  namespace $namespace
+  {
+$( echo -e "$migration_code" )
+
+    // migrations_placeholder
+  }
 }
 #endif
 
 EOF
+  replace_placeholder "src/migrations/migrations.h" "migrations_includes_placeholder" "#include \"$migration_filename\""
+else
+  replace_placeholder "$migration_filename" "migrations_placeholder" "$migration_code"
+fi
 
+replace_placeholder "src/migrations/migrations.h" "migrations_init_placeholder" "$add_migration_code"
+
+if test "$APPLICATION" == KDevelop && [ -r "$migration_filename" ]; then
+  set -x
+  qdbus $KDEV_DBUS_ID /org/kdevelop/DocumentController org.kdevelop.DocumentController.openDocumentSimple "$migration_filename"
+fi
