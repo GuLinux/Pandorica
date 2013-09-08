@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/Dbo/Dbo>
 #include <Wt/Dbo/Types>
 #include <Wt/Dbo/ptr>
-
+#include <Wt/WDateTime>
 
 class MediaProperties {
 public:
@@ -37,6 +37,7 @@ public:
     Wt::Dbo::field(a, _size, "size");
     Wt::Dbo::field(a, _width, "width");
     Wt::Dbo::field(a, _height, "height");
+    Wt::Dbo::field(a, _creationTime, "creation_time");
   }
   inline std::string mediaId() const { return _mediaId; }
   inline std::string title() const { return _title; }
@@ -45,11 +46,12 @@ public:
   inline int64_t size() const { return _size; }
   inline int width() const { return _width; }
   inline int height() const { return _height; }
+  inline Wt::WDateTime creationTime() const { return Wt::WDateTime::fromPosixTime(_creationTime); }
   void setTitle(std::string title) { _title = title; }
   MediaProperties() = default;
   // TODO: int64_t => uint64_t
   MediaProperties(std::string mediaId, std::string title, std::string filename, int64_t duration, int64_t size, int width, int height)
-  : _mediaId(mediaId), _title(title), _filename(filename), _duration(duration), _size(size), _width(width), _height(height) {}
+  : _mediaId(mediaId), _title(title), _filename(filename), _duration(duration), _size(size), _width(width), _height(height), _creationTime(Wt::WDateTime::currentDateTime().toPosixTime()) {}
 private:
   std::string _mediaId;
   std::string _title;
@@ -58,6 +60,7 @@ private:
   int64_t _size;
   int _width;
   int _height;
+  boost::posix_time::ptime _creationTime;
 };
 
 
