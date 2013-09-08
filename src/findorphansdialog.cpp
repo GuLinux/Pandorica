@@ -226,7 +226,11 @@ void FindOrphansDialogPrivate::populateMovedFiles(WApplication* app)
   int migrationsFound = 0;
   Dbo::collection<MediaPropertiesPtr> allMedias = threadsSession->find<MediaProperties>().resultList();
   for(MediaPropertiesPtr media: allMedias) {
-    if(mediaCollection->media(media->mediaId()).valid() || media->filename().empty() ) continue;
+    auto collectionMedia = mediaCollection->media(media->mediaId());
+    if(collectionMedia.valid() && media->filename() != collectionMedia.filename() ) {
+      media.modify()->setFileName(collectionMedia.filename());
+    }
+    if(collectionMedia.valid() || media->filename().empty() ) continue;
     string originalFilePath = media->filename();
     string originalMediaId = media->mediaId();
     fs::path dbFileName = fs::path(originalFilePath).filename();
