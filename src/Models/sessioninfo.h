@@ -34,23 +34,22 @@ class SessionInfo {
 public:
   SessionInfo() {}
   SessionInfo(Wt::Dbo::ptr<User> user, std::string sessionId, std::string ip)
-    : _sessionId(sessionId), _ip(ip), _sessionStarted(Wt::WDateTime::currentDateTime().toTime_t()), _user(user) {}
+    : _sessionId(sessionId), _ip(ip), _sessionStarted(Wt::WDateTime::currentDateTime().toPosixTime()), _user(user) {}
   ~SessionInfo() {}
   
   std::string sessionId() const { return _sessionId; }
   std::string ip() const { return _ip; }
-  Wt::WDateTime sessionStarted() const { return Wt::WDateTime::fromTime_t(_sessionStarted); }
-  Wt::WDateTime sessionEnded() const { return Wt::WDateTime::fromTime_t(_sessionEnded); }
+  Wt::WDateTime sessionStarted() const { return Wt::WDateTime::fromPosixTime(_sessionStarted); }
+  Wt::WDateTime sessionEnded() const { return Wt::WDateTime::fromPosixTime(_sessionEnded); }
   Wt::Dbo::collection<Wt::Dbo::ptr<SessionDetails>> sessionDetails() { return _sessionDetails; }
   void end();
   static void endStale(Wt::Dbo::Transaction &transaction);
   
 private:
-  static time_t now();
   std::string _sessionId;
   std::string _ip;
-  long _sessionStarted = 0;
-  long _sessionEnded = 0;
+  boost::posix_time::ptime _sessionStarted;
+  boost::posix_time::ptime _sessionEnded;
   Wt::Dbo::ptr<User> _user;
   Wt::Dbo::collection<Wt::Dbo::ptr<SessionDetails>> _sessionDetails;
 public:

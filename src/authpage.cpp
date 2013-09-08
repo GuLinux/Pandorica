@@ -134,8 +134,7 @@ void AuthPagePrivate::authEvent() {
   }
 //   q->addStyleClass("hidden");
   q->doJavaScript(animationJs(q, "fadeOut"));
-//   loggedIn.emit();
-  WTimer::singleShot(400, [=](WMouseEvent){ log("notice") << __PRETTY_FUNCTION__ << ": emitting loggedIn signal"; loggedIn.emit();});
+  loggedIn.emit();
 }
 
 bool AuthPagePrivate::seedIfNoAdmins(dbo::Transaction& transaction, Auth::User &user)
