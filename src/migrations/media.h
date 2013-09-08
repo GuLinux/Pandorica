@@ -14,8 +14,10 @@ namespace Migrations
         Wt::Dbo::collection<MediaPair> allFiles = t.session().query<MediaPair>("select media_id, filename from media_properties;");
         for(auto file: allFiles) {
           boost::filesystem::path filePath(boost::get<1>(file));
-          if(!boost::filesystem::exists(filePath))
+          if(!boost::filesystem::exists(filePath)) {
+            std::cerr << "Warning: media with id " << boost::get<0>(file) << " and path '" << filePath << "' seems not existing, skipping;" << std::endl;
             continue;
+          }
           boost::posix_time::ptime lastWrite = boost::posix_time::from_time_t(boost::filesystem::last_write_time(filePath));
           t.session().execute("update \"media_properties\" set \"creation_time\" = ? where \"media_id\" = ?").bind(lastWrite).bind(boost::get<0>(file));
         }
