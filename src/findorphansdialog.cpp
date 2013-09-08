@@ -228,7 +228,7 @@ void FindOrphansDialogPrivate::populateMovedFiles(WApplication* app)
   for(MediaPropertiesPtr media: allMedias) {
     auto collectionMedia = mediaCollection->media(media->mediaId());
     if(collectionMedia.valid() && media->filename() != collectionMedia.filename() ) {
-      media.modify()->setFileName(collectionMedia.filename());
+      media.modify()->setFileName(collectionMedia.fullPath());
     }
     if(collectionMedia.valid() || media->filename().empty() ) continue;
     string originalFilePath = media->filename();
