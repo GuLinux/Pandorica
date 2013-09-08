@@ -227,7 +227,7 @@ void FindOrphansDialogPrivate::populateMovedFiles(WApplication* app)
   Dbo::collection<MediaPropertiesPtr> allMedias = threadsSession->find<MediaProperties>().resultList();
   for(MediaPropertiesPtr media: allMedias) {
     auto collectionMedia = mediaCollection->media(media->mediaId());
-    if(collectionMedia.valid() && media->filename() != collectionMedia.filename() ) {
+    if(collectionMedia.valid() && media->filename() != collectionMedia.fullPath() ) {
       media.modify()->setFileName(collectionMedia.fullPath());
     }
     if(collectionMedia.valid() || media->filename().empty() ) continue;
