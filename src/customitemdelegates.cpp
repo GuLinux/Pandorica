@@ -49,8 +49,8 @@ Wt::WWidget* StringTransformDelegate::update(Wt::WWidget* widget, const Wt::WMod
 
 WWidget* DateTimeDelegate::update(WWidget* widget, const WModelIndex& index, WFlags< ViewItemRenderFlag > flags)
 {
-  long timeT = any_cast<long>(model->data(index));
-  string label = timeT ? WDateTime::fromTime_t(timeT).toString("dd/M/yyyy HH:mm").toUTF8() : "-";
+  boost::posix_time::ptime timeT = any_cast<boost::posix_time::ptime>(model->data(index));
+  string label = timeT != boost::posix_time::not_a_date_time ? WDateTime::fromPosixTime(timeT).toString("dd/M/yyyy HH:mm").toUTF8() : "-";
   if(!widget) {
     WText* labelWidget = new WText(label);
     labelWidget->setStyleClass("small-text");
