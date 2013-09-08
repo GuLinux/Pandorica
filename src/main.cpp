@@ -79,7 +79,7 @@ void expireStaleSessions()
   {
     Session session;
     Dbo::Transaction t( session );
-    auto oldSessions = session.find<SessionInfo>().where( "session_ended = 0" ).resultList();
+    auto oldSessions = session.find<SessionInfo>().where( "session_ended IS NULL" ).resultList();
 
     for( auto oldSession : oldSessions )
       oldSession.modify()->end();

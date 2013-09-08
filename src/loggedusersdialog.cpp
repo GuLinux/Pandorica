@@ -87,7 +87,7 @@ Dbo::Query<LoggedUserEntry> buildQuery(Session *session, bool showAll, string ex
   inner join auth_identity on auth_info.id = auth_identity.auth_info_id\
   ");
   if(!showAll)
-    query.where("session_ended = 0");
+    query.where("session_ended IS NULL");
   if(!excludeLoginName.empty())
     query.where("identity <> ?").bind(excludeLoginName);
   query.where("auth_identity.provider = 'loginname'");

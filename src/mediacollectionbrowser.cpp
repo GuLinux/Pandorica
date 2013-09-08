@@ -213,7 +213,7 @@ void InfoPanel::info(Media media)
   
   MediaPropertiesPtr mediaProperties = media.properties(t);
   if(mediaProperties) {
-    labelValueBox("mediabrowser.creation_date", mediaProperties->creationTime().toString(), table );
+    labelValueBox("mediabrowser.creation_time", mediaProperties->creationTime().toString(), table );
     labelValueBox("mediabrowser.medialength", WTime(0,0,0).addSecs(mediaProperties->duration()).toString(), table);
     if(media.mimetype().find("video") != string::npos && mediaProperties->width() > 0 && mediaProperties->height() > 0)
       labelValueBox("mediabrowser.resolution", WString("{1}x{2}").arg(mediaProperties->width()).arg(mediaProperties->height()), table );
