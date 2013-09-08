@@ -26,27 +26,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WApplication>
 #include <boost/filesystem.hpp>
 
-namespace Wt {
+namespace Wt
+{
 
   class WStandardItem;
   class WStandardItemModel;
 }
-namespace PandoricaPrivate {
+namespace PandoricaPrivate
+{
   class PandoricaPrivate;
 }
-class Pandorica : public Wt::WApplication {
+class Pandorica : public Wt::WApplication
+{
 
-    public:
-    Pandorica ( const Wt::WEnvironment& environment );
+  public:
+    Pandorica( const Wt::WEnvironment &environment );
     virtual ~Pandorica();
     void setupGui();
     virtual void refresh();
     void authEvent();
-    Wt::Signal<Wt::WApplication*> &aboutToQuit() const;
-    
-    private:
-      PandoricaPrivate::PandoricaPrivate *const d;
-    private:
+    Wt::Signal<Wt::WApplication *> &aboutToQuit() const;
+  protected:
+    virtual void notify( const Wt::WEvent &e );
+  private:
+    PandoricaPrivate::PandoricaPrivate *const d;
+  private:
 };
 
 #endif // STREAMINGAPP_H

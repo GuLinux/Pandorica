@@ -197,6 +197,16 @@ void P::PandoricaPrivate::unregisterSession()
   updateSessions();
 }
 
+void Pandorica::notify( const WEvent &e )
+{
+  try {
+    Wt::WApplication::notify( e );
+  } catch(std::exception &exception) {
+    log("notice") << "Exception caught: " << exception.what() << " on event: " << e.eventType();
+    throw exception;
+  }
+}
+
 
 void endSessionOnDatabase(string sessionId, long userId) {
   Session privateSession;
