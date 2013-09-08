@@ -32,6 +32,7 @@
   <message id="mediabrowser.filename">File Name</message>
   <message id="mediabrowser.filesize">File Size</message>
   <message id="mediabrowser.medialength">Length</message>
+  <message id="mediabrowser.creation_time">Added</message>
   <message id="mediabrowser.rating">Rating</message>
   <message id="mediabrowser.resolution">Resolution</message>
   <message id="mediabrowser.information">Information</message>
