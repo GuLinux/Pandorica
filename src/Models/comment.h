@@ -34,16 +34,16 @@ class Comment {
 public:
   Comment() {}
   Comment(std::string mediaId, Wt::Dbo::ptr<User> user, std::string content)
-    : _mediaId(mediaId), _user(user), _content(content), _lastUpdated(Wt::WDateTime::currentDateTime().toTime_t()) {}
+    : _mediaId(mediaId), _user(user), _content(content), _lastUpdated(Wt::WDateTime::currentDateTime().toPosixTime() ) {}
   ~Comment() {}
   std::string content() const { return _content; }
   std::string mediaId() const { return _mediaId; }
-  Wt::WDateTime lastUpdated() const { return Wt::WDateTime::fromTime_t(_lastUpdated); }
+  Wt::WDateTime lastUpdated() const { return Wt::WDateTime::fromPosixTime(_lastUpdated); }
   Wt::Dbo::ptr<User> user() const { return _user; }
 private:
   std::string _content;
   std::string _mediaId;
-  long _lastUpdated;
+  boost::posix_time::ptime _lastUpdated;
   Wt::Dbo::ptr<User> _user;
 public:
     template<class Action>

@@ -96,7 +96,9 @@ string animationJs(WWidget *widget, string animation) {
 }
 
 void AuthPagePrivate::authEvent() {
+  log("notice") << __PRETTY_FUNCTION__;
   if(!session->login().loggedIn()) {
+    log("notice") << __PRETTY_FUNCTION__ << ": logout detected";
     loggedOut.emit();
     messagesContainer->clear();
     q->doJavaScript(animationJs(q, "fadeIn"));
@@ -132,7 +134,8 @@ void AuthPagePrivate::authEvent() {
   }
 //   q->addStyleClass("hidden");
   q->doJavaScript(animationJs(q, "fadeOut"));
-  WTimer::singleShot(400, [=](WMouseEvent){ loggedIn.emit();});
+  loggedIn.emit();
+//   WTimer::singleShot(400, [=](WMouseEvent){ loggedIn.emit();});
 }
 
 bool AuthPagePrivate::seedIfNoAdmins(dbo::Transaction& transaction, Auth::User &user)
