@@ -25,12 +25,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/Dbo/ptr>
 #include <Wt/Dbo/Query>
 #include <boost/tuple/tuple.hpp>
-
+#include <boost/date_time.hpp>
 class Settings;
 class Session;
 class SessionDetails;
 
-typedef boost::tuple<std::string,long,long,std::string> SessionDetailsTuple;
+typedef boost::tuple<std::string,boost::posix_time::ptime,boost::posix_time::ptime,std::string> SessionDetailsTuple;
 class SessionDetailsDialog : public Wt::WDialog
 {
 

@@ -75,7 +75,7 @@ private:
 };
 
 
-typedef boost::tuple<string,string,long,long,string,string,string,long> LoggedUserEntry;
+typedef boost::tuple<string,string,boost::posix_time::ptime,boost::posix_time::ptime,string,string,string,long> LoggedUserEntry;
 Dbo::Query<LoggedUserEntry> buildQuery(Session *session, bool showAll, string excludeLoginName) {
   auto query = session->query<LoggedUserEntry>("select distinct session_id,ip,session_started,session_ended,\
   (select filename from session_details WHERE session_info.session_id = session_details.session_info_session_id ORDER BY play_started DESC LIMIT 1) as filewatching,\
