@@ -17,7 +17,7 @@ fi
 MIGRATION_NAME="$( tr 'a-z' 'A-Z' <<< "$migration_name")"
 migration_filename="src/migrations/$( tr 'A-Z' 'a-z' <<< "$namespace").h"
 
-migration_code="    CREATE_MIGRATION( $migration_name, "$( TZ=UTC date +"%F %T")",\n      {\n      }\n    )"
+migration_code="    CREATE_MIGRATION( $migration_name, \"$( TZ=UTC date +"%F %T")\",\n      {\n      }\n    )"
 add_migration_code="    std::shared_ptr<WtCommons::DboMigration>($namespace::$migration_name()),"
 if ! [ -r "$migration_filename" ]; then
 cat > "$migration_filename" <<EOF
@@ -45,6 +45,5 @@ fi
 replace_placeholder "src/migrations/migrations.h" "migrations_init_placeholder" "$add_migration_code"
 
 if test "$APPLICATION" == KDevelop && [ -r "$migration_filename" ]; then
-  set -x
-  qdbus $KDEV_DBUS_ID /org/kdevelop/DocumentController org.kdevelop.DocumentController.openDocumentSimple "$migration_filename"
+  qdbus $KDEV_DBUS_ID /org/kdevelop/DocumentController org.kdevelop.DocumentController.openDocumentSimple "$PWD/$migration_filename"
 fi
