@@ -18,7 +18,7 @@ MIGRATION_NAME="$( tr 'a-z' 'A-Z' <<< "$migration_name")"
 migration_filename="src/migrations/$( tr 'A-Z' 'a-z' <<< "$namespace").h"
 
 migration_code="    CREATE_MIGRATION( $migration_name, \"$( TZ=UTC date +"%F %T")\",\n      {\n      }\n    )"
-add_migration_code="    std::shared_ptr<WtCommons::DboMigration>($namespace::$migration_name()),"
+add_migration_code="      std::shared_ptr<WtCommons::DboMigration>($namespace::$migration_name()),"
 if ! [ -r "$migration_filename" ]; then
 cat > "$migration_filename" <<EOF
 #ifndef MIGRATIONS_${MIGRATION_NAME}_TABLE_H

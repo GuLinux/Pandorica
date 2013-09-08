@@ -8,13 +8,15 @@
 // migrations_includes_placeholder
 namespace Migrations
 {
-  WtCommons::Migrations migrations
+  WtCommons::Migrations migrations() {
+    return
   {
-    std::shared_ptr<WtCommons::DboMigration>(createMigrationTable()),
-    std::shared_ptr<WtCommons::DboMigration>(Comments::convertCommentCreationToDateTime()),
-    std::shared_ptr<WtCommons::DboMigration>(SessionTracking::changeSessionTimeColumnsToDBTimestamps()),
-    std::shared_ptr<WtCommons::DboMigration>(Media::addCreationTimeColumnToMediaInfo()),
-// migrations_init_placeholder
-  };
+      std::shared_ptr<WtCommons::DboMigration>(createMigrationTable()),
+      std::shared_ptr<WtCommons::DboMigration>(Comments::convertCommentCreationToDateTime()),
+      std::shared_ptr<WtCommons::DboMigration>(SessionTracking::changeSessionTimeColumnsToDBTimestamps()),
+      std::shared_ptr<WtCommons::DboMigration>(Media::addCreationTimeColumnToMediaInfo()),
+      // migrations_init_placeholder
+    };
+  }
 }
 #endif
