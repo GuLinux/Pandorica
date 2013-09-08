@@ -68,6 +68,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WStringListModel>
 #include <Wt/WComboBox>
 #include <Wt/WPushButton>
+#include <Wt/WDefaultLoadingIndicator>
 
 
 using namespace Wt;
@@ -425,7 +426,7 @@ void P::PandoricaPrivate::play(PlaylistItem *playlistItem) {
   }
   player = settings.newPlayer();
   Dbo::Transaction t(*session);
-  
+  wApp->setLoadingIndicator(0); // TODO: improve
   WLink mediaLink = settings.linkFor( media.path() , session);
   log("notice") << "found mediaLink: " << mediaLink.url();
   player->addSource( {mediaLink.url(), media.mimetype()} );
@@ -446,6 +447,7 @@ void P::PandoricaPrivate::play(PlaylistItem *playlistItem) {
     player->addSubtitles( { subtitle->link(subtitle, t, container).url(), lang, label} );
   }
   player->ended().connect([=](_n6){
+    wApp->setLoadingIndicator(new WDefaultLoadingIndicator());
     wApp->setTitle( wtr("site-title"));
     Dbo::Transaction t(*session);
     SessionInfoPtr sessionInfo = session->find<SessionInfo>().where("session_id = ?").bind(q->sessionId());

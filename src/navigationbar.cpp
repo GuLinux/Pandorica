@@ -182,7 +182,12 @@ void NavigationBarPrivate::setupNavigationBar(Dbo::Transaction& transaction,  WS
 //     });
 //   });
   
-  createItem(mainMenu, wtr("menu.mediaslist"), pagesMap[NavigationBar::MediaCollectionBrowser], onItemTriggered_noop, "menu-collection");
+  WMenuItem *galleryItem = createItem(mainMenu, wtr("menu.mediaslist"), pagesMap[NavigationBar::MediaCollectionBrowser], onItemTriggered_noop, "menu-collection");
+  galleryItem->setSelectable(true);
+  WMenu *gallerySubMenu = new WMenu;
+  gallerySubMenu->addItem("First Option");
+  gallerySubMenu->addItem("Second Option");
+  galleryItem->setMenu(gallerySubMenu);
   playerItem = createItem(mainMenu, wtr("menu.back.to.media"), pagesMap[NavigationBar::Player], onItemTriggered_noop, "menu-player");
   
   createItem(mainMenu, wtr("menu.latest.comments"), 0, [=](WMenuItem *item, _n5) {
