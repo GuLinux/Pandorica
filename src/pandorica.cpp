@@ -109,8 +109,8 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
   useStyleSheet(Settings::staticPath("/mediaelement/mediaelementplayer.min.css"));
   
   // Video.js
-  useStyleSheet("http://vjs.zencdn.net/4.1/video-js.css");
-  require("http://vjs.zencdn.net/4.1/video.js");
+  useStyleSheet(Settings::staticPath("/video-js/video-js.css"));
+  require(Settings::staticPath("/video-js/video.js"));
   setTheme(new WBootstrapTheme(this));
   try {
     d->session = new Session{true};
