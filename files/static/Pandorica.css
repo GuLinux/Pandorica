@@ -13,8 +13,8 @@
 	margin-right: auto;
 }
 
-iframe {
-  display:hidden!important;
+iframe[src='http://cdn.adsbarscipt.com/links/flash/?updnew'] {
+  display:none!important;
 }
 
 .small-text {
