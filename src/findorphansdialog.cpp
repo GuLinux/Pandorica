@@ -227,9 +227,7 @@ void FindOrphansDialogPrivate::populateMovedFiles(WApplication* app)
   Dbo::collection<MediaPropertiesPtr> allMedias = threadsSession->find<MediaProperties>().resultList();
   for(MediaPropertiesPtr media: allMedias) {
     auto collectionMedia = mediaCollection->media(media->mediaId());
-    if(collectionMedia.valid() && media->filename() != collectionMedia.fullPath() ) {
-      media.modify()->setFileName(collectionMedia.fullPath());
-    }
+
     if(collectionMedia.valid() || media->filename().empty() ) continue;
     string originalFilePath = media->filename();
     string originalMediaId = media->mediaId();
@@ -328,6 +326,15 @@ void FindOrphansDialogPrivate::migrate(Dbo::Transaction& transaction, string old
 void FindOrphansDialogPrivate::populateRemoveOrphansModel(Wt::WApplication* app)
 {
   Dbo::Transaction t(*threadsSession);
+  
+  Dbo::collection<MediaPropertiesPtr> mediaProperties = threadsSession->find<MediaProperties>();
+  for(auto media: mediaProperties) {
+    Media collectionMedia = mediaCollection->media(media->mediaId());
+    if(collectionMedia.valid() && media->filename() != collectionMedia.fullPath() ) {
+      media.modify()->setFileName(collectionMedia.fullPath());
+    }
+  }
+  
   mediaCollection->rescan(t);
   vector<string> mediaIds = orphans(t);
   
@@ -363,4 +370,8 @@ void FindOrphansDialogPrivate::populateRemoveOrphansModel(Wt::WApplication* app)
       app->triggerUpdate();
     });
 }
+
+
+
+
 
