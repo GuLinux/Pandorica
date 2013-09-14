@@ -38,48 +38,56 @@ using namespace PandoricaPrivate;
 
 namespace fs = boost::filesystem;
 
-MediaCollection::MediaCollection(Settings *settings, Session* session, WApplication* parent)
-: WObject(parent), d(new MediaCollectionPrivate(settings, session, parent))
+MediaCollection::MediaCollection( Settings *settings, Session *session, WApplication *parent )
+  : WObject( parent ), d( new MediaCollectionPrivate( settings, session, parent ) )
 {
-  setUserId(session->user().id());
+  setUserId( session->user().id() );
 }
 
-void MediaCollection::rescan(Dbo::Transaction &transaction)
+void MediaCollection::rescan( Dbo::Transaction &transaction )
 {
-  WServer::instance()->post(d->app->sessionId(), [=] {
+  log("notice") << __PRETTY_FUNCTION__ ;
+    WServer::instance()->post( d->app->sessionId(), [ = ]
+  {
     d->loadingIndicator = new WOverlayLoadingIndicator();
-    wApp->root()->addWidget(d->loadingIndicator->widget());
+    wApp->root()->addWidget( d->loadingIndicator->widget() );
     d->loadingIndicator->widget()->show();
     wApp->triggerUpdate();
-  });
-  UserPtr user = transaction.session().find<User>().where("id = ?").bind(d->userId);
+  } );
+  UserPtr user = transaction.session().find<User>().where( "id = ?" ).bind( d->userId );
   d->allowedPaths = user->allowedPaths();
   d->collection.clear();
-  for(fs::path p: d->settings->mediasDirectories(&transaction.session()))
-    d->listDirectory(p);
-  WServer::instance()->post(d->app->sessionId(), [=] {
+
+  for( fs::path p : d->settings->mediasDirectories( &transaction.session() ) )
+    d->listDirectory( p );
+  size_t size = d->collection.size();
+  log("notice") << __PRETTY_FUNCTION__ << ": found " << d->collection.size() << " media files.";
+    WServer::instance()->post( d->app->sessionId(), [ = ]
+  {
     d->scanned.emit();
     d->loadingIndicator->widget()->hide();
     wApp->triggerUpdate();
     delete d->loadingIndicator;
-  });
+  } );
 }
 
-bool MediaCollectionPrivate::isAllowed(filesystem::path path)
+bool MediaCollectionPrivate::isAllowed( filesystem::path path )
 {
-    for(string p: allowedPaths) {
-        if(path.string().find(p) != string::npos)
-            return true;
-    }
-    return false;
+  for( string p : allowedPaths )
+  {
+    if( path.string().find( p ) != string::npos )
+      return true;
+  }
+
+  return false;
 }
 
-bool MediaCollection::isAllowed(const filesystem::path& path) const
+bool MediaCollection::isAllowed( const filesystem::path &path ) const
 {
-  return d->isAllowed(path);
+  return d->isAllowed( path );
 }
 
-void MediaCollection::setUserId(long long int userId)
+void MediaCollection::setUserId( long long int userId )
 {
   d->userId = userId;
 }
@@ -90,64 +98,82 @@ long long MediaCollection::viewingAs() const
 }
 
 
-Media resolveMedia(fs::path path) {
-  while(fs::is_symlink(path)) {
-    path = fs::read_symlink(path);
+Media resolveMedia( fs::path path )
+{
+  while( fs::is_symlink( path ) )
+  {
+    path = fs::read_symlink( path );
   }
-  if(fs::is_regular_file(path))
-    return Media{path};
+
+  if( fs::is_regular_file( path ) )
+    return Media {path};
+
   return Media::invalid();
 }
 
-void MediaCollectionPrivate::listDirectory(filesystem::path path)
+void MediaCollectionPrivate::listDirectory( filesystem::path path )
 {
-    vector<fs::directory_entry> v;
-    try {
-      copy(fs::recursive_directory_iterator(path, fs::symlink_option::recurse), fs::recursive_directory_iterator(), back_inserter(v));
-        sort(v.begin(), v.end());
-        for(fs::directory_entry entry: v) {
-          Media media = resolveMedia(entry.path());
-          if( media.valid() && isAllowed(entry.path())) {
-            Media media{entry.path()};
-            collection[media.uid()] = media;
-          }
-        }
-    } catch(std::exception &e) {
-        log("error") << "Error trying to add path " << path << ": " << e.what();
+  vector<fs::directory_entry> v;
+
+  try
+  {
+    copy( fs::recursive_directory_iterator( path, fs::symlink_option::recurse ), fs::recursive_directory_iterator(), back_inserter( v ) );
+    sort( v.begin(), v.end() );
+
+    for( fs::directory_entry entry : v )
+    {
+      Media media = resolveMedia( entry.path() );
+
+      if( media.valid() && isAllowed( entry.path() ) )
+      {
+        Media media {entry.path()};
+        collection[media.uid()] = media;
+      }
     }
+  }
+  catch
+    ( std::exception &e )
+  {
+    log( "error" ) << "Error trying to add path " << path << ": " << e.what();
+  }
 }
 
 map< string, Media > MediaCollection::collection() const
 {
-    return d->collection;
+  return d->collection;
 }
 
-Media MediaCollection::media(string uid) const
+Media MediaCollection::media( string uid ) const
 {
-  if(d->collection.count(uid)>0)
+  if( d->collection.count( uid ) > 0 )
     return d->collection[uid];
+
   return {};
 }
 
-Signal<>& MediaCollection::scanned()
+Signal<> &MediaCollection::scanned()
 {
-    return d->scanned;
+  return d->scanned;
 }
 
 vector< Media > MediaCollection::sortedMediasList() const
 {
   vector<Media> medias;
-  transform(d->collection.begin(), d->collection.end(),
-            back_insert_iterator<vector<Media>>(medias), [](pair<string,Media> mediaElement) {
-              return mediaElement.second;
-            });
-  sort(medias.begin(), medias.end(), [](const Media &first, const Media &second) { return lexicographical_compare(first.fullPath(), second.fullPath(), is_iless()); });
+  transform( d->collection.begin(), d->collection.end(),
+             back_insert_iterator<vector<Media>>( medias ), []( pair<string, Media> mediaElement )
+  {
+    return mediaElement.second;
+  } );
+  sort( medias.begin(), medias.end(), []( const Media & first, const Media & second )
+  {
+    return lexicographical_compare( first.fullPath(), second.fullPath(), is_iless() );
+  } );
   return medias;
 }
 
 
 MediaCollection::~MediaCollection()
 {
-    delete d;
+  delete d;
 }
 

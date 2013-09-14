@@ -77,6 +77,8 @@ namespace PandoricaPrivate {
     Wt::WContainerWidget *movedOrphansContainer;
     Wt::WProgressBar *migrationProgress;
     Settings* settings;
+    
+    void fixFilePaths();
 
     void nextButtonClicked();
     void migrate(Wt::Dbo::Transaction &transaction, std::string oldMediaId, std::string newMediaId);

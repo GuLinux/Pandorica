@@ -224,6 +224,7 @@ void NavigationBarPrivate::setupAdminBar(Dbo::Transaction& transaction)
   // Popover if Media Collection is empty
   adminMenuItem->setAttributeValue("data-toggle", "popover");
   mediaCollection->scanned().connect([=](_n6) {
+    log("notice") << "Media collection scanned: size=" << mediaCollection->collection().size();
     if(!mediaCollection->collection().empty()) return;
     adminMenuItem->doJavaScript((boost::format(JS(
       $('#%s').popover({placement: 'bottom', trigger: 'manual', html: true, title: %s, content: %s});
