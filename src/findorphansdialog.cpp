@@ -326,7 +326,9 @@ void FindOrphansDialogPrivate::migrate(Dbo::Transaction& transaction, string old
 void FindOrphansDialogPrivate::populateRemoveOrphansModel(Wt::WApplication* app)
 {
   Dbo::Transaction t(*threadsSession);
+  mediaCollection->rescan(t);
   {
+    log("notice") << "Fixing file paths in MediaProperties table";
     Dbo::collection<MediaPropertiesPtr> mediaProperties = threadsSession->find<MediaProperties>();
     for(auto media: mediaProperties) {
       Media collectionMedia = mediaCollection->media(media->mediaId());
@@ -335,7 +337,6 @@ void FindOrphansDialogPrivate::populateRemoveOrphansModel(Wt::WApplication* app)
       }
     }
   }
-  mediaCollection->rescan(t);
   vector<string> mediaIds = orphans(t);
   
   for(string mediaId: mediaIds) {
