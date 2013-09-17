@@ -3,15 +3,17 @@ set(app_name Pandorica)
 project(${app_name})
 add_definitions(-std=gnu++11 -DWT_NO_SLOT_MACROS)
 find_package(Wt REQUIRED)
-execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_magick_cmake_conf ${CMAKE_CURRENT_BINARY_DIR}/imagemagick.cmake )
 INCLUDE (CheckIncludeFiles)
-include(${CMAKE_CURRENT_BINARY_DIR}/imagemagick.cmake)
 include(FindPackageHandleStandardArgs)
 FIND_PACKAGE(Qt4 )
 
 add_definitions(-DBOOST_SIGNALS_NO_DEPRECATION_WARNING)
 
-include_directories(${Wt_INCLUDE_DIR} ${QT_INCLUDE_DIR} ${CMAKE_SOURCE_DIR} ${MAGICK_INCLUDES} src )
+include(FindPkgConfig)
+message("PKGConfig Executable: ${PKG_CONFIG_EXECUTABLE}")
+pkg_check_modules(GRAPHICSMAGICK GraphicsMagick++ REQUIRED)
+
+include_directories(${Wt_INCLUDE_DIR} ${QT_INCLUDE_DIR} ${CMAKE_SOURCE_DIR} ${GRAPHICSMAGICK_INCLUDE_DIRS} src )
 
 find_path(HAVE_DBO_SQLITE3 Wt/Dbo/backend/Sqlite3)
 find_path(HAVE_DBO_MYSQL Wt/Dbo/backend/MySQL)

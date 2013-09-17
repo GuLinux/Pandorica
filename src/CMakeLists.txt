@@ -13,9 +13,9 @@ SET( player_srcs serversettingspage.cpp Models/setting.cpp selectdirectories.cpp
     player/mediaelementjs.cpp
     player/purehtml5js.cpp
 )
-include(FindPkgConfig)
-find_package(Boost REQUIRED COMPONENTS signals system filesystem thread regex program_options )
+find_package(Boost REQUIRED COMPONENTS signals system filesystem thread${BOOST_THREAD_LIBRARY_SUFFIX} regex program_options )
 
+include(FindPkgConfig)
 message("PKGConfig Executable: ${PKG_CONFIG_EXECUTABLE}")
 # TODO : difficult to find on windows 32. Remove,  or implement alternatives (standalone ffmpeg binary? )
 pkg_check_modules(FFMPEG_THUMBNAILER libffmpegthumbnailer)
@@ -74,5 +74,5 @@ else("${build_type}" STREQUAL "xdebug")
 endif("${build_type}" STREQUAL "xdebug")
 
 target_link_libraries(${app_name} ${QT_QTCORE_LIBRARY} ${QT_QTNETWORK_LIBRARY} ${QT_QTGUI_LIBRARY} 
-  ${AVFORMAT_LIBRARIES} ${AVCODEC_LIBRARIES} ${AVUTIL_LIBRARIES} ${FFMPEG_THUMBNAILER_LIBRARIES} ${Boost_LIBRARIES} ${WT_LINK_LIBS} ${MAGICK_LIBS})
+  ${AVFORMAT_LIBRARIES} ${AVCODEC_LIBRARIES} ${AVUTIL_LIBRARIES} ${FFMPEG_THUMBNAILER_LIBRARIES} ${Boost_LIBRARIES} ${WT_LINK_LIBS} ${GRAPHICSMAGICK_LIBRARIES})
 install(TARGETS ${app_name} RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
