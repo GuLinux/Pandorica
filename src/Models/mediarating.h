@@ -29,7 +29,7 @@ class Media;
 class User;
 
 struct Ratings {
-  long users;
+  int64_t users;
   int ratingAverage;
 };
 

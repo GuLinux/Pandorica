@@ -44,8 +44,8 @@ typedef std::function<void(Wt::Dbo::Transaction &)> MigrateF;
 
 namespace PandoricaPrivate {
   struct DataSummary {
-    uint mediasCount = 0;
-    uint attachmentsCount = 0;
+    uint32_t mediasCount = 0;
+    uint32_t attachmentsCount = 0;
     uint64_t bytes = 0;
   };
   

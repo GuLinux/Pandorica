@@ -1,4 +1,4 @@
-build
+build*
 webroot/uploads
 *-swp
 *.kdev*

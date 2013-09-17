@@ -13,7 +13,25 @@ SET( player_srcs serversettingspage.cpp Models/setting.cpp selectdirectories.cpp
     player/mediaelementjs.cpp
     player/purehtml5js.cpp
 )
+include(FindPkgConfig)
+find_package(Boost REQUIRED COMPONENTS signals system filesystem thread regex program_options )
 
+message("PKGConfig Executable: ${PKG_CONFIG_EXECUTABLE}")
+# TODO : difficult to find on windows 32. Remove,  or implement alternatives (standalone ffmpeg binary? )
+pkg_check_modules(FFMPEG_THUMBNAILER libffmpegthumbnailer)
+pkg_check_modules(AVUTIL libavutil)
+pkg_check_modules(AVFORMAT libavformat)
+pkg_check_modules(AVCODEC libavcodec)
+
+if(FFMPEG_THUMBNAILER_FOUND)
+  add_definitions(-DFFMPEG_THUMBNAILER_FOUND)
+  include_directories(${FFMPEG_THUMBNAILER_INCLUDE_DIRS})
+endif(FFMPEG_THUMBNAILER_FOUND)
+if(AVUTIL_FOUND AND AVFORMAT_FOUND AND AVCODEC_FOUND)
+  add_definitions(-DFFMPEG_FOUND)
+  include_directories(${AVUTIL_INCLUDE_DIRS} ${AVFORMAT_INCLUDE_DIRS} ${AVCODEC_INCLUDE_DIRS})
+  set(ffmpeg_media_class ffmpegmedia.cpp)
+endif(AVUTIL_FOUND AND AVFORMAT_FOUND AND AVCODEC_FOUND)
 
 if(${QT_FOUND})
   message("Qt4 headers found: compiling with system tray icon support")
@@ -26,7 +44,7 @@ add_executable(${app_name} ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs
   ${qt_only_classes}
     authpage.cpp
     utils.cpp
-    ffmpegmedia.cpp
+    ${ffmpeg_media_class}
     latestcommentsdialog.cpp
     groupsdialog.cpp
     settingspage.cpp
@@ -55,15 +73,6 @@ else("${build_type}" STREQUAL "xdebug")
   set(WT_LINK_LIBS ${Wt_LIBRARY} ${Wt_DBO_LIBRARY} ${Wt_DBOPOSTGRES_LIBRARY} ${Wt_DBOMYSQL_LIBRARY} ${Wt_DBOSQLITE3_LIBRARY} ${Wt_CONNECTOR_LIBRARY})
 endif("${build_type}" STREQUAL "xdebug")
 
-SET(BOOST_LIBS 
--lboost_signals
--lboost_system
--lboost_filesystem
--lboost_thread
--lboost_regex
--lboost_program_options
-)
-
 target_link_libraries(${app_name} ${QT_QTCORE_LIBRARY} ${QT_QTNETWORK_LIBRARY} ${QT_QTGUI_LIBRARY} 
-  -lavformat -lavcodec -lavutil -lffmpegthumbnailer ${BOOST_LIBS} ${WT_LINK_LIBS} ${MAGICK_LIBS})
+  ${AVFORMAT_LIBRARIES} ${AVCODEC_LIBRARIES} ${AVUTIL_LIBRARIES} ${FFMPEG_THUMBNAILER_LIBRARIES} ${Boost_LIBRARIES} ${WT_LINK_LIBS} ${MAGICK_LIBS})
 install(TARGETS ${app_name} RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)

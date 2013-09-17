@@ -78,7 +78,7 @@ public:
     Settings* settings;
     Wt::WApplication* app;
     void thumbnailFor(int size, int quality = 8);
-    Magick::Blob resize(Magick::Blob blob, uint size, uint quality = 75);
+    Magick::Blob resize(Magick::Blob blob, uint32_t size, uint32_t quality = 75);
     Magick::Blob fullImage;
     
     void addImageChooser(Wt::WContainerWidget* container);

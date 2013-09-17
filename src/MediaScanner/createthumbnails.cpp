@@ -35,10 +35,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <player/html5player.h>
 #include <settings.h>
 #include <boost/format.hpp>
-
-#include <libffmpegthumbnailer/videothumbnailer.h>
+#ifdef FFMPEG_THUMBNAILER_FOUND
 #include <libffmpegthumbnailer/videothumbnailerc.h>
 #include <libffmpegthumbnailer/imagetypes.h>
+#endif
 #include <chrono>
 #include <random>
 #include <thread>
@@ -58,7 +58,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using namespace Wt;
 using namespace std;
 using namespace std::chrono;
-using namespace ffmpegthumbnailer;
 using namespace Magick;
 using namespace WtCommons;
 
@@ -223,7 +222,7 @@ void CreateThumbnailsPrivate::chooseRandomFrame(WContainerWidget* container)
   });
 }
 
-Magick::Blob PandoricaPrivate::CreateThumbnailsPrivate::resize(Blob blob, uint size, uint quality)
+Magick::Blob PandoricaPrivate::CreateThumbnailsPrivate::resize(Blob blob, uint32_t size, uint32_t quality)
 {
   Magick::Image image{blob};
   Blob output;
@@ -300,6 +299,8 @@ void CreateThumbnails::save(Dbo::Transaction* transaction)
 
 void CreateThumbnailsPrivate::thumbnailFor(int size, int quality)
 {
+  // TODO: find placeholder, or alternative, for win32
+#ifdef FFMPEG_THUMBNAILER_FOUND
   video_thumbnailer *thumbnailer = video_thumbnailer_create();
   thumbnailer->overlay_film_strip = currentMedia.mimetype().find("video") == string::npos ? 0 : 1;
   
@@ -314,8 +315,9 @@ void CreateThumbnailsPrivate::thumbnailFor(int size, int quality)
   thumbnailer->thumbnail_image_quality = quality;
   thumbnailer->thumbnail_size = size;
   video_thumbnailer_generate_thumbnail_to_buffer(thumbnailer, currentMedia.fullPath().c_str(), imageData);
-  fullImage = {imageData->image_data_ptr, (uint) imageData->image_data_size};
+  fullImage = {imageData->image_data_ptr, (uint32_t) imageData->image_data_size};
 //   vector<uint8_t> data{imageData->image_data_ptr, imageData->image_data_ptr + imageData->image_data_size};
   video_thumbnailer_destroy_image_data(imageData);
   video_thumbnailer_destroy(thumbnailer);
+#endif
 }

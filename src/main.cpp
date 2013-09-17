@@ -31,8 +31,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WServer>
 #include <Wt/WFileResource>
 #include <boost/thread.hpp>
-#include <thread>
-#include <chrono>
+#include <boost/thread.hpp>
+#include <boost/chrono.hpp>
 #include <Magick++.h>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -68,11 +68,12 @@ WApplication *createApplication( const WEnvironment &env )
   return app;
 }
 
+#ifdef FFMPEG_FOUND
 extern "C" {
 #include <libavcodec/avcodec.h>    // required headers
 #include <libavformat/avformat.h>
 }
-
+#endif
 void expireStaleSessions()
 {
   try
@@ -272,7 +273,9 @@ int main( int argc, char **argv, char **envp )
 {
   try
   {
+#ifdef FFMPEG_FOUND
     av_register_all();
+#endif
     Magick::InitializeMagick( *argv );
     WServer server( argv[0] );
     po::variables_map vm;
@@ -303,13 +306,13 @@ int main( int argc, char **argv, char **envp )
 
     boost::thread t( [&server]
     {
-      std::this_thread::sleep_for( std::chrono::milliseconds{30000} );
+      boost::this_thread::sleep_for( boost::chrono::milliseconds{30000} );
 
       while( server.isRunning() )
       {
         server.expireSessions()
         ;
-        std::this_thread::sleep_for( std::chrono::milliseconds {30000} );
+        boost::this_thread::sleep_for( boost::chrono::milliseconds {30000} );
       }
     } );
 

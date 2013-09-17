@@ -47,7 +47,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WIOService>
 #include <boost/format.hpp>
 #include <boost/algorithm/string/regex.hpp>
-#include <thread>
+#include <boost/thread.hpp>
+#include <boost/chrono.hpp>
 #include "Models/models.h"
 #include "settings.h"
 
@@ -342,7 +343,7 @@ void FindOrphansDialogPrivate::populateMovedFiles( WApplication *app )
   }
 
   while( migrations.size() != migrationsFound )
-    this_thread::sleep_for( chrono::milliseconds( 100 ) );
+    boost::this_thread::sleep_for( boost::chrono::milliseconds( 100 ) );
 
   bool skipToRemoveOrphans = migrations.empty();
   WServer::instance()->post( app->sessionId(), [ = ]

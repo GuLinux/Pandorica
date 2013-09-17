@@ -36,7 +36,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/Dbo/backend/Postgres>
 #include <Wt/WGroupBox>
 #include <Wt/WIOService>
-#include <thread>
+#include <boost/thread.hpp>
+#include <boost/chrono.hpp>
 
 using namespace Wt;
 using namespace std;
@@ -165,7 +166,7 @@ void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, function<void(
     });
       runStepsFor(media, app, session);
   }
-  this_thread::sleep_for(chrono::milliseconds{500});
+  boost::this_thread::sleep_for(boost::chrono::milliseconds{500});
   guiRun(app, [=] { updateGuiProgress(); onScanFinish(); });
 }
 
@@ -201,7 +202,7 @@ void MediaScannerDialogPrivate::runStepsFor(Media media, WApplication* app, Sess
       wApp->triggerUpdate();
     });
     if(!canContinue && !canceled && !skipped)
-      this_thread::sleep_for(chrono::milliseconds{50});
+      boost::this_thread::sleep_for(boost::chrono::milliseconds{50});
   }
   if(canceled)
     return;
