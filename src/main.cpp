@@ -144,7 +144,19 @@ bool checkForWrongOptions( bool errorCondition, string errorMessage )
 
 bool initServer( int argc, char **argv, WServer &server, po::variables_map &vm )
 {
-  string configDirectory = string {getenv( "HOME" )} + "/.config/Pandorica";
+  string homeVariablename = 
+#ifdef WIN32
+"USERPROFILE"
+#else
+"HOME"
+#endif
+;
+  char *homeDirectory = getenv(homeVariablename.c_str());
+  if(!homeDirectory) {
+    cerr << homeVariablename << " variable not found; exiting" << endl;
+    throw runtime_error("Home not found");
+  }
+  string configDirectory = string{homeDirectory} + "/.config/Pandorica";
 
   try
   {
@@ -177,14 +189,17 @@ bool initServer( int argc, char **argv, WServer &server, po::variables_map &vm )
   ;
   po::options_description pandorica_managed_options( "Managed Mode Options" );
   pandorica_managed_options.add_options()
-  ( "static-deploy-path", po::value<string>(), "Path in your web server pointing to Pandorica static files directory (" SHARED_FILES_DIR "/static)" )
+  ( "static-deploy-path", po::value<string>(), (string{"Path in your web server pointing to Pandorica static files directory ("} + Settings::sharedFilesDir("/static") + ")" ).c_str() )
   ;
 
   pandorica_visible_options.add( pandorica_general_options ).add( pandorica_db_options ).add( pandorica_managed_options );
   po::options_description pandorica_invisible_options;
   pandorica_invisible_options.add_options()
+#ifndef WIN32
   ( "docroot", po::value<string>()->default_value( "/usr/share/Wt" ) );
-
+#else
+  ( "docroot", po::value<string>()->default_value( boost::filesystem::path( boost::filesystem::current_path() ).string() ) );
+#endif
   po::options_description pandorica_all_options;
   pandorica_all_options.add( pandorica_visible_options ).add( pandorica_invisible_options );
 
@@ -237,8 +252,7 @@ bool initServer( int argc, char **argv, WServer &server, po::variables_map &vm )
 bool addStaticResources( WServer &server )
 {
   CompositeResource *staticResources = new CompositeResource();
-  string staticDirectory {SHARED_FILES_DIR "/static"};
-
+  string staticDirectory = Settings::sharedFilesDir("/static");
   if( !filesystem::is_directory( staticDirectory ) )
   {
     std::cerr << "Error! Shared files directory " << staticDirectory << " doesn't exist. Perhaps you didn't install Pandorica correctly?\n";
@@ -298,7 +312,6 @@ int main( int argc, char **argv, char **envp )
     server.addResource( ( new QuitResource {quitPassword} ), "/force-quit" );
     server.addResource( ( new QuitResource {quitPassword} )->setRestart( argc, argv, envp ), "/force-restart" );
 
-
     if( optionValue<string>( vm, "server-mode" ) == "standalone" && ! addStaticResources( server ) )
     {
       return 1;
@@ -336,13 +349,16 @@ int main( int argc, char **argv, char **envp )
     expireStaleSessions();
 
 #ifdef HAVE_QT
+#ifndef WIN32
     string display = getenv( "DISPLAY" ) ? string {getenv( "DISPLAY" )} :
                      string {};
-
-    if( display.empty() )
+    bool haveDisplay = !display.empty();
+    if( !haveDisplay )
       cerr << "Found no X11 display available, running without Qt Tray Icon\n";
-
-    if( ! vm.count( "disable-tray" ) && !display.empty() )
+#else
+    bool haveDisplay = true;
+#endif
+    if( ! vm.count( "disable-tray" ) && haveDisplay )
     {
       QApplication app( argc, argv );
       QtTrayIcon icon( server );
@@ -351,7 +367,6 @@ int main( int argc, char **argv, char **envp )
     }
 
 #endif
-
     if( server.start() )
     {
       WServer::waitForShutdown();

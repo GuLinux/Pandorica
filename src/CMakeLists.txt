@@ -13,7 +13,7 @@ SET( player_srcs serversettingspage.cpp Models/setting.cpp selectdirectories.cpp
     player/mediaelementjs.cpp
     player/purehtml5js.cpp
 )
-find_package(Boost REQUIRED COMPONENTS signals system filesystem thread${BOOST_THREAD_LIBRARY_SUFFIX} regex program_options )
+find_package(Boost REQUIRED COMPONENTS signals system filesystem thread${BOOST_THREAD_LIBRARY_SUFFIX} regex program_options random date_time )
 
 include(FindPkgConfig)
 message("PKGConfig Executable: ${PKG_CONFIG_EXECUTABLE}")
@@ -72,7 +72,22 @@ else("${build_type}" STREQUAL "xdebug")
   message("Linking to WT Release Libraries")
   set(WT_LINK_LIBS ${Wt_LIBRARY} ${Wt_DBO_LIBRARY} ${Wt_DBOPOSTGRES_LIBRARY} ${Wt_DBOMYSQL_LIBRARY} ${Wt_DBOSQLITE3_LIBRARY} ${Wt_CONNECTOR_LIBRARY})
 endif("${build_type}" STREQUAL "xdebug")
+if(WIN32)
+  # TODO: there has to be a better way to do all this, even on this infernal operating system...
+  pkg_check_modules(SQLITE3 sqlite3)
+  pkg_check_modules(PNG libpng)
+  pkg_check_modules(TIFF libtiff-4)
+  pkg_check_modules(ZLIB zlib)
+  pkg_check_modules(XML libxml-2.0)
+  pkg_check_modules(QTGUI QtGui)
+  message("QtGui libs: ${QTGUI_LIBRARIES}, LDFLAGS: ${QTDGUI_LDFLAGS_OTHER}")
+  set(WIN32_LIBS -lwsock32 -lws2_32 -lssp -lwinpthread -lgomp -lfreetype ${ZLIB_LIBRARIES} ${XML_LIBRARIES} -ljpeg -llcms2 ${SQLITE3_LIBRARIES} ${PNG_LIBRARIES} ${TIFF_LIBRARIES})
+  if(${DBO_POSTGRES_FOUND} AND NOT (${DISABLE_POSTGRESQL}) )
+    set(WIN32_LIBS ${WIN32_LIBS} -lpq)
+  endif(${DBO_POSTGRES_FOUND} AND NOT (${DISABLE_POSTGRESQL}) ) 
+
+endif(WIN32)
 
 target_link_libraries(${app_name} ${QT_QTCORE_LIBRARY} ${QT_QTNETWORK_LIBRARY} ${QT_QTGUI_LIBRARY} 
-  ${AVFORMAT_LIBRARIES} ${AVCODEC_LIBRARIES} ${AVUTIL_LIBRARIES} ${FFMPEG_THUMBNAILER_LIBRARIES} ${Boost_LIBRARIES} ${WT_LINK_LIBS} ${GRAPHICSMAGICK_LIBRARIES})
+  ${AVFORMAT_LIBRARIES} ${AVCODEC_LIBRARIES} ${AVUTIL_LIBRARIES} ${FFMPEG_THUMBNAILER_LIBRARIES} ${WT_LINK_LIBS} ${Boost_LIBRARIES} ${GRAPHICSMAGICK_LIBRARIES} ${WIN32_LIBS} )
 install(TARGETS ${app_name} RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)

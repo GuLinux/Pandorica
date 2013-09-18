@@ -52,7 +52,7 @@ namespace PandoricaPrivate {
     Wt::WAnimation get();
   };
 }
-
+const std::string PATH_SEP();
 class Settings
 {
 public:
@@ -76,6 +76,7 @@ public:
     enum DeployType { Internal, Static, LighttpdSecureDownload, NginxSecureLink, Undefined = 0xFF };
     static std::string icon(Icons icon);
     static std::string staticPath(const std::string &relativeUrl);
+    static std::string sharedFilesDir(std::string append = std::string{});
     static std::string staticDeployPath();
     std::string relativePath(std::string mediaPath, Wt::Dbo::Session *session, bool removeTrailingSlash = false) const;
     static void init(boost::program_options::variables_map commandLineOptions);

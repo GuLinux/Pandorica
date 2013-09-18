@@ -148,7 +148,7 @@ WInteractWidget* Utils::help(string titleKey, string contentKey, string side, WL
 
 std::string Utils::titleHintFromFilename(std::string filename)
 {
-  for(FindAndReplace hint: FindAndReplace::from(SHARED_FILES_DIR "/title_from_filename_replacements.json")) {
+  for(FindAndReplace hint: FindAndReplace::from(Settings::sharedFilesDir("/title_from_filename_replacements.json"))) {
     try {
       filename = boost::regex_replace(filename, boost::regex{hint.regexToFind, boost::regex::icase}, hint.replacement);
     } catch(runtime_error e) {

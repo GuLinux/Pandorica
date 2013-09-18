@@ -12,6 +12,9 @@ add_definitions(-DBOOST_SIGNALS_NO_DEPRECATION_WARNING)
 include(FindPkgConfig)
 message("PKGConfig Executable: ${PKG_CONFIG_EXECUTABLE}")
 pkg_check_modules(GRAPHICSMAGICK GraphicsMagick++ REQUIRED)
+add_definitions(${GRAPHICSMAGICK_CFLAGS})
+#add_definitions(-fno-stack-protector )
+add_definitions(-fstack-protector-all)
 
 include_directories(${Wt_INCLUDE_DIR} ${QT_INCLUDE_DIR} ${CMAKE_SOURCE_DIR} ${GRAPHICSMAGICK_INCLUDE_DIRS} src )
 

@@ -121,11 +121,11 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
   
   enableUpdates(true);
   WMessageResourceBundle *xmlResourcesBundle = new WMessageResourceBundle;
-  xmlResourcesBundle->use(SHARED_FILES_DIR "/strings");
+  xmlResourcesBundle->use(Settings::sharedFilesDir("/strings"));
   setLocale(d->settings.locale());
   WCombinedLocalizedStrings* combinedLocalizedStrings = new WCombinedLocalizedStrings();
   combinedLocalizedStrings->add(xmlResourcesBundle);
-  combinedLocalizedStrings->add(new WHTMLTemplatesLocalizedStrings(SHARED_FILES_DIR "/html_templates"));
+  combinedLocalizedStrings->add(new WHTMLTemplatesLocalizedStrings(Settings::sharedFilesDir(PATH_SEP() + "html_templates")));
   setLocalizedStrings(combinedLocalizedStrings);
   setTitle(wtr("site-title"));
 

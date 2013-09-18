@@ -94,7 +94,6 @@ Session::Session(bool full)
   d->createConnection();
   d->connection->setProperty("show-queries", "false");
   setConnection(*d->connection);
-
   mapClass<User>("user");
   mapClass<Group>("group");
   mapClass<GroupPath>("group_path");
@@ -110,6 +109,7 @@ Session::Session(bool full)
   mapClass<Setting>("settings");
   if(!full)
     return;
+   
 /*
   try {
     createTables();
@@ -184,6 +184,9 @@ void SessionPrivate::createConnection()
     return;
   }
 #endif
+  string sqlite3DatabasePath = Settings::sqlite3DatabasePath();
+  WServer::instance()->log("notice") << "Using sqlite connection: " << sqlite3DatabasePath;
+  
   connection = new dbo::backend::Sqlite3(Settings::sqlite3DatabasePath());
 }
 

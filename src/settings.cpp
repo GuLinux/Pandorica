@@ -64,6 +64,16 @@ vector< string > Settings::mediasDirectories(Dbo::Session *session) const
   return d->mediaDirectories;
 }
 
+const string PATH_SEP()
+{
+#ifdef WIN32
+  return "\\";
+#else
+  return "/";
+#endif
+}
+
+
 void Settings::addMediaDirectory(string directory, Dbo::Session* session)
 {
   d->mediaDirectories.push_back(directory);
@@ -80,6 +90,14 @@ void Settings::removeMediaDirectory(string directory, Dbo::Session* session)
   t.commit();
 }
 
+string Settings::sharedFilesDir(std::string append)
+{
+#ifdef WIN32
+  return boost::filesystem::path( boost::filesystem::current_path() ).string() + append;
+#else
+  return string{SHARED_FILES_DIR} + append;
+#endif
+}
 
 
 string Settings::relativePath(string mediaPath, Dbo::Session* session, bool removeTrailingSlash) const
