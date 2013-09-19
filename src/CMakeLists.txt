@@ -33,12 +33,12 @@ if(AVUTIL_FOUND AND AVFORMAT_FOUND AND AVCODEC_FOUND)
   set(ffmpeg_media_class ffmpegmedia.cpp)
 endif(AVUTIL_FOUND AND AVFORMAT_FOUND AND AVCODEC_FOUND)
 
-if(${QT_FOUND})
+if(QT_FOUND AND NOT DISABLE_QT)
   message("Qt4 headers found: compiling with system tray icon support")
   add_definitions(-DHAVE_QT)
   QT4_WRAP_CPP(Pandorica_HEADERS_MOC qttrayicon.h)
   set(qt_only_classes qttrayicon.cpp ${Pandorica_HEADERS_MOC})
-endif(${QT_FOUND})
+endif(QT_FOUND AND NOT DISABLE_QT)
 
 add_executable(${app_name} ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs} ${player_srcs} 
   ${qt_only_classes}

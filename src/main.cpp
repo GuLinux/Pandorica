@@ -268,6 +268,7 @@ bool addStaticResources( WServer &server )
       string filePath {it->path().string()};
       string fileUrl {filePath};
       replace_first( fileUrl, staticDirectory, "" );
+      replace_all(fileUrl, "\\", "/");
       auto resource = new WFileResource {filePath, staticResources};
 
       if( !extensionsMimetypes[it->path().extension().string()].empty() )
