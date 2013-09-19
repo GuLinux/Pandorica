@@ -53,4 +53,5 @@ if(${QT_FOUND})
   INSTALL(DIRECTORY files/desktop-files/hicolor DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons )
 endif(${QT_FOUND})
 
+add_subdirectory(files/icons/)
 add_subdirectory(src)
