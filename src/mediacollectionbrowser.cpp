@@ -319,6 +319,7 @@ void DirectoryCollectionPath::render(OnDirectoryAdded directoryAdded, OnMediaAdd
     if(m.second.filename().empty() || m.second.fullPath().empty()) continue;
     
     fs::path directory = m.second.parentDirectory();
+    // TODO Better root directory check (incompatible with windows)
     while(/*directory != collection->rootPath() && */!belongsToCurrent(directory) && directory != filesystem::path("/")) {
       directory = directory.parent_path();
     }
@@ -331,6 +332,7 @@ void DirectoryCollectionPath::render(OnDirectoryAdded directoryAdded, OnMediaAdd
   for(fs::path directory: directories) {
     directoryAdded(directory.string(), new DirectoryCollectionPath{directory, mediaCollection, this});
   }
+  
   for(Media media: medias) mediaAdded(media);
 }
 
