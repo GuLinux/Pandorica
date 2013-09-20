@@ -179,11 +179,7 @@ void SelectDirectoriesPrivate::addSubItems(WStandardItem* item, bool sync)
       for_each(paths.begin(), paths.end(), [=](fs::path p) {
         log("notice") << "Adding subpath " << p.string() << " to path " << path.string();
         if(items.count(p) >0) return;
-        try {
-          item->appendRow( buildStandardItem(p, false) );
-        } catch(std::exception &e) {
-          log("warning") << "Error adding subItem " << p.filename() << ": " << e.what();
-        }
+        item->appendRow( buildStandardItem(p, false) );
       });
     };
     if(sync) {
