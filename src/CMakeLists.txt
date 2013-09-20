@@ -61,6 +61,7 @@ add_executable(${app_name} ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs
     pandorica.cpp
     navigationbar.cpp 
     main.cpp
+    ${PANDORICA_ICON_OBJECT}
 )
 
 
