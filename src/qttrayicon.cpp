@@ -75,7 +75,14 @@ QString QtTrayIcon::httpAddress() const
 
 void QtTrayIcon::openInBrowser()
 {
-  QProcess::execute("xdg-open", {httpAddress()});
+  QProcess::execute(
+#ifdef WIN32
+    "start"
+#else
+    "xdg-open"
+#endif
+    
+    , {httpAddress()});
 }
 
 

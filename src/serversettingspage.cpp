@@ -55,7 +55,6 @@ namespace fs = boost::filesystem;
 ServerSettingsPagePrivate::ServerSettingsPagePrivate(Settings* settings, Session* session, MediaCollection *mediaCollection, ServerSettingsPage* q)
   : settings(settings), session(session), mediaCollection(mediaCollection), q(q)
 {
-
 }
 
 ServerSettingsPagePrivate::~ServerSettingsPagePrivate()
