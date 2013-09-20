@@ -34,13 +34,17 @@ if(AVUTIL_FOUND AND AVFORMAT_FOUND AND AVCODEC_FOUND)
 endif(AVUTIL_FOUND AND AVFORMAT_FOUND AND AVCODEC_FOUND)
 
 if(QT_FOUND AND NOT DISABLE_QT)
+  INCLUDE(   ${QT_USE_FILE}   )
   message("Qt4 headers found: compiling with system tray icon support")
   add_definitions(-DHAVE_QT)
+  if(WIN32)
+    QT4_ADD_RESOURCES(Pandorica_RCC_SRCS ${CMAKE_SOURCE_DIR}/files/icons.qrc)
+  endif(WIN32)
   QT4_WRAP_CPP(Pandorica_HEADERS_MOC qttrayicon.h)
   set(qt_only_classes qttrayicon.cpp ${Pandorica_HEADERS_MOC})
 endif(QT_FOUND AND NOT DISABLE_QT)
 
-add_executable(${app_name} ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs} ${player_srcs} 
+set(pandorica_SOURCES ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs} ${player_srcs} 
   ${qt_only_classes}
     authpage.cpp
     utils.cpp
@@ -61,8 +65,20 @@ add_executable(${app_name} ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs
     pandorica.cpp
     navigationbar.cpp 
     main.cpp
-    ${PANDORICA_ICON_OBJECT}
 )
+
+if(WIN32)
+  if(QT_FOUND AND NOT DISABLE_QT)
+    add_executable(${app_name} WIN32 ${pandorica_SOURCES}  pandorica.rc ${Pandorica_RCC_SRCS} )
+  else(QT_FOUND AND NOT DISABLE_QT)
+    add_executable(${app_name} ${pandorica_SOURCES}  pandorica.rc ${Pandorica_RCC_SRCS} )
+  endif(QT_FOUND AND NOT DISABLE_QT)
+else(WIN32)
+  add_executable(${app_name} ${pandorica_SOURCES})
+endif(WIN32)
+
+
+
 
 
 string(TOLOWER "x${CMAKE_BUILD_TYPE}" build_type)

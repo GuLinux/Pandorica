@@ -136,6 +136,10 @@ void SelectDirectories::addTo(WContainerWidget* container)
 WStandardItem* SelectDirectoriesPrivate::buildStandardItem(boost::filesystem::path path, bool shouldAddSubItems)
 {
   string folderName {path.filename().string()};
+#ifdef WIN32
+  if(folderName == "/")
+    folderName = path.string();
+#endif
   WStandardItem* item = new WStandardItem {Settings::icon(Settings::FolderSmall), folderName};
   item->setCheckable(selectionType == SelectDirectories::Multiple);
   item->setStyleClass("tree-directory-item link-hand");

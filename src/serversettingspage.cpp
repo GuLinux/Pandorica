@@ -102,7 +102,17 @@ ServerSettingsPage::ServerSettingsPage(Settings* settings, Session* session, Med
 WContainerWidget* ServerSettingsPagePrivate::selectMediaRootPage()
 {
   WGroupBox *groupBox = WW<WGroupBox>(wtr("configure.app.select_media_directories")).css("fieldset-small");
-  SelectDirectories *selectDirectories = new SelectDirectories({"/"}, settings->mediasDirectories(session), [=](string p){
+  vector<string> rootPaths;
+#ifdef WIN32
+  for(char driveLetter = 0x41; driveLetter <= 0x5A; driveLetter++) {
+    string drive = (boost::format("%s:/") % driveLetter).str();
+    if(boost::filesystem::exists(boost::filesystem::path{drive}))
+      rootPaths.push_back(drive);
+  }
+#else
+  rootPaths.push_back("/");
+#endif
+  SelectDirectories *selectDirectories = new SelectDirectories(rootPaths, settings->mediasDirectories(session), [=](string p){
     settings->addMediaDirectory(p, session);
     buildDeployTypePage();
   }, [=](string p){

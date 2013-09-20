@@ -1,0 +1,5 @@
+<!DOCTYPE RCC><RCC version="1.0">
+  <qresource>
+    <file alias="tray-icon.png">desktop-files/hicolor/22x22/apps/pandorica.png</file>
+  </qresource>
+</RCC>

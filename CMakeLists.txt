@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 set(app_name Pandorica)
 project(${app_name})
-add_definitions(-std=gnu++11 -DWT_NO_SLOT_MACROS)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -fstack-protector-all")
+add_definitions(-DWT_NO_SLOT_MACROS)
 find_package(Wt REQUIRED)
 INCLUDE (CheckIncludeFiles)
 include(FindPackageHandleStandardArgs)
@@ -14,7 +15,6 @@ message("PKGConfig Executable: ${PKG_CONFIG_EXECUTABLE}")
 pkg_check_modules(GRAPHICSMAGICK GraphicsMagick++ REQUIRED)
 add_definitions(${GRAPHICSMAGICK_CFLAGS})
 #add_definitions(-fno-stack-protector )
-add_definitions(-fstack-protector-all)
 
 include_directories(${Wt_INCLUDE_DIR} ${QT_INCLUDE_DIR} ${CMAKE_SOURCE_DIR} ${GRAPHICSMAGICK_INCLUDE_DIRS} src )
 
