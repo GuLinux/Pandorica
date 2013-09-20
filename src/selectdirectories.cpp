@@ -165,12 +165,25 @@ void SelectDirectoriesPrivate::addSubItems(WStandardItem* item, bool sync)
   try {
     fs::directory_iterator it {path};
     vector<fs::path> paths;
-    copy_if(it, fs::directory_iterator(), back_insert_iterator<vector<fs::path>>(paths), [=](fs::path p) { return fs::is_directory(p) && p.filename().string()[0] != '.'; });
+    log("notice") << "Filtering directory tree for path: " << path.string();
+    copy_if(it, fs::directory_iterator(), back_insert_iterator<vector<fs::path>>(paths), [=](fs::path p) {
+      try {
+        return fs::is_directory(p) && p.filename().string()[0] != '.';
+      } catch(std::exception &e) {
+        log("warning") << "Error filtering path " << p.string() << ": " << e.what();
+      }
+    });
+    log("notice") << "Sorting tree for path: " << path.string();
     sort(paths.begin(), paths.end(), [=](fs::path a, fs::path b) { return a.filename() < b.filename(); });
     auto addItems = [=] {
       for_each(paths.begin(), paths.end(), [=](fs::path p) {
+        log("notice") << "Adding subpath " << p.string() << " to path " << path.string();
         if(items.count(p) >0) return;
-        item->appendRow( buildStandardItem(p, false) );
+        try {
+          item->appendRow( buildStandardItem(p, false) );
+        } catch(std::exception &e) {
+          log("warning") << "Error adding subItem " << p.filename() << ": " << e.what();
+        }
       });
     };
     if(sync) {

@@ -31,6 +31,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtCore/qtimer.h>
 #include <QtCore/QProcess>
 #include <QtNetwork/QNetworkInterface>
+#include <QtCore/QUrl>
+#include <QtGui/QDesktopServices>
 
 QtTrayIcon::~QtTrayIcon()
 {
@@ -75,14 +77,7 @@ QString QtTrayIcon::httpAddress() const
 
 void QtTrayIcon::openInBrowser()
 {
-  QProcess::execute(
-#ifdef WIN32
-    "start"
-#else
-    "xdg-open"
-#endif
-    
-    , {httpAddress()});
+  QDesktopServices::openUrl({httpAddress()});
 }
 
 
