@@ -155,9 +155,7 @@ WContainerWidget* ServerSettingsPagePrivate::cachePage()
   cacheParamsVisibility();
   container->addWidget(cacheCheckBox);
   container->addWidget(cacheParamsContainer);
-  
 
-  
   auto getPathLabel = [] (string p) { return p.empty() ? wtr("configure.app.cache.dir.empty").toUTF8() : p; };
   WText *selectedPath = new WText{getPathLabel(cacheDirectory)};
   SelectDirectories *selectDirectories = new SelectDirectories({"/"}, cacheDirectory, [=](string p) {
