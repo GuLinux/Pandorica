@@ -29,7 +29,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtGui/QMenu>
 #include <QtGui/QClipboard>
 #include <QtCore/qtimer.h>
-#include <QtCore/QProcess>
 #include <QtNetwork/QNetworkInterface>
 #include <QtCore/QUrl>
 #include <QtGui/QDesktopServices>
