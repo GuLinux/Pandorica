@@ -13,8 +13,6 @@ SET( player_srcs serversettingspage.cpp Models/setting.cpp selectdirectories.cpp
     player/mediaelementjs.cpp
     player/purehtml5js.cpp
 )
-find_package(Boost REQUIRED COMPONENTS signals system filesystem thread${BOOST_THREAD_LIBRARY_SUFFIX} regex program_options random date_time )
-
 include(FindPkgConfig)
 message("PKGConfig Executable: ${PKG_CONFIG_EXECUTABLE}")
 # TODO : difficult to find on windows 32. Remove,  or implement alternatives (standalone ffmpeg binary? )
@@ -67,6 +65,9 @@ set(pandorica_SOURCES ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs} ${p
     main.cpp
 )
 
+add_subdirectory(media)
+add_subdirectory(utils)
+
 if(WIN32)
   if(QT_FOUND AND NOT DISABLE_QT)
     add_executable(${app_name} WIN32 ${pandorica_SOURCES}  pandorica.rc ${Pandorica_RCC_SRCS} )
@@ -108,3 +109,4 @@ endif(WIN32)
 target_link_libraries(${app_name} ${QT_QTCORE_LIBRARY} ${QT_QTNETWORK_LIBRARY} ${QT_QTGUI_LIBRARY} 
   ${AVFORMAT_LIBRARIES} ${AVCODEC_LIBRARIES} ${AVUTIL_LIBRARIES} ${FFMPEG_THUMBNAILER_LIBRARIES} ${WT_LINK_LIBS} ${Boost_LIBRARIES} ${GRAPHICSMAGICK_LIBRARIES} ${WIN32_LIBS} )
 install(TARGETS ${app_name} RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+

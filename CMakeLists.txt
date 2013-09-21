@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
+enable_testing()
+
 set(app_name Pandorica)
 project(${app_name})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -fstack-protector-all")
@@ -6,6 +8,7 @@ add_definitions(-DWT_NO_SLOT_MACROS)
 find_package(Wt REQUIRED)
 INCLUDE (CheckIncludeFiles)
 include(FindPackageHandleStandardArgs)
+find_package(Boost REQUIRED COMPONENTS signals system filesystem thread${BOOST_THREAD_LIBRARY_SUFFIX} regex program_options random date_time OPTIONAL_COMPONENTS unit_test_framework )
 FIND_PACKAGE(Qt4 )
 
 add_definitions(-DBOOST_SIGNALS_NO_DEPRECATION_WARNING)
@@ -54,3 +57,4 @@ if(${QT_FOUND})
 endif(${QT_FOUND})
 
 add_subdirectory(src)
+add_subdirectory(tests)

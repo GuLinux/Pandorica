@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/filesystem.hpp>
 #include <Wt/Dbo/ptr>
 #include <Wt/WString>
-
+#include <ostream>
 class MediaProperties;
 namespace Wt {
 namespace Dbo {
@@ -55,6 +55,9 @@ public:
   boost::filesystem::path parentDirectory() const;
   bool valid() const;
   static Media invalid();
+  bool operator ==(const Media &other) const;
+  friend std::ostream & operator<<( std::ostream &os, const Media &m );
+
 private:
   boost::filesystem::path m_path;
   std::string m_uid;

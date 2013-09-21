@@ -128,7 +128,14 @@ MediaPropertiesPtr Media::properties(Dbo::Transaction& transaction) const
 }
 
 
+bool Media::operator==( const Media &other ) const
+{
+  return other.uid() == uid();
+}
 
-
-#include "media.h"
+ostream &operator<<( ostream &os, const Media &m )
+{
+  os << "Media[" << m.uid() << "]{" << m.fullPath() << ", " << m.mimetype() << "}";
+  return os;
+}
 
