@@ -42,7 +42,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WIOService>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
-#include "utils.h"
+#include "utils/utils.h"
+
 
 
 using namespace std;

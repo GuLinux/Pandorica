@@ -48,7 +48,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "groupsdialog.h"
 #include "latestcommentsdialog.h"
 #include "MediaScanner/mediascannerdialog.h"
-#include "utils.h"
+#include "utils/utils.h"
+
 #include "Models/models.h"
 
 

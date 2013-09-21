@@ -38,7 +38,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ffmpegmedia.h"
 #include <Wt/Dbo/Session>
 
-#include "utils.h"
+#include "utils/utils.h"
+
 
 #include "Models/models.h"
 

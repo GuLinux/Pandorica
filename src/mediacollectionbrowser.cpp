@@ -29,7 +29,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Wt-Commons/wt_helpers.h"
 #include "settings.h"
 #include "session.h"
-#include "utils.h"
+#include "utils/utils.h"
+
 #include <boost/format.hpp>
 #include <algorithm>
 #include <Wt/Dbo/Transaction>

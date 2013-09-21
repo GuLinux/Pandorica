@@ -34,7 +34,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt-Commons/wt_helpers.h>
 #include "Models/mediaproperties.h"
 #include "Models/mediaattachment.h"
-#include "utils.h"
+#include "utils/utils.h"
+
 #include <Wt/WText>
 #include <Wt/WTreeView>
 #include <Wt/WStandardItemModel>

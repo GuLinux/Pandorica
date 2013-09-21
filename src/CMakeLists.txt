@@ -45,7 +45,6 @@ endif(QT_FOUND AND NOT DISABLE_QT)
 set(pandorica_SOURCES ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs} ${player_srcs} 
   ${qt_only_classes}
     authpage.cpp
-    utils.cpp
     ${ffmpeg_media_class}
     latestcommentsdialog.cpp
     groupsdialog.cpp

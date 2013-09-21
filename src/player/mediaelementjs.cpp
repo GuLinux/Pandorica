@@ -21,7 +21,8 @@
 #include "mediaelementjs.h"
 #include "purehtml5js.h"
 #include "Wt-Commons/wt_helpers.h"
-#include "utils.h"
+#include "utils/utils.h"
+
 #include <private/html5player_p.h>
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>

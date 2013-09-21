@@ -30,7 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WLabel>
 #include "Wt-Commons/wt_helpers.h"
 #include "session.h"
-#include "utils.h"
+#include "utils/utils.h"
+
 #include <Wt/Dbo/Transaction>
 #include <Wt/WTimer>
 #include <Wt/WConfig.h>
