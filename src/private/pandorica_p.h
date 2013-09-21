@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef STREAMINGAPP_PRIVATE_H
 #define STREAMINGAPP_PRIVATE_H
 #include <string>
-#include "media.h"
+#include "media/media.h"
 #include "settings.h"
 #include <session.h>
 #include <boost/filesystem.hpp>

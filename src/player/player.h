@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PLAYER_H
 #include <Wt/WJavaScript>
 #include <Wt/WMediaPlayer>
-#include "media.h"
+#include "media/media.h"
 
 namespace Wt {
 class WWidget;

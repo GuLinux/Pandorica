@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/filesystem.hpp>
 #include <Wt/WSignal>
 #include <Wt/WContainerWidget>
-#include <media.h>
+#include "media/media.h"
 #include <functional>
 #include "Wt-Commons/wt_helpers.h"
 

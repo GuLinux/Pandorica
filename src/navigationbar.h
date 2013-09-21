@@ -22,7 +22,7 @@
 #define NAVIGATIONBAR_H
 
 #include <Wt/WContainerWidget>
-#include "media.h"
+#include "media/media.h"
 #include <map>
 
 class Settings;

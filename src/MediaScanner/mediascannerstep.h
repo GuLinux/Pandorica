@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef MEDIASCANNERSTEP_H
 #define MEDIASCANNERSTEP_H
 #include <Wt/WSignal>
-#include <media.h>
+#include "media/media.h"
 
 class FFMPEGMedia;
 namespace Wt {

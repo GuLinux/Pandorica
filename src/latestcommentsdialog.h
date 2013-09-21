@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <Wt/WDialog>
 #include <Wt/WSignal>
-#include "media.h"
+#include "media/media.h"
 
 class MediaCollection;
 class Session;

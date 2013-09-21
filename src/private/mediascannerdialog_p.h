@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <Wt/WSignal>
 #include <boost/concept_check.hpp>
-#include <media.h>
+#include "media/media.h"
 
 class User;
 class Session;

@@ -30,7 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include <Wt/Dbo/Query>
-#include "mediacollection.h"
+#include "media/mediacollection.h"
 #include <Wt-Commons/wt_helpers.h>
 #include "Models/mediaproperties.h"
 #include "Models/mediaattachment.h"

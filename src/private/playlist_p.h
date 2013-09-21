@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PLAYLIST_PRIVATE
 #include <Wt/WSignal>
 #include <Wt/WAnchor>
-#include "media.h"
+#include "media/media.h"
 #include <playlist.h>
 
 namespace Wt {

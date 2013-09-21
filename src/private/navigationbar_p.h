@@ -24,7 +24,7 @@
 #include <Wt/WString>
 #include <Wt/WSignal>
 #include <Wt/WJavaScript>
-#include <media.h>
+#include "media/media.h"
 #include "Wt-Commons/wt_helpers.h"
 
 class Settings;

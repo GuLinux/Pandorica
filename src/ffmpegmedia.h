@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef FFMPEGMEDIA_H
 #define FFMPEGMEDIA_H
-#include "media.h"
+#include "media/media.h"
 #include <map>
 
 class Session;

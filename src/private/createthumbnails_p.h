@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WSignal>
 #include <Wt/WContainerWidget>
 #include <Magick++/Blob.h>
-#include <media.h>
+#include "media/media.h"
 
 namespace Magick {
 class Blob;

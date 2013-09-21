@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/Dbo/Dbo>
 #include "session.h"
 #include "Models/models.h"
-#include <media.h>
+#include "media/media.h"
 
 using namespace std;
 

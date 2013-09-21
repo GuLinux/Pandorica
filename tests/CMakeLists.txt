@@ -7,7 +7,7 @@ if(Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
   
   function(register_test name type)
     set(test_name ${type}_test_${name})
-    add_executable(${test_name} ${ARGN})
+    add_executable(${test_name} EXCLUDE_FROM_ALL ${ARGN} )
     add_test(${type}_${name} ${test_name})
     add_dependencies(compile_${type}_tests ${test_name})
   endfunction()
@@ -44,7 +44,7 @@ if(Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
 
 endif(WIN32)
   
-  register_unit_test(mediadirectory mediadirectorytest.cpp ${CMAKE_SOURCE_DIR}/src/media/mediadirectory.cpp ${CMAKE_SOURCE_DIR}/src/media.cpp )
+  register_unit_test(mediadirectory mediadirectorytest.cpp ${CMAKE_SOURCE_DIR}/src/media/mediadirectory.cpp ${CMAKE_SOURCE_DIR}/src/media/media.cpp )
   link_unit_test(mediadirectory ${Wt_DBO_LIBRARY} ${Wt_LIBRARIES} ${WIN32_LIBS})
   
 endif(Boost_UNIT_TEST_FRAMEWORK_LIBRARY)

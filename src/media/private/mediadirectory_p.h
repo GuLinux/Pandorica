@@ -20,7 +20,7 @@
 #ifndef MEDIADIRECTORYPRIVATE_H
 #define MEDIADIRECTORYPRIVATE_H
 #include <boost/filesystem.hpp>
-#include "media.h"
+#include "media/media.h"
 #include <map>
 class MediaDirectory;
 

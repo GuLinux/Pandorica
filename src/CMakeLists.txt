@@ -50,9 +50,7 @@ set(pandorica_SOURCES ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs} ${p
     groupsdialog.cpp
     settingspage.cpp
     settings.cpp
-    media.cpp
     mediacollectionbrowser.cpp
-    mediacollection.cpp 
     commentscontainerwidget.cpp
     sessiondetailsdialog.cpp
     customitemdelegates.cpp

@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef FFMPEGMEDIAPRIVATE_H
 #define FFMPEGMEDIAPRIVATE_H
-#include "media.h"
+#include "media/media.h"
 #include "session.h"
 #include "ffmpegmedia.h"
 

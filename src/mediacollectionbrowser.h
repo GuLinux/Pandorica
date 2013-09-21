@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MEDIACOLLECTIONBROWSER_H
 
 #include <Wt/WContainerWidget>
-#include "mediacollection.h"
+#include "media/mediacollection.h"
 
 class Session;
 namespace PandoricaPrivate {

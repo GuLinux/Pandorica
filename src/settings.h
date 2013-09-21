@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WEnvironment>
 #include <Wt/WAnimation>
 #include <Wt/WApplication>
-#include "media.h"
+#include "media/media.h"
 
 namespace Wt {
 class WApplication;

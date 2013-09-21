@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "settings.h"
 #include "session.h"
 #include "Wt-Commons/wt_helpers.h"
-#include "mediacollection.h"
+#include "media/mediacollection.h"
 #include "selectdirectories.h"
 #include "Models/setting.h"
 #include <Wt/WPushButton>

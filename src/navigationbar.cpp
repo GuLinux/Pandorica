@@ -36,7 +36,7 @@
 #include <Wt/WStackedWidget>
 #include <Wt/WStringListModel>
 #include <Wt/WSortFilterProxyModel>
-#include "mediacollection.h"
+#include "media/mediacollection.h"
 
 using namespace Wt;
 using namespace std;

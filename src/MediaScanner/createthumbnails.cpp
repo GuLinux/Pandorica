@@ -31,7 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WMemoryResource>
 #include <Wt/WImage>
 #include "Wt-Commons/wt_helpers.h"
-#include <mediacollection.h>
+#include "media/mediacollection.h"
 #include <player/html5player.h>
 #include <settings.h>
 #include <boost/format.hpp>

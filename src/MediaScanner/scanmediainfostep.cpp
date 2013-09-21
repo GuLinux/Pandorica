@@ -32,7 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WTime>
 #include "Wt-Commons/wt_helpers.h"
 #include <session.h>
-#include <mediacollection.h>
+#include "media/mediacollection.h"
 #include <thread>
 
 #include "ffmpegmedia.h"

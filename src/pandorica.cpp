@@ -42,7 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "commentscontainerwidget.h"
 #include "Wt-Commons/whtmltemplateslocalizedstrings.h"
-#include "mediacollection.h"
+#include "media/mediacollection.h"
 #include "mediacollectionbrowser.h"
 #include "settings.h"
 #include "groupsdialog.h"

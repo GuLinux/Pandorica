@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MEDIACOLLECTIONPRIVATE_H
 #include <boost/filesystem.hpp>
 #include <Wt/WSignal>
-#include "media.h"
+#include "media/media.h"
 
 class Settings;
 namespace Wt {
