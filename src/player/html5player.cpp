@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "mediaelementjs.h"
 #include "purehtml5js.h"
 #include "videojs.h"
-#include <utils.h>
+#include "utils/utils.h"
 #include "Wt-Commons/wt_helpers.h"
 
 #include <Wt/WApplication>

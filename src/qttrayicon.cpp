@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WServer>
 
 #include "qttrayicon.h"
-#include "utils.h"
+#include "utils/utils.h"
 #include <QtGui/qicon.h>
 #include <QtGui/QApplication>
 #include <QtGui/QSystemTrayIcon>
