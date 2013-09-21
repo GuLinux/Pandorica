@@ -23,7 +23,7 @@
 #include "Wt-Commons/wt_helpers.h"
 #include "utils/utils.h"
 
-#include <private/html5player_p.h>
+#include <player/private/html5player_p.h>
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
 #include <Wt/WPushButton>
@@ -35,11 +35,11 @@ using namespace WtCommons;
 MediaElementJs::~MediaElementJs()
 {
 }
-MediaElementJs::MediaElementJs(PandoricaPrivate::HTML5PlayerPrivate*const d, WObject* parent)
-  : PlayerJavascript(d, parent), pureHTML5Js(new PureHTML5Js(d, this))
+MediaElementJs::MediaElementJs(HTML5PlayerSetup html5PlayerSetup, WObject* parent)
+  : PlayerJavascript(html5PlayerSetup, parent), pureHTML5Js(new PureHTML5Js(html5PlayerSetup, this))
 {
-  d->templateWidget->bindEmpty("media.footer");
-  d->templateWidget->bindWidget("media.header", WW<WPushButton>("Fullscreen").css("btn btn-block hidden-desktop").onClick([=](WMouseEvent){
+  html5PlayerSetup.bindEmpty("media.footer");
+  html5PlayerSetup.bindWidget("media.header", WW<WPushButton>("Fullscreen").css("btn btn-block hidden-desktop").onClick([=](WMouseEvent){
     runJavascript("(new MediaElementPlayer('video')).enterFullScreen();");
   }));
 }
@@ -52,16 +52,20 @@ string MediaElementJs::resizeJs()
 
 void MediaElementJs::onPlayerReady()
 {
-  if(d->sources[0].type.find("video/") == string::npos)
-    d->templateWidget->resolveWidget("media.header")->addStyleClass("hidden-phone hidden-tablet");
+  if(html5PlayerSetup.mediaType() == HTML5Player::Audio)
+    html5PlayerSetup.resolveWidget("media.header")->addStyleClass("hidden-phone hidden-tablet");
   map<string,string> mediaElementOptions = {
     {"AndroidUseNativeControls", "false"},
     {"defaultSeekBackwardInterval", "function(media) { return 5; }"},
     {"defaultSeekForwardInterval", "function(media) { return 5; }"},
   };
+  
+  // TODO: it's not working again, check why
+  /*
   if(d->defaultTracks["subtitles"].isValid()) {
       mediaElementOptions["startLanguage"] = (boost::format("'%s'") % d->defaultTracks["subtitles"].lang).str();
   }
+  */
 
   string mediaElementOptionsString = boost::algorithm::join(
     Utils::transform(mediaElementOptions, vector<string>{}, [](pair<string,string> o){

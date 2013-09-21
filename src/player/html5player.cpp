@@ -31,21 +31,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
 #include "private/html5player_p.h"
-
+#include "utils/d_ptr_implementation.h"
 using namespace Wt;
 using namespace std;
 using namespace boost;
 using namespace WtCommons;
-using namespace PandoricaPrivate;
 
 
-HTML5PlayerPrivate::HTML5PlayerPrivate(HTML5Player* q): q(q), ended(q, "playbackEnded"), playing(q, "playbackStarted"),
+HTML5Player::Private::Private(HTML5Player* q): q(q), ended(q, "playbackEnded"), playing(q, "playbackStarted"),
   playerReady(q, "playbackReady"), currentTime(q, "currentTime")
 {
 }
 
 
-PlayerJavascript::PlayerJavascript(HTML5PlayerPrivate*const d, WObject* parent): WObject(parent), d(d)
+PlayerJavascript::PlayerJavascript(HTML5PlayerSetup html5PlayerSetup, WObject* parent): WObject(parent), html5PlayerSetup(html5PlayerSetup)
 {
 }
 
@@ -54,25 +53,35 @@ void PlayerJavascript::runJavascript(string js)
   string runJS = WString(JS(
     var mediaPlayer = document.getElementById('{1}');
     {2}
-  )).arg(d->playerId()).arg(js).toUTF8();
-  d->templateWidget->doJavaScript(runJS);
+  )).arg( html5PlayerSetup.playerId() ).arg(js).toUTF8();
+  html5PlayerSetup.doJavascript(runJS);
 }
 
 
 HTML5Player::HTML5Player(HTML5Player::SubType subType, WContainerWidget* parent)
-  : WContainerWidget(parent), d(new HTML5PlayerPrivate(this))
+  : WContainerWidget(parent), d(this)
 {
   d->templateWidget = new WTemplate();
   d->templateWidget->setTemplateText(wtr("html5player.mediatag"), Wt::XHTMLUnsafeText);
+  HTML5PlayerSetup playerSetup{
+    [=]() {return d->playerId(); },
+    [=]() {return d->templateWidget->id(); },
+    [=]() {return d->templateWidget->jsRef(); },
+    [=](const string &key) { d->templateWidget->bindEmpty(key); },
+    [=](const string &key, WWidget *w) { d->templateWidget->bindWidget(key, w); },
+    [=](const string &javascript) { d->templateWidget->doJavaScript(javascript); },
+    [=]() { return d->sources[0].type.find("video/") == string::npos ? Audio : Video; },
+    [=](const string &key) { return d->templateWidget->resolveWidget(key); },
+  };
   switch(subType) {
     case PureHTML5:
-      d->playerJavascript = new PureHTML5Js(d, this);
+      d->playerJavascript = new PureHTML5Js(playerSetup, this);
       break;
     case MediaElementJs:
-      d->playerJavascript = new ::MediaElementJs(d, this);
+      d->playerJavascript = new ::MediaElementJs(playerSetup, this);
       break;
     case VideoJs:
-      d->playerJavascript = new ::VideoJs(d, this);
+      d->playerJavascript = new ::VideoJs(playerSetup, this);
       break;
   }
   d->templateWidget->setMargin(WLength::Auto, Side::Left|Side::Right);
@@ -133,7 +142,7 @@ HTML5Player::HTML5Player(HTML5Player::SubType subType, WContainerWidget* parent)
   d->playerJavascript->runJavascript(d->playerReady.createCall());
 }
 
-void HTML5PlayerPrivate::setZoomScroll() {
+void HTML5Player::Private::setZoomScroll() {
   string jsScrollZoom = (boost::format(JS(function(o,e) {
       if( $(window).width() < %d ) return;
       var playerWidget = %s;
@@ -149,7 +158,7 @@ void HTML5PlayerPrivate::setZoomScroll() {
   templateWidget->mouseWheel().connect(scrollSlot);
 }
 
-string HTML5PlayerPrivate::linkResizeJS() const
+string HTML5Player::Private::linkResizeJS() const
 {
   return (boost::format(JS(
     function(newSize) {
@@ -174,7 +183,6 @@ string HTML5PlayerPrivate::linkResizeJS() const
 HTML5Player::~HTML5Player()
 {
   d->playerJavascript->runJavascript("mediaPlayer.src(""); mediaPlayer.erase();");
-  delete d;
 }
 
 void HTML5Player::setPoster(const WLink& poster)
@@ -240,11 +248,11 @@ void HTML5Player::setAutoplay(bool autoplay)
 }
 
 
-void HTML5PlayerPrivate::playerReadySlot()
+void HTML5Player::Private::playerReadySlot()
 {
 }
 
-void HTML5PlayerPrivate::addListener(string eventName, string function)
+void HTML5Player::Private::addListener(string eventName, string function)
 {
   string js = WString(JS(
     mediaPlayer.addEventListener('{1}', function() { {2} });
@@ -259,7 +267,7 @@ void HTML5Player::refresh()
 }
 
 
-string HTML5PlayerPrivate::playerId() const
+string HTML5Player::Private::playerId() const
 {
   return string("player_id") + templateWidget->id();
 }

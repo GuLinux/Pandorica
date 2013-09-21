@@ -19,7 +19,7 @@
  */
 
 #include "player/purehtml5js.h"
-#include <private/html5player_p.h>
+#include <player/private/html5player_p.h>
 #include <boost/format.hpp>
 #include "Wt-Commons/wt_helpers.h"
 
@@ -27,11 +27,11 @@ using namespace Wt;
 using namespace std;
 
 
-PureHTML5Js::PureHTML5Js(PandoricaPrivate::HTML5PlayerPrivate* const d, Wt::WObject* parent)
-  : PlayerJavascript(d, parent)
+PureHTML5Js::PureHTML5Js(HTML5PlayerSetup html5PlayerSetup, Wt::WObject* parent)
+  : PlayerJavascript(html5PlayerSetup, parent)
 {
-  d->templateWidget->bindEmpty("media.footer");
-  d->templateWidget->bindEmpty("media.header");
+  html5PlayerSetup.bindEmpty("media.footer");
+  html5PlayerSetup.bindEmpty("media.header");
 }
 
 string PureHTML5Js::customPlayerHTML()
@@ -72,7 +72,7 @@ void PureHTML5Js::onPlayerReady()
       });
     ))
     % MINIMUM_DESKTOP_SIZE
-    % d->templateWidget->jsRef()
+    % html5PlayerSetup.templateWidgetJSRef()
   ).str() );
 }
 

@@ -26,11 +26,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <player/player.h>
 #include <player/html5player.h>
 
-namespace PandoricaPrivate {
-  
-class HTML5PlayerPrivate {
+class HTML5Player::Private {
 public:
-  HTML5PlayerPrivate(HTML5Player *q);
+  Private(HTML5Player *q);
   Wt::JSignal<> ended;
   Wt::JSignal<> playing;
   Wt::JSignal<> playerReady;
@@ -54,5 +52,4 @@ private:
   HTML5Player *q;
 };
 
-}
 #endif

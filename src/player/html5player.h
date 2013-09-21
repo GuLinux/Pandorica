@@ -26,27 +26,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "player.h"
 #include <Wt/WTemplate>
 #include <Wt/WContainerWidget>
-
+#include "utils/d_ptr.h"
+#include <functional>
 #define MINIMUM_DESKTOP_SIZE 980
-
-namespace PandoricaPrivate {
-  class HTML5PlayerPrivate;
-}
-
-class PlayerJavascript : public Wt::WObject {
-public:
-  PlayerJavascript(PandoricaPrivate::HTML5PlayerPrivate *const d, Wt::WObject* parent = 0);
-  virtual void onPlayerReady() = 0;
-  virtual std::string customPlayerHTML() = 0;
-  virtual std::string resizeJs() = 0;
-  void runJavascript(std::string js);
-protected:
-  PandoricaPrivate::HTML5PlayerPrivate *const d;
-};
 
 class HTML5Player : public Player, public Wt::WContainerWidget
 {
 public:
+    enum MediaType { Video, Audio };
     enum SubType { PureHTML5, MediaElementJs, VideoJs };
     HTML5Player(SubType subType = MediaElementJs, Wt::WContainerWidget* parent = 0);
     virtual ~HTML5Player();
@@ -65,7 +52,31 @@ public:
     
     virtual void pause();
 private:
-    PandoricaPrivate::HTML5PlayerPrivate *const d;
+  D_PTR;
+  friend class PlayerJavascript;
+};
+
+struct HTML5PlayerSetup {
+  std::function<std::string()> playerId;
+  std::function<std::string()> templateWidgetId;
+  std::function<std::string()> templateWidgetJSRef;
+  std::function<void(const std::string&)> bindEmpty;
+  std::function<void(const std::string&, Wt::WWidget *)> bindWidget;
+  std::function<void(const std::string&)> doJavascript;
+  std::function<HTML5Player::MediaType()> mediaType;
+  std::function<Wt::WWidget*(const std::string &)> resolveWidget;
+};
+
+class PlayerJavascript : public Wt::WObject {
+public:
+  PlayerJavascript(HTML5PlayerSetup html5PlayerSetup, Wt::WObject* parent = 0);
+  virtual void onPlayerReady() = 0;
+  virtual std::string customPlayerHTML() = 0;
+  virtual std::string resizeJs() = 0;
+  void runJavascript(std::string js);
+protected:
+  HTML5PlayerSetup html5PlayerSetup;
 };
 
 #endif // HTML5PLAYER_H
+

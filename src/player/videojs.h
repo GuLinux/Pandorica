@@ -30,7 +30,7 @@ public:
     ~VideoJs();
     virtual std::string resizeJs();
     virtual void onPlayerReady();
-    VideoJs(PandoricaPrivate::HTML5PlayerPrivate* const d, Wt::WObject* parent);
+    VideoJs(HTML5PlayerSetup html5PlayerSetup, Wt::WObject* parent);
     virtual std::string customPlayerHTML();
 private:
   PureHTML5Js *const pureHTML5Js;

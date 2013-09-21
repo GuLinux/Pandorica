@@ -28,7 +28,7 @@ class PureHTML5Js : public PlayerJavascript
 public:
     virtual std::string resizeJs();
     virtual void onPlayerReady();
-    PureHTML5Js(PandoricaPrivate::HTML5PlayerPrivate* const d, Wt::WObject* parent);
+    PureHTML5Js(HTML5PlayerSetup html5PlayerSetup, Wt::WObject* parent);
     virtual std::string customPlayerHTML();
 };
 

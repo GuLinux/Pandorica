@@ -30,7 +30,7 @@ class MediaElementJs : public PlayerJavascript
 {
 public:
     ~MediaElementJs();
-    MediaElementJs(PandoricaPrivate::HTML5PlayerPrivate*const d, WObject* parent = 0);
+    MediaElementJs(HTML5PlayerSetup html5PlayerSetup, WObject* parent = 0);
     virtual void onPlayerReady();
     virtual std::string resizeJs();
     virtual std::string customPlayerHTML();

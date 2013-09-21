@@ -19,7 +19,7 @@
  */
 
 #include "videojs.h"
-#include <private/html5player_p.h>
+#include <player/private/html5player_p.h>
 #include <Wt/WApplication>
 #include "Wt-Commons/wt_helpers.h"
 #include "player/player.h"
@@ -32,16 +32,15 @@ using namespace std;
 using namespace boost;
 
 
-VideoJs::VideoJs(PandoricaPrivate::HTML5PlayerPrivate*const d, WObject* parent)
-  : PlayerJavascript(d, parent), pureHTML5Js(new PureHTML5Js(d, this))
+VideoJs::VideoJs(HTML5PlayerSetup html5PlayerSetup, WObject* parent)
+  : PlayerJavascript(html5PlayerSetup, parent), pureHTML5Js(new PureHTML5Js(html5PlayerSetup, this))
 {
-  d->templateWidget->bindEmpty("media.footer");
-  d->templateWidget->bindEmpty("media.header");
+  html5PlayerSetup.bindEmpty("media.footer");
+  html5PlayerSetup.bindEmpty("media.header");
 }
 
 VideoJs::~VideoJs()
 {
-
 }
 
 string VideoJs::resizeJs()
@@ -52,21 +51,22 @@ string VideoJs::resizeJs()
     var newHeight = newWidth * videoJs.height() / videoJs.width();
     videoJs.dimensions(newWidth, newHeight)
   ))
-    % d->templateWidget->id()
-    % d->playerId()
+    % html5PlayerSetup.templateWidgetId()
+    % html5PlayerSetup.playerId()
   ).str();
 }
 
 string VideoJs::customPlayerHTML()
 {
-  if(d->sources[0].type.find("video/") == string::npos) return pureHTML5Js->customPlayerHTML();
+  if(html5PlayerSetup.mediaType() == HTML5Player::Audio)
+    return pureHTML5Js->customPlayerHTML();
   return "class='video-js vjs-default-skin'";
 }
 
 
 void VideoJs::onPlayerReady()
 {
-  if(d->sources[0].type.find("video/") == string::npos) {
+  if(html5PlayerSetup.mediaType() == HTML5Player::Audio) {
     pureHTML5Js->onPlayerReady();
     return;
   }
@@ -76,7 +76,7 @@ void VideoJs::onPlayerReady()
         // Player (this) is initialized and ready.
       });
     ))
-      % d->playerId()
+      % html5PlayerSetup.playerId()
     ).str()
   );
   pureHTML5Js->onPlayerReady();
