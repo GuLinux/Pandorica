@@ -23,10 +23,6 @@
 #include <boost/filesystem.hpp>
 #include <ostream>
 class Media;
-namespace PandoricaPrivate
-{
-  class MediaDirectoryPrivate;
-}
 class MediaDirectory
 {
   public:
@@ -41,7 +37,7 @@ class MediaDirectory
     friend std::ostream & operator<<( std::ostream &os, const MediaDirectory &md );
 
   private:
-    const Pandorica::utils::d_ptr<PandoricaPrivate::MediaDirectoryPrivate> d;
+    D_PTR;
 };
 
 #endif // MEDIADIRECTORY_H

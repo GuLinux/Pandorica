@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WSignal>
 #include <boost/filesystem.hpp>
 #include "media.h"
-
+#include "utils/d_ptr.h"
 class Settings;
 namespace Wt {
 namespace Dbo {
@@ -34,9 +34,6 @@ class Transaction;
 }
 
 class Session;
-namespace PandoricaPrivate {
-  class MediaCollectionPrivate;
-}
 class MediaCollection : public Wt::WObject
 {
 public:
@@ -51,7 +48,7 @@ public:
     std::vector<Media> sortedMediasList() const;
     bool isAllowed(const boost::filesystem::path &path) const;
 private:
-  PandoricaPrivate::MediaCollectionPrivate *const d;
+  D_PTR;
 };
 
 #endif // MEDIACOLLECTION_H

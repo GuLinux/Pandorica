@@ -29,17 +29,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Models/models.h"
 #include "settings.h"
 #include <boost/algorithm/string.hpp>
-
+#include "utils/d_ptr_implementation.h"
 using namespace Wt;
 using namespace std;
 using namespace boost;
 using namespace Wt::Utils;
-using namespace PandoricaPrivate;
 
 namespace fs = boost::filesystem;
 
 MediaCollection::MediaCollection( Settings *settings, Session *session, WApplication *parent )
-  : WObject( parent ), d( new MediaCollectionPrivate( settings, session, parent ) )
+  : WObject( parent ), d(settings, session, parent )
 {
   setUserId( session->user().id() );
 }
@@ -71,7 +70,7 @@ void MediaCollection::rescan( Dbo::Transaction &transaction )
   } );
 }
 
-bool MediaCollectionPrivate::isAllowed( filesystem::path path )
+bool MediaCollection::Private::isAllowed( filesystem::path path )
 {
   for( string p : allowedPaths )
   {
@@ -111,7 +110,7 @@ Media resolveMedia( fs::path path )
   return Media::invalid();
 }
 
-void MediaCollectionPrivate::listDirectory( filesystem::path path )
+void MediaCollection::Private::listDirectory( filesystem::path path )
 {
   vector<fs::directory_entry> v;
 
@@ -174,6 +173,5 @@ vector< Media > MediaCollection::sortedMediasList() const
 
 MediaCollection::~MediaCollection()
 {
-  delete d;
 }
 

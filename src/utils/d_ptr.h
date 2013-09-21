@@ -22,8 +22,7 @@
 
 #include <memory>
 
-namespace Pandorica {
-namespace utils {
+namespace PandoricaPrivate {
 
 template <typename T>
 class d_ptr {
@@ -44,9 +43,8 @@ public:
 #define D_PTR \
     class Private;                            \
     friend class Private;                     \
-    const ::Pandorica::utils::d_ptr<Private> d     \
+    const ::PandoricaPrivate::d_ptr<Private> d     \
 
-}
 }
 #endif
 

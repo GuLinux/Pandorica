@@ -21,15 +21,13 @@
 #define MEDIADIRECTORYPRIVATE_H
 #include <boost/filesystem.hpp>
 #include "media/media.h"
+#include "media/mediadirectory.h"
 #include <map>
-class MediaDirectory;
 
-namespace PandoricaPrivate {
-class MediaDirectoryPrivate
+class MediaDirectory::Private
 {
   public:
-    MediaDirectoryPrivate( MediaDirectory *q, const boost::filesystem::path &path );
-    virtual ~MediaDirectoryPrivate();
+    Private( MediaDirectory *q, const boost::filesystem::path &path );
     boost::filesystem::path path;
     std::vector<Media> medias;
     std::map<boost::filesystem::path, std::shared_ptr<MediaDirectory>> subdirectories;
@@ -37,5 +35,6 @@ class MediaDirectoryPrivate
   private:
     MediaDirectory *const q;
 };
-}
+
+
 #endif // MEDIADIRECTORYPRIVATE_H

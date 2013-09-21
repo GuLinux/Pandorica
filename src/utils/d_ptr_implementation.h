@@ -22,8 +22,7 @@
 
 #include "d_ptr.h"
 
-namespace Pandorica {
-namespace utils {
+namespace PandoricaPrivate {
 
 template <typename T>
 d_ptr<T>::d_ptr() : d(new T())
@@ -48,7 +47,6 @@ T * d_ptr<T>::operator->() const
     return d.get();
 }
 
-}
 }
 #endif
 

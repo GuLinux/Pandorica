@@ -21,13 +21,9 @@
 #include "private/mediadirectory_p.h"
 #include "utils/d_ptr_implementation.h"
 
-using namespace PandoricaPrivate;
 using namespace std;
 
-MediaDirectoryPrivate::MediaDirectoryPrivate( MediaDirectory *q, const boost::filesystem::path &path ) : q( q ), path( path )
-{
-}
-MediaDirectoryPrivate::~MediaDirectoryPrivate()
+MediaDirectory::Private::Private( MediaDirectory *q, const boost::filesystem::path &path ) : q( q ), path( path )
 {
 }
 
@@ -69,7 +65,7 @@ void MediaDirectory::add( const Media &media )
   }
 }
 
-void MediaDirectoryPrivate::addTree( const Media &media, const list<boost::filesystem::path> &directories )
+void MediaDirectory::Private::addTree( const Media &media, const list<boost::filesystem::path> &directories )
 {
   boost::filesystem::path subdirectoryPath = directories.front();
   if(subdirectories.count(subdirectoryPath) == 0)

@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/filesystem.hpp>
 #include <Wt/WSignal>
 #include "media/media.h"
+#include "media/mediacollection.h"
 
 class Settings;
 namespace Wt {
@@ -30,10 +31,9 @@ class WApplication;
 }
 
 class Session;
-namespace PandoricaPrivate {
-class MediaCollectionPrivate {
+class MediaCollection::Private {
 public:
-  MediaCollectionPrivate(Settings *settings, Session *session, Wt::WApplication *app) : settings(settings), session(session), app(app) {}
+  Private(Settings *settings, Session *session, Wt::WApplication *app) : settings(settings), session(session), app(app) {}
   void listDirectory(boost::filesystem::path path);
   bool isAllowed(boost::filesystem::path path);
 public:
@@ -46,5 +46,4 @@ public:
   Wt::WApplication *app;
   long long userId;
 };
-}
 #endif
