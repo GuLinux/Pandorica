@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define FFMPEGMEDIA_H
 #include "media/media.h"
 #include <map>
-
+#include "utils/d_ptr.h"
 class Session;
 
 namespace FFMPEG {
@@ -36,9 +36,6 @@ namespace FFMPEG {
     std::map<std::string,std::string> metadata;
   };
 };
-namespace PandoricaPrivate {
-  class FFMPEGMediaPrivate;
-}
 
 class FFMPEGMedia
 {
@@ -52,7 +49,7 @@ public:
   std::string metadata(std::string key) const;
   std::vector<FFMPEG::Stream> streams() const;
 private:
-  PandoricaPrivate::FFMPEGMediaPrivate* const d;
+  D_PTR;
 };
 
 #endif // FFMPEGMEDIA_H

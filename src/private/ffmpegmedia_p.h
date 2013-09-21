@@ -33,12 +33,10 @@ extern "C" {
   #include <libavutil/avutil.h>
 }
 
-namespace PandoricaPrivate {
-class FFMPEGMediaPrivate
+class FFMPEGMedia::Private
 {
 public:
-    FFMPEGMediaPrivate(const Media &media, FFMPEGMedia* q);
-    virtual ~FFMPEGMediaPrivate();
+    Private(const Media &media, FFMPEGMedia* q);
     Media media;
     Session *session;
     AVFormatContext *pFormatCtx = 0;
@@ -54,5 +52,4 @@ public:
 private:
     class FFMPEGMedia* const q;
 };
-}
 #endif // FFMPEGMEDIAPRIVATE_H

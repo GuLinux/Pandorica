@@ -53,6 +53,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Models/models.h"
 #include "settings.h"
 
+#include "utils/d_ptr_implementation.h"
+
 using namespace Wt;
 using namespace std;
 using namespace PandoricaPrivate;
@@ -61,22 +63,21 @@ namespace fs = boost::filesystem;
 
 #define MAX_ULONG numeric_limits<uint64_t>::max()
 
-FindOrphansDialogPrivate::FindOrphansDialogPrivate( FindOrphansDialog *q ) : q( q )
+FindOrphansDialog::Private::Private( FindOrphansDialog *q ) : q( q )
 {
   threadsSession = new Session();
 }
-FindOrphansDialogPrivate::~FindOrphansDialogPrivate()
+FindOrphansDialog::Private::~Private()
 {
   delete threadsSession;
 }
 
 FindOrphansDialog::~FindOrphansDialog()
 {
-  delete d;
 }
 
 FindOrphansDialog::FindOrphansDialog( MediaCollection *mediaCollection, Session *session, Settings *settings, WObject *parent )
-  : d( new FindOrphansDialogPrivate( this ) )
+  : d( this )
 {
   d->mediaCollection = mediaCollection;
   d->session = session;
@@ -116,7 +117,12 @@ FindOrphansDialog::FindOrphansDialog( MediaCollection *mediaCollection, Session 
   view->setColumnWidth( 4, 95 );
   view->setColumnWidth( 5, 60 );
   footer()->addWidget( d->nextButton = WW<WPushButton>( wtr( "button.next" ) ).css( "btn-warning" ).disable() );
-  d->nextButton->clicked().connect( this, &FindOrphansDialog::nextButtonClicked );
+  d->nextButton->clicked().connect( [ = ]( WMouseEvent & )
+  {
+    d->nextButton->disable();
+    d->closeButton->disable();
+    WServer::instance()->ioService().post( boost::bind( &Private::applyMigrations, d.get(), wApp ) );
+  } );
   footer()->addWidget( d->closeButton = WW<WPushButton>( wtr( "button.close" ) ).css( "btn-danger" ).disable().onClick( [ = ]( WMouseEvent )
   {
     d->fixFilePaths();
@@ -162,17 +168,10 @@ FindOrphansDialog::FindOrphansDialog( MediaCollection *mediaCollection, Session 
 void FindOrphansDialog::run()
 {
   show();
-  WServer::instance()->ioService().post( boost::bind( &FindOrphansDialogPrivate::populateMovedFiles, d, wApp ) );
+  WServer::instance()->ioService().post( boost::bind( &Private::populateMovedFiles, d.get(), wApp ) );
 }
 
-void FindOrphansDialog::nextButtonClicked()
-{
-  d->nextButton->disable();
-  d->closeButton->disable();
-  WServer::instance()->ioService().post( boost::bind( &FindOrphansDialogPrivate::applyMigrations, d, wApp ) );
-}
-
-void FindOrphansDialogPrivate::applyMigrations( WApplication *app )
+void FindOrphansDialog::Private::applyMigrations( WApplication *app )
 {
   WServer::instance()->post( app->sessionId(), [ = ]
   {
@@ -204,7 +203,7 @@ void FindOrphansDialogPrivate::applyMigrations( WApplication *app )
 }
 
 
-std::vector< std::string > FindOrphansDialogPrivate::orphans( Dbo::Transaction &transaction )
+std::vector< std::string > FindOrphansDialog::Private::orphans( Dbo::Transaction &transaction )
 {
   Dbo::collection<string> mediaIdsDbo = transaction.session().query<string>( "select media_id from media_attachment union \
   select media_id from media_properties union \
@@ -252,7 +251,7 @@ FileSuggestion::FileSuggestion( string filePath, string mediaId, vector<string> 
 }
 
 
-void FindOrphansDialogPrivate::populateMovedFiles( WApplication *app )
+void FindOrphansDialog::Private::populateMovedFiles( WApplication *app )
 {
   Dbo::Transaction t( *threadsSession );
   mediaCollection->rescan( t );
@@ -365,7 +364,7 @@ void FindOrphansDialogPrivate::populateMovedFiles( WApplication *app )
 }
 
 
-void FindOrphansDialogPrivate::migrate( Dbo::Transaction &transaction, string oldMediaId, string newMediaId )
+void FindOrphansDialog::Private::migrate( Dbo::Transaction &transaction, string oldMediaId, string newMediaId )
 {
   string migrationQuery {"UPDATE %s SET media_id = ? WHERE media_id = ?"};
   MediaPropertiesPtr mediaProperties = transaction.session().find<MediaProperties>().where( "media_id = ?" ).bind( newMediaId );
@@ -396,9 +395,9 @@ void FindOrphansDialogPrivate::migrate( Dbo::Transaction &transaction, string ol
   transaction.session().execute( ( boost::format( migrationQuery ) % "media_rating" ).str() ).bind( newMediaId ).bind( oldMediaId );
 }
 
-void FindOrphansDialogPrivate::fixFilePaths()
+void FindOrphansDialog::Private::fixFilePaths()
 {
-  log("notice") << __PRETTY_FUNCTION__;
+  log( "notice" ) << __PRETTY_FUNCTION__;
   Dbo::Transaction t( *threadsSession );
   mediaCollection->rescan( t );
   log( "notice" ) << "Fixing file paths in MediaProperties table";
@@ -415,9 +414,9 @@ void FindOrphansDialogPrivate::fixFilePaths()
   }
 }
 
-void FindOrphansDialogPrivate::populateRemoveOrphansModel( Wt::WApplication *app )
+void FindOrphansDialog::Private::populateRemoveOrphansModel( Wt::WApplication *app )
 {
-  log("notice") << __PRETTY_FUNCTION__;
+  log( "notice" ) << __PRETTY_FUNCTION__;
   Dbo::Transaction t( *threadsSession );
   mediaCollection->rescan( t );
   vector<string> mediaIds = orphans( t );

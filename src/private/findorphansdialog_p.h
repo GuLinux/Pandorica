@@ -24,72 +24,75 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define FINDORPHANSDIALOGPRIVATE_H
 #include <stdint.h>
 #include <Wt/WModelIndex>
+#include "findorphansdialog.h"
 
 class Settings;
-namespace Wt {
-class WStandardItemModel;
-class WText;
-class WPushButton;
-class WStackedWidget;
-class WContainerWidget;
-namespace Dbo {
-  class Transaction;
-}
-class WProgressBar;
+namespace Wt
+{
+  class WStandardItemModel;
+  class WText;
+  class WPushButton;
+  class WStackedWidget;
+  class WContainerWidget;
+  namespace Dbo
+  {
+    class Transaction;
+  }
+  class WProgressBar;
 }
 
 class Session;
 class MediaCollection;
-typedef std::function<void(Wt::Dbo::Transaction &)> MigrateF;
+typedef std::function<void( Wt::Dbo::Transaction & )> MigrateF;
 
-namespace PandoricaPrivate {
-  struct DataSummary {
-    uint32_t mediasCount = 0;
-    uint32_t attachmentsCount = 0;
-    uint64_t bytes = 0;
-  };
-  
-  struct FileSuggestion {
-    std::string filePath;
-    std::string mediaId;
-    uint64_t score = 0;
-    FileSuggestion(std::string filePath, std::string mediaId, std::vector< std::string> originalFileTokens);
-    FileSuggestion(std::string filePath, std::string mediaId, uint64_t score)
-    : filePath(filePath), mediaId(mediaId), score(score) {}
-  };
-  
-  
-  class FindOrphansDialogPrivate
-  {
+struct DataSummary
+{
+  uint32_t mediasCount = 0;
+  uint32_t attachmentsCount = 0;
+  uint64_t bytes = 0;
+};
+
+struct FileSuggestion
+{
+  std::string filePath;
+  std::string mediaId;
+  uint64_t score = 0;
+  FileSuggestion( std::string filePath, std::string mediaId, std::vector< std::string> originalFileTokens );
+  FileSuggestion( std::string filePath, std::string mediaId, uint64_t score )
+    : filePath( filePath ), mediaId( mediaId ), score( score ) {}
+};
+
+
+class FindOrphansDialog::Private
+{
   public:
-    enum ModelExtraData { MediaId = Wt::UserRole, Score = Wt::UserRole+1, Path = Wt::UserRole + 2 };
-    FindOrphansDialogPrivate(FindOrphansDialog* q);
-    virtual ~FindOrphansDialogPrivate();
+    enum ModelExtraData { MediaId = Wt::UserRole, Score = Wt::UserRole + 1, Path = Wt::UserRole + 2 };
+    Private( FindOrphansDialog *q );
+    virtual ~Private();
     MediaCollection *mediaCollection;
-    Session* session;
-    Session* threadsSession;
-    Wt::WText* summary;
-    Wt::WPushButton* nextButton;
-    Wt::WPushButton* closeButton;
-    Wt::WPushButton* saveButton;
-    Wt::WStandardItemModel* model;
+    Session *session;
+    Session *threadsSession;
+    Wt::WText *summary;
+    Wt::WPushButton *nextButton;
+    Wt::WPushButton *closeButton;
+    Wt::WPushButton *saveButton;
+    Wt::WStandardItemModel *model;
     Wt::WStackedWidget *stack;
     Wt::WContainerWidget *movedOrphansContainer;
     Wt::WProgressBar *migrationProgress;
-    Settings* settings;
-    
+    Settings *settings;
+
     void fixFilePaths();
 
     void nextButtonClicked();
-    void migrate(Wt::Dbo::Transaction &transaction, std::string oldMediaId, std::string newMediaId);
-    void applyMigrations(Wt::WApplication *app);
-    void populateRemoveOrphansModel(Wt::WApplication *app);
-    void populateMovedFiles(Wt::WApplication *app);
-    std::vector<std::string> orphans(Wt::Dbo::Transaction &transaction);
+    void migrate( Wt::Dbo::Transaction &transaction, std::string oldMediaId, std::string newMediaId );
+    void applyMigrations( Wt::WApplication *app );
+    void populateRemoveOrphansModel( Wt::WApplication *app );
+    void populateMovedFiles( Wt::WApplication *app );
+    std::vector<std::string> orphans( Wt::Dbo::Transaction &transaction );
     std::vector<MigrateF> migrations;
   private:
-      class FindOrphansDialog* const q;
-      DataSummary dataSummary;
-  };
-}
+    class FindOrphansDialog *const q;
+    DataSummary dataSummary;
+};
 #endif // FINDORPHANSDIALOGPRIVATE_H

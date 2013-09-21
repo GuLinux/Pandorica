@@ -54,6 +54,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <Magick++/Image.h>
 #include <Magick++/Geometry.h>
+#include "utils/d_ptr_implementation.h"
 
 using namespace Wt;
 using namespace std;
@@ -61,7 +62,6 @@ using namespace std::chrono;
 using namespace Magick;
 using namespace WtCommons;
 
-using namespace PandoricaPrivate;
 
 vector<uint8_t> vectorFrom(Blob blob) {
   return { (char*) blob.data(), (char*) blob.data() + blob.length()};
@@ -70,23 +70,19 @@ vector<uint8_t> vectorFrom(Blob blob) {
 time_point<high_resolution_clock> serverStartTimeForRandomSeeding{high_resolution_clock::now()};
 mt19937_64 randomEngine{(uint64_t) serverStartTimeForRandomSeeding.time_since_epoch().count()};
 
-CreateThumbnailsPrivate::CreateThumbnailsPrivate(WApplication* app, Settings* settings, CreateThumbnails* q)
+CreateThumbnails::Private::Private(WApplication* app, Settings* settings, CreateThumbnails* q)
   : app(app), settings(settings), q(q)
-{
-}
-CreateThumbnailsPrivate::~CreateThumbnailsPrivate()
 {
 }
 
 CreateThumbnails::CreateThumbnails(WApplication* app, Settings* settings, WObject* parent)
-  : WObject(parent), d(new CreateThumbnailsPrivate{app, settings, this})
+  : WObject(parent), d(app, settings, this)
 {
 
 }
 
 CreateThumbnails::~CreateThumbnails()
 {
-    delete d;
 }
 
 
@@ -161,7 +157,7 @@ void CreateThumbnails::run(FFMPEGMedia* ffmpegMedia, Media media, WContainerWidg
   d->result = Done;
 }
 
-void CreateThumbnailsPrivate::addImageChooser(Wt::WContainerWidget* container)
+void CreateThumbnails::Private::addImageChooser(Wt::WContainerWidget* container)
 {
   guiRun(app, [=]{
     container->clear();
@@ -192,7 +188,7 @@ void CreateThumbnailsPrivate::addImageChooser(Wt::WContainerWidget* container)
 }
 
 
-void CreateThumbnailsPrivate::chooseRandomFrame(WContainerWidget* container)
+void CreateThumbnails::Private::chooseRandomFrame(WContainerWidget* container)
 {
   delete thumbnail;
   int fullSize = max(currentFFMPEGMedia->resolution().first, currentFFMPEGMedia->resolution().second);
@@ -222,7 +218,7 @@ void CreateThumbnailsPrivate::chooseRandomFrame(WContainerWidget* container)
   });
 }
 
-Magick::Blob PandoricaPrivate::CreateThumbnailsPrivate::resize(Blob blob, uint32_t size, uint32_t quality)
+Magick::Blob CreateThumbnails::Private::resize(Blob blob, uint32_t size, uint32_t quality)
 {
   Magick::Image image{blob};
   Blob output;
@@ -240,7 +236,7 @@ Signal<>& CreateThumbnails::redo()
 
 
 
-ThumbnailPosition CreateThumbnailsPrivate::randomPosition(FFMPEGMedia* ffmpegMedia)
+ThumbnailPosition CreateThumbnails::Private::randomPosition(FFMPEGMedia* ffmpegMedia)
 {
   auto randomNumber = randomEngine();
   
@@ -297,7 +293,7 @@ void CreateThumbnails::save(Dbo::Transaction* transaction)
 }
 
 
-void CreateThumbnailsPrivate::thumbnailFor(int size, int quality)
+void CreateThumbnails::Private::thumbnailFor(int size, int quality)
 {
   // TODO: find placeholder, or alternative, for win32
 #ifdef FFMPEG_THUMBNAILER_FOUND

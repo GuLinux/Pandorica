@@ -36,7 +36,7 @@ public:
     d_ptr(Args && ...);
 
     ~d_ptr();
-
+    T * get() const;
     T * operator->() const;
 };
 

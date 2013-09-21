@@ -23,13 +23,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef FINDORPHANSDIALOG_H
 #define FINDORPHANSDIALOG_H
 #include <Wt/WDialog>
+#include "utils/d_ptr.h"
 
 class Settings;
 class Session;
 class MediaCollection;
-namespace PandoricaPrivate {
-  class FindOrphansDialogPrivate;
-}
 class FindOrphansDialog : public Wt::WDialog
 {
 public:
@@ -38,8 +36,7 @@ public:
 
     void run();
 private:
-  void nextButtonClicked();
-  PandoricaPrivate::FindOrphansDialogPrivate* const d;
+  D_PTR;
 };
 
 #endif // FINDORPHANSDIALOG_H

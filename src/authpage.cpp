@@ -40,8 +40,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Models/models.h"
 #include "settings.h"
 #include <boost/format.hpp>
+#include "utils/d_ptr_implementation.h"
 
-using namespace PandoricaPrivate;
 using namespace std;
 using namespace Wt;
 using namespace Wt::Auth;
@@ -61,13 +61,10 @@ RegistrationModel* AuthWidgetCustom::createRegistrationModel()
   return model;
 }
 
-AuthPagePrivate::AuthPagePrivate(Session* session, AuthPage* q) : session(session), q(q)
+AuthPage::Private::Private(Session* session, AuthPage* q) : session(session), q(q)
 {
 }
 
-AuthPagePrivate::~AuthPagePrivate()
-{
-}
 
 void AuthWidgetCustom::createOAuthLoginView()
 {
@@ -96,7 +93,7 @@ string animationJs(WWidget *widget, string animation) {
   return (boost::format("$('#%s').%s();") % widget->id() % animation).str();
 }
 
-void AuthPagePrivate::authEvent() {
+void AuthPage::Private::authEvent() {
   log("notice") << __PRETTY_FUNCTION__;
   if(!session->login().loggedIn()) {
     log("notice") << __PRETTY_FUNCTION__ << ": logout detected";
@@ -138,7 +135,7 @@ void AuthPagePrivate::authEvent() {
   loggedIn.emit();
 }
 
-bool AuthPagePrivate::seedIfNoAdmins(dbo::Transaction& transaction, Auth::User &user)
+bool AuthPage::Private::seedIfNoAdmins(dbo::Transaction& transaction, Auth::User &user)
 {
   dbo::collection<GroupPtr> adminGroups = session->find<Group>().where("is_admin = ?").bind(true);
   int adminUsersCount = 0;
@@ -175,8 +172,6 @@ bool AuthPagePrivate::seedIfNoAdmins(dbo::Transaction& transaction, Auth::User &
 
 AuthPage::~AuthPage()
 {
-    delete d;
-
 }
 
 Signal<>& AuthPage::loggedIn() const
@@ -192,9 +187,9 @@ Signal<>& AuthPage::loggedOut() const
 
 
 AuthPage::AuthPage(Session* session, WContainerWidget* parent)
-    : d(new AuthPagePrivate(session, this))
+    : d(session, this)
 {
-  session->login().changed().connect(d, &AuthPagePrivate::authEvent);
+  session->login().changed().connect([=](_n6){ d->authEvent(); });
   
   addWidget(WW<WText>(WString("<h1 style=\"text-align: center;\">{1}</h1>").arg(wtr("site-title"))));
   d->authWidget = new AuthWidgetCustom(Session::auth(), session->users(), session->login());

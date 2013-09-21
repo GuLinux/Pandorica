@@ -25,11 +25,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <Wt/WContainerWidget>
 #include <Wt/Dbo/Transaction>
+#include "utils/d_ptr.h"
 
 class Session;
-namespace PandoricaPrivate {
-  class AuthPagePrivate;
-}
 class AuthPage : public Wt::WContainerWidget
 {
 public:
@@ -39,7 +37,7 @@ public:
   Wt::Signal<> &loggedOut() const;
   void initAuth();
 private:
-    PandoricaPrivate::AuthPagePrivate* const d;
+  D_PTR;
 };
 
 #endif // AUTHPAGE_H

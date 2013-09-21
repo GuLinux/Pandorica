@@ -22,16 +22,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef AUTHPAGEPRIVATE_H
 #define AUTHPAGEPRIVATE_H
 #include <Wt/Auth/AuthWidget>
+#include "authpage.h"
 
 class Session;
 class AuthPage;
-namespace PandoricaPrivate {
 class AuthWidgetCustom;
-class AuthPagePrivate
+class AuthPage::Private
 {
 public:
-    AuthPagePrivate(Session *session, AuthPage* q);
-    virtual ~AuthPagePrivate();
+    Private(Session *session, AuthPage* q);
     Wt::WContainerWidget* messagesContainer;
     Wt::Signal<> loggedIn;
     Wt::Signal<> loggedOut;
@@ -59,7 +58,6 @@ public:
 };
 
 
-}
 
 
 #endif // STREAMINGPRIVATE::AUTHPAGEPRIVATE_H

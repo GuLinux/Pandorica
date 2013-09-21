@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define CREATETHUMBNAILS_H
 
 #include "MediaScanner/mediascannerstep.h"
-
+#include "utils/d_ptr.h"
 namespace Wt {
 class WPushButton;
 }
@@ -43,7 +43,7 @@ public:
     virtual Wt::Signal<> &redo();
     inline virtual std::string stepName() const {return "createThumbnails"; }
 private:
-  PandoricaPrivate::CreateThumbnailsPrivate* const d;
+  D_PTR;
 };
 
 #endif // CREATETHUMBNAILS_H

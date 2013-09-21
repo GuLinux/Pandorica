@@ -22,27 +22,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ffmpegmedia.h"
 #include "private/ffmpegmedia_p.h"
-
+#include "utils/d_ptr_implementation.h"
 using namespace std;
 using namespace FFMPEG;
-using namespace PandoricaPrivate;
 
-FFMPEGMediaPrivate::FFMPEGMediaPrivate(const Media& media, FFMPEGMedia* q) : media(media), q(q), filename(media.fullPath().c_str())
+FFMPEGMedia::Private::Private(const Media& media, FFMPEGMedia* q) : media(media), q(q), filename(media.fullPath().c_str())
 {
 }
 
 
 
-FFMPEGMediaPrivate::~FFMPEGMediaPrivate()
-{
-}
-
-bool FFMPEGMediaPrivate::openFileWasValid() const
+bool FFMPEGMedia::Private::openFileWasValid() const
 {
   return openInputResult == 0;
 }
 
-bool FFMPEGMediaPrivate::findInfoWasValid() const
+bool FFMPEGMedia::Private::findInfoWasValid() const
 {
   return openFileWasValid() && findInfoResult >= 0;
 }
@@ -62,7 +57,7 @@ long FFMPEGMedia::durationInSeconds()
 
 
 FFMPEGMedia::FFMPEGMedia(const Media& media)
-    : d(new FFMPEGMediaPrivate(media, this))
+    : d(media, this)
 {
   d->openInputResult = avformat_open_input(&d->pFormatCtx, d->filename, NULL, NULL); 
   if( d->openFileWasValid() )
@@ -76,7 +71,7 @@ FFMPEGMedia::FFMPEGMedia(const Media& media)
 }
 
 
-Stream FFMPEGMediaPrivate::streamFromAV(AVStream* stream)
+Stream FFMPEGMedia::Private::streamFromAV(AVStream* stream)
 {
   StreamType streamType;
   switch(stream->codec->codec_type) {
@@ -98,7 +93,7 @@ Stream FFMPEGMediaPrivate::streamFromAV(AVStream* stream)
 }
 
 
-map<string,string> FFMPEGMediaPrivate::readMetadata(AVDictionary *metadata)
+map<string,string> FFMPEGMedia::Private::readMetadata(AVDictionary *metadata)
 {
   AVDictionaryEntry *entry = NULL;
   map<string,string> result;
@@ -112,7 +107,6 @@ FFMPEGMedia::~FFMPEGMedia()
 {
   if(d->openFileWasValid())
     avformat_close_input(&d->pFormatCtx);
-  delete d;
 }
 
 bool FFMPEGMedia::valid()
