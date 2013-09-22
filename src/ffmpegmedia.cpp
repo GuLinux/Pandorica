@@ -26,7 +26,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using namespace std;
 using namespace FFMPEG;
 
-FFMPEGMedia::Private::Private(const Media& media, FFMPEGMedia* q) : media(media), q(q), filename(media.fullPath().c_str())
+FFMPEGMedia::Private::Private( const Media &media, FFMPEGMedia *q )
+  : media( media ), q( q ), filename( media.fullPath().c_str() )
 {
 }
 
@@ -47,75 +48,94 @@ bool FFMPEGMedia::Private::findInfoWasValid() const
 
 long FFMPEGMedia::durationInSeconds()
 {
-  if(!d->findInfoWasValid())
+  if( !d->findInfoWasValid() )
     return -1;
-  auto durationToSecs = [=](uint64_t d) { return d ? d/AV_TIME_BASE:d; };
-  uint64_t duration = durationToSecs(d->pFormatCtx->duration);
+
+  auto durationToSecs = [ = ]( uint64_t d )
+  {
+    return d ? d / AV_TIME_BASE : d;
+  };
+  uint64_t duration = durationToSecs( d->pFormatCtx->duration );
 
   return duration;
 }
 
 
-FFMPEGMedia::FFMPEGMedia(const Media& media)
-    : d(media, this)
+FFMPEGMedia::FFMPEGMedia( const Media &media )
+  : d( media, this )
 {
-  d->openInputResult = avformat_open_input(&d->pFormatCtx, d->filename, NULL, NULL); 
+  d->openInputResult = avformat_open_input( &d->pFormatCtx, d->filename, NULL, NULL );
+
   if( d->openFileWasValid() )
-    d->findInfoResult = avformat_find_stream_info(d->pFormatCtx, NULL);
-  if(!d->findInfoWasValid())
+    d->findInfoResult = avformat_find_stream_info( d->pFormatCtx, NULL );
+
+  if( !d->findInfoWasValid() )
     return;
-  for(int i=0; i<d->pFormatCtx->nb_streams; i++) {
-    d->streams.push_back(d->streamFromAV(d->pFormatCtx->streams[i]));
+
+  for( int i = 0; i < d->pFormatCtx->nb_streams; i++ )
+  {
+    d->streams.push_back( d->streamFromAV( d->pFormatCtx->streams[i] ) );
   }
-  d->metadata = d->readMetadata(d->pFormatCtx->metadata);
+
+  d->metadata = d->readMetadata( d->pFormatCtx->metadata );
 }
 
 
-Stream FFMPEGMedia::Private::streamFromAV(AVStream* stream)
+Stream FFMPEGMedia::Private::streamFromAV( AVStream *stream )
 {
   StreamType streamType;
-  switch(stream->codec->codec_type) {
-    case AVMEDIA_TYPE_VIDEO:
-      streamType = FFMPEG::Video;
-      break;
-    case AVMEDIA_TYPE_AUDIO:
-      streamType = FFMPEG::Audio;
-      break;
-    case AVMEDIA_TYPE_SUBTITLE:
-      streamType = FFMPEG::Subtitles;
-      break;
-    default:
-      streamType = FFMPEG::Other;
+
+  switch( stream->codec->codec_type )
+  {
+  case AVMEDIA_TYPE_VIDEO:
+    streamType = FFMPEG::Video;
+    break;
+
+  case AVMEDIA_TYPE_AUDIO:
+    streamType = FFMPEG::Audio;
+    break;
+
+  case AVMEDIA_TYPE_SUBTITLE:
+    streamType = FFMPEG::Subtitles;
+    break;
+
+  default
+      :
+    streamType = FFMPEG::Other;
   }
-  auto streamMetadata = readMetadata(stream->metadata);
-  pair<int,int> resolution = (streamType==FFMPEG::Video) ? pair<int,int>{stream->codec->width, stream->codec->height} : pair<int,int>{-1,-1};
+
+  auto streamMetadata = readMetadata( stream->metadata );
+  pair<int, int> resolution = ( streamType == FFMPEG::Video ) ? pair<int, int> {stream->codec->width, stream->codec->height} :
+                              pair<int, int> { -1, -1};
   return {streamType, stream->index, streamMetadata["title"], resolution, streamMetadata};
 }
 
 
-map<string,string> FFMPEGMedia::Private::readMetadata(AVDictionary *metadata)
+map<string, string> FFMPEGMedia::Private::readMetadata( AVDictionary *metadata )
 {
   AVDictionaryEntry *entry = NULL;
-  map<string,string> result;
-  while (entry = av_dict_get(metadata, "", entry, AV_DICT_IGNORE_SUFFIX))
+  map<string, string> result;
+
+  while( entry = av_dict_get( metadata, "", entry, AV_DICT_IGNORE_SUFFIX ) )
     result[entry->key] = entry->value;
+
   return result;
 }
 
 
 FFMPEGMedia::~FFMPEGMedia()
 {
-  if(d->openFileWasValid())
-    avformat_close_input(&d->pFormatCtx);
+  if( d->openFileWasValid() )
+    avformat_close_input( &d->pFormatCtx );
 }
 
 bool FFMPEGMedia::valid()
 {
-  return d->openFileWasValid() && d->findInfoWasValid(); 
+  return d->openFileWasValid() && d->findInfoWasValid();
 }
 
 
-std::string FFMPEGMedia::metadata(std::string key) const
+std::string FFMPEGMedia::metadata( std::string key ) const
 {
   return d->metadata[key];
 }
@@ -128,17 +148,19 @@ std::vector<Stream> FFMPEGMedia::streams() const
 
 bool FFMPEGMedia::isVideo()
 {
-  for(auto stream: d->streams)
-    if(stream.type == Video)
+  for( auto stream : d->streams )
+    if( stream.type == Video )
       return true;
+
   return false;
 }
 
-std::pair<int,int> FFMPEGMedia::resolution()
+std::pair<int, int> FFMPEGMedia::resolution()
 {
-  if(!isVideo())
-    return {-1, -1};
-  for(auto stream: d->streams)
-    if(stream.type == Video)
+  if( !isVideo() )
+    return { -1, -1};
+
+  for( auto stream : d->streams )
+    if( stream.type == Video )
       return stream.resolution;
 }

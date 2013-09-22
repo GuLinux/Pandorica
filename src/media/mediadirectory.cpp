@@ -44,44 +44,45 @@ MediaDirectory::~MediaDirectory()
 
 void MediaDirectory::add( const Media &media )
 {
-  if( media.parentDirectory() == d->path )
+  auto mediaDirectory = media.parentDirectory();
+  if( mediaDirectory == d->path )
   {
     d->medias.push_back( media );
     return;
   }
 
-  auto currentDirectory = media.parentDirectory();
-  list<boost::filesystem::path> directories;
 
-  while( currentDirectory != boost::filesystem::path() )
+  while( mediaDirectory != boost::filesystem::path() )
   {
-    if( currentDirectory == d->path ) {
-      d->addTree( media, directories );
+    if( mediaDirectory.parent_path() == d->path )
+    {
+      d->addTree( media, mediaDirectory );
       return;
     }
 
-    directories.push_front( currentDirectory );
-    currentDirectory = currentDirectory.parent_path();
+    mediaDirectory = mediaDirectory.parent_path();
   }
 }
 
-void MediaDirectory::Private::addTree( const Media &media, const list<boost::filesystem::path> &directories )
+void MediaDirectory::Private::addTree( const Media &media, const boost::filesystem::path &directory )
 {
-  boost::filesystem::path subdirectoryPath = directories.front();
-  if(subdirectories.count(subdirectoryPath) == 0)
-    subdirectories[subdirectoryPath] = shared_ptr<MediaDirectory>{new MediaDirectory{subdirectoryPath}};
-  shared_ptr<MediaDirectory> subDirectory = subdirectories[subdirectoryPath];
-  subDirectory->add(media);
+  if( subdirectories.count( directory ) == 0 )
+    subdirectories[directory] = shared_ptr<MediaDirectory> {new MediaDirectory{directory}};
+
+  subdirectories[directory]->add( media );
 }
 
 vector< Media > MediaDirectory::allMedias() const
 {
   vector<Media> _allMedias;
-  copy(d->medias.begin(), d->medias.end(), back_insert_iterator<vector<Media>>(_allMedias));
-  for(auto subDirectory: d->subdirectories) {
+  copy( d->medias.begin(), d->medias.end(), back_insert_iterator<vector<Media>>( _allMedias ) );
+
+  for( auto subDirectory : d->subdirectories )
+  {
     auto subDirectoryMedias = subDirectory.second->allMedias();
-    copy(subDirectoryMedias.begin(), subDirectoryMedias.end(), back_insert_iterator<vector<Media>>(_allMedias));
+    copy( subDirectoryMedias.begin(), subDirectoryMedias.end(), back_insert_iterator<vector<Media>>( _allMedias ) );
   }
+
   return _allMedias;
 }
 
@@ -93,9 +94,12 @@ vector< Media > MediaDirectory::medias() const
 vector< shared_ptr< MediaDirectory > > MediaDirectory::subDirectories() const
 {
   vector<std::shared_ptr<MediaDirectory>> _subDirectories;
-  for(auto s: d->subdirectories) {
-    _subDirectories.push_back(s.second);
+
+  for( auto s : d->subdirectories )
+  {
+    _subDirectories.push_back( s.second );
   }
+
   return _subDirectories;
 }
 
