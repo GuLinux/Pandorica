@@ -26,39 +26,40 @@
 #include <Wt/WJavaScript>
 #include "media/media.h"
 #include "Wt-Commons/wt_helpers.h"
+#include "navigationbar.h"
 
 class Settings;
 class MediaCollection;
 class Session;
-namespace Wt {
-namespace Dbo {
-
-class Transaction;
-}
-
-class WNavigationBar;
-class WMenu;
-class WMenuItem;
-}
-
-namespace PandoricaPrivate {
-  typedef std::function<void(Wt::WMenuItem*, _n5)> OnItemTriggered;
-class NavigationBarPrivate
+namespace Wt
 {
-public:
-    NavigationBarPrivate(Session* session, MediaCollection* mediaCollection, Settings* settings, NavigationBar* q);
-    virtual ~NavigationBarPrivate();
-    Wt::WNavigationBar* navigationBar;
+  namespace Dbo
+  {
+
+    class Transaction;
+  }
+
+  class WNavigationBar;
+  class WMenu;
+  class WMenuItem;
+}
+
+typedef std::function<void( Wt::WMenuItem *, _n5 )> OnItemTriggered;
+class NavigationBar::Private
+{
+  public:
+    Private( Session *session, MediaCollection *mediaCollection, Settings *settings, NavigationBar *q );
+    Wt::WNavigationBar *navigationBar;
     Session *session;
     bool isShowingMediaCollectionBrowser = false;
-    void setupNavigationBar(Wt::Dbo::Transaction& transaction, Wt::WStackedWidget* stackedWidget, NavigationBar::PagesMap pagesMap);
-    void setupAdminBar(Wt::Dbo::Transaction& transaction);
+    void setupNavigationBar( Wt::Dbo::Transaction &transaction, Wt::WStackedWidget *stackedWidget, NavigationBar::PagesMap pagesMap );
+    void setupAdminBar( Wt::Dbo::Transaction &transaction );
     void setupSearchBar();
-    Wt::WMenuItem *createItem(Wt::WMenu *menu, Wt::WString text, Wt::WWidget *parentWidget, OnItemTriggered onItemTriggered, std::string cssClass = std::string{});
+    Wt::WMenuItem *createItem( Wt::WMenu *menu, Wt::WString text, Wt::WWidget *parentWidget, OnItemTriggered onItemTriggered, std::string cssClass = std::string {} );
 
     Wt::Signal<Media> play;
     Wt::Signal<> logout;
-    
+
     Wt::Signal<> viewLoggedUsers;
     Wt::Signal<> viewUsersHistory;
     Wt::Signal<> manageGroups;
@@ -67,19 +68,18 @@ public:
     Wt::Signal<> viewAs;
     Wt::Signal<> configureApp;
     Wt::Signal<> showUserSettings;
-    
+
     Wt::JSignal<std::string> playJS;
-    
+
     NavigationBar::Page currentPage;
-    void resetSelection(Wt::WMenu *menu);
-    Wt::WMenu* mainMenu;
-    Wt::WMenuItem* activeUsersMenuItem = 0;
+    void resetSelection( Wt::WMenu *menu );
+    Wt::WMenu *mainMenu;
+    Wt::WMenuItem *activeUsersMenuItem = 0;
     int previousItemIndex, currentItemIndex = -1;
-    Wt::WMenuItem* playerItem;
-private:
-    class NavigationBar* const q;
+    Wt::WMenuItem *playerItem;
+  private:
+    class NavigationBar *const q;
     MediaCollection *mediaCollection;
     Settings *settings;
 };
-}
 #endif // NAVIGATIONBARPRIVATE_H

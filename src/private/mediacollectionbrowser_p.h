@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "media/media.h"
 #include <functional>
 #include "Wt-Commons/wt_helpers.h"
+#include "mediacollectionbrowser.h"
 
 namespace Wt {
 class WPanel;
@@ -38,7 +39,6 @@ class MediaCollectionBrowser;
 class Session;
 class Settings;
 class MediaCollection;
-namespace PandoricaPrivate {
 typedef std::pair<std::string,Media> MediaEntry;
 typedef std::function<std::string(Wt::WObject*)> GetIconF;
 
@@ -138,9 +138,9 @@ private:
 
 typedef std::function<void(Wt::WMouseEvent)> OnClick;
 
-class MediaCollectionBrowserPrivate {
+class MediaCollectionBrowser::Private {
 public:
-    MediaCollectionBrowserPrivate(MediaCollection *collection, Settings *settings, Session *session, MediaCollectionBrowser *q)
+    Private(MediaCollection *collection, Settings *settings, Session *session, MediaCollectionBrowser *q)
         : collection(collection) , settings(settings), session(session), q(q) {}
     void rebuildBreadcrumb();
     void browse(CollectionPath *currentPath);
@@ -168,7 +168,6 @@ private:
     Wt::WContainerWidget* addIcon(Wt::WString filename, GetIconF icon, OnClick onClick);
     MediaCollectionBrowser* q;
 };
-}
 
 
 #endif

@@ -24,14 +24,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MEDIASCANNERDIALOG_H
 
 #include <Wt/WDialog>
+#include "utils/d_ptr.h"
 
 class Media;
 class Settings;
 class MediaCollection;
 class Session;
-namespace PandoricaPrivate {
-  class MediaScannerDialogPrivate;
-}
 class MediaScannerDialog : Wt::WDialog
 {
 public:
@@ -40,7 +38,7 @@ public:
   void run();
   Wt::Signal<> &scanFinished();
 private:
-  PandoricaPrivate::MediaScannerDialogPrivate* const d;
+  D_PTR;
 };
 
 #endif // MEDIASCANNERDIALOG_H

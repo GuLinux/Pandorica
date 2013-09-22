@@ -53,6 +53,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WGroupBox>
 #include <Wt/WTimer>
 #include <Wt/WTable>
+#include "utils/d_ptr_implementation.h"
 
 #define ROOT_PATH_ID "///ROOT///"
 
@@ -65,7 +66,7 @@ using namespace WtCommons;
 
 
 MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Settings *settings, Session *session, WContainerWidget *parent )
-  : WContainerWidget( parent ), d( new MediaCollectionBrowserPrivate( collection, settings, session, this ) )
+  : WContainerWidget( parent ), d(collection, settings, session, this )
 {
   d->infoPanel = new InfoPanelMultiplex( this );
   d->breadcrumb = WW<WContainerWidget>().css( "breadcrumb visible-desktop" );
@@ -112,9 +113,9 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
   {
     d->queueSignal.emit( media );
   } );
-  d->infoPanel->setTitle().connect( d, &MediaCollectionBrowserPrivate::setTitleFor );
-  d->infoPanel->setPoster().connect( d, &MediaCollectionBrowserPrivate::setPosterFor );
-  d->infoPanel->deletePoster().connect( d, &MediaCollectionBrowserPrivate::clearThumbnailsFor );
+  d->infoPanel->setTitle().connect( d.get(), &MediaCollectionBrowser::Private::setTitleFor );
+  d->infoPanel->setPoster().connect( d.get(), &MediaCollectionBrowser::Private::setPosterFor );
+  d->infoPanel->deletePoster().connect( d.get(), &MediaCollectionBrowser::Private::clearThumbnailsFor );
   desktopInfoPanel->playFolder().connect( [ = ]( _n6 )
   {
     for( Media media : collection->sortedMediasList() )
@@ -358,7 +359,7 @@ void InfoPanel::labelValueBox( string label, WWidget *widget, WTable *container 
 
 
 
-void MediaCollectionBrowserPrivate::browse( CollectionPath *currentPath )
+void MediaCollectionBrowser::Private::browse( CollectionPath *currentPath )
 {
   this->currentPath = currentPath;
   infoPanel->reset();
@@ -442,7 +443,7 @@ string RootCollectionPath::label() const
 
 
 
-void MediaCollectionBrowserPrivate::addDirectory( CollectionPath *directory )
+void MediaCollectionBrowser::Private::addDirectory( CollectionPath *directory )
 {
   auto onClick = [ = ]( WMouseEvent )
   {
@@ -455,7 +456,7 @@ void MediaCollectionBrowserPrivate::addDirectory( CollectionPath *directory )
 }
 
 
-void MediaCollectionBrowserPrivate::addMedia( Media &media )
+void MediaCollectionBrowser::Private::addMedia( Media &media )
 {
   wApp->log( "notice" ) << "adding media " << media.path();
   Dbo::Transaction t( *session );
@@ -488,7 +489,7 @@ void MediaCollectionBrowserPrivate::addMedia( Media &media )
   addIcon( media.title( t ), icon, onClick );
 }
 
-void MediaCollectionBrowserPrivate::clearThumbnailsFor( Media media )
+void MediaCollectionBrowser::Private::clearThumbnailsFor( Media media )
 {
   Dbo::Transaction t( *session );
   session->execute( "DELETE FROM media_attachment WHERE media_id=? and type = 'preview';" ).bind( media.uid() );
@@ -497,7 +498,7 @@ void MediaCollectionBrowserPrivate::clearThumbnailsFor( Media media )
 }
 
 
-void MediaCollectionBrowserPrivate::setPosterFor( Media media )
+void MediaCollectionBrowser::Private::setPosterFor( Media media )
 {
   // TODO: very messy... FFMPEGMedia is of course deleted, need to create a copy...
   FFMPEGMedia *ffmpegMedia = new FFMPEGMedia {media};
@@ -532,7 +533,7 @@ void MediaCollectionBrowserPrivate::setPosterFor( Media media )
 }
 
 
-void MediaCollectionBrowserPrivate::setTitleFor( Media media )
+void MediaCollectionBrowser::Private::setTitleFor( Media media )
 {
   Dbo::Transaction t( *session );
   MediaPropertiesPtr properties = media.properties( t );
@@ -592,7 +593,7 @@ void MediaCollectionBrowserPrivate::setTitleFor( Media media )
 }
 
 
-WContainerWidget *MediaCollectionBrowserPrivate::addIcon( WString filename, GetIconF icon, OnClick onClick )
+WContainerWidget *MediaCollectionBrowser::Private::addIcon( WString filename, GetIconF icon, OnClick onClick )
 {
   WContainerWidget *item = WW<WContainerWidget>().css( "span3 media-icon-container" );
   item->setContentAlignment( AlignmentFlag::AlignCenter );
@@ -609,7 +610,7 @@ WContainerWidget *MediaCollectionBrowserPrivate::addIcon( WString filename, GetI
 
 
 
-void MediaCollectionBrowserPrivate::rebuildBreadcrumb()
+void MediaCollectionBrowser::Private::rebuildBreadcrumb()
 {
   breadcrumb->clear();
   breadcrumb->addWidget( WW<WPushButton>( wtr( "mediacollection.reload" ) ).css( "btn btn-small" )
@@ -674,7 +675,5 @@ MediaCollectionBrowser::~MediaCollectionBrowser()
     delete collectionPath.second;
     d->collectionPaths.erase( collectionPath.first );
   }
-
-  delete d;
 }
 

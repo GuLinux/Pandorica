@@ -37,26 +37,23 @@
 #include <Wt/WStringListModel>
 #include <Wt/WSortFilterProxyModel>
 #include "media/mediacollection.h"
+#include "utils/d_ptr_implementation.h"
 
 using namespace Wt;
 using namespace std;
 using namespace PandoricaPrivate;
 
-NavigationBarPrivate::NavigationBarPrivate(Session* session, MediaCollection* mediaCollection, Settings *settings, NavigationBar* q)
+NavigationBar::Private::Private(Session* session, MediaCollection* mediaCollection, Settings *settings, NavigationBar* q)
   : q(q), session(session), mediaCollection(mediaCollection), settings(settings), playJS(q, "playSignal")
-{
-}
-NavigationBarPrivate::~NavigationBarPrivate()
 {
 }
 
 NavigationBar::~NavigationBar()
 {
-    delete d;
 }
 
 NavigationBar::NavigationBar(Session *session, MediaCollection *mediaCollection, Settings *settings, Wt::WContainerWidget* parent)
-    : d(new NavigationBarPrivate(session, mediaCollection, settings, this))
+    : d(session, mediaCollection, settings, this)
 {
   hide();
   addWidget(d->navigationBar = new WNavigationBar);
@@ -130,7 +127,7 @@ Signal<>& NavigationBar::showUserSettings()
 
 auto onItemTriggered_noop = [](WMenuItem*,_n5) {};
 
-WMenuItem* NavigationBarPrivate::createItem(WMenu* menu, WString text, WWidget* parentWidget, OnItemTriggered onItemTriggered, string cssClass)
+WMenuItem* NavigationBar::Private::createItem(WMenu* menu, WString text, WWidget* parentWidget, OnItemTriggered onItemTriggered, string cssClass)
 {
   WMenuItem *item = menu->addItem(text, parentWidget);
   item->triggered().connect(onItemTriggered);
@@ -139,7 +136,7 @@ WMenuItem* NavigationBarPrivate::createItem(WMenu* menu, WString text, WWidget* 
   return item;
 }
 
-void NavigationBarPrivate::resetSelection(Wt::WMenu* menu)
+void NavigationBar::Private::resetSelection(Wt::WMenu* menu)
 {
   WTimer::singleShot(200, [=](WMouseEvent) {
     menu->select(previousItemIndex);
@@ -161,7 +158,7 @@ void NavigationBar::switchToPlayer()
 }
 
 
-void NavigationBarPrivate::setupNavigationBar(Dbo::Transaction& transaction,  WStackedWidget* stackedWidget, NavigationBar::PagesMap pagesMap)
+void NavigationBar::Private::setupNavigationBar(Dbo::Transaction& transaction,  WStackedWidget* stackedWidget, NavigationBar::PagesMap pagesMap)
 {
   wApp->log("notice") << "Setting up topbar links";
   navigationBar->addStyleClass("navbar-static-top ");
@@ -214,7 +211,7 @@ void NavigationBarPrivate::setupNavigationBar(Dbo::Transaction& transaction,  WS
 }
 
 
-void NavigationBarPrivate::setupAdminBar(Dbo::Transaction& transaction)
+void NavigationBar::Private::setupAdminBar(Dbo::Transaction& transaction)
 {
   WMenuItem *adminMenuItem = mainMenu->addItem(wtr("menu.admin"));
   WPopupMenu *adminMenu = new WPopupMenu();
@@ -251,7 +248,7 @@ void NavigationBarPrivate::setupAdminBar(Dbo::Transaction& transaction)
   createItem(adminMenu, wtr("menu.configure.app"), 0, [=](WMenuItem*, _n5) { configureApp.emit();});
 }
 
-void NavigationBarPrivate::setupSearchBar()
+void NavigationBar::Private::setupSearchBar()
 {
   WLineEdit *searchBox = new WLineEdit();
   searchBox->setStyleClass("search-query");

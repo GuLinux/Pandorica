@@ -23,9 +23,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MEDIASCANNERDIALOGPRIVATE_H
 #include <vector>
 #include <Wt/WSignal>
-#include <boost/concept_check.hpp>
 #include "media/media.h"
-
+#include "MediaScanner/mediascannerdialog.h"
 class User;
 class Session;
 class MediaScannerStep;
@@ -41,7 +40,6 @@ class WGroupBox;
 }
 
 class MediaCollection;
-namespace PandoricaPrivate{
 
 struct StepContent {
   Wt::WGroupBox *groupBox;
@@ -52,11 +50,10 @@ struct ScanningProgress {
   std::string currentFile;
 };
 
-class MediaScannerDialogPrivate
+class MediaScannerDialog::Private
 {
 public:
-    MediaScannerDialogPrivate(MediaScannerDialog* q, MediaCollection* mediaCollection, Session *session, Settings* settings, std::function<bool(Media&)> scanFilter);
-    virtual ~MediaScannerDialogPrivate();
+    Private(MediaScannerDialog* q, MediaCollection* mediaCollection, Session *session, Settings* settings, std::function<bool(Media&)> scanFilter);
     Wt::WPushButton* buttonNext;
     Wt::WPushButton* buttonClose;
     std::vector<MediaScannerStep*> steps;
@@ -80,5 +77,4 @@ private:
     class MediaScannerDialog* const q;
     void runStepsFor(Media media, Wt::WApplication* app, Session& session);
 };
-}
 #endif // MEDIASCANNERDIALOGPRIVATE_H

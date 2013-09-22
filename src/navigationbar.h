@@ -24,6 +24,7 @@
 #include <Wt/WContainerWidget>
 #include "media/media.h"
 #include <map>
+#include "utils/d_ptr.h"
 
 class Settings;
 class MediaCollection;
@@ -34,9 +35,6 @@ class Transaction;
 }
 class WStackedWidget;
 }
-
-
-namespace PandoricaPrivate { class NavigationBarPrivate; }
 
 class NavigationBar : public Wt::WContainerWidget
 {
@@ -65,7 +63,7 @@ public:
     void updateUsersCount(int newUsersCount);
 
 private:
-    PandoricaPrivate::NavigationBarPrivate* const d;
+  D_PTR;
 };
 
 #endif // NAVIGATIONBAR_H

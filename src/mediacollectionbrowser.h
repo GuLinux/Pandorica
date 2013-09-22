@@ -23,11 +23,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <Wt/WContainerWidget>
 #include "media/mediacollection.h"
+#include "utils/d_ptr.h"
 
 class Session;
-namespace PandoricaPrivate {
-  class MediaCollectionBrowserPrivate;
-}
 class MediaCollection;
 class Settings;
 
@@ -42,7 +40,7 @@ public:
   bool currentDirectoryHas(Media &media) const;
   void reload();
 private:
-  PandoricaPrivate::MediaCollectionBrowserPrivate *const d;
+  D_PTR;
 };
 
 #endif // MEDIACOLLECTIONBROWSER_H

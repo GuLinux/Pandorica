@@ -39,21 +39,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/thread.hpp>
 #include <boost/chrono.hpp>
 
+#include "utils/d_ptr_implementation.h"
+
 using namespace Wt;
 using namespace std;
 using namespace PandoricaPrivate;
 using namespace WtCommons;
 
-MediaScannerDialogPrivate::MediaScannerDialogPrivate(MediaScannerDialog* q, MediaCollection *mediaCollection, Session *session, Settings* settings, std::function<bool(Media&)> scanFilter)
+MediaScannerDialog::Private::Private(MediaScannerDialog* q, MediaCollection *mediaCollection, Session *session, Settings* settings, std::function<bool(Media&)> scanFilter)
   : q(q), mediaCollection(mediaCollection), session(session), settings(settings), scanFilter(scanFilter)
-{
-}
-MediaScannerDialogPrivate::~MediaScannerDialogPrivate()
 {
 }
 
 MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, MediaCollection* mediaCollection, WObject* parent, function<bool(Media&)> scanFilter)
-    : d(new MediaScannerDialogPrivate(this, mediaCollection, session, settings, scanFilter))
+    : d(this, mediaCollection, session, settings, scanFilter)
 {
   resize(700, 650);
   setWindowTitle(wtr("mediascanner.title"));
@@ -103,7 +102,6 @@ MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, Med
 
 MediaScannerDialog::~MediaScannerDialog()
 {
-  delete d;
 }
 
 Signal<>& MediaScannerDialog::scanFinished()
@@ -135,10 +133,10 @@ void MediaScannerDialog::run()
       stepContainers.second.content->clear();
     wApp->triggerUpdate();
   };
-  WServer::instance()->ioService().post(boost::bind(&MediaScannerDialogPrivate::scanMedias, d, wApp, updateGuiProgress, onScanFinished ));
+  WServer::instance()->ioService().post(boost::bind(&MediaScannerDialog::Private::scanMedias, d.get(), wApp, updateGuiProgress, onScanFinished ));
 }
 
-void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, function<void()> updateGuiProgress, function<void()> onScanFinish)
+void MediaScannerDialog::Private::scanMedias(Wt::WApplication* app, function<void()> updateGuiProgress, function<void()> onScanFinish)
 {
   canceled = false;
   scanningProgress = {0, {}};
@@ -171,7 +169,7 @@ void MediaScannerDialogPrivate::scanMedias(Wt::WApplication* app, function<void(
 }
 
 
-void MediaScannerDialogPrivate::runStepsFor(Media media, WApplication* app, Session& session)
+void MediaScannerDialog::Private::runStepsFor(Media media, WApplication* app, Session& session)
 {
   canContinue = false;
   skipped = false;
