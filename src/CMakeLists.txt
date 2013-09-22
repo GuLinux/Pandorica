@@ -17,19 +17,16 @@ include(FindPkgConfig)
 message("PKGConfig Executable: ${PKG_CONFIG_EXECUTABLE}")
 # TODO : difficult to find on windows 32. Remove,  or implement alternatives (standalone ffmpeg binary? )
 pkg_check_modules(FFMPEG_THUMBNAILER libffmpegthumbnailer)
-pkg_check_modules(AVUTIL libavutil)
-pkg_check_modules(AVFORMAT libavformat)
-pkg_check_modules(AVCODEC libavcodec)
+pkg_check_modules(AVUTIL libavutil REQUIRED)
+pkg_check_modules(AVFORMAT libavformat REQUIRED)
+pkg_check_modules(AVCODEC libavcodec REQUIRED)
 
 if(FFMPEG_THUMBNAILER_FOUND)
   add_definitions(-DFFMPEG_THUMBNAILER_FOUND)
   include_directories(${FFMPEG_THUMBNAILER_INCLUDE_DIRS})
 endif(FFMPEG_THUMBNAILER_FOUND)
-if(AVUTIL_FOUND AND AVFORMAT_FOUND AND AVCODEC_FOUND)
-  add_definitions(-DFFMPEG_FOUND)
-  include_directories(${AVUTIL_INCLUDE_DIRS} ${AVFORMAT_INCLUDE_DIRS} ${AVCODEC_INCLUDE_DIRS})
-  set(ffmpeg_media_class ffmpegmedia.cpp)
-endif(AVUTIL_FOUND AND AVFORMAT_FOUND AND AVCODEC_FOUND)
+
+include_directories(${AVUTIL_INCLUDE_DIRS} ${AVFORMAT_INCLUDE_DIRS} ${AVCODEC_INCLUDE_DIRS})
 
 if(QT_FOUND AND NOT DISABLE_QT)
   INCLUDE(   ${QT_USE_FILE}   )
@@ -45,7 +42,7 @@ endif(QT_FOUND AND NOT DISABLE_QT)
 set(pandorica_SOURCES ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs} ${player_srcs} 
   ${qt_only_classes}
     authpage.cpp
-    ${ffmpeg_media_class}
+    ffmpegmedia.cpp
     latestcommentsdialog.cpp
     groupsdialog.cpp
     settingspage.cpp

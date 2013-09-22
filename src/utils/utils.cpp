@@ -45,11 +45,12 @@ using namespace std;
 using namespace Wt;
 using namespace WtCommons;
 
-Utils::Private::Private(Utils* q) : q(q)
+Utils::Private::Private( Utils *q ) : q( q )
 {
 }
+
 Utils::Utils()
-    : d(this)
+  : d( this )
 {
 }
 
@@ -57,140 +58,169 @@ Utils::~Utils()
 {
 }
 
-void Utils::mailForNewAdmin(string email, WString identity)
+void Utils::mailForNewAdmin( string email, WString identity )
 {
   Mail::Client client;
   Mail::Message message;
-  message.setFrom(Utils::Private::authMailbox());
-  message.setSubject(WString::tr("new_admin_subject"));
-  message.setBody(WString::tr("new_admin_body").arg(identity).arg(email));
-  message.addRecipient(Mail::To, Utils::Private::adminMailbox());
+  message.setFrom( Utils::Private::authMailbox() );
+  message.setSubject( WString::tr( "new_admin_subject" ) );
+  message.setBody( WString::tr( "new_admin_body" ).arg( identity ).arg( email ) );
+  message.addRecipient( Mail::To, Utils::Private::adminMailbox() );
   client.connect();
-  client.send(message);
+  client.send( message );
 }
 
-void Utils::mailForUnauthorizedUser(string email, WString identity)
+void Utils::mailForUnauthorizedUser( string email, WString identity )
 {
   Mail::Client client;
   Mail::Message message;
-  message.setFrom(Utils::Private::authMailbox());
-  message.setSubject(WString::tr("unauthorized_user_login_subject"));
-  message.setBody(WString::tr("unauthorized_user_login_body").arg(identity).arg(email).arg(wApp->makeAbsoluteUrl(wApp->bookmarkUrl("/"))));
-  message.addRecipient(Mail::To, Utils::Private::adminMailbox());
+  message.setFrom( Utils::Private::authMailbox() );
+  message.setSubject( WString::tr( "unauthorized_user_login_subject" ) );
+  message.setBody( WString::tr( "unauthorized_user_login_body" ).arg( identity ).arg( email ).arg( wApp->makeAbsoluteUrl( wApp->bookmarkUrl( "/" ) ) ) );
+  message.addRecipient( Mail::To, Utils::Private::adminMailbox() );
   client.connect();
-  client.send(message);
+  client.send( message );
 }
 
 
 Mail::Mailbox Utils::Private::adminMailbox()
 {
-  return mailboxFor("admin-mail-name", "admin-mail-address", {"admin@localhost"});
+  return mailboxFor( "admin-mail-name", "admin-mail-address", {"admin@localhost"} );
 }
 
 Mail::Mailbox Utils::Private::authMailbox()
 {
-  return mailboxFor("auth-mail-sender-name", "auth-mail-sender-address", {"noreply@localhost"});
+  return mailboxFor( "auth-mail-sender-name", "auth-mail-sender-address", {"noreply@localhost"} );
 }
 
 
-Mail::Mailbox Utils::Private::mailboxFor(string nameProperty, string addressProperty, Mail::Mailbox defaultMailbox)
+Mail::Mailbox Utils::Private::mailboxFor( string nameProperty, string addressProperty, Mail::Mailbox defaultMailbox )
 {
   string name, address;
-  WServer::instance()->readConfigurationProperty(nameProperty, name);
-  WServer::instance()->readConfigurationProperty(addressProperty, address);
-  if(name.empty() || address.empty()) {
-    Wt::log("warn") << "mailbox properties " << nameProperty << " or " << addressProperty << " are not configured correctly.";
-    Wt::log("warn") << "Please check your configuration file. returning a default address.";
+  WServer::instance()->readConfigurationProperty( nameProperty, name );
+  WServer::instance()->readConfigurationProperty( addressProperty, address );
+
+  if( name.empty() || address.empty() )
+  {
+    Wt::log( "warn" ) << "mailbox properties " << nameProperty << " or " << addressProperty << " are not configured correctly.";
+    Wt::log( "warn" ) << "Please check your configuration file. returning a default address.";
     return defaultMailbox;
   }
+
   return {address, name};
 }
 
-WInteractWidget* Utils::help(string titleKey, string contentKey, string side, WLength size)
+WInteractWidget *Utils::help( string titleKey, string contentKey, string side, WLength size )
 {
-  WImage *image = WW<WImage>(Settings::staticPath("/icons/help.png")).css("link-hand")
-  .setAttribute("data-toggle", "popover")
-  .setAttribute("data-placement", side)
-  .setAttribute("data-html", "true")
-  .setAttribute("data-trigger", "manual")
-  ;
-  
+  WImage *image = WW<WImage>( Settings::staticPath( "/icons/help.png" ) ).css( "link-hand" )
+                  .setAttribute( "data-toggle", "popover" )
+                  .setAttribute( "data-placement", side )
+                  .setAttribute( "data-html", "true" )
+                  .setAttribute( "data-trigger", "manual" )
+                  ;
+
   image->doJavaScript(
-    (boost::format("$('#%s').popover({ title: %s, content: %s, }); ") % image->id() 
-    % wtr(titleKey).jsStringLiteral()
-    % wtr(contentKey).jsStringLiteral()
+    ( boost::format( "$('#%s').popover({ title: %s, content: %s, }); " ) % image->id()
+      % wtr( titleKey ).jsStringLiteral()
+      % wtr( contentKey ).jsStringLiteral()
     ).str()
   );
-  image->clicked().connect([=](WMouseEvent){
-    image->doJavaScript( (boost::format(JS(
-      var myself = '#%s';
-      var shouldShow = ! $(myself).hasClass('help-popover-shown');
-      $('.help-popover-shown').popover('hide');
-      $('.help-popover-shown').removeClass('help-popover-shown');
-      if(!shouldShow) return;
-      setTimeout(function(){
-        $(myself).addClass('help-popover-shown');
-        $(myself).popover('show');
-      }, 100);
-    ))
-      % image->id()
-    ).str());
-  });
-  image->resize(size, size);
-  return image;  
+  image->clicked().connect( [ = ]( WMouseEvent )
+  {
+    image->doJavaScript( ( boost::format( JS(
+                                            var myself = '#%s';
+                                            var shouldShow = ! $( myself ).hasClass( 'help-popover-shown' );
+                                            $( '.help-popover-shown' ).popover( 'hide' );
+                                            $( '.help-popover-shown' ).removeClass( 'help-popover-shown' );
+
+                                            if( !shouldShow ) return;
+                                            setTimeout( function()
+  {
+    $( myself )
+      .addClass( 'help-popover-shown' );
+      $( myself ).popover( 'show' );
+    }, 100 );
+                                          ) )
+                           % image->id()
+                         ).str() );
+  } );
+  image->resize( size, size );
+  return image;
 }
 
 
-std::string Utils::titleHintFromFilename(std::string filename)
+std::string Utils::titleHintFromFilename( std::string filename )
 {
-  for(FindAndReplace hint: FindAndReplace::from(Settings::sharedFilesDir("/title_from_filename_replacements.json"))) {
-    try {
-      filename = boost::regex_replace(filename, boost::regex{hint.regexToFind, boost::regex::icase}, hint.replacement);
-    } catch(runtime_error e) {
-      WServer::instance()->log("notice") << "exception parsing regex '" << hint.regexToFind << "': " << e.what();
+  for( FindAndReplace hint : FindAndReplace::from( Settings::sharedFilesDir( "/title_from_filename_replacements.json" ) ) )
+  {
+    try
+    {
+      filename = boost::regex_replace( filename, boost::regex {hint.regexToFind, boost::regex::icase}, hint.replacement );
+    }
+    catch
+      ( runtime_error e )
+    {
+      WServer::instance()->log( "notice" ) << "exception parsing regex '" << hint.regexToFind << "': " << e.what();
     }
   }
-  while(filename.find("  ") != string::npos)
-    boost::replace_all(filename, "  ", " ");
-  boost::algorithm::trim(filename);
+
+  while( filename.find( "  " ) != string::npos )
+    boost::replace_all( filename, "  ", " " );
+
+  boost::algorithm::trim( filename );
   return filename;
 }
 
-string Utils::formatFileSize(long size) {
+string Utils::formatFileSize( long size )
+{
   int maxSizeForUnit = 900;
   vector<string> units {"bytes", "KB", "MB", "GB"};
   double unitSize = size;
-  
-  for(string unit: units) {
-    if(unitSize<maxSizeForUnit || unit == units.back()) {
-      return (boost::format("%.2f %s") % unitSize % unit).str();
+
+  for( string unit : units )
+  {
+    if( unitSize < maxSizeForUnit || unit == units.back() )
+    {
+      return ( boost::format( "%.2f %s" ) % unitSize % unit ).str();
     }
+
     unitSize /= 1024;
   }
 }
 
-vector< FindAndReplace > FindAndReplace::from(string filename)
+vector< FindAndReplace > FindAndReplace::from( string filename )
 {
-  
-  ifstream subfile(filename);
-  if(!subfile.is_open()) {
-    WServer::instance()->log("notice") << "JSON Find/Replacement file " << filename << " missing, returning empty array";
+
+  ifstream subfile( filename );
+
+  if( !subfile.is_open() )
+  {
+    WServer::instance()->log( "notice" ) << "JSON Find/Replacement file " << filename << " missing, returning empty array";
     return {};
   }
+
   stringstream json;
   vector<FindAndReplace> parsedVector;
   json << subfile.rdbuf();
   subfile.close();
-  try {
+
+  try
+  {
     Json::Value parsed;
-    Json::parse(json.str(), parsed);
-    Json::Array parsedArray = parsed.orIfNull(Json::Array{});
-    for(Json::Object value: parsedArray) {
-      parsedVector.push_back({value.get("regex_to_find").toString(), value.get("replacement").toString() });
+    Json::parse( json.str(), parsed );
+    Json::Array parsedArray = parsed.orIfNull( Json::Array {} );
+
+    for( Json::Object value : parsedArray )
+    {
+      parsedVector.push_back( {value.get( "regex_to_find" ).toString(), value.get( "replacement" ).toString() } );
     }
+
     return parsedVector;
-  } catch(Json::ParseError error) {
-    WServer::instance()->log("notice") << "Error parsing " << filename << ": " << error.what();
+  }
+  catch
+    ( Json::ParseError error )
+  {
+    WServer::instance()->log( "notice" ) << "Error parsing " << filename << ": " << error.what();
     return {};
   }
 }

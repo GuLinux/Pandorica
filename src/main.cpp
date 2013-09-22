@@ -68,12 +68,10 @@ WApplication *createApplication( const WEnvironment &env )
   return app;
 }
 
-#ifdef FFMPEG_FOUND
 extern "C" {
 #include <libavcodec/avcodec.h>    // required headers
 #include <libavformat/avformat.h>
 }
-#endif
 void expireStaleSessions()
 {
   try
@@ -288,9 +286,7 @@ int main( int argc, char **argv, char **envp )
 {
   try
   {
-#ifdef FFMPEG_FOUND
     av_register_all();
-#endif
     Magick::InitializeMagick( *argv );
     WServer server( argv[0] );
     po::variables_map vm;
