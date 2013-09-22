@@ -172,7 +172,7 @@ void MediaScannerDialog::Private::runStepsFor(Media media, WApplication* app, Se
 {
   canContinue = false;
   skipped = false;
-  FFMPEGMedia ffmpegMedia{media};
+  FFMPEGMedia ffmpegMedia{media, [=](const string &level) { return app->log(level); } };
   Dbo::Transaction t(session);
   for(MediaScannerStep *step: steps) {
     step->run(&ffmpegMedia, media, stepsContents[step].content, &t);

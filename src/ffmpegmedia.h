@@ -23,33 +23,48 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define FFMPEGMEDIA_H
 #include "media/media.h"
 #include <map>
+#include <functional>
+#include <ostream>
 #include "utils/d_ptr.h"
+
+#ifdef LOGGER_TESTING
+#define LOGGER_ENTRY std::ostream&
+#else
+#define LOGGER_ENTRY Wt::WLogEntry
+#endif
+namespace Wt
+{
+  class WLogEntry;
+}
 class Session;
 
-namespace FFMPEG {
+namespace FFMPEG
+{
   enum StreamType { Video, Audio, Subtitles, Other };
-  struct Stream {
+  struct Stream
+  {
     StreamType type;
     int index;
     std::string title;
-    std::pair<int,int> resolution;
-    std::map<std::string,std::string> metadata;
+    std::pair<int, int> resolution;
+    std::map<std::string, std::string> metadata;
   };
 };
 
 class FFMPEGMedia
 {
-public:
-  FFMPEGMedia(const Media &media);
-  ~FFMPEGMedia();
-  bool isVideo();
-  std::pair<int,int> resolution();
-  long durationInSeconds();
-  bool valid();
-  std::string metadata(std::string key) const;
-  std::vector<FFMPEG::Stream> streams() const;
-private:
-  D_PTR;
+    typedef std::function<LOGGER_ENTRY(const std::string&)> Logger;
+  public:
+    FFMPEGMedia( const Media &media, Logger logger );
+    ~FFMPEGMedia();
+    bool isVideo();
+    std::pair<int, int> resolution();
+    long durationInSeconds();
+    bool valid();
+    std::string metadata( std::string key ) const;
+    std::vector<FFMPEG::Stream> streams() const;
+  private:
+    D_PTR;
 };
 
 #endif // FFMPEGMEDIA_H

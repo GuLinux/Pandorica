@@ -1,5 +1,6 @@
 #include "boost_unit_tests_helper.h"
 #include <ffmpegmedia.h>
+#include <sstream>
 using namespace std;
 extern "C" {
 #include <libavcodec/avcodec.h>    // required headers
@@ -8,50 +9,61 @@ extern "C" {
 
 struct InitFFMPeg
 {
-    InitFFMPeg()
-    {
-      av_register_all();
-    }
+  InitFFMPeg()
+  {
+    av_register_all();
+  }
 };
 
 InitFFMPeg initFFMPEG;
 
-
-BOOST_AUTO_TEST_CASE(TestEmptyFFMPegMedia)
+struct Setup
 {
-  FFMPEGMedia media(Media{});
+  map<string,stringstream> logs;
+  ostream& logger(const string& level) { return logs[level]; }
+};
+
+BOOST_FIXTURE_TEST_CASE( TestEmptyFFMPegMedia, Setup )
+{
+  FFMPEGMedia media( Media {},  bind(&Setup::logger, this, placeholders::_1) );
   BOOST_REQUIRE( !media.valid() );
-  BOOST_REQUIRE_EQUAL(0, media.streams().size() );
+  BOOST_REQUIRE_EQUAL( 0, media.streams().size() );
+  BOOST_REQUIRE_EQUAL( string{"FFMPEGMedia: Unable to open input file ''"}, logs["warning"].str());
 }
 
+/*
 
-
-BOOST_AUTO_TEST_CASE(TestInvalidMedia)
+BOOST_FIXTURE_TEST_CASE( TestInvalidMedia, Setup )
 {
-  FFMPEGMedia media(Media{string{FFMPEG_MEDIA_INTEGRATION_TESTS_SAMPLES_DIR} + "/not_a_real_video.mp4" });
+  string mediaFile = string{FFMPEG_MEDIA_INTEGRATION_TESTS_SAMPLES_DIR} + "/not_a_real_video.mp4";
+  FFMPEGMedia media( Media {mediaFile},  bind(&Setup::logger, this, placeholders::_1) );
   BOOST_REQUIRE( !media.valid() );
-  BOOST_REQUIRE_EQUAL(0, media.streams().size() );
+  BOOST_REQUIRE_EQUAL( 0, media.streams().size() );
+  BOOST_REQUIRE_EQUAL( string{"FFMPEGMedia: Unable to open input file '"} + mediaFile + "'", logs["warning"].str());
 }
 
 
-BOOST_AUTO_TEST_CASE(TestValidVideo)
+BOOST_FIXTURE_TEST_CASE( TestValidVideo, Setup )
 {
-  FFMPEGMedia media(Media{string{FFMPEG_MEDIA_INTEGRATION_TESTS_SAMPLES_DIR} + "/sample_mpeg4.mp4" });
+  FFMPEGMedia media( Media {string{FFMPEG_MEDIA_INTEGRATION_TESTS_SAMPLES_DIR} + "/sample_mpeg4.mp4" },  bind(&Setup::logger, this, placeholders::_1) );
   BOOST_REQUIRE( media.valid() );
-  BOOST_REQUIRE_EQUAL(2, media.streams().size() );
-  BOOST_REQUIRE_EQUAL( FFMPEG::Video, media.streams()[1].type);
-  BOOST_REQUIRE_EQUAL( FFMPEG::Audio, media.streams()[0].type);
-  BOOST_REQUIRE_EQUAL( "Sample MP4 Video", media.metadata("title") );
+  BOOST_REQUIRE_EQUAL( 2, media.streams().size() );
+  BOOST_REQUIRE_EQUAL( FFMPEG::Video, media.streams()[1].type );
+  BOOST_REQUIRE_EQUAL( FFMPEG::Audio, media.streams()[0].type );
+  BOOST_REQUIRE_EQUAL( "Sample MP4 Video", media.metadata( "title" ) );
+  BOOST_REQUIRE_EQUAL( "", logs["warning"].str());
 }
 
 
-BOOST_AUTO_TEST_CASE(TestValidVideoWithSubtitles)
+BOOST_FIXTURE_TEST_CASE( TestValidVideoWithSubtitles, Setup )
 {
-  FFMPEGMedia media(Media{string{FFMPEG_MEDIA_INTEGRATION_TESTS_SAMPLES_DIR} + "/sample_mpeg4_with_subtitle.mp4" });
+  FFMPEGMedia media( Media {string{FFMPEG_MEDIA_INTEGRATION_TESTS_SAMPLES_DIR} + "/sample_mpeg4_with_subtitle.mp4" },  bind(&Setup::logger, this, placeholders::_1) );
   BOOST_REQUIRE( media.valid() );
-  BOOST_REQUIRE_EQUAL(3, media.streams().size() );
-  BOOST_REQUIRE_EQUAL( FFMPEG::Video, media.streams()[1].type);
-  BOOST_REQUIRE_EQUAL( FFMPEG::Audio, media.streams()[0].type);
-  BOOST_REQUIRE_EQUAL( FFMPEG::Subtitles, media.streams()[2].type);
-  BOOST_REQUIRE_EQUAL( "Sample MP4 Video With Subtitles", media.metadata("title") );
+  BOOST_REQUIRE_EQUAL( 3, media.streams().size() );
+  BOOST_REQUIRE_EQUAL( FFMPEG::Video, media.streams()[1].type );
+  BOOST_REQUIRE_EQUAL( FFMPEG::Audio, media.streams()[0].type );
+  BOOST_REQUIRE_EQUAL( FFMPEG::Subtitles, media.streams()[2].type );
+  BOOST_REQUIRE_EQUAL( "Sample MP4 Video With Subtitles", media.metadata( "title" ) );
+  BOOST_REQUIRE_EQUAL( "", logs["warning"].str());
 }
+*/

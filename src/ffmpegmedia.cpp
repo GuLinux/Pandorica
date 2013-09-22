@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ffmpegmedia.h"
 #include "private/ffmpegmedia_p.h"
 #include "utils/d_ptr_implementation.h"
+#include <Wt/WLogger>
 using namespace std;
 using namespace FFMPEG;
 
@@ -61,13 +62,17 @@ long FFMPEGMedia::durationInSeconds()
 }
 
 
-FFMPEGMedia::FFMPEGMedia( const Media &media )
+FFMPEGMedia::FFMPEGMedia( const Media &media, Logger logger )
   : d( media, this )
 {
   d->openInputResult = avformat_open_input( &d->pFormatCtx, d->filename, NULL, NULL );
 
-  if( d->openFileWasValid() )
-    d->findInfoResult = avformat_find_stream_info( d->pFormatCtx, NULL );
+  if( !d->openFileWasValid() ) {
+    logger("warning") << "FFMPEGMedia: Unable to open input file '" << media.fullPath() << "'";
+    return;
+  }
+  
+  d->findInfoResult = avformat_find_stream_info( d->pFormatCtx, NULL );
 
   if( !d->findInfoWasValid() )
     return;
