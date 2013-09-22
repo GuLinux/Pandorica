@@ -43,33 +43,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include "utils/utils.h"
+#include "utils/d_ptr_implementation.h"
 
 
 
 using namespace std;
 using namespace Wt;
-using namespace PandoricaPrivate;
 using namespace WtCommons;
 
 namespace fs = boost::filesystem;
 
-ServerSettingsPagePrivate::ServerSettingsPagePrivate(Settings* settings, Session* session, MediaCollection *mediaCollection, ServerSettingsPage* q)
+ServerSettingsPage::Private::Private(Settings* settings, Session* session, MediaCollection *mediaCollection, ServerSettingsPage* q)
   : settings(settings), session(session), mediaCollection(mediaCollection), q(q)
-{
-}
-
-ServerSettingsPagePrivate::~ServerSettingsPagePrivate()
 {
 }
 
 ServerSettingsPage::~ServerSettingsPage()
 {
-    delete d;
-
 }
 
 ServerSettingsPage::ServerSettingsPage(Settings* settings, Session* session, MediaCollection *mediaCollection, WObject* parent)
-    : WDialog(parent), d(new ServerSettingsPagePrivate(settings, session, mediaCollection, this))
+    : WDialog(parent), d(settings, session, mediaCollection, this)
 {
   setWindowTitle(wtr("menu.configure.app"));
   WStackedWidget *stack = new WStackedWidget(contents());
@@ -99,7 +93,7 @@ ServerSettingsPage::ServerSettingsPage(Settings* settings, Session* session, Med
   });
 }
 
-WContainerWidget* ServerSettingsPagePrivate::selectMediaRootPage()
+WContainerWidget* ServerSettingsPage::Private::selectMediaRootPage()
 {
   WGroupBox *groupBox = WW<WGroupBox>(wtr("configure.app.select_media_directories")).css("fieldset-small");
   vector<string> rootPaths;
@@ -132,7 +126,7 @@ string sanitizePath(string deployPath) {
   return deployPath;
 }
 
-WContainerWidget* ServerSettingsPagePrivate::cachePage()
+WContainerWidget* ServerSettingsPage::Private::cachePage()
 {
   Dbo::Transaction t(*session);
   bool useCache = Setting::value(Setting::useCache(), t, false);
@@ -187,7 +181,7 @@ WContainerWidget* ServerSettingsPagePrivate::cachePage()
 
 
 
-void ServerSettingsPagePrivate::buildDeployTypePage()
+void ServerSettingsPage::Private::buildDeployTypePage()
 {
   selectDeployTypeContainer->clear();
   WContainerWidget *options = new WContainerWidget();

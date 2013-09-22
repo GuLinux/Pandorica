@@ -23,15 +23,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WSignal>
 #include <Wt/WAnchor>
 #include "media/media.h"
-#include <playlist.h>
+#include "playlist.h"
 
 namespace Wt {
 class WWidget;
 class WContainerWidget;
 }
 
-namespace PandoricaPrivate {
-  
   class QueueItem : public Wt::WContainerWidget, public PlaylistItem {
   public:
     QueueItem(Media media, std::list<QueueItem*> &queue, Wt::WContainerWidget *container, Session *session, WContainerWidget* parent = 0);
@@ -47,10 +45,10 @@ namespace PandoricaPrivate {
     Wt::WImage *downButton;
   };
   
-  class PlaylistPrivate {
+  class Playlist::Private {
   public:
     enum Direction { Forwards, Backwards };
-    PlaylistPrivate(Playlist *playlist, Session *session);
+    Private(Playlist *playlist, Session *session);
     Session *session;
     std::list<QueueItem*> internalQueue;
     Wt::Signal<PlaylistItem*> playSignal;
@@ -60,5 +58,4 @@ namespace PandoricaPrivate {
   private:
     Playlist *q;
   };
-}
 #endif

@@ -29,14 +29,12 @@ namespace Wt {
   }
 }
 
-namespace PandoricaPrivate {
-class SessionPrivate {
+class Session::Private {
 public:
     void createConnection();
     Wt::Dbo::SqlConnection *connection;
     UserDatabase *users = 0;
     Wt::Auth::Login login;
 };
-}
 
 #endif

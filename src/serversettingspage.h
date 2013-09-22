@@ -24,13 +24,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SERVERSETTINGSDIALOG_H
 
 #include <Wt/WDialog>
+#include "utils/d_ptr.h"
 
 class MediaCollection;
 class Session;
 class Settings;
-namespace PandoricaPrivate {
-  class ServerSettingsPagePrivate;
-}
 class ServerSettingsPage : public Wt::WDialog
 {
 public:
@@ -38,7 +36,7 @@ public:
     ServerSettingsPage(Settings* settings, Session* session, MediaCollection* mediaCollection, Wt::WObject* parent = 0);
     static void dialog(Settings *settings, Session *session, MediaCollection *mediaCollection, Wt::WObject *parent = 0);
 private:
-  PandoricaPrivate::ServerSettingsPagePrivate* const d;
+  D_PTR;
 };
 
 #endif // SERVERSETTINGSDIALOG_H

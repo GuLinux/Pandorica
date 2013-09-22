@@ -23,34 +23,32 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SERVERSETTINGSDIALOGPRIVATE_H
 #include <Wt/WLength>
 #include <string>
+#include "serversettingspage.h"
 
-namespace Wt {
-class WPushButton;
-class WContainerWidget;
-class WInteractWidget;
+namespace Wt
+{
+  class WPushButton;
+  class WContainerWidget;
+  class WInteractWidget;
 }
 
 class MediaCollection;
 class Session;
 class Settings;
-namespace PandoricaPrivate {
-class ServerSettingsPagePrivate
+class ServerSettingsPage::Private
 {
-public:
-  ServerSettingsPagePrivate(Settings* settings, Session* session, MediaCollection* mediaCollection, ServerSettingsPage* q);
-    virtual ~ServerSettingsPagePrivate();
-
+  public:
+    Private( Settings *settings, Session *session, MediaCollection *mediaCollection, ServerSettingsPage *q );
     Settings *settings;
     Session *session;
-    MediaCollection* mediaCollection;
-    Wt::WPushButton* buttonOk;
-    Wt::WPushButton* buttonNext;
+    MediaCollection *mediaCollection;
+    Wt::WPushButton *buttonOk;
+    Wt::WPushButton *buttonNext;
     Wt::WContainerWidget *selectMediaRootPage();
     Wt::WContainerWidget *cachePage();
     void buildDeployTypePage();
     Wt::WContainerWidget *selectDeployTypeContainer;
-private:
-    class ServerSettingsPage* const q;
+  private:
+    class ServerSettingsPage *const q;
 };
-}
 #endif // SERVERSETTINGSDIALOGPRIVATE_H

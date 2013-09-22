@@ -25,29 +25,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <Wt/Mail/Mailbox>
 #include <Wt/WLength>
+#include "utils/utils.h"
 
-class Utils;
-namespace PandoricaPrivate {
-
-class UtilsPrivate
+class Utils::Private
 {
-public:
-    UtilsPrivate(::Utils* q);
-    virtual ~UtilsPrivate();
-    
+  public:
+    Private( ::Utils *q );
     static Wt::Mail::Mailbox adminMailbox();
     static Wt::Mail::Mailbox authMailbox();
-    static Wt::Mail::Mailbox mailboxFor(std::string nameProperty, std::string addressProperty, Wt::Mail::Mailbox defaultMailbox);
-private:
-    class ::Utils* const q;
+    static Wt::Mail::Mailbox mailboxFor( std::string nameProperty, std::string addressProperty, Wt::Mail::Mailbox defaultMailbox );
+  private:
+    class ::Utils *const q;
 };
 
 
-struct FindAndReplace {
-    std::string regexToFind;
-    std::string replacement;
-    static std::vector<FindAndReplace> from(std::string filename);
+struct FindAndReplace
+{
+  std::string regexToFind;
+  std::string replacement;
+  static std::vector<FindAndReplace> from( std::string filename );
 };
-}
 
 #endif // UTILSPRIVATE_H

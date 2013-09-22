@@ -24,11 +24,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <Wt/WObject>
 #include "MediaScanner/mediascannerstep.h"
+#include "utils/d_ptr.h"
 
 class Session;
-namespace PandoricaPrivate {
-  class SaveSubtitlesToDatabasePrivate;
-}
 class SaveSubtitlesToDatabase :  Wt::WObject, public MediaScannerStep
 {
 public:
@@ -39,7 +37,7 @@ public:
     virtual void save(Wt::Dbo::Transaction *transaction);
     inline virtual std::string stepName() const {return "saveSubtitlesToDatabase"; }
 private:
-  PandoricaPrivate::SaveSubtitlesToDatabasePrivate* const d;
+  D_PTR;
 };
 
 #endif // SAVESUBTITLESTODATABASE_H

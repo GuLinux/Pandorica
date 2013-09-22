@@ -27,12 +27,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WString>
 #include <Wt/WLength>
 #include <algorithm>
+#include "utils/d_ptr.h"
 
 namespace Wt {
 class WInteractWidget;
-}
-namespace PandoricaPrivate {
-  class UtilsPrivate;
 }
 class Utils
 {
@@ -51,7 +49,7 @@ public:
       return out;
     }
 private:
-  PandoricaPrivate::UtilsPrivate* const d;
+  D_PTR;
 };
 
 #endif // UTILS_H

@@ -24,36 +24,38 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WPanel>
 #include <boost/filesystem.hpp>
 #include "media/media.h"
+#include "utils/d_ptr.h"
 
 class Settings;
-namespace PandoricaPrivate {
-  class QueueItem;
-  class PlaylistPrivate;
-}
+class QueueItem;
 
-class PlaylistItem {
-public:
-  PlaylistItem(Media media) : mediaItem(media) {}
-  Media media() const { return mediaItem; }
-private:
-  Media mediaItem;
+class PlaylistItem
+{
+  public:
+    PlaylistItem( Media media ) : mediaItem( media ) {}
+    Media media() const
+    {
+      return mediaItem;
+    }
+  private:
+    Media mediaItem;
 };
 
 class Playlist : public Wt::WPanel
 {
 
-public:
-  Playlist(Session *session, Settings *settings, Wt::WContainerWidget* parent = 0);
-  virtual ~Playlist();
-  PlaylistItem *queue(Media media);
-  void play(PlaylistItem* itemToPlay);
-  void next();
-  void previous();
-  void playing(PlaylistItem* currentItem);
-  Wt::Signal<PlaylistItem*> &play();
-  void reset();
-private:
-  PandoricaPrivate::PlaylistPrivate *const d;
+  public:
+    Playlist( Session *session, Settings *settings, Wt::WContainerWidget *parent = 0 );
+    virtual ~Playlist();
+    PlaylistItem *queue( Media media );
+    void play( PlaylistItem *itemToPlay );
+    void next();
+    void previous();
+    void playing( PlaylistItem *currentItem );
+    Wt::Signal<PlaylistItem *> &play();
+    void reset();
+  private:
+    D_PTR;
 };
 
 #endif // PLAYLIST_H

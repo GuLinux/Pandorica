@@ -43,7 +43,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace Wt;
 using namespace std;
-using namespace PandoricaPrivate;
 using namespace WtCommons;
 
 MediaScannerDialog::Private::Private(MediaScannerDialog* q, MediaCollection *mediaCollection, Session *session, Settings* settings, std::function<bool(Media&)> scanFilter)

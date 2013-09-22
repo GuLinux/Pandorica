@@ -28,78 +28,80 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WAnimation>
 #include <Wt/WApplication>
 #include "media/media.h"
+#include "utils/d_ptr.h"
 
-namespace Wt {
-class WApplication;
+namespace Wt
+{
+  class WApplication;
 }
 
 class Session;
 class Player;
-namespace PandoricaPrivate {
-  class SettingsPrivate;
-}
 template<class WidgetType>
-class SetAnimation {
-public:
-  void set(WidgetType *widget, Wt::WAnimation animation);
+class SetAnimation
+{
+  public:
+    void set( WidgetType *widget, Wt::WAnimation animation );
 };
-  
-namespace PandoricaPrivate {
-
-  struct Animation {
-    Wt::WAnimation desktop;
-    Wt::WAnimation mobile;
-    Wt::WAnimation get();
-  };
-}
 const std::string PATH_SEP();
 class Settings
 {
-public:
+  public:
     Settings();
     virtual ~Settings();
-    std::vector<std::string> mediasDirectories(Wt::Dbo::Session *session) const;
-    void addMediaDirectory(std::string directory, Wt::Dbo::Session *session);
-    void removeMediaDirectory(std::string directory, Wt::Dbo::Session *session);
+    std::vector<std::string> mediasDirectories( Wt::Dbo::Session *session ) const;
+    void addMediaDirectory( std::string directory, Wt::Dbo::Session *session );
+    void removeMediaDirectory( std::string directory, Wt::Dbo::Session *session );
 
-    std::string value(std::string cookieName);
+    std::string value( std::string cookieName );
     std::string locale();
-    void setValue(std::string settingName, std::string value);
-    Wt::WLink linkFor(boost::filesystem::path p, Wt::Dbo::Session *session);
-    Wt::WLink shareLink(std::string mediaId);
+    void setValue( std::string settingName, std::string value );
+    Wt::WLink linkFor( boost::filesystem::path p, Wt::Dbo::Session *session );
+    Wt::WLink shareLink( std::string mediaId );
     Player *newPlayer();
-    bool autoplay(const Media &media);
+    bool autoplay( const Media &media );
     static const std::string guiLanguage;
     static const std::string mediaAutoplay;
     static const std::string preferredPlayer;
     enum Icons { FolderBig, FolderSmall, VideoFile, AudioFile };
     enum DeployType { Internal, Static, LighttpdSecureDownload, NginxSecureLink, Undefined = 0xFF };
-    static std::string icon(Icons icon);
-    static std::string staticPath(const std::string &relativeUrl);
-    static std::string sharedFilesDir(std::string append = std::string{});
+    static std::string icon( Icons icon );
+    static std::string staticPath( const std::string &relativeUrl );
+    static std::string sharedFilesDir( std::string append = std::string {} );
     static std::string staticDeployPath();
-    std::string relativePath(std::string mediaPath, Wt::Dbo::Session *session, bool removeTrailingSlash = false) const;
-    static void init(boost::program_options::variables_map commandLineOptions);
+    std::string relativePath( std::string mediaPath, Wt::Dbo::Session *session, bool removeTrailingSlash = false ) const;
+    static void init( boost::program_options::variables_map commandLineOptions );
     static std::string sqlite3DatabasePath();
     static bool emailVerificationMandatory();
-    
-    enum AnimationType {
+
+    enum AnimationType
+    {
       PanelAnimation, ShowMediaInfoAnimation, HideMediaInfoAnimation,
       PlaylistAnimation
     };
-    template<class WidgetType> inline void setAnimation(AnimationType animationType, WidgetType *widget) {
-      widget->setAnimation(animations[animationType].get());
+    template<class WidgetType> inline void setAnimation( AnimationType animationType, WidgetType *widget )
+    {
+      widget->setAnimation( animations[animationType].get() );
     }
-    template<class WidgetType> inline void animateShow(AnimationType animationType, WidgetType *widget) {
-      widget->animateShow(animations[animationType].get());
+    template<class WidgetType> inline void animateShow( AnimationType animationType, WidgetType *widget )
+    {
+      widget->animateShow( animations[animationType].get() );
     }
-    template<class WidgetType> inline void animateHide(AnimationType animationType, WidgetType *widget) {
-      widget->animateHide(animations[animationType].get());
+    template<class WidgetType> inline void animateHide( AnimationType animationType, WidgetType *widget )
+    {
+      widget->animateHide( animations[animationType].get() );
     }
-    
-private:
-  PandoricaPrivate::SettingsPrivate *const d;
-  static std::map<AnimationType, PandoricaPrivate::Animation> animations;
+
+  private:
+    D_PTR;
+
+    struct Animation
+    {
+      Wt::WAnimation desktop;
+      Wt::WAnimation mobile;
+      Wt::WAnimation get();
+    };
+    static std::map<AnimationType, Animation> animations;
 };
 
 #endif // SETTINGS_H

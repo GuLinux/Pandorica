@@ -28,13 +28,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <Wt/WObject>
 #include <Wt/WLength>
+#include "utils/d_ptr.h"
 
 namespace Wt {
 class WContainerWidget;
-}
-
-namespace PandoricaPrivate {
-  class SelectDirectoriesPrivate;
 }
 
 typedef std::function<void(std::string)> OnPathClicked;
@@ -51,7 +48,7 @@ public:
   void setHeight(Wt::WLength height);
   inline void resize(Wt::WLength &width, Wt::WLength &height) { setWidth(width); setHeight(height); }
 private:
-  PandoricaPrivate::SelectDirectoriesPrivate* const d;
+  D_PTR;
 };
 
 #endif // SELECTDIRECTORIES_H

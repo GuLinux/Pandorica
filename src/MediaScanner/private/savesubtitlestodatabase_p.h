@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SAVESUBTITLESTODATABASEPRIVATE_H
 #include <vector>
 #include <ffmpegmedia.h>
+#include "MediaScanner/savesubtitlestodatabase.h"
 
 class MediaAttachment;
 class Session;
@@ -30,12 +31,10 @@ namespace Wt {
   class WApplication;
 };
 
-namespace PandoricaPrivate {
-class SaveSubtitlesToDatabasePrivate
+class SaveSubtitlesToDatabase::Private
 {
 public:
-  SaveSubtitlesToDatabasePrivate(Wt::WApplication* app, SaveSubtitlesToDatabase* q);
-    virtual ~SaveSubtitlesToDatabasePrivate();
+  Private(Wt::WApplication* app, SaveSubtitlesToDatabase* q);
     void extractSubtitles(std::vector< FFMPEG::Stream > subtitles, Wt::WContainerWidget* container);
     Wt::WApplication* app;
     MediaScannerStep::StepResult result;
@@ -45,6 +44,5 @@ public:
 private:
     class SaveSubtitlesToDatabase* const q;
 };
-}
 
 #endif // SAVESUBTITLESTODATABASEPRIVATE_H

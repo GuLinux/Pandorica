@@ -41,7 +41,6 @@
 
 using namespace Wt;
 using namespace std;
-using namespace PandoricaPrivate;
 
 NavigationBar::Private::Private(Session* session, MediaCollection* mediaCollection, Settings *settings, NavigationBar* q)
   : q(q), session(session), mediaCollection(mediaCollection), settings(settings), playJS(q, "playSignal")

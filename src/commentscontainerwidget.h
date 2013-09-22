@@ -22,11 +22,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define COMMENTSCONTAINERWIDGET_H
 
 #include <Wt/WContainerWidget>
+#include "utils/d_ptr.h"
 
 class Session;
-namespace PandoricaPrivate {
-  class CommentsContainerWidgetPrivate;
-}
 
 class CommentsContainerWidget : public Wt::WContainerWidget
 {
@@ -35,7 +33,7 @@ public:
     CommentsContainerWidget(std::string videoId, Session *session, Wt::WContainerWidget* parent = 0);
     virtual ~CommentsContainerWidget();
 private:
-  PandoricaPrivate::CommentsContainerWidgetPrivate *const d;
+  D_PTR;
 };
 
 #endif // COMMENTSCONTAINERWIDGET_H

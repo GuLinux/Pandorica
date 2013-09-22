@@ -44,6 +44,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Models/models.h"
 #include "settings.h"
 
+#include "utils/d_ptr_implementation.h"
+
 namespace {
   class MyOAuth : public std::vector<const Wt::Auth::OAuthService *>
   {
@@ -63,7 +65,6 @@ namespace {
 
 using namespace std;
 using namespace Wt;
-using namespace PandoricaPrivate;
 
 void Session::configureAuth()
 {
@@ -89,7 +90,7 @@ void Session::configureAuth()
 
 
 Session::Session(bool full)
-  : d(new SessionPrivate)
+  : d()
 {
   d->createConnection();
   d->connection->setProperty("show-queries", "false");
@@ -165,7 +166,7 @@ struct MySqlParams {
 
 #endif
 
-void SessionPrivate::createConnection()
+void Session::Private::createConnection()
 {
   string psqlConnParameters, mysqlConnParameters;
   bool havePostgresConfiguration = WServer::instance()->readConfigurationProperty("psql-connection", psqlConnParameters);
@@ -194,7 +195,6 @@ void SessionPrivate::createConnection()
 Session::~Session()
 {
   delete d->users;
-  delete d;
 }
 
 Wt::Auth::AbstractUserDatabase& Session::users()

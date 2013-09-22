@@ -35,29 +35,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Wt-Commons/wt_helpers.h"
 #include "Models/models.h"
 #include <boost/thread.hpp>
+#include "utils/d_ptr_implementation.h"
 
 using namespace Wt;
 using namespace std;
 using namespace std::chrono;
-using namespace PandoricaPrivate;
 using namespace WtCommons;
 
-SaveSubtitlesToDatabasePrivate::SaveSubtitlesToDatabasePrivate(Wt::WApplication* app, SaveSubtitlesToDatabase* q)
+SaveSubtitlesToDatabase::Private::Private(Wt::WApplication* app, SaveSubtitlesToDatabase* q)
   : app(app), q(q)
-{
-}
-SaveSubtitlesToDatabasePrivate::~SaveSubtitlesToDatabasePrivate()
 {
 }
 
 SaveSubtitlesToDatabase::~SaveSubtitlesToDatabase()
 {
-    delete d;
-
 }
 
 SaveSubtitlesToDatabase::SaveSubtitlesToDatabase(WApplication* app, WObject* parent)
-    : WObject(parent), d(new SaveSubtitlesToDatabasePrivate(app, this))
+    : WObject(parent), d(app, this)
 {
 }
 
@@ -81,10 +76,10 @@ void SaveSubtitlesToDatabase::run(FFMPEGMedia* ffmpegMedia, Media media, WContai
   d->media = media;
   transaction->session().execute("DELETE FROM media_attachment WHERE media_id = ? AND type = 'subtitles'").bind(media.uid());
   d->subtitlesToSave.clear();
-  boost::thread t(boost::bind(&SaveSubtitlesToDatabasePrivate::extractSubtitles, d, subtitles, container));
+  boost::thread t(boost::bind(&SaveSubtitlesToDatabase::Private::extractSubtitles, d.get(), subtitles, container));
 }
 
-void SaveSubtitlesToDatabasePrivate::extractSubtitles(vector< FFMPEG::Stream > subtitles, WContainerWidget* container)
+void SaveSubtitlesToDatabase::Private::extractSubtitles(vector< FFMPEG::Stream > subtitles, WContainerWidget* container)
 {
   int current{0};
   for(FFMPEG::Stream subtitle: subtitles) {

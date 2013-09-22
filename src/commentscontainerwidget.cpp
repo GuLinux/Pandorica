@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "commentscontainerwidget.h"
+#include "private/commentscontainerwidget_p.h"
 #include "session.h"
 #include <Wt/Dbo/QueryModel>
 #include <Wt/WApplication>
@@ -28,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WText>
 #include <boost/function.hpp>
 #include "Wt-Commons/wt_helpers.h"
-
+#include "utils/d_ptr_implementation.h"
 #include "pandorica.h"
 
 #include "Models/models.h"
@@ -36,7 +37,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using namespace Wt;
 using namespace boost;
 using namespace std;
-using namespace PandoricaPrivate;
 using namespace WtCommons;
 
 //                          content, last_updated, username, email
@@ -54,26 +54,16 @@ private:
   map<string,CommentAddedCallback> _viewers;
 };
 
+namespace {
+  CommentViewers commentViewers;
+}
+
 void CommentViewers::commentAdded(string videoId, long int commentId)
 {
   for(pair<string,CommentAddedCallback> sessions: _viewers) {
     WServer::instance()->post(sessions.first, boost::bind(sessions.second, videoId, commentId));
   }
 }
-
-
-
-CommentViewers commentViewers;
-
-class PandoricaPrivate::CommentsContainerWidgetPrivate {
-public:
-  string videoId;
-  Session *session;
-  WContainerWidget *commentsContainer;
-public:
-  CommentsContainerWidgetPrivate(string videoId, Session *session)
-    : videoId(videoId), session(session) {}
-};
 
 
 class CommentView : public WContainerWidget {
@@ -98,7 +88,7 @@ CommentView::CommentView(CommentTuple data, WContainerWidget* parent): WContaine
 
 
 CommentsContainerWidget::CommentsContainerWidget(string videoId, Session* session, WContainerWidget* parent)
-  : WContainerWidget(parent), d(new CommentsContainerWidgetPrivate(videoId, session))
+  : WContainerWidget(parent), d(videoId, session)
 {
   string querysql = "select content,last_updated,\
       auth_info.email as email,\
@@ -160,6 +150,5 @@ CommentsContainerWidget::CommentsContainerWidget(string videoId, Session* sessio
 CommentsContainerWidget::~CommentsContainerWidget()
 {
   commentViewers.removeClient(wApp->sessionId());
-  delete d;
 }
 

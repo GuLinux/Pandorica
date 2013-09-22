@@ -39,7 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/Dbo/Session>
 
 #include "utils/utils.h"
-
+#include "utils/d_ptr_implementation.h"
 
 #include "Models/models.h"
 
@@ -47,20 +47,15 @@ using namespace Wt;
 using namespace std;
 using namespace std::chrono;
 namespace fs = boost::filesystem;
-using namespace PandoricaPrivate;
 using namespace WtCommons;
 
-ScanMediaInfoStepPrivate::ScanMediaInfoStepPrivate(ScanMediaInfoStep* q, WApplication *app)
+ScanMediaInfoStep::Private::Private(ScanMediaInfoStep* q, WApplication *app)
   : q(q), app(app)
 {
 }
-ScanMediaInfoStepPrivate::~ScanMediaInfoStepPrivate()
-{
-}
-
 
 ScanMediaInfoStep::ScanMediaInfoStep(WApplication* app, WObject* parent)
-  : WObject(parent), d(new ScanMediaInfoStepPrivate(this, app))
+  : WObject(parent), d(this, app)
 {
 }
 
@@ -77,7 +72,7 @@ void ScanMediaInfoStep::run(FFMPEGMedia* ffmpegMedia, Media media, WContainerWid
   d->newTitle = titleSuggestion;
   d->ffmpegMedia = ffmpegMedia;
   d->media = media;
-  guiRun(d->app, boost::bind(&ScanMediaInfoStepPrivate::setupGui, d, container, titleSuggestion));
+  guiRun(d->app, boost::bind(&ScanMediaInfoStep::Private::setupGui, d.get(), container, titleSuggestion));
   d->result = Done;
 }
 MediaScannerStep::StepResult ScanMediaInfoStep::result()
@@ -98,7 +93,7 @@ void ScanMediaInfoStep::save(Dbo::Transaction* transaction)
 
 
 
-void ScanMediaInfoStepPrivate::setupGui(Wt::WContainerWidget* container, std::string titleSuggestion)
+void ScanMediaInfoStep::Private::setupGui(Wt::WContainerWidget* container, std::string titleSuggestion)
 {
   WLabel *label = new WLabel(wtr("mediascanner.media.title"));
   WLineEdit *editTitle = WW<WLineEdit>(titleSuggestion).css("span5");
@@ -114,6 +109,5 @@ void ScanMediaInfoStepPrivate::setupGui(Wt::WContainerWidget* container, std::st
 
 ScanMediaInfoStep::~ScanMediaInfoStep()
 {
-  delete d;
 }
 

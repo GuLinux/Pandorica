@@ -26,38 +26,38 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <map>
 #include <boost/filesystem.hpp>
+#include "selectdirectories.h"
 
-namespace boost {
-namespace filesystem {
-class path;
-}
-}
-
-namespace Wt {
-class WTreeView;
-class WStandardItem;
-class WStandardItemModel;
-}
-
-class SelectDirectories;
-namespace PandoricaPrivate {
-class SelectDirectoriesPrivate
+namespace boost
 {
-public:
-  SelectDirectoriesPrivate(SelectDirectories* q, std::vector<std::string> selectedPaths, SelectDirectories::SelectionType);
-    virtual ~SelectDirectoriesPrivate();
-    Wt::WTreeView* tree;
-    Wt::WStandardItemModel* model;
-    void populateTree(std::string path);
-    Wt::WApplication *app;
-    void addSubItems(Wt::WStandardItem *item, bool sync = false);
-    void trySelecting(Wt::WStandardItem *item, boost::filesystem::path path);
-    SelectDirectories::SelectionType selectionType;
-private:
-    Wt::WStandardItem* buildStandardItem(boost::filesystem::path path, bool addSubItems);
-    class SelectDirectories* const q;
-    std::vector<std::string> selectedPaths;
-    std::map<boost::filesystem::path, Wt::WStandardItem*> items;
-};
+  namespace filesystem
+  {
+    class path;
+  }
 }
+
+namespace Wt
+{
+  class WTreeView;
+  class WStandardItem;
+  class WStandardItemModel;
+}
+
+class SelectDirectories::Private
+{
+  public:
+    Private( SelectDirectories *q, std::vector<std::string> selectedPaths, SelectDirectories::SelectionType );
+    Wt::WTreeView *tree;
+    Wt::WStandardItemModel *model;
+    void populateTree( std::string path );
+    Wt::WApplication *app;
+    void addSubItems( Wt::WStandardItem *item, bool sync = false );
+    void trySelecting( Wt::WStandardItem *item, boost::filesystem::path path );
+    SelectDirectories::SelectionType selectionType;
+  private:
+    Wt::WStandardItem *buildStandardItem( boost::filesystem::path path, bool addSubItems );
+    class SelectDirectories *const q;
+    std::vector<std::string> selectedPaths;
+    std::map<boost::filesystem::path, Wt::WStandardItem *> items;
+};
 #endif // SELECTDIRECTORIESPRIVATE_H

@@ -34,11 +34,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "private/settings_p.h"
 #include "Models/setting.h"
 #include "session.h"
+#include "utils/d_ptr_implementation.h"
 
 using namespace std;
 using namespace Wt;
 using namespace boost;
-using namespace PandoricaPrivate;
 
 namespace fs=boost::filesystem;
 
@@ -52,8 +52,8 @@ map<string,string> defaultValues {
   {Settings::guiLanguage, "<browserdefault>"},
   };
 
-Settings::Settings() : d(new SettingsPrivate(this)) {}
-Settings::~Settings() { delete d; }
+Settings::Settings() : d(this) {}
+Settings::~Settings() {}
 
 vector< string > Settings::mediasDirectories(Dbo::Session *session) const
 {
@@ -217,7 +217,7 @@ WLink Settings::shareLink(string mediaId)
 }
 
 
-Wt::WLink SettingsPrivate::lightySecDownloadLinkFor(string secDownloadPrefix, string secDownloadRoot, string secureDownloadPassword, filesystem::path p)
+Wt::WLink Settings::Private::lightySecDownloadLinkFor(string secDownloadPrefix, string secDownloadRoot, string secureDownloadPassword, filesystem::path p)
 {
     string filePath = p.string();
     boost::replace_all(filePath, secDownloadRoot, "");
@@ -229,7 +229,7 @@ Wt::WLink SettingsPrivate::lightySecDownloadLinkFor(string secDownloadPrefix, st
     return secDownloadUrl;
 }
 
-Wt::WLink SettingsPrivate::nginxSecLinkFor(string secDownloadPrefix, string secLinkRoot, string secureDownloadPassword, filesystem::path p)
+Wt::WLink Settings::Private::nginxSecLinkFor(string secDownloadPrefix, string secLinkRoot, string secureDownloadPassword, filesystem::path p)
 {
     string filePath = p.string();
     boost::replace_all(filePath, secLinkRoot + '/', ""); // TODO: consistency check
@@ -290,14 +290,14 @@ bool Settings::emailVerificationMandatory()
 }
 
 
-map<Settings::AnimationType, PandoricaPrivate::Animation> Settings::animations {
+map<Settings::AnimationType, Settings::Animation> Settings::animations {
   {Settings::PanelAnimation, { {WAnimation::SlideInFromTop, WAnimation::EaseOut, 200}, {WAnimation::SlideInFromTop, WAnimation::Linear, 100}  }},
   {Settings::PlaylistAnimation, { {WAnimation::SlideInFromTop | WAnimation::Fade, WAnimation::EaseOut, 600}, {WAnimation::SlideInFromTop, WAnimation::Linear, 100}  }},
   {Settings::ShowMediaInfoAnimation, { {0}, {WAnimation::SlideInFromTop, WAnimation::Linear, 100}  }},
   {Settings::HideMediaInfoAnimation, { {0}, {WAnimation::SlideInFromBottom, WAnimation::Linear, 100}  }},
 };
 
-WAnimation Animation::get()
+WAnimation Settings::Animation::get()
 {
   return (wApp->environment().agentIsIEMobile() || wApp->environment().agentIsMobileWebKit() )
   ? mobile : desktop;

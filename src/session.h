@@ -32,34 +32,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/Auth/AuthService>
 #include <Models/user.h>
 
-
+#include "utils/d_ptr.h"
 
 namespace dbo = Wt::Dbo;
 
 typedef Wt::Auth::Dbo::UserDatabase<AuthInfo> UserDatabase;
-
-namespace PandoricaPrivate {
-  class SessionPrivate;
-}
 class Session : public dbo::Session
 {
-public:
-  static void configureAuth();
+  public:
+    static void configureAuth();
 
-  Session(bool full = false);
-  ~Session();
+    Session( bool full = false );
+    ~Session();
 
-  dbo::ptr<User> user();
+    dbo::ptr<User> user();
 
-  Wt::Auth::AbstractUserDatabase& users();
-  Wt::Auth::Login& login();
-  Wt::Dbo::SqlConnection *connection() const;
+    Wt::Auth::AbstractUserDatabase &users();
+    Wt::Auth::Login &login();
+    Wt::Dbo::SqlConnection *connection() const;
 
-  static const Wt::Auth::AuthService& auth();
-  static const Wt::Auth::PasswordService& passwordAuth();
-  static const std::vector<const Wt::Auth::OAuthService *>& oAuth();
-private:
-  PandoricaPrivate::SessionPrivate * const d;
+    static const Wt::Auth::AuthService &auth();
+    static const Wt::Auth::PasswordService &passwordAuth();
+    static const std::vector<const Wt::Auth::OAuthService *> &oAuth();
+  private:
+    D_PTR;
 };
 
 #endif // SESSION_H_

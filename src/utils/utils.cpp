@@ -39,38 +39,32 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WImage>
 #include <Wt/WTimer>
 #include "Wt-Commons/wt_helpers.h"
+#include "utils/d_ptr_implementation.h"
 
 using namespace std;
 using namespace Wt;
 using namespace WtCommons;
 
-using namespace PandoricaPrivate;
-
-UtilsPrivate::UtilsPrivate(Utils* q) : q(q)
+Utils::Private::Private(Utils* q) : q(q)
 {
 }
-UtilsPrivate::~UtilsPrivate()
-{
-}
-
 Utils::Utils()
-    : d(new UtilsPrivate(this))
+    : d(this)
 {
 }
 
 Utils::~Utils()
 {
-    delete d;
 }
 
 void Utils::mailForNewAdmin(string email, WString identity)
 {
   Mail::Client client;
   Mail::Message message;
-  message.setFrom(UtilsPrivate::authMailbox());
+  message.setFrom(Utils::Private::authMailbox());
   message.setSubject(WString::tr("new_admin_subject"));
   message.setBody(WString::tr("new_admin_body").arg(identity).arg(email));
-  message.addRecipient(Mail::To, UtilsPrivate::adminMailbox());
+  message.addRecipient(Mail::To, Utils::Private::adminMailbox());
   client.connect();
   client.send(message);
 }
@@ -79,27 +73,27 @@ void Utils::mailForUnauthorizedUser(string email, WString identity)
 {
   Mail::Client client;
   Mail::Message message;
-  message.setFrom(UtilsPrivate::authMailbox());
+  message.setFrom(Utils::Private::authMailbox());
   message.setSubject(WString::tr("unauthorized_user_login_subject"));
   message.setBody(WString::tr("unauthorized_user_login_body").arg(identity).arg(email).arg(wApp->makeAbsoluteUrl(wApp->bookmarkUrl("/"))));
-  message.addRecipient(Mail::To, UtilsPrivate::adminMailbox());
+  message.addRecipient(Mail::To, Utils::Private::adminMailbox());
   client.connect();
   client.send(message);
 }
 
 
-Mail::Mailbox UtilsPrivate::adminMailbox()
+Mail::Mailbox Utils::Private::adminMailbox()
 {
   return mailboxFor("admin-mail-name", "admin-mail-address", {"admin@localhost"});
 }
 
-Mail::Mailbox UtilsPrivate::authMailbox()
+Mail::Mailbox Utils::Private::authMailbox()
 {
   return mailboxFor("auth-mail-sender-name", "auth-mail-sender-address", {"noreply@localhost"});
 }
 
 
-Mail::Mailbox UtilsPrivate::mailboxFor(string nameProperty, string addressProperty, Mail::Mailbox defaultMailbox)
+Mail::Mailbox Utils::Private::mailboxFor(string nameProperty, string addressProperty, Mail::Mailbox defaultMailbox)
 {
   string name, address;
   WServer::instance()->readConfigurationProperty(nameProperty, name);

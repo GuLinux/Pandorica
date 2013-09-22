@@ -24,28 +24,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SCANMEDIAINFOPAGEPRIVATE_H
 #include <string>
 #include <Wt/WContainerWidget>
+#include "MediaScanner/scanmediainfostep.h"
 
-namespace Wt {
-class WApplication;
+namespace Wt
+{
+  class WApplication;
 }
 
 class Session;
 
-namespace PandoricaPrivate {
-class ScanMediaInfoStepPrivate
+class ScanMediaInfoStep::Private
 {
-public:
-  ScanMediaInfoStepPrivate(ScanMediaInfoStep* q, Wt::WApplication* app);
-  virtual ~ScanMediaInfoStepPrivate();
-    Wt::WApplication* app;
+  public:
+    Private( ScanMediaInfoStep *q, Wt::WApplication *app );
+    Wt::WApplication *app;
     std::string newTitle;
     bool titleIsReady;
     MediaScannerStep::StepResult result;
-    FFMPEGMedia* ffmpegMedia;
+    FFMPEGMedia *ffmpegMedia;
     Media media;
-    void setupGui(Wt::WContainerWidget *container, std::string titleSuggestion);
-private:
-  class ScanMediaInfoStep* const q;
+    void setupGui( Wt::WContainerWidget *container, std::string titleSuggestion );
+  private:
+    class ScanMediaInfoStep *const q;
 };
-}
 #endif // SCANMEDIAINFOPAGEPRIVATE_H

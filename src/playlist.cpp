@@ -28,15 +28,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "settings.h"
 #include <Wt/WImage>
 #include <Wt/WPushButton>
+#include "utils/d_ptr_implementation.h"
 
 using namespace Wt;
 using namespace std;
 using namespace boost;
-using namespace PandoricaPrivate;
 namespace fs = boost::filesystem;
 using namespace WtCommons;
 
-PlaylistPrivate::PlaylistPrivate(Playlist* playlist, Session* session) : q(playlist), session(session)
+Playlist::Private::Private(Playlist* playlist, Session* session) : q(playlist), session(session)
 {
 }
 
@@ -107,7 +107,7 @@ void QueueItem::setActive(bool active)
 
 
 Playlist::Playlist(Session* session, Settings* settings, WContainerWidget* parent)
-: WPanel(parent), d(new PlaylistPrivate{this, session})
+: WPanel(parent), d(this, session)
 {
   setCentralWidget(d->container = new WContainerWidget);
   setTitleBar(true);
@@ -163,7 +163,6 @@ Playlist::Playlist(Session* session, Settings* settings, WContainerWidget* paren
 
 Playlist::~Playlist()
 {
-  delete d;
 }
 
 
@@ -181,15 +180,15 @@ void Playlist::playing(PlaylistItem* currentItem)
 
 void Playlist::next()
 {
-  d->playlistIncrement(PlaylistPrivate::Forwards);
+  d->playlistIncrement(Playlist::Private::Forwards);
 }
 
 void Playlist::previous()
 {
-  d->playlistIncrement(PlaylistPrivate::Backwards);
+  d->playlistIncrement(Playlist::Private::Backwards);
 }
 
-void PlaylistPrivate::playlistIncrement(PlaylistPrivate::Direction direction)
+void Playlist::Private::playlistIncrement(Playlist::Private::Direction direction)
 {
   if(internalQueue.empty()) return;
   if(0 == count_if(internalQueue.begin(), internalQueue.end(), [=](QueueItem *i) { return i->isCurrent(); } )) {

@@ -24,12 +24,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <Wt/WContainerWidget>
 #include "mediascannerstep.h"
+#include "utils/d_ptr.h"
 
 class Session;
 class MediaCollection;
-namespace PandoricaPrivate {
-  class ScanMediaInfoStepPrivate;
-}
 class ScanMediaInfoStep : public MediaScannerStep, Wt::WObject
 {
 public:
@@ -40,7 +38,7 @@ public:
   virtual void save(Wt::Dbo::Transaction *transaction);
   inline virtual std::string stepName() const {return "scanMediaInfoStep"; }
 private:
-  PandoricaPrivate::ScanMediaInfoStepPrivate* const d;
+  D_PTR;
 };
 
 #endif // SCANMEDIAINFOPAGE_H
