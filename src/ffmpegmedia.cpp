@@ -63,6 +63,27 @@ long FFMPEGMedia::durationInSeconds()
   return duration;
 }
 
+void FFMPEGMedia::extractSubtitles()
+{
+
+}
+
+
+FFMPegStreamConversion(AVFormatContext *inputFormatContext, const FFMPEG::Stream &stream)
+    : streamIndex(stream.index),
+      inputStream(inputFormatContext->streams[stream.index])
+{
+    decoder = avcodec_find_decoder( inputStream->codec->codec_id );
+    // error check: decoder != null
+    int result = avcodec_open2( avstream->codec, codec, NULL );
+    // error check: result == 0
+
+    pair<string, string> format {"srt", "subrip"};
+    result = avformat_alloc_output_context2( &outputFormatContext, NULL, format.first.c_str(), NULL );
+    // error check: resut >= 0 && outputFormatContext->oformat != null
+}
+
+
 
 FFMPEGMedia::FFMPEGMedia( const Media &media, Logger logger )
   : d( media, this )

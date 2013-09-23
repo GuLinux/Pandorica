@@ -48,6 +48,7 @@ namespace FFMPEG
     std::string title;
     std::pair<int, int> resolution;
     std::map<std::string, std::string> metadata;
+    std::shared_ptr<std::string> subtitle;
   };
 };
 
@@ -63,6 +64,7 @@ class FFMPEGMedia
     bool valid();
     std::string metadata( std::string key ) const;
     std::vector<FFMPEG::Stream> streams() const;
+    void extractSubtitles();
   private:
     D_PTR;
 };

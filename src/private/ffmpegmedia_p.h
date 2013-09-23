@@ -28,11 +28,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 extern "C" {
-  #include <libavcodec/avcodec.h>    // required headers
-  #include <libavformat/avformat.h>
-  #include <libavutil/avutil.h>
+#include <libavcodec/avcodec.h>    // required headers
+#include <libavformat/avformat.h>
+#include <libavutil/avutil.h>
 }
-
+namespace {
+struct FFMPegStreamConversion {
+    FFMPegStreamConversion(AVFormatContext *inputFormatContext, const FFMPEG::Stream &stream);
+    int streamIndex;
+    AVStream *inputStream;
+    AVCodec *decoder;
+    AVFormatContext *outputFormatContext;
+    AVCodec *encoder;
+    AVPacket readPacket;
+    AVPacket writePacket;
+};
+}
 class FFMPEGMedia::Private
 {
 public:
