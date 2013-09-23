@@ -198,9 +198,8 @@ FFMPegStreamConversion::~FFMPegStreamConversion()
   av_freep(outputFormatContext->streams[0]);
   uint8_t *output;
   uint64_t outputSize = avio_close_dyn_buf(outputFormatContext->pb, &output);
-  stream.data.reset();
-  stream.data = BinaryDataPtr{new BinaryData};
-  copy(output, output + outputSize, back_insert_iterator<BinaryData>(*stream.data));
+  stream.data.clear();
+  copy(output, output + outputSize, back_insert_iterator<BinaryData>(stream.data));
   av_free(output);
 }
 

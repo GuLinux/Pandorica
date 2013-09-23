@@ -44,7 +44,7 @@ public:
     Wt::Dbo::field(a, _data, "data");
   }
   MediaAttachment() = default;
-  MediaAttachment(std::string type, std::string name, std::string value, std::string mediaId, std::string mimetype, std::vector<unsigned char> data)
+  MediaAttachment(const std::string &type, const std::string &name, const std::string &value, const std::string &mediaId, const std::string &mimetype, const std::vector<unsigned char> &data)
     : _type(type), _name(name), _value(value), _mediaId(mediaId), _mimetype(mimetype), _data(data)
   {}
   inline std::string type() const { return _type; }

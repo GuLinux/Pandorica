@@ -122,7 +122,7 @@ void SaveSubtitlesToDatabase::Private::extractSubtitles(FFMPEGMedia* ffmpegMedia
   ffmpegMedia->extractSubtitles(progressCallback);
   for(FFMPEG::Stream &stream: ffmpegMedia->streams()) {
     if(stream.type != FFMPEG::Subtitles) continue;
-    subtitlesToSave.push_back(new MediaAttachment( "subtitles", stream.metadata["title"], stream.metadata["language"], media.uid(), "text/plain", *stream.data ));
+    subtitlesToSave.push_back(new MediaAttachment( "subtitles", stream.metadata["title"], stream.metadata["language"], media.uid(), "text/plain", stream.data ));
   }
   progressCallback(100);
   result = MediaScannerStep::Done;

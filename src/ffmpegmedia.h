@@ -39,7 +39,6 @@ namespace Wt
 class Session;
 
 typedef std::vector<uint8_t> BinaryData;
-typedef std::shared_ptr<BinaryData> BinaryDataPtr;
     
 namespace FFMPEG
 {
@@ -51,7 +50,7 @@ namespace FFMPEG
     std::string title;
     std::pair<int, int> resolution;
     std::map<std::string, std::string> metadata;
-    BinaryDataPtr data;
+    BinaryData data;
     std::string toString() const;
   };
 }
