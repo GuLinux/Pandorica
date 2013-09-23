@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WSignal>
 #include "media/media.h"
 #include "media/mediacollection.h"
+#include "media/mediadirectory.h"
 
 class Settings;
 namespace Wt {
@@ -34,7 +35,7 @@ class Session;
 class MediaCollection::Private {
 public:
   Private(Settings *settings, Session *session, Wt::WApplication *app) : settings(settings), session(session), app(app) {}
-  void listDirectory(boost::filesystem::path path);
+  void listDirectory(boost::filesystem::path path, std::shared_ptr<MediaDirectory> rootDirectory);
   bool isAllowed(boost::filesystem::path path);
 public:
   Wt::WLoadingIndicator *loadingIndicator;
@@ -45,5 +46,6 @@ public:
   std::list<std::string> allowedPaths;
   Wt::WApplication *app;
   long long userId;
+  std::vector<std::shared_ptr<MediaDirectory>> mediaDirectories;
 };
 #endif

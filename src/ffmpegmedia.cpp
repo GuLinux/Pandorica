@@ -24,8 +24,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "private/ffmpegmedia_p.h"
 #include "utils/d_ptr_implementation.h"
 #include <Wt/WLogger>
+#include <boost/filesystem.hpp>
 using namespace std;
 using namespace FFMPEG;
+namespace fs = boost::filesystem;
 
 FFMPEGMedia::Private::Private( const Media &media, FFMPEGMedia *q )
   : media( media ), q( q ), filename( media.fullPath().c_str() )
@@ -74,13 +76,17 @@ FFMPEGMedia::FFMPEGMedia( const Media &media, Logger logger )
   
   d->findInfoResult = avformat_find_stream_info( d->pFormatCtx, NULL );
 
-  if( !d->findInfoWasValid() )
+  if( !d->findInfoWasValid() ) {
+    logger("warning") << "FFMPEGMedia: unable to find info for '" << media.fullPath() << "'";
     return;
+  }
 
   for( int i = 0; i < d->pFormatCtx->nb_streams; i++ )
   {
     d->streams.push_back( d->streamFromAV( d->pFormatCtx->streams[i] ) );
   }
+  
+  logger("notice") << "Found " << d->streams.size() << " streams in '" << media.fullPath() << "'";
 
   d->metadata = d->readMetadata( d->pFormatCtx->metadata );
 }

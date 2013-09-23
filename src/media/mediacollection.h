@@ -26,6 +26,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/filesystem.hpp>
 #include "media.h"
 #include "utils/d_ptr.h"
+#include "media/mediadirectory.h"
+
 class Settings;
 namespace Wt {
 namespace Dbo {
@@ -47,6 +49,7 @@ public:
     long long viewingAs() const;
     std::vector<Media> sortedMediasList() const;
     bool isAllowed(const boost::filesystem::path &path) const;
+    std::vector<std::shared_ptr<MediaDirectory>> rootDirectories() const;
 private:
   D_PTR;
 };

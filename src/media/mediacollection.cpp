@@ -32,7 +32,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "utils/d_ptr_implementation.h"
 using namespace Wt;
 using namespace std;
-using namespace boost;
 using namespace Wt::Utils;
 
 namespace fs = boost::filesystem;
@@ -56,9 +55,13 @@ void MediaCollection::rescan( Dbo::Transaction &transaction )
   UserPtr user = transaction.session().find<User>().where( "id = ?" ).bind( d->userId );
   d->allowedPaths = user->allowedPaths();
   d->collection.clear();
-
-  for( fs::path p : d->settings->mediasDirectories( &transaction.session() ) )
-    d->listDirectory( p );
+  d->mediaDirectories.clear();
+  
+  for( fs::path p : d->settings->mediasDirectories( &transaction.session() ) ) {
+    shared_ptr<MediaDirectory> rootDirectory(new MediaDirectory(p));
+    d->mediaDirectories.push_back(rootDirectory);
+    d->listDirectory( p, rootDirectory );
+  }
   size_t size = d->collection.size();
   log("notice") << __PRETTY_FUNCTION__ << ": found " << d->collection.size() << " media files.";
     WServer::instance()->post( d->app->sessionId(), [ = ]
@@ -70,7 +73,13 @@ void MediaCollection::rescan( Dbo::Transaction &transaction )
   } );
 }
 
-bool MediaCollection::Private::isAllowed( filesystem::path path )
+vector< shared_ptr< MediaDirectory > > MediaCollection::rootDirectories() const
+{
+  return d->mediaDirectories;
+}
+
+
+bool MediaCollection::Private::isAllowed( fs::path path )
 {
   for( string p : allowedPaths )
   {
@@ -81,7 +90,7 @@ bool MediaCollection::Private::isAllowed( filesystem::path path )
   return false;
 }
 
-bool MediaCollection::isAllowed( const filesystem::path &path ) const
+bool MediaCollection::isAllowed( const fs::path &path ) const
 {
   return d->isAllowed( path );
 }
@@ -110,7 +119,7 @@ Media resolveMedia( fs::path path )
   return Media::invalid();
 }
 
-void MediaCollection::Private::listDirectory( filesystem::path path )
+void MediaCollection::Private::listDirectory( boost::filesystem::path path, shared_ptr< MediaDirectory > rootDirectory )
 {
   vector<fs::directory_entry> v;
 
@@ -127,6 +136,7 @@ void MediaCollection::Private::listDirectory( filesystem::path path )
       {
         Media media {entry.path()};
         collection[media.uid()] = media;
+        rootDirectory->add(media);
       }
     }
   }
@@ -165,7 +175,7 @@ vector< Media > MediaCollection::sortedMediasList() const
   } );
   sort( medias.begin(), medias.end(), []( const Media & first, const Media & second )
   {
-    return lexicographical_compare( first.fullPath(), second.fullPath(), is_iless() );
+    return lexicographical_compare( first.fullPath(), second.fullPath(), boost::is_iless() );
   } );
   return medias;
 }
