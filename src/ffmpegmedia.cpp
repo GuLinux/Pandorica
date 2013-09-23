@@ -108,13 +108,13 @@ void FFMPEGMedia::extractSubtitles(function< void(double) > percentCallback)
 
   while( av_read_frame( d->pFormatCtx, &inputPacket ) >= 0 )
   {
-    currentPercent = inputPacket.dts * 100000.0 / d->pFormatCtx->duration;
-
-    if( currentPercent > printedPercent )
-    {
-      printedPercent = currentPercent;
-      percentCallback(currentPercent);
-    }
+//     currentPercent = inputPacket.dts * 100000.0 / d->pFormatCtx->duration;
+// 
+//     if( currentPercent > printedPercent )
+//     {
+//       printedPercent = currentPercent;
+//       percentCallback(currentPercent);
+//     }
 
     for( auto subtitle : subtitles )
       try {
