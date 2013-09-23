@@ -19,8 +19,13 @@ InitFFMPeg initFFMPEG;
 
 struct Setup
 {
-  map<string,stringstream> logs;
-  ostream& logger(const string& level) { return logs[level]; }
+  stringstream warnings;
+  stringstream notices;
+  map<string,stringstream*> logs {
+    {"warning", &warnings},
+    {"notice", &notices },
+  };
+  ostream& logger(const string& level) { return *logs[level]; }
 };
 
 BOOST_FIXTURE_TEST_CASE( TestEmptyFFMPegMedia, Setup )
@@ -28,7 +33,7 @@ BOOST_FIXTURE_TEST_CASE( TestEmptyFFMPegMedia, Setup )
   FFMPEGMedia media( Media {},  bind(&Setup::logger, this, placeholders::_1) );
   BOOST_REQUIRE( !media.valid() );
   BOOST_REQUIRE_EQUAL( 0, media.streams().size() );
-  BOOST_REQUIRE_EQUAL( string{"FFMPEGMedia: Unable to open input file ''"}, logs["warning"].str());
+  BOOST_REQUIRE_EQUAL( string{"FFMPEGMedia: Unable to open input file ''"}, warnings.str());
 }
 
 /*
