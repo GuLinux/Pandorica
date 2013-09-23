@@ -87,6 +87,7 @@ class FFMPEGMedia::Private
     std::map<std::string, std::string> metadata;
     std::map< std::string, std::string > readMetadata( AVDictionary *metadata );
     FFMPEG::Stream streamFromAV( AVStream *stream );
+    Logger logger;
   private:
     class FFMPEGMedia *const q;
 };

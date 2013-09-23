@@ -29,6 +29,7 @@ class MediaAttachment;
 class Session;
 namespace Wt {
   class WApplication;
+class WProgressBar;
 };
 
 class SaveSubtitlesToDatabase::Private
@@ -36,13 +37,17 @@ class SaveSubtitlesToDatabase::Private
 public:
   Private(Wt::WApplication* app, SaveSubtitlesToDatabase* q);
     void extractSubtitles(std::vector< FFMPEG::Stream > subtitles, Wt::WContainerWidget* container);
+    void extractSubtitles(FFMPEGMedia *ffmpegMedia);
     Wt::WApplication* app;
     MediaScannerStep::StepResult result;
     std::vector<MediaAttachment*> subtitlesToSave;
     Media media;
 
+    double progress = 0;
+    Wt::WProgressBar *progressbar;
 private:
     class SaveSubtitlesToDatabase* const q;
 };
+
 
 #endif // SAVESUBTITLESTODATABASEPRIVATE_H

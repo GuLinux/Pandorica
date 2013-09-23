@@ -38,6 +38,9 @@ namespace Wt
 }
 class Session;
 
+typedef std::vector<uint8_t> BinaryData;
+typedef std::shared_ptr<BinaryData> BinaryDataPtr;
+    
 namespace FFMPEG
 {
   enum StreamType { Video, Audio, Subtitles, Other };
@@ -48,15 +51,15 @@ namespace FFMPEG
     std::string title;
     std::pair<int, int> resolution;
     std::map<std::string, std::string> metadata;
-    std::shared_ptr<std::string> subtitle;
+    BinaryDataPtr data;
+    std::string toString() const;
   };
-};
+}
+
 
 class FFMPEGMedia
 {
     typedef std::function<LOGGER_ENTRY(const std::string&)> Logger;
-    typedef std::vector<uint8_t> BinaryData;
-    typedef std::shared_ptr<BinaryData> BinaryDataPtr;
   public:
     FFMPEGMedia( const Media &media, Logger logger );
     ~FFMPEGMedia();
@@ -66,7 +69,7 @@ class FFMPEGMedia
     bool valid();
     std::string metadata( std::string key ) const;
     std::vector<FFMPEG::Stream> streams() const;
-    void extractSubtitles();
+    void extractSubtitles(std::function<void(double)> percentCallback = [](double){});
   private:
     D_PTR;
 };

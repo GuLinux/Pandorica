@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WText>
 #include <Wt/WIOService>
 #include <Wt/WTime>
+#include <Wt/WProgressBar>
 #include <boost/format.hpp>
 #include "ffmpegmedia.h"
 #include "session.h"
@@ -89,8 +90,35 @@ void SaveSubtitlesToDatabase::run( FFMPEGMedia *ffmpegMedia, Media media, WConta
   transaction->session().execute( "DELETE FROM media_attachment WHERE media_id = ? AND type = 'subtitles'" ).bind( media.uid() );
   d->subtitlesToSave.clear();
 
-  boost::thread t( boost::bind( &SaveSubtitlesToDatabase::Private::extractSubtitles, d.get(), subtitles, container ) );
+//   boost::thread t( boost::bind( &SaveSubtitlesToDatabase::Private::extractSubtitles, d.get(), subtitles, container ) );
+  container->clear();
+  container->addWidget(new WText("Extracting subtitles"));
+  container->addWidget(d->progressbar = new WProgressBar());
+  d->progressbar->setMaximum(100);
+  boost::thread t( boost::bind( &SaveSubtitlesToDatabase::Private::extractSubtitles, d.get(), ffmpegMedia) );
 }
+
+
+void SaveSubtitlesToDatabase::Private::extractSubtitles(FFMPEGMedia* ffmpegMedia)
+{
+  auto progressCallback = [=](double p) {
+    progress = p;
+    guiRun( app, [ = ]
+    {
+      progressbar->setValue(progress);
+      app->triggerUpdate();
+    });
+  };
+  ffmpegMedia->extractSubtitles(progressCallback);
+  for(FFMPEG::Stream &stream: ffmpegMedia->streams()) {
+    if(stream.type != FFMPEG::Subtitles) continue;
+    subtitlesToSave.push_back(new MediaAttachment( "subtitles", stream.metadata["title"], stream.metadata["language"], media.uid(), "text/plain", *stream.data ));
+  }
+  progressCallback(100);
+  result = MediaScannerStep::Done;
+
+}
+
 
 void SaveSubtitlesToDatabase::Private::extractSubtitles( vector< FFMPEG::Stream > subtitles, WContainerWidget *container )
 {

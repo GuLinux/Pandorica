@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/filesystem.hpp>
 #include "utils/utils.h"
 #include <libavutil/error.h>
+#include <libavutil/mem.h>
 #ifndef AV_ERROR_MAX_STRING_SIZE
 // keep it large, just in case, why not?
 #define AV_ERROR_MAX_STRING_SIZE 256
@@ -70,13 +71,31 @@ long FFMPEGMedia::durationInSeconds()
   return duration;
 }
 
-void FFMPEGMedia::extractSubtitles()
+std::string Stream::toString() const
+{
+  stringstream s;
+  static map<StreamType, string> streamTypes {
+    {StreamType::Video, "video"},
+    {StreamType::Audio, "audio"},
+    {StreamType::Subtitles, "subtitles"},
+    {StreamType::Other, "other/unknown"},
+  };
+  s << "Stream{ type=" << streamTypes[type] << "index=" << index << ", title=" << title << ", language=" << metadata.at("language") << " }";
+  return s.str();
+}
+
+
+void FFMPEGMedia::extractSubtitles(function< void(double) > percentCallback)
 {
   list<shared_ptr<FFMPegStreamConversion>> subtitles;
   for( FFMPEG::Stream & stream : d->streams )
   {
     if( stream.type == FFMPEG::Subtitles )
-      subtitles.push_back( shared_ptr<FFMPegStreamConversion> {new FFMPegStreamConversion( d->pFormatCtx, stream )} );
+      try {
+	subtitles.push_back( shared_ptr<FFMPegStreamConversion> {new FFMPegStreamConversion( d->pFormatCtx, stream )} );
+      } catch(std::exception &e) {
+	d->logger("error") << "error allocating subtitle converter for stream " << stream.toString() << ": " << e.what();
+      }
   }
 
   AVPacket inputPacket;
@@ -84,24 +103,29 @@ void FFMPEGMedia::extractSubtitles()
   inputPacket.data = NULL;
   inputPacket.size = 0;
   cerr << "reading packets\n";
-  int currentPercent = 0;
-  int printedPercent = 0;
+  double currentPercent = 0;
+  double printedPercent = 0;
 
   while( av_read_frame( d->pFormatCtx, &inputPacket ) >= 0 )
   {
-    currentPercent = inputPacket.dts * 100 / d->pFormatCtx->duration;
+    currentPercent = inputPacket.dts * 100000.0 / d->pFormatCtx->duration;
 
     if( currentPercent > printedPercent )
     {
       printedPercent = currentPercent;
-      cerr << currentPercent << "%" << endl;
+      percentCallback(currentPercent);
     }
 
-//     for( auto subtitle : subtitles )
-//       subtitle->addPacket( inputPacket );
+    for( auto subtitle : subtitles )
+      try {
+       subtitle->addPacket( inputPacket );
+      } catch(std::exception &e) {
+         d->logger("error") << "error adding subtitle packet to stream " << subtitle->stream.toString() << ": " << e.what();
+      }
     av_free_packet( &inputPacket );
   }
 }
+
 void FFMPegStreamConversion::addPacket( AVPacket &inputPacket )
 {
   if( inputPacket.stream_index != stream.index )
@@ -140,36 +164,44 @@ FFMPegStreamConversion::FFMPegStreamConversion( AVFormatContext *inputFormatCont
     inputStream( inputFormatContext->streams[stream.index] )
 {
   pair<string, string> encoderFormat {"srt", "subrip"};
-  string streamIndexDescription = string( ": stream #" + stream.index );
   string inputCodecDescription = string( " codec " ) + ( inputStream->codec ? inputStream->codec->codec_name : "UNKNOWN" );
 
-  decoder = avCreateObject( avcodec_find_decoder( inputStream->codec->codec_id ), ConcatStrings( {"creating AV Decoder for", inputCodecDescription, streamIndexDescription} ) );
-  avLibExec( avcodec_open2( inputStream->codec, decoder, NULL ), ConcatStrings( {"Opening input", inputCodecDescription, streamIndexDescription} ) );
+  decoder = avCreateObject( avcodec_find_decoder( inputStream->codec->codec_id ), ConcatStrings( {"creating AV Decoder for", inputCodecDescription} ) );
+  avLibExec( avcodec_open2( inputStream->codec, decoder, NULL ), ConcatStrings( {"Opening input", inputCodecDescription} ) );
 
-  avLibExec( avformat_alloc_output_context2( &outputFormatContext, NULL, encoderFormat.first.c_str(), NULL ), string( "allocating output context" ) + streamIndexDescription,
+  avLibExec( avformat_alloc_output_context2( &outputFormatContext, NULL, encoderFormat.first.c_str(), NULL ), "allocating output context",
              [this]( const int & r )
   {
     return r >= 0 && outputFormatContext != NULL;
   } );
-  encoder = avCreateObject( avcodec_find_encoder_by_name( encoderFormat.second.c_str() ), string( "creating codec for " ) + encoderFormat.second + streamIndexDescription );
-  outputStream = avCreateObject( avformat_new_stream( outputFormatContext, encoder ), string( "creating output stream" ) + streamIndexDescription );
+  encoder = avCreateObject( avcodec_find_encoder_by_name( encoderFormat.second.c_str() ), string( "creating codec " ) + encoderFormat.second );
+  outputStream = avCreateObject( avformat_new_stream( outputFormatContext, encoder ), "creating output stream" );
   avcodec_get_context_defaults3( outputStream->codec, encoder );
   outputStream->id = outputFormatContext->nb_streams - 1;
   outputStream->codec->time_base = {1, 1000};
 
-  avLibExec( avio_open_dyn_buf( &outputFormatContext->pb ), ConcatStrings( {"opening output dyn buffer", streamIndexDescription} ) );
-  avLibExec( avformat_write_header( outputFormatContext, NULL ), ConcatStrings( {"writing output format header", streamIndexDescription} ) );
+  avLibExec( avio_open_dyn_buf( &outputFormatContext->pb ), "opening output dyn buffer" );
+  avLibExec( avformat_write_header( outputFormatContext, NULL ), "writing output format header");
 
   vector<uint8_t> subtitleHeader( inputStream->codec->subtitle_header, inputStream->codec->subtitle_header + inputStream->codec->subtitle_header_size );
   subtitleHeader.push_back( 0 );
   outputStream->codec->subtitle_header = subtitleHeader.data();
   outputStream->codec->subtitle_header_size = subtitleHeader.size();
 
-  avLibExec( avcodec_open2( outputStream->codec, encoder, NULL ), ConcatStrings( {"opening output stream", streamIndexDescription} ) );
+  avLibExec( avcodec_open2( outputStream->codec, encoder, NULL ), "opening output stream" );
 }
 
 FFMPegStreamConversion::~FFMPegStreamConversion()
 {
+  if(outputFormatContext->oformat->write_trailer)
+    outputFormatContext->oformat->write_trailer(outputFormatContext);
+  av_freep(outputFormatContext->streams[0]);
+  uint8_t *output;
+  uint64_t outputSize = avio_close_dyn_buf(outputFormatContext->pb, &output);
+  stream.data.reset();
+  stream.data = BinaryDataPtr{new BinaryData};
+  copy(output, output + outputSize, back_insert_iterator<BinaryData>(*stream.data));
+  av_free(output);
 }
 
 
@@ -203,6 +235,7 @@ string FFMPEGException::buildErrorMessage( const string &context, int errorCode 
 FFMPEGMedia::FFMPEGMedia( const Media &media, Logger logger )
   : d( media, this )
 {
+  d->logger = logger;
   d->openInputResult = avformat_open_input( &d->pFormatCtx, d->filename, NULL, NULL );
 
   if( !d->openFileWasValid() )
