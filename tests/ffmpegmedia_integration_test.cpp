@@ -1,11 +1,11 @@
 #include "boost_unit_tests_helper.h"
 #include <ffmpegmedia.h>
 #include <sstream>
-using namespace std;
 extern "C" {
 #include <libavcodec/avcodec.h>    // required headers
 #include <libavformat/avformat.h>
 }
+using namespace std;
 
 struct InitFFMPeg
 {
@@ -27,6 +27,7 @@ struct Setup
   };
   ostream& logger(const string& level) { return *logs[level]; }
 };
+
 
 BOOST_FIXTURE_TEST_CASE( TestEmptyFFMPegMedia, Setup )
 {
