@@ -52,7 +52,12 @@ if(Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
   pkg_check_modules(AVCODEC libavcodec REQUIRED)
   
   add_definitions(-DFFMPEG_MEDIA_INTEGRATION_TESTS_SAMPLES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/data\" -DLOGGER_TESTING)
-  register_integration_test(ffmpegmedia ffmpegmedia_integration_test.cpp  ${CMAKE_SOURCE_DIR}/src/media/media.cpp  ${CMAKE_SOURCE_DIR}/src/ffmpegmedia.cpp)
+  register_integration_test(ffmpegmedia 
+    ffmpegmedia_integration_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/media/media.cpp
+    ${CMAKE_SOURCE_DIR}/src/ffmpegmedia.cpp
+    ${CMAKE_SOURCE_DIR}/src/utils/concatstrings.cpp
+  )
   link_integration_test(ffmpegmedia ${Wt_DBO_LIBRARY} ${Wt_LIBRARIES} ${WIN32_LIBS} ${AVUTIL_LIBRARIES} ${AVFORMAT_LIBRARIES} ${AVCODEC_LIBRARIES})
   
 endif(Boost_UNIT_TEST_FRAMEWORK_LIBRARY)

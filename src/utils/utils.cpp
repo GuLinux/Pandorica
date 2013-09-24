@@ -45,31 +45,6 @@ using namespace std;
 using namespace Wt;
 using namespace WtCommons;
 
-
-ConcatStrings::ConcatStrings( const list< string > &strings, const string &separator )
-  : d(strings, separator)
-{
-}
-
-ConcatStrings::~ConcatStrings()
-{
-}
-
-ConcatStrings::operator string() const
-{
-  bool isFirst = true;
-  stringstream strstream;
-  for(auto s: d->strings) {
-    if(isFirst) {
-      strstream << d->separator;
-      isFirst = false;
-    }
-    strstream << s;
-  }
-  return strstream.str();
-}
-
-
 Utils::Private::Private( Utils *q ) : q( q )
 {
 }

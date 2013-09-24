@@ -27,6 +27,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WLength>
 #include "utils/utils.h"
 
+struct FindAndReplace
+{
+  std::string regexToFind;
+  std::string replacement;
+  static std::vector<FindAndReplace> from( std::string filename );
+};
+
+
 class Utils::Private
 {
   public:
@@ -36,20 +44,6 @@ class Utils::Private
     static Wt::Mail::Mailbox mailboxFor( std::string nameProperty, std::string addressProperty, Wt::Mail::Mailbox defaultMailbox );
   private:
     class ::Utils *const q;
-};
-
-class ConcatStrings::Private {
-public:
-  Private(const std::list<std::string> &strings, const std::string &separator) : strings(strings), separator(separator) {}
-  const std::list<std::string> strings;
-  const std::string separator;
-};
-
-struct FindAndReplace
-{
-  std::string regexToFind;
-  std::string replacement;
-  static std::vector<FindAndReplace> from( std::string filename );
 };
 
 #endif // UTILSPRIVATE_H
