@@ -33,6 +33,9 @@ extern "C" {
 #include <libavutil/avutil.h>
 }
 
+
+#define PACKETS_BUFFER_SIZE 200000
+
 class FFMPEGException : public std::runtime_error
 {
   public:
@@ -64,7 +67,6 @@ namespace
     AVPacket outputPacket;
 
 
-#define PACKETS_BUFFER_SIZE 200000
     uint8_t packetsBuffer[PACKETS_BUFFER_SIZE];
   };
 }

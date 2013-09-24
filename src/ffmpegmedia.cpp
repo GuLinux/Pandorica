@@ -26,6 +26,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WLogger>
 #include <boost/filesystem.hpp>
 #include "utils/utils.h"
+#include <libavutil/error.h>
+#ifndef AV_ERROR_MAX_STRING_SIZE
+// keep it large, just in case, why not?
+#define AV_ERROR_MAX_STRING_SIZE 256
+#endif
+
 using namespace std;
 using namespace FFMPEG;
 namespace fs = boost::filesystem;
