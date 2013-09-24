@@ -32,22 +32,47 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/avutil.h>
 }
-namespace {
-struct FFMPegStreamConversion {
-    FFMPegStreamConversion(AVFormatContext *inputFormatContext, const FFMPEG::Stream &stream);
-    int streamIndex;
+
+class FFMPEGException : public std::runtime_error
+{
+  public:
+    explicit FFMPEGException( const std::string &context, int errorCode )
+      : runtime_error( FFMPEGException::buildErrorMessage( context, errorCode ) ) {}
+  private:
+    static std::string buildErrorMessage( const std::string &context, int errorCode );
+};
+
+namespace
+{
+  struct FFMPegStreamConversion
+  {
+    FFMPegStreamConversion( AVFormatContext *inputFormatContext, FFMPEG::Stream &stream );
+    ~FFMPegStreamConversion();
+    void avLibExec( const int &result, const std::string &operation, std::function<bool( const int & )> goodCondition = []( const int &r )
+    {
+      return r == 0;
+    } );
+    template<typename T>
+    T *avCreateObject( T *object, const std::string &description );
+    void addPacket( AVPacket &inputPacket );
+    FFMPEG::Stream &stream;
     AVStream *inputStream;
+    AVStream *outputStream;
     AVCodec *decoder;
     AVFormatContext *outputFormatContext;
     AVCodec *encoder;
-    AVPacket readPacket;
-    AVPacket writePacket;
-};
+    AVPacket outputPacket;
+
+
+#define PACKETS_BUFFER_SIZE 200000
+    uint8_t packetsBuffer[PACKETS_BUFFER_SIZE];
+  };
 }
+
 class FFMPEGMedia::Private
 {
-public:
-    Private(const Media &media, FFMPEGMedia* q);
+  public:
+    Private( const Media &media, FFMPEGMedia *q );
     Media media;
     Session *session;
     AVFormatContext *pFormatCtx = 0;
@@ -57,10 +82,10 @@ public:
     std::vector<FFMPEG::Stream> streams;
     bool findInfoWasValid() const;
     bool openFileWasValid() const;
-    std::map<std::string,std::string> metadata;
-    std::map< std::string, std::string > readMetadata(AVDictionary* metadata);
-    FFMPEG::Stream streamFromAV(AVStream *stream);
-private:
-    class FFMPEGMedia* const q;
+    std::map<std::string, std::string> metadata;
+    std::map< std::string, std::string > readMetadata( AVDictionary *metadata );
+    FFMPEG::Stream streamFromAV( AVStream *stream );
+  private:
+    class FFMPEGMedia *const q;
 };
 #endif // FFMPEGMEDIAPRIVATE_H

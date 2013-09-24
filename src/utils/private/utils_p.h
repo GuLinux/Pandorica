@@ -38,6 +38,12 @@ class Utils::Private
     class ::Utils *const q;
 };
 
+class ConcatStrings::Private {
+public:
+  Private(const std::list<std::string> &strings, const std::string &separator) : strings(strings), separator(separator) {}
+  const std::list<std::string> strings;
+  const std::string separator;
+};
 
 struct FindAndReplace
 {

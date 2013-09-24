@@ -27,11 +27,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WString>
 #include <Wt/WLength>
 #include <algorithm>
+#include <list>
 #include "utils/d_ptr.h"
 
 namespace Wt {
 class WInteractWidget;
 }
+
+class ConcatStrings {
+public:
+  ConcatStrings(const std::list<std::string> &strings, const std::string &separator = std::string{});
+  ~ConcatStrings();
+  operator std::string() const;
+private:
+  D_PTR;
+};
+
 class Utils
 {
 public:

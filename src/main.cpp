@@ -287,6 +287,9 @@ int main( int argc, char **argv, char **envp )
   try
   {
     av_register_all();
+    avcodec_register_all();
+    av_register_all();
+    avformat_network_init();
     Magick::InitializeMagick( *argv );
     WServer server( argv[0] );
     po::variables_map vm;
