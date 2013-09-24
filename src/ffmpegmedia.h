@@ -55,6 +55,8 @@ namespace FFMPEG
 class FFMPEGMedia
 {
     typedef std::function<LOGGER_ENTRY(const std::string&)> Logger;
+    typedef std::vector<uint8_t> BinaryData;
+    typedef std::shared_ptr<BinaryData> BinaryDataPtr;
   public:
     FFMPEGMedia( const Media &media, Logger logger );
     ~FFMPEGMedia();
