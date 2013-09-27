@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "utils/utils.h"
 #include <libavutil/error.h>
 #include <libavutil/mem.h>
+#include <boost/chrono/include.hpp>
 #ifndef AV_ERROR_MAX_STRING_SIZE
 // keep it large, just in case, why not?
 #define AV_ERROR_MAX_STRING_SIZE 256
@@ -103,11 +104,17 @@ void FFMPEGMedia::extractSubtitles(function< void(double) > percentCallback)
   inputPacket.data = NULL;
   inputPacket.size = 0;
   cerr << "reading packets\n";
-  double currentPercent = 0;
-  double printedPercent = 0;
-
+  
+  auto lastTimePercentWasPrinted = boost::chrono::system_clock::now(); 
   while( av_read_frame( d->pFormatCtx, &inputPacket ) >= 0 )
   {
+    auto now = boost::chrono::system_clock::now();
+    if(now-lastTimePercentWasPrinted > boost::chrono::milliseconds(500)) {
+      lastTimePercentWasPrinted = now;
+      auto packetTimeBase = d->pFormatCtx->streams[inputPacket.stream_index]->time_base;
+      int64_t packetSecond = inputPacket.pts * packetTimeBase.num / packetTimeBase.den;
+      percentCallback( packetSecond * 100.0 / (d->pFormatCtx->duration / AV_TIME_BASE)  );
+    }
 //     currentPercent = inputPacket.dts * 100000.0 / d->pFormatCtx->duration;
 // 
 //     if( currentPercent > printedPercent )
@@ -156,6 +163,7 @@ void FFMPegStreamConversion::addPacket( AVPacket &inputPacket )
     }, outputStream->time_base );
     av_write_frame( outputFormatContext, &outputPacket );
   }
+  av_free_packet(&outputPacket);
 }
 
 
