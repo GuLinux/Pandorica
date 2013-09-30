@@ -28,6 +28,7 @@
   <message id="mediabrowser.queue">Queue</message>
   <message id="mediabrowser.cancelpopup">Cancel Popup</message>
   <message id="mediabrowser.admin.deletepreview">Delete Preview</message>
+  <message id="mediabrowser.admin.deleteattachments">Delete Attachments</message>
   <message id="mediabrowser.admin.settitle">Set Title</message>
   <message id="mediabrowser.filename">File Name</message>
   <message id="mediabrowser.filesize">File Size</message>

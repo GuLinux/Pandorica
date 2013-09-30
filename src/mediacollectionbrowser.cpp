@@ -115,6 +115,7 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
   d->infoPanel->setTitle().connect( d.get(), &MediaCollectionBrowser::Private::setTitleFor );
   d->infoPanel->setPoster().connect( d.get(), &MediaCollectionBrowser::Private::setPosterFor );
   d->infoPanel->deletePoster().connect( d.get(), &MediaCollectionBrowser::Private::clearThumbnailsFor );
+  d->infoPanel->deleteAttachments().connect( d.get(), &MediaCollectionBrowser::Private::clearAttachmentsFor);
   desktopInfoPanel->playFolder().connect( [ = ]( _n6 )
   {
     for( Media media : collection->sortedMediasList() )
@@ -179,6 +180,10 @@ void InfoPanelMultiplex::setup()
     panel->deletePoster().connect( [ = ]( Media & media, _n5 )
     {
       deletePoster().emit( media );
+    } );
+    panel->deleteAttachments().connect( [ = ]( Media & media, _n5 )
+    {
+      deleteAttachments().emit( media );
     } );
   }
 }
@@ -323,6 +328,10 @@ void InfoPanel::info( Media media )
     adminActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.admin.deletepreview" ) ).css( "btn btn-block btn-small btn-danger" ).onClick( [ = ]( WMouseEvent )
     {
       deletePoster().emit( media );
+    } ) );
+    adminActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.admin.deleteattachments" ) ).css( "btn btn-block btn-small btn-danger" ).onClick( [ = ]( WMouseEvent )
+    {
+      deleteAttachments().emit( media );
     } ) );
     addWidget( adminActions.first );
   }
@@ -492,6 +501,14 @@ void MediaCollectionBrowser::Private::clearThumbnailsFor( Media media )
 {
   Dbo::Transaction t( *session );
   session->execute( "DELETE FROM media_attachment WHERE media_id=? and type = 'preview';" ).bind( media.uid() );
+  t.commit();
+  q->reload();
+}
+
+void MediaCollectionBrowser::Private::clearAttachmentsFor( Media media )
+{
+  Dbo::Transaction t( *session );
+  session->execute( "DELETE FROM media_attachment WHERE media_id=?;" ).bind( media.uid() );
   t.commit();
   q->reload();
 }

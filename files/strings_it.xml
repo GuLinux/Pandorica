@@ -109,6 +109,7 @@
   <message id="mediabrowser.queue">Accoda</message>
   <message id="mediabrowser.cancelpopup">Chiudi Popup</message>
   <message id="mediabrowser.admin.deletepreview">Cancella Anteprima</message>
+  <message id="mediabrowser.admin.deleteattachments">Cancella Allegati</message>
   <message id="mediabrowser.admin.settitle">Imposta Titolo</message>
   <message id="mediabrowser.filename">Nome File</message>
   <message id="mediabrowser.filesize">Dimensione File</message>

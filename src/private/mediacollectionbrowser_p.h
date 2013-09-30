@@ -52,6 +52,7 @@ public:
     inline Wt::Signal<Media> &setTitle() { return _setTitle; }
     inline Wt::Signal<Media> &setPoster() { return _setPoster; }
     inline Wt::Signal<Media> &deletePoster() { return _deletePoster; }
+    inline Wt::Signal<Media> &deleteAttachments() { return _deleteAttachments; }
     inline Wt::Signal<> &gotInfo() { return _gotInfo; }
     inline Wt::Signal<> &wasResetted() { return _wasResetted; }
     inline Wt::Signal<> &playFolder() { return _playFolder; }
@@ -64,6 +65,7 @@ private:
   Wt::Signal<Media> _setTitle;
   Wt::Signal<Media> _setPoster;
   Wt::Signal<Media> _deletePoster;
+  Wt::Signal<Media> _deleteAttachments;
   Wt::Signal<> _gotInfo;
   Wt::Signal<> _wasResetted;
   Wt::Signal<> _playFolder;
@@ -84,6 +86,7 @@ public:
   inline Wt::Signal<Media> &setTitle() { return _setTitle; }
   inline Wt::Signal<Media> &setPoster() { return _setPoster; }
   inline Wt::Signal<Media> &deletePoster() { return _deletePoster; }
+  inline Wt::Signal<Media> &deleteAttachments() { return _deleteAttachments; }
   InfoPanel *add(InfoPanel *panel);
   void setup();
 private:
@@ -92,6 +95,7 @@ private:
   Wt::Signal<Media> _setTitle;
   Wt::Signal<Media> _setPoster;
   Wt::Signal<Media> _deletePoster;
+  Wt::Signal<Media> _deleteAttachments;
   std::vector<InfoPanel*> panels;
 };
 
@@ -161,6 +165,7 @@ public:
     
     void setTitleFor(Media media);
     void clearThumbnailsFor(Media media);
+    void clearAttachmentsFor(Media media);
     void setPosterFor(Media media);
 private:
     void addDirectory(CollectionPath *directory);
