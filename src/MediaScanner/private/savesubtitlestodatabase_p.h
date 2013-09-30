@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef SAVESUBTITLESTODATABASEPRIVATE_H
 #define SAVESUBTITLESTODATABASEPRIVATE_H
 #include <vector>
+#include <boost/thread/pthread/mutex.hpp>
 #include <ffmpegmedia.h>
 #include "MediaScanner/savesubtitlestodatabase.h"
 
@@ -39,12 +40,12 @@ public:
     void extractSubtitles(std::vector< FFMPEG::Stream > subtitles, Wt::WContainerWidget* container);
     void extractSubtitles(FFMPEGMedia *ffmpegMedia);
     Wt::WApplication* app;
-    MediaScannerStep::StepResult result;
     std::vector<MediaAttachment*> subtitlesToSave;
     Media media;
 
     double progress = 0;
     Wt::WProgressBar *progressbar;
+    boost::mutex resultMutex;
 private:
     class SaveSubtitlesToDatabase* const q;
 };

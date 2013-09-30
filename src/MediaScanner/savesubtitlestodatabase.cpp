@@ -64,7 +64,7 @@ SaveSubtitlesToDatabase::SaveSubtitlesToDatabase( WApplication *app, WObject *pa
 
 void SaveSubtitlesToDatabase::run( FFMPEGMedia *ffmpegMedia, Media media, WContainerWidget *container, Dbo::Transaction *transaction, MediaScannerStep::ExistingFlags onExisting )
 {
-  d->result = Waiting;
+  setResult( Waiting );
   vector<FFMPEG::Stream> subtitles;
   auto allStreams = ffmpegMedia->streams();
   copy_if( allStreams.begin(), allStreams.end(), back_inserter( subtitles ), [ = ]( const FFMPEG::Stream & s )
@@ -74,7 +74,7 @@ void SaveSubtitlesToDatabase::run( FFMPEGMedia *ffmpegMedia, Media media, WConta
 
   if( subtitles.size() == 0 )
   {
-    d->result = Skip;
+    setResult( Skip );
     return;
   }
 
@@ -82,50 +82,59 @@ void SaveSubtitlesToDatabase::run( FFMPEGMedia *ffmpegMedia, Media media, WConta
 
   if( onExisting == SkipIfExisting && subtitlesOnDb == subtitles.size() )
   {
-    d->result = Skip;
+    setResult( Skip );
     return;
   }
 
   d->media = media;
   transaction->session().execute( "DELETE FROM media_attachment WHERE media_id = ? AND type = 'subtitles'" ).bind( media.uid() );
   d->subtitlesToSave.clear();
-//   boost::thread t( boost::bind( &SaveSubtitlesToDatabase::Private::extractSubtitles, d.get(), subtitles, container ) );
-  
+#ifndef USE_NEW_SUBTITLES_EXTRACTOR
+   boost::thread t( boost::bind( &SaveSubtitlesToDatabase::Private::extractSubtitles, d.get(), subtitles, container ) );
+#else
   boost::condition_variable guiOk;
   boost::mutex m;
-  boost::unique_lock<boost::mutex> lock(m);
-  auto createProgressBar = [=,&guiOk]
+  boost::unique_lock<boost::mutex> lock( m );
+  auto createProgressBar = [ = , &guiOk]
   {
     container->clear();
-    container->addWidget(new WText("Extracting subtitles"));
-    container->addWidget(d->progressbar = new WProgressBar());
-    d->progressbar->setMaximum(100);
+    container->addWidget( new WText( "Extracting subtitles" ) );
+    container->addWidget( d->progressbar = new WProgressBar() );
+    d->progressbar->setMaximum( 100 );
     d->app->triggerUpdate();
     guiOk.notify_all();
   };
-  guiRun( d->app, createProgressBar);
-  guiOk.wait(lock);
-  boost::thread t( boost::bind( &SaveSubtitlesToDatabase::Private::extractSubtitles, d.get(), ffmpegMedia) );
+  guiRun( d->app, createProgressBar );
+  guiOk.wait( lock );
+  boost::thread t( boost::bind( &SaveSubtitlesToDatabase::Private::extractSubtitles, d.get(), ffmpegMedia ) );
+#endif
 }
 
 
-void SaveSubtitlesToDatabase::Private::extractSubtitles(FFMPEGMedia* ffmpegMedia)
+void SaveSubtitlesToDatabase::Private::extractSubtitles( FFMPEGMedia *ffmpegMedia )
 {
-  auto progressCallback = [=](double p) {
+  auto progressCallback = [ = ]( double p )
+  {
     progress = p;
-    guiRun( app, [ = ]
+    guiRun( app,
+            [ = ]
     {
-      progressbar->setValue(progress);
+      progressbar->setValue( progress );
       app->triggerUpdate();
-    });
+    } );
   };
-  ffmpegMedia->extractSubtitles(progressCallback);
-  for(FFMPEG::Stream &stream: ffmpegMedia->streams()) {
-    if(stream.type != FFMPEG::Subtitles) continue;
-    subtitlesToSave.push_back(new MediaAttachment( "subtitles", stream.metadata["title"], stream.metadata["language"], media.uid(), "text/plain", stream.data ));
+  ffmpegMedia->extractSubtitles( [ = ] { return q->result() != MediaScannerStep::Skip && q->result() != MediaScannerStep::StepResult::Done; }, progressCallback );
+
+  for( FFMPEG::Stream & stream : ffmpegMedia->streams() )
+  {
+    if( stream.type != FFMPEG::Subtitles )
+      continue;
+
+    subtitlesToSave.push_back( new MediaAttachment( "subtitles", stream.metadata["title"], stream.metadata["language"], media.uid(), "text/plain", stream.data ) );
   }
-  progressCallback(100);
-  result = MediaScannerStep::Done;
+
+  progressCallback( 100 );
+  q->setResult(MediaScannerStep::Done);
 
 }
 
@@ -133,7 +142,7 @@ void SaveSubtitlesToDatabase::Private::extractSubtitles(FFMPEGMedia* ffmpegMedia
 void SaveSubtitlesToDatabase::Private::extractSubtitles( vector< FFMPEG::Stream > subtitles, WContainerWidget *container )
 {
   int current {0};
-    WTime start = WTime::currentServerTime();
+  WTime start = WTime::currentServerTime();
 
   for( FFMPEG::Stream subtitle : subtitles )
   {
@@ -153,19 +162,21 @@ void SaveSubtitlesToDatabase::Private::extractSubtitles( vector< FFMPEG::Stream 
     cerr << "Executing command \"" << cmd << "\"\n";
 #ifdef WIN32
     PROCESS_INFORMATION procInfo;
-    STARTUPINFO info={sizeof(info)};
-    char cmdline[cmd.size()+1];
-    strcpy(cmdline, cmd.c_str());
-    if( CreateProcess( NULL, cmdline, NULL, NULL , true, 0, NULL, NULL, &info, &procInfo) )
+    STARTUPINFO info = {sizeof( info )};
+    char cmdline[cmd.size() + 1];
+    strcpy( cmdline, cmd.c_str() );
+
+    if( CreateProcess( NULL, cmdline, NULL, NULL , true, 0, NULL, NULL, &info, &procInfo ) )
     {
       ::WaitForSingleObject( procInfo.hProcess, INFINITE );
       CloseHandle( procInfo.hProcess );
       CloseHandle( procInfo.hThread );
     }
+
 #else
     system( cmd.c_str() );
 #endif
-    cerr << "Temp file exists? " << boost::filesystem::exists(tempFile) << endl;
+    cerr << "Temp file exists? " << boost::filesystem::exists( tempFile ) << endl;
     cerr.flush();
     ifstream subfile( tempFile );
 
@@ -193,26 +204,32 @@ void SaveSubtitlesToDatabase::Private::extractSubtitles( vector< FFMPEG::Stream 
     container->addWidget( WW<WText>( WString::trn( "mediascannerdialog.subtitles_extracted", subtitlesToSave.size() ).arg( subtitlesToSave.size() ) ).css( "small-text" ) );
     wApp->triggerUpdate();
   } );
-  result = MediaScannerStep::Done;
-   log("notice") << "Old ffmpeg binary subtitles extraction ok! elapsed: " << start.secsTo(WTime::currentServerTime());
+  q->setResult(MediaScannerStep::Done);
+  log( "notice" ) << "Old ffmpeg binary subtitles extraction ok! elapsed: " << start.secsTo( WTime::currentServerTime() );
 
 }
 
-
 MediaScannerStep::StepResult SaveSubtitlesToDatabase::result()
 {
-  return d->result;
+  boost::unique_lock<boost::mutex> lock(d->resultMutex);
+  return MediaScannerStep::result();
+}
+
+void SaveSubtitlesToDatabase::setResult( MediaScannerStep::StepResult result )
+{
+  boost::unique_lock<boost::mutex> lock(d->resultMutex);
+  MediaScannerStep::setResult( result );
 }
 
 
 void SaveSubtitlesToDatabase::save( Dbo::Transaction *transaction )
 {
-  if( d->result != Done )
+  if( result() != Done )
     return;
 
   if( d->subtitlesToSave.empty() )
   {
-    d->result = Waiting;
+    setResult( Waiting );
     return;
   }
 
@@ -221,7 +238,7 @@ void SaveSubtitlesToDatabase::save( Dbo::Transaction *transaction )
   for( MediaAttachment * subtitle : d->subtitlesToSave )
     transaction->session().add( subtitle );
 
-  d->result = Waiting;
+  setResult( Waiting );
 }
 
 

@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <libavutil/error.h>
 #include <libavutil/mem.h>
 #include <boost/chrono/include.hpp>
+#include <boost/thread/pthread/mutex.hpp>
 #ifndef AV_ERROR_MAX_STRING_SIZE
 // keep it large, just in case, why not?
 #define AV_ERROR_MAX_STRING_SIZE 256
@@ -86,8 +87,9 @@ std::string Stream::toString() const
 }
 
 
-void FFMPEGMedia::extractSubtitles(function< void(double) > percentCallback)
+void FFMPEGMedia::extractSubtitles(std::function<bool()> keepGoing, function< void(double) > percentCallback)
 {
+  boost::unique_lock<boost::mutex> lock(d->mutex);
   list<shared_ptr<FFMPegStreamConversion>> subtitles;
   for( FFMPEG::Stream & stream : d->streams )
   {
@@ -106,23 +108,17 @@ void FFMPEGMedia::extractSubtitles(function< void(double) > percentCallback)
   cerr << "reading packets\n";
   
   auto lastTimePercentWasPrinted = boost::chrono::system_clock::now(); 
-  while( av_read_frame( d->pFormatCtx, &inputPacket ) >= 0 )
+  while( d->pFormatCtx && keepGoing() && av_read_frame( d->pFormatCtx, &inputPacket ) >= 0 )
   {
     auto now = boost::chrono::system_clock::now();
     if(now-lastTimePercentWasPrinted > boost::chrono::milliseconds(500)) {
       lastTimePercentWasPrinted = now;
       auto packetTimeBase = d->pFormatCtx->streams[inputPacket.stream_index]->time_base;
       int64_t packetSecond = inputPacket.pts * packetTimeBase.num / packetTimeBase.den;
-      percentCallback( packetSecond * 100.0 / (d->pFormatCtx->duration / AV_TIME_BASE)  );
+      double percent = packetSecond * 100.0 / (d->pFormatCtx->duration / AV_TIME_BASE);
+      percentCallback( percent );
+      cerr << "encoding percent: " << percent << ", packetSeconds: " << packetSecond << ", duration: " << d->pFormatCtx->duration / AV_TIME_BASE << endl;
     }
-//     currentPercent = inputPacket.dts * 100000.0 / d->pFormatCtx->duration;
-// 
-//     if( currentPercent > printedPercent )
-//     {
-//       printedPercent = currentPercent;
-//       percentCallback(currentPercent);
-//     }
-
     for( auto subtitle : subtitles )
       try {
        subtitle->addPacket( inputPacket );
@@ -314,8 +310,11 @@ map<string, string> FFMPEGMedia::Private::readMetadata( AVDictionary *metadata )
 
 FFMPEGMedia::~FFMPEGMedia()
 {
-  if( d->openFileWasValid() )
+  boost::unique_lock<boost::mutex> lock(d->mutex);
+  if( d->openFileWasValid() ) {
     avformat_close_input( &d->pFormatCtx );
+  }
+  d->pFormatCtx = 0;
 }
 
 bool FFMPEGMedia::valid()

@@ -40,7 +40,6 @@ class ScanMediaInfoStep::Private
     Wt::WApplication *app;
     std::string newTitle;
     bool titleIsReady;
-    MediaScannerStep::StepResult result;
     FFMPEGMedia *ffmpegMedia;
     Media media;
     void setupGui( Wt::WContainerWidget *container, std::string titleSuggestion );

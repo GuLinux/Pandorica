@@ -49,59 +49,61 @@ using namespace std::chrono;
 namespace fs = boost::filesystem;
 using namespace WtCommons;
 
-ScanMediaInfoStep::Private::Private(ScanMediaInfoStep* q, WApplication *app)
-  : q(q), app(app)
+ScanMediaInfoStep::Private::Private( ScanMediaInfoStep *q, WApplication *app )
+  : q( q ), app( app )
 {
 }
 
-ScanMediaInfoStep::ScanMediaInfoStep(WApplication* app, WObject* parent)
-  : WObject(parent), d(this, app)
+ScanMediaInfoStep::ScanMediaInfoStep( WApplication *app, WObject *parent )
+  : WObject( parent ), d( this, app )
 {
 }
 
 
-void ScanMediaInfoStep::run(FFMPEGMedia* ffmpegMedia, Media media, WContainerWidget* container, Dbo::Transaction* transaction, MediaScannerStep::ExistingFlags onExisting)
+void ScanMediaInfoStep::run( FFMPEGMedia *ffmpegMedia, Media media, WContainerWidget *container, Dbo::Transaction *transaction, MediaScannerStep::ExistingFlags onExisting )
 {
-  d->result = Waiting;
-  MediaPropertiesPtr mediaPropertiesPtr = media.properties(*transaction);
-  if(onExisting == SkipIfExisting && mediaPropertiesPtr) {
-    d->result = Skip;
+  setResult( Waiting );
+  MediaPropertiesPtr mediaPropertiesPtr = media.properties( *transaction );
+
+  if( onExisting == SkipIfExisting && mediaPropertiesPtr )
+  {
+    setResult( Skip );
     return;
   }
-  string titleSuggestion = ffmpegMedia->metadata("title").empty() ? Utils::titleHintFromFilename(media.filename()) : ffmpegMedia->metadata("title");
+
+  string titleSuggestion = ffmpegMedia->metadata( "title" ).empty() ? Utils::titleHintFromFilename( media.filename() ) : ffmpegMedia->metadata( "title" );
   d->newTitle = titleSuggestion;
   d->ffmpegMedia = ffmpegMedia;
   d->media = media;
-  guiRun(d->app, boost::bind(&ScanMediaInfoStep::Private::setupGui, d.get(), container, titleSuggestion));
-  d->result = Done;
-}
-MediaScannerStep::StepResult ScanMediaInfoStep::result()
-{
-  return d->result;
+  guiRun( d->app, boost::bind( &ScanMediaInfoStep::Private::setupGui, d.get(), container, titleSuggestion ) );
+  setResult( Done );
 }
 
-void ScanMediaInfoStep::save(Dbo::Transaction* transaction)
+
+void ScanMediaInfoStep::save( Dbo::Transaction *transaction )
 {
-  if(d->result != Done)
+  if( result() != Done )
     return;
-  transaction->session().execute("DELETE FROM media_properties WHERE media_id = ?").bind(d->media.uid());
+
+  transaction->session().execute( "DELETE FROM media_properties WHERE media_id = ?" ).bind( d->media.uid() );
   pair<int, int> resolution = d->ffmpegMedia->resolution();
-  auto mediaProperties = new MediaProperties{d->media.uid(), d->newTitle, d->media.fullPath(), d->ffmpegMedia->durationInSeconds(), fs::file_size(d->media.path()), resolution.first, resolution.second};
-  transaction->session().add(mediaProperties);
-  d->result = Waiting;
+  auto mediaProperties = new MediaProperties {d->media.uid(), d->newTitle, d->media.fullPath(), d->ffmpegMedia->durationInSeconds(), fs::file_size( d->media.path() ), resolution.first, resolution.second};
+  transaction->session().add( mediaProperties );
+  setResult( Waiting );
 }
 
 
 
-void ScanMediaInfoStep::Private::setupGui(Wt::WContainerWidget* container, std::string titleSuggestion)
+void ScanMediaInfoStep::Private::setupGui( Wt::WContainerWidget *container, std::string titleSuggestion )
 {
-  WLabel *label = new WLabel(wtr("mediascanner.media.title"));
-  WLineEdit *editTitle = WW<WLineEdit>(titleSuggestion).css("span5");
-  editTitle->changed().connect([=](_n1) {
+  WLabel *label = new WLabel( wtr( "mediascanner.media.title" ) );
+  WLineEdit *editTitle = WW<WLineEdit>( titleSuggestion ).css( "span5" );
+  editTitle->changed().connect( [ = ]( _n1 )
+  {
     newTitle = editTitle->text().toUTF8();
-  });
-  label->setBuddy(editTitle);
-  container->addWidget(WW<WContainerWidget>().css("form-inline").add(label).add(editTitle));
+  } );
+  label->setBuddy( editTitle );
+  container->addWidget( WW<WContainerWidget>().css( "form-inline" ).add( label ).add( editTitle ) );
   app->triggerUpdate();
 }
 

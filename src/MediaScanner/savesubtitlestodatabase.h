@@ -33,9 +33,10 @@ public:
     ~SaveSubtitlesToDatabase();
     SaveSubtitlesToDatabase(Wt::WApplication* app, Wt::WObject* parent);
     virtual void run(FFMPEGMedia* ffmpegMedia, Media media, Wt::WContainerWidget* container,  Wt::Dbo::Transaction *transaction, ExistingFlags onExisting = SkipIfExisting);
-    virtual StepResult result();
     virtual void save(Wt::Dbo::Transaction *transaction);
     inline virtual std::string stepName() const {return "saveSubtitlesToDatabase"; }
+    virtual void setResult( StepResult result );
+    virtual StepResult result();
 private:
   D_PTR;
 };

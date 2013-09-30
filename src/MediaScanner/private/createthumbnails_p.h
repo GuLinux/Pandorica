@@ -91,7 +91,6 @@ class CreateThumbnails::Private
     void chooseRandomFrame( Wt::WContainerWidget *container );
     ThumbnailPosition randomPosition( FFMPEGMedia *ffmpegMedia );
 
-    MediaScannerStep::StepResult result;
     Media currentMedia;
     ThumbnailPosition currentPosition;
     FFMPEGMedia *currentFFMPEGMedia;

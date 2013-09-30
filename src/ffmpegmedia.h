@@ -32,6 +32,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #else
 #define LOGGER_ENTRY Wt::WLogEntry
 #endif
+
+namespace boost
+{
+  class mutex;
+}
 namespace Wt
 {
   class WLogEntry;
@@ -68,7 +73,7 @@ class FFMPEGMedia
     bool valid();
     std::string metadata( std::string key ) const;
     std::vector<FFMPEG::Stream> streams() const;
-    void extractSubtitles(std::function<void(double)> percentCallback = [](double){});
+    void extractSubtitles(std::function<bool()> keepGoing, std::function<void(double)> percentCallback = [](double){});
   private:
     D_PTR;
 };

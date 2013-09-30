@@ -140,9 +140,9 @@ void ImageUploader::uploaded() {
 
 void CreateThumbnails::run(FFMPEGMedia* ffmpegMedia, Media media, WContainerWidget* container, Dbo::Transaction* transaction, MediaScannerStep::ExistingFlags onExisting)
 {
-  d->result = Waiting;
+  setResult(Waiting);
   if(onExisting == SkipIfExisting && transaction->session().query<int>("SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'preview'").bind(media.uid()) > 0) {
-    d->result = Skip;
+    setResult(Skip);
     return;
   }
 
@@ -154,7 +154,7 @@ void CreateThumbnails::run(FFMPEGMedia* ffmpegMedia, Media media, WContainerWidg
   }
   d->currentPosition = d->randomPosition(ffmpegMedia);
   d->chooseRandomFrame(container);
-  d->result = Done;
+  setResult(Done);
 }
 
 void CreateThumbnails::Private::addImageChooser(Wt::WContainerWidget* container)
@@ -169,7 +169,7 @@ void CreateThumbnails::Private::addImageChooser(Wt::WContainerWidget* container)
       // TODO: if we select "No Image", the thumbnail is not saved.
       // This means that on next run, it will be asked again.
       // Should should try and save some kind of flag instead?
-      result = skipImageCheckbox->isChecked() ? MediaScannerStep::Skip : MediaScannerStep::Waiting;
+      q->setResult(skipImageCheckbox->isChecked() ? MediaScannerStep::Skip : MediaScannerStep::Waiting);
     });
     WContainerWidget *imageContainer = new WContainerWidget;
     imageContainer->setContentAlignment(AlignCenter);
@@ -180,7 +180,7 @@ void CreateThumbnails::Private::addImageChooser(Wt::WContainerWidget* container)
       fullImage = blob;
       thumbnail = new WMemoryResource{"image/png", vectorFrom(resize(blob, IMAGE_SIZE_PREVIEW)), container};
       imageContainer->addWidget(new WImage{thumbnail});
-      result = MediaScannerStep::Done;
+      q->setResult(MediaScannerStep::Done);
     });
     wApp->triggerUpdate();
   });
@@ -201,7 +201,7 @@ void CreateThumbnails::Private::chooseRandomFrame(WContainerWidget* container)
 
     container->addWidget(imageUploader);
     WImage *imagePreview = WW<WImage>(thumbnail).css("link-hand").onClick([=](WMouseEvent) {
-      result = MediaScannerStep::Redo;
+      q->setResult(MediaScannerStep::Redo);
       redo.emit();
     });
     container->addWidget(WW<WContainerWidget>()
@@ -268,15 +268,9 @@ ThumbnailPosition ThumbnailPosition::from(int timeInSeconds)
 }
 
 
-MediaScannerStep::StepResult CreateThumbnails::result()
-{
-  return d->result;
-}
-
 void CreateThumbnails::save(Dbo::Transaction* transaction)
 {
-  log("notice") << "Result: " << d->result << " (done= " << Done << ", Redo = " << Redo << ")";
-  if(d->result != Done)
+  if(result() != Done)
     return;
   log("notice") << "Deleting old data from media_attachment for media_id " << d->currentMedia.uid();
   transaction->session().execute("DELETE FROM media_attachment WHERE media_id = ? AND type = 'preview'").bind(d->currentMedia.uid());
@@ -289,7 +283,7 @@ void CreateThumbnails::save(Dbo::Transaction* transaction)
   log("notice") << "Images saved";
   d->currentMedia = Media::invalid();
   d->currentFFMPEGMedia = 0;
-  d->result = Waiting;
+  setResult(Waiting);
 }
 
 

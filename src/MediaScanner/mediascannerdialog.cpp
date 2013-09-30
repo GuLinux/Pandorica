@@ -201,6 +201,9 @@ void MediaScannerDialog::Private::runStepsFor(Media media, WApplication* app, Se
     if(!canContinue && !canceled && !skipped)
       boost::this_thread::sleep_for(boost::chrono::milliseconds{50});
   }
+  if(canceled || skipped)
+    for(auto step: steps)
+      step->setResult(MediaScannerStep::StepResult::Skip);
   if(canceled)
     return;
   if(!skipped) {

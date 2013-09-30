@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "media/media.h"
 #include "session.h"
 #include "ffmpegmedia.h"
+#include <boost/thread/pthread/mutex.hpp>
 
 
 extern "C" {
@@ -88,6 +89,7 @@ class FFMPEGMedia::Private
     std::map< std::string, std::string > readMetadata( AVDictionary *metadata );
     FFMPEG::Stream streamFromAV( AVStream *stream );
     Logger logger;
+    boost::mutex mutex;
   private:
     class FFMPEGMedia *const q;
 };

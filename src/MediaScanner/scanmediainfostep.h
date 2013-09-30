@@ -34,7 +34,6 @@ public:
   ScanMediaInfoStep(Wt::WApplication *app, Wt::WObject *parent = 0);
   virtual ~ScanMediaInfoStep();
   virtual void run(FFMPEGMedia* ffmpegMedia, Media media, Wt::WContainerWidget *container, Wt::Dbo::Transaction *transaction, ExistingFlags onExisting = SkipIfExisting);
-  virtual StepResult result();
   virtual void save(Wt::Dbo::Transaction *transaction);
   inline virtual std::string stepName() const {return "scanMediaInfoStep"; }
 private:

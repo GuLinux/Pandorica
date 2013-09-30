@@ -5,6 +5,7 @@ SET( mediascanner_srcs
     MediaScanner/createthumbnails.cpp
     MediaScanner/scanmediainfostep.cpp
     MediaScanner/mediascannerdialog.cpp
+    MediaScanner/mediascannerstep.cpp
 )
 SET( player_srcs serversettingspage.cpp Models/setting.cpp selectdirectories.cpp  findorphansdialog.cpp
     player/videojs.cpp
