@@ -62,6 +62,8 @@ SaveSubtitlesToDatabase::SaveSubtitlesToDatabase( WApplication *app, WObject *pa
 {
 }
 
+#define USE_NEW_SUBTITLES_EXTRACTOR
+
 void SaveSubtitlesToDatabase::run( FFMPEGMedia *ffmpegMedia, Media media, WContainerWidget *container, Dbo::Transaction *transaction, MediaScannerStep::ExistingFlags onExisting )
 {
   setResult( Waiting );
@@ -116,8 +118,7 @@ void SaveSubtitlesToDatabase::Private::extractSubtitles( FFMPEGMedia *ffmpegMedi
   auto progressCallback = [ = ]( double p )
   {
     progress = p;
-    guiRun( app,
-            [ = ]
+    guiRun( app, [ = ]
     {
       progressbar->setValue( progress );
       app->triggerUpdate();

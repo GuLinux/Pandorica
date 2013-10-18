@@ -76,29 +76,37 @@ long FFMPEGMedia::durationInSeconds()
 std::string Stream::toString() const
 {
   stringstream s;
-  static map<StreamType, string> streamTypes {
+  static map<StreamType, string> streamTypes
+  {
     {StreamType::Video, "video"},
     {StreamType::Audio, "audio"},
     {StreamType::Subtitles, "subtitles"},
     {StreamType::Other, "other/unknown"},
   };
-  s << "Stream{ type=" << streamTypes[type] << "index=" << index << ", title=" << title << ", language=" << metadata.at("language") << " }";
+  s << "Stream{ type=" << streamTypes[type] << "index=" << index << ", title=" << title << ", language=" << metadata.at( "language" ) << " }";
   return s.str();
 }
 
 
-void FFMPEGMedia::extractSubtitles(std::function<bool()> keepGoing, function< void(double) > percentCallback)
+void FFMPEGMedia::extractSubtitles( std::function<bool()> keepGoing, function< void( double ) > percentCallback )
 {
-  boost::unique_lock<boost::mutex> lock(d->mutex);
+  boost::unique_lock<boost::mutex> lock( d->mutex );
   list<shared_ptr<FFMPegStreamConversion>> subtitles;
+
   for( FFMPEG::Stream & stream : d->streams )
   {
     if( stream.type == FFMPEG::Subtitles )
-      try {
-	subtitles.push_back( shared_ptr<FFMPegStreamConversion> {new FFMPegStreamConversion( d->pFormatCtx, stream )} );
-      } catch(std::exception &e) {
-	d->logger("error") << "error allocating subtitle converter for stream " << stream.toString() << ": " << e.what();
+      try
+      {
+        subtitles.push_back( shared_ptr<FFMPegStreamConversion> {new FFMPegStreamConversion( d->pFormatCtx, stream )} );
       }
+      catch
+        ( std::exception &e )
+      {
+        d->logger( "error" ) << "error allocating subtitle converter for stream " << stream.toString() << ": " << e.what();
+      }
+    else
+      d->pFormatCtx->streams[stream.index]->discard = AVDISCARD_ALL;
   }
 
   AVPacket inputPacket;
@@ -106,25 +114,27 @@ void FFMPEGMedia::extractSubtitles(std::function<bool()> keepGoing, function< vo
   inputPacket.data = NULL;
   inputPacket.size = 0;
   cerr << "reading packets\n";
-  
-  auto lastTimePercentWasPrinted = boost::chrono::system_clock::now(); 
+
+  int lastPercent = 0;
+
   while( d->pFormatCtx && keepGoing() && av_read_frame( d->pFormatCtx, &inputPacket ) >= 0 )
   {
-    auto now = boost::chrono::system_clock::now();
-    if(now-lastTimePercentWasPrinted > boost::chrono::milliseconds(500)) {
-      lastTimePercentWasPrinted = now;
-      auto packetTimeBase = d->pFormatCtx->streams[inputPacket.stream_index]->time_base;
-      int64_t packetSecond = inputPacket.pts * packetTimeBase.num / packetTimeBase.den;
-      double percent = packetSecond * 100.0 / (d->pFormatCtx->duration / AV_TIME_BASE);
-      percentCallback( percent );
-      cerr << "encoding percent: " << percent << ", packetSeconds: " << packetSecond << ", duration: " << d->pFormatCtx->duration / AV_TIME_BASE << endl;
-    }
+    auto packetTimeBase = d->pFormatCtx->streams[inputPacket.stream_index]->time_base;
+    int64_t packetSecond = inputPacket.pts * packetTimeBase.num / packetTimeBase.den;
+    double percent = packetSecond * 100.0 / ( d->pFormatCtx->duration / AV_TIME_BASE );
+    percentCallback( percent );
+
     for( auto subtitle : subtitles )
-      try {
-       subtitle->addPacket( inputPacket );
-      } catch(std::exception &e) {
-         d->logger("error") << "error adding subtitle packet to stream " << subtitle->stream.toString() << ": " << e.what();
+      try
+      {
+        subtitle->addPacket( inputPacket );
       }
+      catch
+        ( std::exception &e )
+      {
+        d->logger( "error" ) << "error adding subtitle packet to stream " << subtitle->stream.toString() << ": " << e.what();
+      }
+
     av_free_packet( &inputPacket );
   }
 }
@@ -159,7 +169,8 @@ void FFMPegStreamConversion::addPacket( AVPacket &inputPacket )
     }, outputStream->time_base );
     av_write_frame( outputFormatContext, &outputPacket );
   }
-  av_free_packet(&outputPacket);
+
+  av_free_packet( &outputPacket );
 }
 
 
@@ -185,7 +196,7 @@ FFMPegStreamConversion::FFMPegStreamConversion( AVFormatContext *inputFormatCont
   outputStream->codec->time_base = {1, 1000};
 
   avLibExec( avio_open_dyn_buf( &outputFormatContext->pb ), "opening output dyn buffer" );
-  avLibExec( avformat_write_header( outputFormatContext, NULL ), "writing output format header");
+  avLibExec( avformat_write_header( outputFormatContext, NULL ), "writing output format header" );
 
   vector<uint8_t> subtitleHeader( inputStream->codec->subtitle_header, inputStream->codec->subtitle_header + inputStream->codec->subtitle_header_size );
   subtitleHeader.push_back( 0 );
@@ -197,14 +208,15 @@ FFMPegStreamConversion::FFMPegStreamConversion( AVFormatContext *inputFormatCont
 
 FFMPegStreamConversion::~FFMPegStreamConversion()
 {
-  if(outputFormatContext->oformat->write_trailer)
-    outputFormatContext->oformat->write_trailer(outputFormatContext);
-  av_freep(outputFormatContext->streams[0]);
+  if( outputFormatContext->oformat->write_trailer )
+    outputFormatContext->oformat->write_trailer( outputFormatContext );
+
+  av_freep( outputFormatContext->streams[0] );
   uint8_t *output;
-  uint64_t outputSize = avio_close_dyn_buf(outputFormatContext->pb, &output);
+  uint64_t outputSize = avio_close_dyn_buf( outputFormatContext->pb, &output );
   stream.data.clear();
-  copy(output, output + outputSize, back_insert_iterator<BinaryData>(stream.data));
-  av_free(output);
+  copy( output, output + outputSize, back_insert_iterator<BinaryData>( stream.data ) );
+  av_free( output );
 }
 
 
@@ -310,10 +322,13 @@ map<string, string> FFMPEGMedia::Private::readMetadata( AVDictionary *metadata )
 
 FFMPEGMedia::~FFMPEGMedia()
 {
-  boost::unique_lock<boost::mutex> lock(d->mutex);
-  if( d->openFileWasValid() ) {
+  boost::unique_lock<boost::mutex> lock( d->mutex );
+
+  if( d->openFileWasValid() )
+  {
     avformat_close_input( &d->pFormatCtx );
   }
+
   d->pFormatCtx = 0;
 }
 
