@@ -52,12 +52,12 @@ namespace
   {
     FFMPegStreamConversion( AVFormatContext *inputFormatContext, FFMPEG::Stream &stream );
     ~FFMPegStreamConversion();
-    void avLibExec( const int &result, const std::string &operation, std::function<bool( const int & )> goodCondition = []( const int &r )
+    void avLibExec2( const std::string &where, const int &result, const std::string &operation, std::function<bool( const int & )> goodCondition = []( const int &r )
     {
       return r == 0;
     } );
     template<typename T>
-    T *avCreateObject( T *object, const std::string &description );
+    T *avCreateObject2( const std::string &where, T *object, const std::string &description );
     void addPacket( AVPacket &inputPacket );
     FFMPEG::Stream &stream;
     AVStream *inputStream;

@@ -73,6 +73,7 @@ long FFMPEGMedia::durationInSeconds()
   return duration;
 }
 
+
 std::string Stream::toString() const
 {
   stringstream s;
@@ -138,6 +139,9 @@ void FFMPEGMedia::extractSubtitles( std::function<bool()> keepGoing, function< v
     av_free_packet( &inputPacket );
   }
 }
+
+#define avLibExec(...) avLibExec2( ConcatStrings({__FILE__, ":",boost::lexical_cast<std::string>(__LINE__)}), __VA_ARGS__)
+#define avCreateObject(...) avCreateObject2( ConcatStrings({__FILE__, ":",boost::lexical_cast<std::string>(__LINE__)}), __VA_ARGS__)
 
 void FFMPegStreamConversion::addPacket( AVPacket &inputPacket )
 {
@@ -220,18 +224,18 @@ FFMPegStreamConversion::~FFMPegStreamConversion()
 }
 
 
-void FFMPegStreamConversion::avLibExec( const int &result, const string &operation, std::function<bool( const int & )> goodCondition )
+void FFMPegStreamConversion::avLibExec2( const std::string &where, const int &result, const string &operation, std::function<bool( const int & )> goodCondition )
 {
   if( ! goodCondition( result ) )
-    throw FFMPEGException( operation, result );
+    throw FFMPEGException( operation + string(" ") + where, result );
 }
 
 template<typename T>
-T *FFMPegStreamConversion::avCreateObject( T *object, const std::string &description )
+T *FFMPegStreamConversion::avCreateObject2( const std::string &where, T *object, const std::string &description )
 {
   if( object == NULL )
   {
-    throw FFMPEGException( description, errno );
+    throw FFMPEGException( description + string(" ") + where, errno );
   }
 
   return object;
