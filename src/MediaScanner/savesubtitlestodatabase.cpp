@@ -100,7 +100,7 @@ void SaveSubtitlesToDatabase::run( FFMPEGMedia *ffmpegMedia, Media media, WConta
   auto createProgressBar = [ = , &guiOk]
   {
     container->clear();
-    container->addWidget( new WText( "Extracting subtitles" ) );
+    container->addWidget( WW<WText>( wtr("mediascannerdialog.subtitlesgenericmessage")).padding(20, Side::Right) );
     container->addWidget( d->progressbar = new WProgressBar() );
     d->progressbar->setMaximum( 100 );
     d->app->triggerUpdate();

@@ -147,6 +147,7 @@
   <message id="mediascannerdialog.thumbnail.upload.error">Errore aprendo il file, prova con un altro.</message>
   <message id="mediascannerdialog.thumbnail.upload.toobig">File troppo grande, prova con uno più piccolo.</message>
 
+  <message id="mediascannerdialog.subtitlesgenericmessage">Estrazione sottotitoli</message>
   <message id="mediascannerdialog.subtitlesmessage">Estrazione sottotitoli: {1} di {2} (indice: {3}, titolo: {4}, lingua: {5})</message>
   <message id="mediascannerdialog.thumbnaillabel">Anteprima (clicca per ricrearla da posizione casuale)</message>
   <message id="mediascannerdialog.subtitles_extracted">
