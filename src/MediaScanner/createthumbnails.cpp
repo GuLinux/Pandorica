@@ -289,7 +289,7 @@ using namespace ffmpegthumbnailer;
 void CreateThumbnails::Private::thumbnailFor(int size, int quality)
 {
   vector<uint8_t> data;
-  VideoThumbnailer videoThumbnailer(size, true, true, quality, true);
+  VideoThumbnailer videoThumbnailer(size, false, true, quality, true);
   FilmStripFilter filmStripFilter;
   if(currentMedia.mimetype().find("video") != string::npos)
     videoThumbnailer.addFilter(&filmStripFilter);
