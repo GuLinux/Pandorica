@@ -174,8 +174,8 @@ void FFMPegStreamConversion::addPacket( AVPacket &inputPacket )
     }, outputStream->time_base );
     av_write_frame( outputFormatContext, &outputPacket );
   }
-
-  av_free_packet( &outputPacket );
+  if(outputPacket.data)
+    av_free_packet( &outputPacket );
 }
 
 
