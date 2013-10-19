@@ -35,10 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <player/html5player.h>
 #include <settings.h>
 #include <boost/format.hpp>
-#ifdef FFMPEG_THUMBNAILER_FOUND
-#include <libffmpegthumbnailer/videothumbnailerc.h>
-#include <libffmpegthumbnailer/imagetypes.h>
-#endif
+
 #include <chrono>
 #include <random>
 #include <thread>
@@ -286,11 +283,24 @@ void CreateThumbnails::save(Dbo::Transaction* transaction)
   setResult(Waiting);
 }
 
-
+#include "videothumbnailer.h"
+#include <filmstripfilter.h>
+using namespace ffmpegthumbnailer;
 void CreateThumbnails::Private::thumbnailFor(int size, int quality)
 {
-  // TODO: find placeholder, or alternative, for win32
-#ifdef FFMPEG_THUMBNAILER_FOUND
+  vector<uint8_t> data;
+  VideoThumbnailer videoThumbnailer(size, true, true, quality, true);
+  FilmStripFilter filmStripFilter;
+  if(currentMedia.mimetype().find("video") != string::npos)
+    videoThumbnailer.addFilter(&filmStripFilter);
+  if(currentPosition.percent>0)
+    videoThumbnailer.setSeekPercentage(currentPosition.percent);
+  else
+    videoThumbnailer.setSeekTime(currentPosition.timing);
+  
+  videoThumbnailer.generateThumbnail(currentMedia.fullPath(), ThumbnailerImageType::Png, data);
+  fullImage = { data.data(), data.size() };
+  /*
   video_thumbnailer *thumbnailer = video_thumbnailer_create();
   thumbnailer->overlay_film_strip = currentMedia.mimetype().find("video") == string::npos ? 0 : 1;
   
@@ -309,5 +319,6 @@ void CreateThumbnails::Private::thumbnailFor(int size, int quality)
 //   vector<uint8_t> data{imageData->image_data_ptr, imageData->image_data_ptr + imageData->image_data_size};
   video_thumbnailer_destroy_image_data(imageData);
   video_thumbnailer_destroy(thumbnailer);
-#endif
+  */
 }
+

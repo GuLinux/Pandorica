@@ -104,6 +104,7 @@ void FFMPEGMedia::extractSubtitles( std::function<bool()> keepGoing, function< v
       catch
         ( std::exception &e )
       {
+        // TODO: better error handling
         d->logger( "error" ) << "error allocating subtitle converter for stream " << stream.toString() << ": " << e.what();
       }
     else

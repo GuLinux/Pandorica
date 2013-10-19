@@ -3,6 +3,10 @@ SET( Wt_Commons_srcs ../Wt-Commons/whtmltemplateslocalizedstrings.cpp ../Wt-Comm
 SET( mediascanner_srcs
     MediaScanner/savesubtitlestodatabase.cpp
     MediaScanner/createthumbnails.cpp
+    libffmpegthumbnailer/videothumbnailer.cpp
+    libffmpegthumbnailer/filmstripfilter.cpp
+    libffmpegthumbnailer/pngwriter.cpp
+    libffmpegthumbnailer/moviedecoder.cpp
     MediaScanner/scanmediainfostep.cpp
     MediaScanner/mediascannerdialog.cpp
     MediaScanner/mediascannerstep.cpp
@@ -17,17 +21,15 @@ SET( player_srcs serversettingspage.cpp Models/setting.cpp selectdirectories.cpp
 include(FindPkgConfig)
 message("PKGConfig Executable: ${PKG_CONFIG_EXECUTABLE}")
 # TODO : difficult to find on windows 32. Remove,  or implement alternatives (standalone ffmpeg binary? )
-pkg_check_modules(FFMPEG_THUMBNAILER libffmpegthumbnailer)
 pkg_check_modules(AVUTIL libavutil REQUIRED)
 pkg_check_modules(AVFORMAT libavformat REQUIRED)
 pkg_check_modules(AVCODEC libavcodec REQUIRED)
+pkg_check_modules(SWSCALE libswscale REQUIRED)
+pkg_check_modules(LIBPNG libpng REQUIRED)
 
-if(FFMPEG_THUMBNAILER_FOUND)
-  add_definitions(-DFFMPEG_THUMBNAILER_FOUND)
-  include_directories(${FFMPEG_THUMBNAILER_INCLUDE_DIRS})
-endif(FFMPEG_THUMBNAILER_FOUND)
+include_directories(libffmpegthumbnailer)
 
-include_directories(${AVUTIL_INCLUDE_DIRS} ${AVFORMAT_INCLUDE_DIRS} ${AVCODEC_INCLUDE_DIRS})
+include_directories(${AVUTIL_INCLUDE_DIRS} ${AVFORMAT_INCLUDE_DIRS} ${AVCODEC_INCLUDE_DIRS} ${SWSCALE_INCLUDE_DIRS} ${LIBPNG_INCLUDE_DIRS})
 
 if(QT_FOUND AND NOT DISABLE_QT)
   INCLUDE(   ${QT_USE_FILE}   )
@@ -74,9 +76,6 @@ else(WIN32)
 endif(WIN32)
 
 
-
-
-
 string(TOLOWER "x${CMAKE_BUILD_TYPE}" build_type)
 if("${build_type}" STREQUAL "xdebug")
   message("Linking to WT Debug Libraries")
@@ -102,6 +101,7 @@ if(WIN32)
 endif(WIN32)
 
 target_link_libraries(${app_name} ${QT_QTCORE_LIBRARY} ${QT_QTNETWORK_LIBRARY} ${QT_QTGUI_LIBRARY} 
-  ${AVFORMAT_LDFLAGS} ${AVCODEC_LDFLAGS} ${AVUTIL_LDFLAGS} ${FFMPEG_THUMBNAILER_LIBRARIES} ${WT_LINK_LIBS} ${Boost_LIBRARIES} ${GRAPHICSMAGICK_LIBRARIES} ${WIN32_LIBS} )
+  ${AVFORMAT_LDFLAGS} ${AVCODEC_LDFLAGS} ${AVUTIL_LDFLAGS} ${SWSCALE_LDFLAGS} ${LIBPNG_LIBRARIES}
+  ${WT_LINK_LIBS} ${Boost_LIBRARIES} ${GRAPHICSMAGICK_LIBRARIES} ${WIN32_LIBS} )
 install(TARGETS ${app_name} RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 
