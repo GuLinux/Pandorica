@@ -8,7 +8,7 @@ add_definitions(-DWT_NO_SLOT_MACROS)
 find_package(Wt REQUIRED)
 INCLUDE (CheckIncludeFiles)
 include(FindPackageHandleStandardArgs)
-find_package(Boost REQUIRED COMPONENTS signals system filesystem chrono thread${BOOST_THREAD_LIBRARY_SUFFIX} regex program_options random date_time OPTIONAL_COMPONENTS unit_test_framework )
+find_package(Boost REQUIRED COMPONENTS signals system filesystem chrono thread regex program_options random date_time OPTIONAL_COMPONENTS unit_test_framework )
 FIND_PACKAGE(Qt4 )
 
 add_definitions(-DBOOST_SIGNALS_NO_DEPRECATION_WARNING)

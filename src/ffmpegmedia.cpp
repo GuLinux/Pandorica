@@ -29,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <libavutil/error.h>
 #include <libavutil/mem.h>
 #include <boost/chrono/include.hpp>
-#include <boost/thread/pthread/mutex.hpp>
+#include <boost/thread/mutex.hpp>
 #ifndef AV_ERROR_MAX_STRING_SIZE
 // keep it large, just in case, why not?
 #define AV_ERROR_MAX_STRING_SIZE 256

@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "media/media.h"
 #include "session.h"
 #include "ffmpegmedia.h"
-#include <boost/thread/pthread/mutex.hpp>
+#include <boost/thread/mutex.hpp>
 
 
 extern "C" {

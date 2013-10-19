@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef SAVESUBTITLESTODATABASEPRIVATE_H
 #define SAVESUBTITLESTODATABASEPRIVATE_H
 #include <vector>
-#include <boost/thread/pthread/mutex.hpp>
+#include <boost/thread/mutex.hpp>
 #include <ffmpegmedia.h>
 #include "MediaScanner/savesubtitlestodatabase.h"
 
