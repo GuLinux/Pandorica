@@ -22,6 +22,9 @@
 #include <vector>
 
 extern "C" {
+#ifndef UINT64_C
+#define UINT64_C uint64_t
+#endif
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 }
