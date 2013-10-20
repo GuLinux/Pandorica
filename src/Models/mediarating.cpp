@@ -30,3 +30,8 @@ Ratings MediaRating::ratingFor(const Media& media, Wt::Dbo::Transaction& transac
   double ratings = transaction.session().query<double>("select sum(rating) from media_rating WHERE media_id = ?").bind(media.uid()).resultValue();
   return {ratingsCount, (int) (boost::math::round(ratings / (double) ratingsCount)) };
 }
+
+double Ratings::score()
+{
+  return ratingAverage * users;
+}

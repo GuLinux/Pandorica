@@ -31,6 +31,7 @@ class User;
 struct Ratings {
   int64_t users;
   int ratingAverage;
+  double score();
 };
 
 class MediaRating {

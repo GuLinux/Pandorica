@@ -208,7 +208,8 @@ void MediaCollectionBrowser::Private::browse( const shared_ptr< MediaDirectory >
       auto _2props = _2.properties(t);
       return (_1props && _2props) ? _1props->creationTime() < _2props->creationTime() : false;
     }},
-    {Sort::Rating, [&t](const Media &_1, const Media &_2) { return MediaRating::ratingFor(_1, t).ratingAverage < MediaRating::ratingFor(_2, t).ratingAverage;}},
+    {Sort::Rating, [&t](const Media &_1, const Media &_2) {
+      return MediaRating::ratingFor(_1, t).score() < MediaRating::ratingFor(_2, t).score(); }},
   };
   vector<Media> medias = currentPath->medias();
   if(sortDirection == Asc)
