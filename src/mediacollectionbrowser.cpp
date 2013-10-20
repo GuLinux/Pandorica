@@ -195,15 +195,18 @@ void MediaCollectionBrowser::Private::browse( const shared_ptr< MediaDirectory >
     addDirectory(dir);
   Dbo::Transaction t(*session);
   map<Sort, MediaSorter> sorters {
-    {Sort::Alpha, [](Media _1, Media _2) { return _1.filename() < _2.filename();}},
-    {Sort::Date, [&t](Media _1, Media _2) { auto _1props = _1.properties(t); auto _2props = _2.properties(t); return (_1props && _2props) ? _1props->creationTime() < _2props->creationTime() : false; }},
-  };
-  auto sorter = [=,&sorters](Media _1, Media _2) {
-    bool sorted = sorters[sortBy](_1, _2);
-    return sortDirection == Asc ? sorted : !sorted;
+    {Sort::Alpha, [](const Media &_1, const Media &_2) { return _1.filename() < _2.filename();}},
+    {Sort::Date, [&t](const Media &_1, const Media &_2) {
+      auto _1props = _1.properties(t);
+      auto _2props = _2.properties(t);
+      return (_1props && _2props) ? _1props->creationTime() < _2props->creationTime() : false;
+    }},
   };
   vector<Media> medias = currentPath->medias();
-  sort(medias.begin(), medias.end(), sorter);
+  if(sortDirection == Asc)
+  sort(medias.begin(), medias.end(), sorters[sortBy]);
+  else
+    sort(medias.rbegin(), medias.rend(), sorters[sortBy]);
   for(auto media: medias)
     addMedia(media);
 }
