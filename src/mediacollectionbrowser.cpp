@@ -68,7 +68,7 @@ using namespace WtCommons;
 MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Settings *settings, Session *session, WContainerWidget *parent )
   : WContainerWidget( parent ), d(collection, settings, session, this )
 {
-  d->breadcrumb = WW<WContainerWidget>().css( "breadcrumb visible-desktop" );
+  d->breadcrumb = WW<WContainerWidget>().css( "breadcrumb visible-desktop inline-breadcrumb" );
   d->breadcrumb->setList( true );
   d->browser = WW<WContainerWidget>().css( "thumbnails" ).setMargin( WLength::Auto, Left ).setMargin( WLength::Auto, Right );
   WContainerWidget *mainContainer = new WContainerWidget;
@@ -93,7 +93,16 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
 
 
   d->browser->setList( true );
-  addWidget( d->breadcrumb );
+  WContainerWidget *breadcrumb = WW<WContainerWidget>().css("breadcrumb visible-desktop");
+  breadcrumb->addWidget( WW<WPushButton>( wtr( "mediacollection.reload" ) ).css( "btn btn-small" )
+                         .onClick( [ = ]( WMouseEvent )
+  {
+    Dbo::Transaction t( *session );
+    collection->rescan( t );
+    d->browse( d->rootPath );
+  } ) );
+  breadcrumb->addWidget(d->breadcrumb);
+  addWidget( breadcrumb );
   addWidget( d->goToParent = WW<WPushButton>( wtr( "button.parent.directory" ) ).css( "btn btn-block hidden-desktop" ).onClick( [ = ]( WMouseEvent )
   {
     d->browse( d->rootPath );
@@ -365,13 +374,6 @@ WContainerWidget *MediaCollectionBrowser::Private::addIcon( WString filename, Ge
 void MediaCollectionBrowser::Private::rebuildBreadcrumb()
 {
   breadcrumb->clear();
-  breadcrumb->addWidget( WW<WPushButton>( wtr( "mediacollection.reload" ) ).css( "btn btn-small" )
-                         .onClick( [ = ]( WMouseEvent )
-  {
-    Dbo::Transaction t( *session );
-    collection->rescan( t );
-    browse( rootPath );
-  } ) );
    list<shared_ptr<MediaDirectory>> paths;
   shared_ptr<MediaDirectory> current = currentPath;
 
