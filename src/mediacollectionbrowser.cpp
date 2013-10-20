@@ -135,7 +135,7 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
   viewModeButton->setMenu(viewModeMenu);
   
   addCheckableItem(viewModeMenu, wtr("mediacollectionbrowser_filesystem_view"), [=]{ d->browse(d->rootPath); }, viewModeItems)->setChecked(true);
-  addCheckableItem(viewModeMenu, wtr("mediacollectionbrowser_all_medias"), [=]{ d->browse(d->flatPath);  d->breadcrumb->clear(); }, viewModeItems);
+  addCheckableItem(viewModeMenu, wtr("mediacollectionbrowser_all_medias"), [=]{ d->browse(d->flatPath); }, viewModeItems);
   breadcrumb->addWidget(WW<WContainerWidget>().css("btn-group").add(reloadButton).add(viewModeButton).add(sortByButton));
   breadcrumb->addWidget(d->breadcrumb);
   addWidget( breadcrumb );
@@ -434,7 +434,9 @@ WContainerWidget *MediaCollectionBrowser::Private::addIcon( WString filename, Ge
 void MediaCollectionBrowser::Private::rebuildBreadcrumb()
 {
   breadcrumb->clear();
-   list<shared_ptr<MediaDirectory>> paths;
+  if(currentPath == flatPath)
+    return;
+  list<shared_ptr<MediaDirectory>> paths;
   shared_ptr<MediaDirectory> current = currentPath;
 
   while( current && current != rootPath )
