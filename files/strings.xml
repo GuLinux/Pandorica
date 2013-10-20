@@ -292,9 +292,9 @@ For other webservers (Apache, Lighttpd, Ngnix) read the proper documentation.
 <message id="playlist.show">Show Playlist</message>
 <message id="playlist.hide">Hide Playlist</message>
 <message id="playlist.clear">Clear Playlist</message>
-<message id="mediacollectionbrowser_file_name_ascending">File Name (ascending)</message>
-<message id="mediacollectionbrowser_file_name_descending">File Name (descending)</message>
-<message id="mediacollectionbrowser_date_added_ascending">Date Added (ascending)</message>
-<message id="mediacollectionbrowser_date_added_descending">Date Added (descending)</message>
+<message id="mediacollectionbrowser_file_name">File Name</message>
+<message id="mediacollectionbrowser_date_added">Date Added</message>
+<message id="mediacollectionbrowser_ascending">Ascending</message>
+<message id="mediacollectionbrowser_descending">Descending</message>
 <message id="mediacollectionbrowser_sort_by">Sort By...</message>
 </messages>

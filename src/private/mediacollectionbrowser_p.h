@@ -75,8 +75,10 @@ public:
     static std::string formatFileSize(long size);
     Wt::WPushButton* goToParent;
     typedef std::function<bool(const Media&, const Media&)> MediaSorter;
-    enum Sort { AlphaAsc, AlphaDesc, DateAsc, DateDesc};
-    Sort sortBy = AlphaAsc;
+    enum Sort { Alpha, Date};
+    enum SortDirection{ Asc, Desc };
+    Sort sortBy = Alpha;
+    SortDirection sortDirection = Asc;
     void setTitleFor(Media media);
     void clearThumbnailsFor(Media media);
     void clearAttachmentsFor(Media media);

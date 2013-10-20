@@ -107,24 +107,27 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
     d->browse( d->rootPath );
   } );
   WPushButton *sortByButton = WW<WPushButton>(wtr("mediacollectionbrowser_sort_by")).css("btn btn-small");
-  WPopupMenu *sortByMenu = new WPopupMenu();
-  auto addSortMenuItem = [=](const WString &label, Private::Sort sortType) {
+  WPopupMenu *sortByMenu = new WPopupMenu(); 
+  shared_ptr<vector<WMenuItem*>> sortMenuGroup(new vector<WMenuItem*>);
+  shared_ptr<vector<WMenuItem*>> sortOrderMenuGroup(new vector<WMenuItem*>);
+  auto addSortMenuItem = [=](const WString &label, function<void()> onClick, const shared_ptr<vector<WMenuItem*>> &group) {
     WMenuItem *item = sortByMenu->addItem(label);
     item->setCheckable(true);
     item->triggered().connect([=](WMenuItem*,_n5){
-      for(auto otherItem : sortByMenu->items())
+      for(auto otherItem : *group)
         otherItem->setChecked(false);
       item->setChecked(true);
-      d->sortBy = sortType;
+      onClick();
       reload(); 
     });
-    item->setChecked(d->sortBy == sortType);
+    group->push_back(item);
     return item;
   };
-  addSortMenuItem(wtr("mediacollectionbrowser_file_name_ascending"), Private::AlphaAsc);
-  addSortMenuItem(wtr("mediacollectionbrowser_file_name_descending"), Private::AlphaDesc);
-  addSortMenuItem(wtr("mediacollectionbrowser_date_added_ascending"), Private::DateAsc);
-  addSortMenuItem(wtr("mediacollectionbrowser_date_added_descending"), Private::DateDesc);
+  addSortMenuItem(wtr("mediacollectionbrowser_file_name"), [=]{d->sortBy = Private::Alpha; }, sortMenuGroup)->setChecked(d->sortBy == Private::Alpha);
+  addSortMenuItem(wtr("mediacollectionbrowser_date_added"), [=]{d->sortBy = Private::Date; }, sortMenuGroup)->setChecked(d->sortBy == Private::Date);
+  sortByMenu->addSeparator();
+  addSortMenuItem(wtr("mediacollectionbrowser_ascending"), [=]{d->sortDirection = Private::Asc; }, sortOrderMenuGroup)->setChecked(d->sortDirection == Private::Asc);
+  addSortMenuItem(wtr("mediacollectionbrowser_descending"), [=]{d->sortDirection = Private::Desc; }, sortOrderMenuGroup)->setChecked(d->sortDirection == Private::Desc);
   sortByButton->setMenu(sortByMenu);
   
   breadcrumb->addWidget(WW<WContainerWidget>().css("btn-group").add(reloadButton).add(sortByButton));
@@ -192,13 +195,15 @@ void MediaCollectionBrowser::Private::browse( const shared_ptr< MediaDirectory >
     addDirectory(dir);
   Dbo::Transaction t(*session);
   map<Sort, MediaSorter> sorters {
-    {Sort::AlphaAsc, [](const Media &_1, const Media &_2) { return _1.filename() < _2.filename(); }},
-    {Sort::AlphaDesc, [](const Media &_1, const Media &_2) { return _1.filename() >= _2.filename(); }},
-    {Sort::DateAsc, [&t](const Media &_1, const Media &_2) { return _1.properties(t)->creationTime() < _2.properties(t)->creationTime(); }},
-    {Sort::DateDesc, [&t](const Media &_1, const Media &_2) { return _1.properties(t)->creationTime() >= _2.properties(t)->creationTime(); }},
+    {Sort::Alpha, [](const Media &_1, const Media &_2) { return _1.filename() < _2.filename();}},
+    {Sort::Date, [&t](const Media &_1, const Media &_2) { auto _1props = _1.properties(t); auto _2props = _2.properties(t); return (_1props && _2props) ? _1props->creationTime() < _2props->creationTime() : false; }},
+  };
+  auto sorter = [=,&sorters](const Media &_1, const Media &_2) {
+    bool sorted = sorters[sortBy](_1, _2);
+    return sortDirection == Asc ? sorted : !sorted;
   };
   vector<Media> medias = currentPath->medias();
-  sort(medias.begin(), medias.end(), sorters[sortBy]);
+  sort(medias.begin(), medias.end(), sorter);
   for(auto media: medias)
     addMedia(media);
 }

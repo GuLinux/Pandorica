@@ -344,9 +344,9 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
 <message id="playlist.show">Mostra Playlist</message>
 <message id="playlist.hide">Nascondi Playlist</message>
 <message id="playlist.clear">Cancella Playlist</message>
-<message id="mediacollectionbrowser_file_name_ascending">Nome File (ascendente)</message>
-<message id="mediacollectionbrowser_file_name_descending">Nome File (discendente)</message>
-<message id="mediacollectionbrowser_date_added_ascending">Data Aggiunta (ascendente)</message>
-<message id="mediacollectionbrowser_date_added_descending">Data Aggiunta (discendente)</message>
+<message id="mediacollectionbrowser_file_name">Nome File</message>
+<message id="mediacollectionbrowser_date_added">Data Aggiunta</message>
+<message id="mediacollectionbrowser_ascending">Ascendente</message>
+<message id="mediacollectionbrowser_descending">Discendente</message>
 <message id="mediacollectionbrowser_sort_by">Ordina...</message>
 </messages>
