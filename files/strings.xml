@@ -133,7 +133,7 @@
 
   <!-- groups dialog -->
   <message id="delete.group.title">Delete Group</message>
-  <message id="delete.group.text">Are you sure to delete the group "<b>{1}</b>"?</message>
+  <message id="delete.group.text">Are you sure to delete the group "{1}"?</message>
   <message id="delete.user.title">Remove User</message>
   <message id="delete.user.text">Are you sure to remove the user "<b>{1}</b>" from group "<b>{2}</b>"?</message>
   <message id="groups.new.placeholder">New Group Name</message>

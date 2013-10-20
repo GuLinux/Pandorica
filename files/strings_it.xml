@@ -218,7 +218,7 @@
   <message id="groups.users">Utenti</message>
   <message id="groups.paths">Percorsi</message>
   <message id="group.is.admin">amministratore</message>
-  <message id="users.in.group.title">Utenti per "<b>{1}</b>"</message>
+  <message id="users.in.group.title">Utenti per "{1}"</message>
   <message id="groups.dialog.title">Gruppi</message>
   <message id="directories.for.group.dialog.title">Percorsi consentiti per "<b>{1}</b>"</message>
 
