@@ -37,42 +37,42 @@ struct Paths
   fs::path deepDirectoryPath {"C:\\mediadirectory\\subdirectory\\anotherSubDirectory"};
   fs::path mediaInDeepDirectoryPath {"C:\\mediadirectory\\subdirectory\\anotherSubDirectory\\media.mp4"};
 #endif
-  MediaDirectory mediaDirectory {rootMediaDirectoryPath};
+  shared_ptr<MediaDirectory> mediaDirectory{new MediaDirectory(rootMediaDirectoryPath)};
 };
 BOOST_FIXTURE_TEST_CASE( TestAddMedia, Paths )
 {
   Media media( mediaInRootDirectoryPath );
-  BOOST_REQUIRE( mediaDirectory.medias().empty() );
-  mediaDirectory.add( media );
+  BOOST_REQUIRE( mediaDirectory->medias().empty() );
+  mediaDirectory->add( media );
 
-  BOOST_REQUIRE_EQUAL( 1, mediaDirectory.medias().size() );
-  BOOST_REQUIRE_EQUAL( 1, mediaDirectory.allMedias().size() );
-  BOOST_REQUIRE_EQUAL( 0, mediaDirectory.subDirectories().size() );
-  BOOST_REQUIRE_EQUAL( media, mediaDirectory.medias().front() );
-  BOOST_REQUIRE_EQUAL( media, mediaDirectory.allMedias().front() );
+  BOOST_REQUIRE_EQUAL( 1, mediaDirectory->medias().size() );
+  BOOST_REQUIRE_EQUAL( 1, mediaDirectory->allMedias().size() );
+  BOOST_REQUIRE_EQUAL( 0, mediaDirectory->subDirectories().size() );
+  BOOST_REQUIRE_EQUAL( media, mediaDirectory->medias().front() );
+  BOOST_REQUIRE_EQUAL( media, mediaDirectory->allMedias().front() );
 }
 
 BOOST_FIXTURE_TEST_CASE( TestDontAddMediaIfBelongingToOtherDirectory, Paths )
 {
-  BOOST_REQUIRE( mediaDirectory.medias().empty() );
-  mediaDirectory.add( Media {mediaInDifferentPath} );
+  BOOST_REQUIRE( mediaDirectory->medias().empty() );
+  mediaDirectory->add( Media {mediaInDifferentPath} );
 
-  BOOST_REQUIRE_EQUAL( 0, mediaDirectory.medias().size() );
-  BOOST_REQUIRE_EQUAL( 0, mediaDirectory.allMedias().size() );
-  BOOST_REQUIRE_EQUAL( 0, mediaDirectory.subDirectories().size() );
+  BOOST_REQUIRE_EQUAL( 0, mediaDirectory->medias().size() );
+  BOOST_REQUIRE_EQUAL( 0, mediaDirectory->allMedias().size() );
+  BOOST_REQUIRE_EQUAL( 0, mediaDirectory->subDirectories().size() );
 }
 
 BOOST_FIXTURE_TEST_CASE( TestAddSubDirectoryMedia, Paths )
 {
   Media media( mediaInSubDirectoryPath );
-  BOOST_REQUIRE( mediaDirectory.medias().empty() );
-  mediaDirectory.add( media );
+  BOOST_REQUIRE( mediaDirectory->medias().empty() );
+  mediaDirectory->add( media );
 
-  BOOST_REQUIRE_EQUAL( 0, mediaDirectory.medias().size() );
-  BOOST_REQUIRE_EQUAL( 1, mediaDirectory.subDirectories().size() );
-  BOOST_REQUIRE_EQUAL( MediaDirectory {subDirectoryPath}, *mediaDirectory.subDirectories().front() );
-  BOOST_REQUIRE_EQUAL( 1, mediaDirectory.allMedias().size() );
-  BOOST_REQUIRE_EQUAL( media, mediaDirectory.allMedias().front() );
+  BOOST_REQUIRE_EQUAL( 0, mediaDirectory->medias().size() );
+  BOOST_REQUIRE_EQUAL( 1, mediaDirectory->subDirectories().size() );
+  BOOST_REQUIRE_EQUAL( MediaDirectory {subDirectoryPath}, *mediaDirectory->subDirectories().front() );
+  BOOST_REQUIRE_EQUAL( 1, mediaDirectory->allMedias().size() );
+  BOOST_REQUIRE_EQUAL( media, mediaDirectory->allMedias().front() );
 }
 
 
@@ -80,26 +80,26 @@ BOOST_FIXTURE_TEST_CASE( TestComplexSubDirectoryStructure, Paths )
 {
   Media mediaInRoot {mediaInRootDirectoryPath};
   Media mediaInSubDirectory {mediaInSubDirectoryPath};
-  Media secondMediaInSubDirector {secondMediaInSubDirectoryPath};
+  Media secondMediaInSubDirectory {secondMediaInSubDirectoryPath};
   Media mediaInSecondSubDirectory {mediaInSecondSubDirectoryPath};
   Media deepMedia {mediaInDeepDirectoryPath};
 
-  mediaDirectory.add( Media {mediaInDifferentPath} );
-  mediaDirectory.add( mediaInSubDirectory );
-  mediaDirectory.add( mediaInRoot );
-  mediaDirectory.add( mediaInSecondSubDirectory );
-  mediaDirectory.add( secondMediaInSubDirector );
-  mediaDirectory.add( deepMedia );
-  BOOST_REQUIRE_EQUAL( 1, mediaDirectory.medias().size() );
-  BOOST_REQUIRE_EQUAL( mediaInRoot, mediaDirectory.medias().front() );
-  BOOST_REQUIRE_EQUAL( 5, mediaDirectory.allMedias().size() );
-  BOOST_REQUIRE_EQUAL( 2, mediaDirectory.subDirectories().size() );
+  mediaDirectory->add( Media {mediaInDifferentPath} );
+  mediaDirectory->add( mediaInSubDirectory );
+  mediaDirectory->add( mediaInRoot );
+  mediaDirectory->add( mediaInSecondSubDirectory );
+  mediaDirectory->add( secondMediaInSubDirectory );
+  mediaDirectory->add( deepMedia );
+  BOOST_REQUIRE_EQUAL( 1, mediaDirectory->medias().size() );
+  BOOST_REQUIRE_EQUAL( mediaInRoot, mediaDirectory->medias().front() );
+  BOOST_REQUIRE_EQUAL( 5, mediaDirectory->allMedias().size() );
+  BOOST_REQUIRE_EQUAL( 2, mediaDirectory->subDirectories().size() );
 
-  shared_ptr<MediaDirectory> firstSubDirectory = mediaDirectory.subDirectories().back();
+  shared_ptr<MediaDirectory> firstSubDirectory = mediaDirectory->subDirectories().back();
   BOOST_REQUIRE_EQUAL( MediaDirectory {subDirectoryPath}, *firstSubDirectory );
   BOOST_REQUIRE_EQUAL( 2, firstSubDirectory->medias().size() );
   BOOST_REQUIRE_EQUAL( mediaInSubDirectory, firstSubDirectory->medias().front() );
-  BOOST_REQUIRE_EQUAL( secondMediaInSubDirector, firstSubDirectory->medias().back() );
+  BOOST_REQUIRE_EQUAL( secondMediaInSubDirectory, firstSubDirectory->medias().back() );
   BOOST_REQUIRE_EQUAL( 3, firstSubDirectory->allMedias().size() );
   BOOST_REQUIRE_EQUAL( 1, firstSubDirectory->subDirectories().size() );
 
@@ -110,7 +110,7 @@ BOOST_FIXTURE_TEST_CASE( TestComplexSubDirectoryStructure, Paths )
   BOOST_REQUIRE_EQUAL( 0, deepDirectory->subDirectories().size() );
   BOOST_REQUIRE_EQUAL( deepMedia, deepDirectory->medias().front() );
 
-  shared_ptr<MediaDirectory> secondSubDirectory = mediaDirectory.subDirectories().front();
+  shared_ptr<MediaDirectory> secondSubDirectory = mediaDirectory->subDirectories().front();
   BOOST_REQUIRE_EQUAL( MediaDirectory {secondSubDirectoryPath}, *secondSubDirectory );
   BOOST_REQUIRE_EQUAL( 1, secondSubDirectory->allMedias().size() );
   BOOST_REQUIRE_EQUAL( 1, secondSubDirectory->medias().size() );
