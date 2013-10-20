@@ -31,8 +31,9 @@ include_directories(libffmpegthumbnailer)
 
 include_directories(${AVUTIL_INCLUDE_DIRS} ${AVFORMAT_INCLUDE_DIRS} ${AVCODEC_INCLUDE_DIRS} ${SWSCALE_INCLUDE_DIRS} ${LIBPNG_INCLUDE_DIRS})
 
-if(QT_FOUND AND NOT DISABLE_QT)
+if(QT4_FOUND)
   INCLUDE(   ${QT_USE_FILE}   )
+  include_directories(${QT_INCLUDE_DIR}/QtNetwork) # Hack to skip include <QtModule/QtClass> include style
   message("Qt4 headers found: compiling with system tray icon support")
   add_definitions(-DHAVE_QT)
   if(WIN32)
@@ -40,7 +41,18 @@ if(QT_FOUND AND NOT DISABLE_QT)
   endif(WIN32)
   QT4_WRAP_CPP(Pandorica_HEADERS_MOC qttrayicon.h)
   set(qt_only_classes qttrayicon.cpp ${Pandorica_HEADERS_MOC})
-endif(QT_FOUND AND NOT DISABLE_QT)
+endif(QT4_FOUND)
+if(Qt5Widgets_FOUND)
+#INCLUDE(   ${QT_USE_FILE}   )
+  include_directories(${Qt5Widgets_INCLUDE_DIRS})
+  message("Qt5 headers found: compiling with system tray icon support")
+  add_definitions(-DHAVE_QT -DHAVE_QT5 -fPIC)
+  if(WIN32)
+    qt5_add_resources(Pandorica_RCC_SRCS ${CMAKE_SOURCE_DIR}/files/icons.qrc)
+  endif(WIN32)
+  qt5_wrap_cpp(Pandorica_HEADERS_MOC qttrayicon.h)
+  set(qt_only_classes qttrayicon.cpp ${Pandorica_HEADERS_MOC})
+endif(Qt5Widgets_FOUND)
 
 set(pandorica_SOURCES ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs} ${player_srcs} 
   ${qt_only_classes}
@@ -66,15 +78,19 @@ add_subdirectory(media)
 add_subdirectory(utils)
 
 if(WIN32)
-  if(QT_FOUND AND NOT DISABLE_QT AND NOT DISABLE_WIN32)
+  if( (QT4_FOUND OR Qt5Widgets_FOUND) AND NOT DISABLE_WIN32)
     add_executable(${app_name} WIN32 ${pandorica_SOURCES}  pandorica.rc ${Pandorica_RCC_SRCS} )
-  else(QT_FOUND AND NOT DISABLE_QT AND NOT DISABLE_WIN32)
+  else((QT4_FOUND OR Qt5Widgets_FOUND) AND NOT DISABLE_WIN32)
     add_executable(${app_name} ${pandorica_SOURCES}  pandorica.rc ${Pandorica_RCC_SRCS} )
-  endif(QT_FOUND AND NOT DISABLE_QT AND NOT DISABLE_WIN32)
+  endif((QT4_FOUND OR Qt5Widgets_FOUND) AND NOT DISABLE_WIN32)
 else(WIN32)
   add_executable(${app_name} ${pandorica_SOURCES})
 endif(WIN32)
 
+if(Qt5Widgets_FOUND)
+  qt5_use_modules(Pandorica Network)
+endif(Qt5Widgets_FOUND)
+  
 
 string(TOLOWER "x${CMAKE_BUILD_TYPE}" build_type)
 if("${build_type}" STREQUAL "xdebug")
@@ -100,7 +116,7 @@ if(WIN32)
 
 endif(WIN32)
 
-target_link_libraries(${app_name} ${QT_QTCORE_LIBRARY} ${QT_QTNETWORK_LIBRARY} ${QT_QTGUI_LIBRARY} 
+target_link_libraries(${app_name} ${Qt5Widgets_LIBRARIES} ${QT_QTCORE_LIBRARY} ${QT_QTNETWORK_LIBRARY} ${QT_QTGUI_LIBRARY} 
   ${AVFORMAT_LDFLAGS} ${AVCODEC_LDFLAGS} ${AVUTIL_LDFLAGS} ${SWSCALE_LDFLAGS} ${LIBPNG_LIBRARIES}
   ${WT_LINK_LIBS} ${Boost_LIBRARIES} ${GRAPHICSMAGICK_LIBRARIES} ${WIN32_LIBS} )
 install(TARGETS ${app_name} RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)

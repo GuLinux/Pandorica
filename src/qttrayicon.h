@@ -22,8 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef QTTRAYICON_H
 #define QTTRAYICON_H
 
-#include <QtCore/QObject>
-#include <QtGui/QSystemTrayIcon>
+#include <QObject>
+#include <QSystemTrayIcon>
 
 namespace Wt {
   class WServer;

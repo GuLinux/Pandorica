@@ -44,7 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <Wt-Commons/wt_helpers.h>
 #ifdef HAVE_QT
-#include <QtGui/QApplication>
+#include <QApplication>
 #include "qttrayicon.h"
 #endif
 

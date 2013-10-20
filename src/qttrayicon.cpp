@@ -23,15 +23,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "qttrayicon.h"
 #include "utils/utils.h"
-#include <QtGui/qicon.h>
-#include <QtGui/QApplication>
-#include <QtGui/QSystemTrayIcon>
-#include <QtGui/QMenu>
-#include <QtGui/QClipboard>
-#include <QtCore/qtimer.h>
-#include <QtNetwork/QNetworkInterface>
-#include <QtCore/QUrl>
-#include <QtGui/QDesktopServices>
+#include <QIcon>
+#include <QApplication>
+#include <QSystemTrayIcon>
+#include <QMenu>
+#include <QClipboard>
+#include <QTimer>
+#include <QNetworkInterface>
+#include <QUrl>
+#include <QDesktopServices>
 
 QtTrayIcon::~QtTrayIcon()
 {
