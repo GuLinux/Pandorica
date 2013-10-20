@@ -41,19 +41,19 @@ using namespace std;
 using namespace Wt;
 using namespace WtCommons;
 
-MediaInfoPanel::Private::Private( MediaInfoPanel *q ) : q( q )
+MediaInfoPanel::Private::Private( MediaInfoPanel *q, Session *session, Settings *settings ) : q( q ), session(session), settings(settings)
 {
+  isAdmin = session->user()->isAdmin();
 }
 MediaInfoPanel::Private::~Private()
 {
 }
 
 MediaInfoPanel::MediaInfoPanel( Session *session, Settings *settings, Wt::WContainerWidget *parent )
-: WContainerWidget( parent ), d(this), session( session ), settings( settings )
+: WContainerWidget( parent ), d(this, session, settings)
 {
   setStyleClass( "browser-info-panel" );
   Dbo::Transaction t( *session );
-  isAdmin = session->user()->isAdmin();
   reset();
 }
 
@@ -70,14 +70,14 @@ void MediaInfoPanel::reset()
            );
   addWidget( new WBreak );
   addWidget( WW<WText>( wtr( "infopanel.empty.message" ) ) );
-  auto folderActions = createPanel( "mediabrowser.folderActions" );
+  auto folderActions = d->createPanel( "mediabrowser.folderActions" );
   folderActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.folderActions.playFolder" ) ).css( "btn btn-block btn-small btn-primary" ).onClick( [ = ]( WMouseEvent )
   {
-    _playFolder.emit();
+    d->playFolder.emit();
   } ) );
   folderActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.folderActions.playFolderRecursive" ) ).css( "btn btn-block btn-small" ).onClick( [ = ]( WMouseEvent )
   {
-    _playFolderRecursive.emit();
+    d->playFolderRecursive.emit();
   } ) );
   addWidget( folderActions.first );
   wasResetted().emit();
@@ -88,7 +88,7 @@ void MediaInfoPanel::info( Media &media )
 {
   clear();
   WContainerWidget *header = WW<WContainerWidget>().setContentAlignment( AlignCenter );
-  Dbo::Transaction t( *session );
+  Dbo::Transaction t( *d->session );
   WString title = media.title( t );
   header->addWidget( WW<WText>( title ).css( "media-title" ) );
   Dbo::ptr<MediaAttachment> previewAttachment = media.preview( t, Media::PreviewPlayer );
@@ -110,25 +110,25 @@ void MediaInfoPanel::info( Media &media )
   else
   {
     auto iconType = ( media.mimetype().find( "video" ) == string::npos ) ? Settings::AudioFile : Settings::VideoFile;
-    WImage *icon = new WImage { settings->icon( iconType ) };
+    WImage *icon = new WImage { d->settings->icon( iconType ) };
     header->addWidget( icon );
   }
 
-  auto mediaMediaInfoPanel = createPanel( "mediabrowser.information" );
+  auto mediaMediaInfoPanel = d->createPanel( "mediabrowser.information" );
   WTable *table = new WTable( mediaMediaInfoPanel.second );
   table->setWidth( WLength( 100, WLength::Percentage ) );
-  labelValueBox( "mediabrowser.filename", media.filename(), table );
-  labelValueBox( "mediabrowser.filesize", Utils::formatFileSize( fs::file_size( media.path() ) ), table );
+  d->labelValueBox( "mediabrowser.filename", media.filename(), table );
+  d->labelValueBox( "mediabrowser.filesize", Utils::formatFileSize( fs::file_size( media.path() ) ), table );
 
   MediaPropertiesPtr mediaProperties = media.properties( t );
 
   if( mediaProperties )
   {
-    labelValueBox( "mediabrowser.creation_time", mediaProperties->creationTime().toString(), table );
-    labelValueBox( "mediabrowser.medialength", WTime( 0, 0, 0 ).addSecs( mediaProperties->duration() ).toString(), table );
+    d->labelValueBox( "mediabrowser.creation_time", mediaProperties->creationTime().toString(), table );
+    d->labelValueBox( "mediabrowser.medialength", WTime( 0, 0, 0 ).addSecs( mediaProperties->duration() ).toString(), table );
 
     if( media.mimetype().find( "video" ) != string::npos && mediaProperties->width() > 0 && mediaProperties->height() > 0 )
-      labelValueBox( "mediabrowser.resolution", WString( "{1}x{2}" ).arg( mediaProperties->width() ).arg( mediaProperties->height() ), table );
+      d->labelValueBox( "mediabrowser.resolution", WString( "{1}x{2}" ).arg( mediaProperties->width() ).arg( mediaProperties->height() ), table );
   }
 
   Ratings rating = MediaRating::ratingFor( media, t );
@@ -142,22 +142,22 @@ void MediaInfoPanel::info( Media &media )
       avgRatingWidget->addWidget( WW<WImage>( Settings::staticPath( "/icons/rating_small.png" ) ).css( rating.ratingAverage < i ? "rating-unrated" : "" ) );
     }
 
-    labelValueBox( "mediabrowser.rating", avgRatingWidget, table );
+    d->labelValueBox( "mediabrowser.rating", avgRatingWidget, table );
   }
 
-  auto actions = createPanel( "mediabrowser.actions" );
+  auto actions = d->createPanel( "mediabrowser.actions" );
   actions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.play" ) ).css( "btn btn-block btn-small btn-primary" ).onClick( [ = ]( WMouseEvent )
   {
-    _play.emit( media );
+    d->play.emit( media );
   } ) );
   actions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.queue" ) ).css( "btn btn-block btn-small" ).onClick( [ = ]( WMouseEvent )
   {
-    _queue.emit( media );
+    d->queue.emit( media );
   } ) );
   actions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.share" ) ).css( "btn btn-block btn-small" ).onClick( [ = ]( WMouseEvent )
   {
-    Wt::Dbo::Transaction t( *session );
-    auto shareMessageBox = new WMessageBox( wtr( "mediabrowser.share" ), wtr( "mediabrowser.share.dialog" ).arg( media.title( t ) ).arg( settings->shareLink( media.uid() ).url() ), NoIcon, Ok );
+    Wt::Dbo::Transaction t( *d->session );
+    auto shareMessageBox = new WMessageBox( wtr( "mediabrowser.share" ), wtr( "mediabrowser.share.dialog" ).arg( media.title( t ) ).arg( d->settings->shareLink( media.uid() ).url() ), NoIcon, Ok );
     shareMessageBox->button( Ok )->clicked().connect( [ = ]( WMouseEvent )
     {
       shareMessageBox->accept();
@@ -173,9 +173,9 @@ void MediaInfoPanel::info( Media &media )
   addWidget( mediaMediaInfoPanel.first );
   addWidget( actions.first );
 
-  if( isAdmin )
+  if( d->isAdmin )
   {
-    auto adminActions = createPanel( "mediabrowser.admin.actions" );
+    auto adminActions = d->createPanel( "mediabrowser.admin.actions" );
     adminActions.first->addStyleClass( "visible-desktop" );
     adminActions.first->collapse();
     adminActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.admin.settitle" ) ).css( "btn btn-block btn-small btn-primary" ).onClick( [ = ]( WMouseEvent )
@@ -201,7 +201,7 @@ void MediaInfoPanel::info( Media &media )
 }
 
 
-pair<WPanel *, WContainerWidget *> MediaInfoPanel::createPanel( string titleKey )
+pair<WPanel *, WContainerWidget *> MediaInfoPanel::Private::createPanel( string titleKey )
 {
   WPanel *panel = new WPanel();
   panel->setTitle( wtr( titleKey ) );
@@ -214,15 +214,64 @@ pair<WPanel *, WContainerWidget *> MediaInfoPanel::createPanel( string titleKey 
   return {panel, container};
 }
 
-void MediaInfoPanel::labelValueBox( string label, Wt::WString value, WTable *container )
+void MediaInfoPanel::Private::labelValueBox( string label, Wt::WString value, WTable *container )
 {
   return labelValueBox( label, new WText {value}, container );
 }
 
-void MediaInfoPanel::labelValueBox( string label, WWidget *widget, WTable *container )
+void MediaInfoPanel::Private::labelValueBox( string label, WWidget *widget, WTable *container )
 {
   int currentRow = container->rowCount();
   container->elementAt( currentRow, 0 )->addWidget( WW<WText>( wtr( label ) ).css( "label label-info" ) );
   container->elementAt( currentRow, 1 )->addWidget( WW<WContainerWidget>().css( "media-info-value" ).setContentAlignment( AlignRight ).add( widget ) );
 }
+
+Signal< Media > &MediaInfoPanel::deleteAttachments() const
+{
+  return d->deleteAttachments;
+}
+Signal< Media > &MediaInfoPanel::deletePoster() const
+{
+  return d->deletePoster;
+}
+Signal< NoClass > &MediaInfoPanel::gotInfo() const
+{
+  return d->gotInfo;
+}
+Signal< Media > &MediaInfoPanel::play() const
+{
+  return d->play;
+}
+Signal< NoClass > &MediaInfoPanel::playFolder() const
+{
+  return d->playFolder;
+}
+Signal< NoClass > &MediaInfoPanel::playFolderRecursive() const
+{
+  return d->playFolderRecursive;
+}
+Signal< Media > &MediaInfoPanel::queue() const
+{
+  return d->queue;
+}
+Signal< Media > &MediaInfoPanel::setPoster() const
+{
+  return d->setPoster;
+}
+Signal< Media > &MediaInfoPanel::setTitle() const
+{
+  return d->setTitle;
+}
+Signal< NoClass > &MediaInfoPanel::wasResetted() const
+{
+  return d->wasResetted;
+}
+
+
+
+
+
+
+
+
 
