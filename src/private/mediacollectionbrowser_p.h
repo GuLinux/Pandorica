@@ -29,6 +29,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Wt-Commons/wt_helpers.h"
 #include "mediacollectionbrowser.h"
 
+class MediaInfoPanel;
+
 namespace Wt {
 class WPanel;
 class WTable;
@@ -41,41 +43,6 @@ class Settings;
 class MediaCollection;
 typedef std::pair<std::string,Media> MediaEntry;
 typedef std::function<std::string(Wt::WObject*)> GetIconF;
-
-class InfoPanel : public Wt::WContainerWidget {
-public:
-    InfoPanel(Session* session, Settings* settings, Wt::WContainerWidget* parent = 0);
-    void info(Media media);
-    void reset();
-    inline Wt::Signal<Media> &play() { return _play; }
-    inline Wt::Signal<Media> &queue() { return _queue; }
-    inline Wt::Signal<Media> &setTitle() { return _setTitle; }
-    inline Wt::Signal<Media> &setPoster() { return _setPoster; }
-    inline Wt::Signal<Media> &deletePoster() { return _deletePoster; }
-    inline Wt::Signal<Media> &deleteAttachments() { return _deleteAttachments; }
-    inline Wt::Signal<> &gotInfo() { return _gotInfo; }
-    inline Wt::Signal<> &wasResetted() { return _wasResetted; }
-    inline Wt::Signal<> &playFolder() { return _playFolder; }
-    inline Wt::Signal<> &playFolderRecursive() { return _playFolderRecursive; }
-private:
-  void labelValueBox(std::string label, Wt::WString value, Wt::WTable* container);
-  void labelValueBox(std::string label, Wt::WWidget *widget, Wt::WTable* container);
-  Wt::Signal<Media> _play;
-  Wt::Signal<Media> _queue;
-  Wt::Signal<Media> _setTitle;
-  Wt::Signal<Media> _setPoster;
-  Wt::Signal<Media> _deletePoster;
-  Wt::Signal<Media> _deleteAttachments;
-  Wt::Signal<> _gotInfo;
-  Wt::Signal<> _wasResetted;
-  Wt::Signal<> _playFolder;
-  Wt::Signal<> _playFolderRecursive;
-  Session *session;
-  Settings* settings;
-  bool isAdmin;
-  std::pair<Wt::WPanel*,Wt::WContainerWidget*> createPanel(std::string titleKey);
-};
-
 
 class CollectionPath;
 typedef std::function<void(std::string key, CollectionPath *collectionPath)> OnDirectoryAdded;
@@ -126,7 +93,7 @@ public:
         : collection(collection) , settings(settings), session(session), q(q) {}
     void rebuildBreadcrumb();
     void browse(CollectionPath *currentPath);
-    void setup(InfoPanel *infoPanel);
+    void setup(MediaInfoPanel *infoPanel);
     MediaCollection *const collection;
     Settings *settings;
     Session *session;

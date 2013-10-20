@@ -54,6 +54,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WTimer>
 #include <Wt/WTable>
 #include "utils/d_ptr_implementation.h"
+#include "mediainfopanel.h"
+
 
 #define ROOT_PATH_ID "///ROOT///"
 
@@ -71,23 +73,23 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
   d->breadcrumb->setList( true );
   d->browser = WW<WContainerWidget>().css( "thumbnails" ).setMargin( WLength::Auto, Left ).setMargin( WLength::Auto, Right );
   WContainerWidget *mainContainer = new WContainerWidget;
-  InfoPanel *mobileInfoPanelWidget = WW<InfoPanel>( session, settings ) ;
-  mobileInfoPanelWidget->setHidden( true );
-  mobileInfoPanelWidget->gotInfo().connect( [ = ]( _n6 )
+  MediaInfoPanel *mobileMediaInfoPanelWidget = WW<MediaInfoPanel>( session, settings ) ;
+  mobileMediaInfoPanelWidget->setHidden( true );
+  mobileMediaInfoPanelWidget->gotInfo().connect( [ = ]( _n6 )
   {
-    settings->animateShow( Settings::ShowMediaInfoAnimation, mobileInfoPanelWidget );
+    settings->animateShow( Settings::ShowMediaInfoAnimation, mobileMediaInfoPanelWidget );
   } );
-  mobileInfoPanelWidget->wasResetted().connect( [ = ]( _n6 )
+  mobileMediaInfoPanelWidget->wasResetted().connect( [ = ]( _n6 )
   {
-    settings->animateHide( Settings::HideMediaInfoAnimation, mobileInfoPanelWidget );
+    settings->animateHide( Settings::HideMediaInfoAnimation, mobileMediaInfoPanelWidget );
   } );
 
   WContainerWidget *container = WW<WContainerWidget>( mainContainer ).css( "container-fluid" );
 
 
   WContainerWidget *row = WW<WContainerWidget>( container ).css( "row-fluid" );
-  InfoPanel *desktopInfoPanel = WW<InfoPanel>( session, settings ).addCss( "visible-desktop span4" );
-  row->addWidget( desktopInfoPanel );
+  MediaInfoPanel *desktopMediaInfoPanel = WW<MediaInfoPanel>( session, settings ).addCss( "visible-desktop span4" );
+  row->addWidget( desktopMediaInfoPanel );
   row->addWidget( WW<WContainerWidget>().css( "mediabrowser span8" ).add( d->browser ) );
 
 
@@ -97,13 +99,13 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
   {
     d->browse( d->currentPath->parent() );
   } ) );
-  addWidget( WW<WContainerWidget>().css( "hidden-desktop" ).add( mobileInfoPanelWidget ) );
+  addWidget( WW<WContainerWidget>().css( "hidden-desktop" ).add( mobileMediaInfoPanelWidget ) );
   addWidget( mainContainer );
   d->currentPath = new RootCollectionPath {settings, session, collection};
   d->collectionPaths[ROOT_PATH_ID] = d->currentPath;
   collection->scanned().connect( this, &MediaCollectionBrowser::reload );
-  d->setup(desktopInfoPanel);
-  d->setup(mobileInfoPanelWidget);
+  d->setup(desktopMediaInfoPanel);
+  d->setup(mobileMediaInfoPanelWidget);
 }
 
 void MediaCollectionBrowser::reload()
@@ -111,7 +113,7 @@ void MediaCollectionBrowser::reload()
   d->browse( d->currentPath );
 }
 
-void MediaCollectionBrowser::Private::setup(InfoPanel *infoPanel)
+void MediaCollectionBrowser::Private::setup(MediaInfoPanel *infoPanel)
 {
   infoPanel->play().connect( [ = ]( Media media, _n5 )
   {
@@ -144,184 +146,6 @@ void MediaCollectionBrowser::Private::setup(InfoPanel *infoPanel)
   infoRequested.connect([=](Media &media, _n5) { infoPanel->info(media);});
   resetPanel.connect([=](_n6) { infoPanel->reset(); });
 }
-
-
-InfoPanel::InfoPanel( Session *session, Settings *settings, Wt::WContainerWidget *parent ): WContainerWidget( parent ), session( session ), settings( settings )
-{
-  setStyleClass( "browser-info-panel" );
-  Dbo::Transaction t( *session );
-  isAdmin = session->user()->isAdmin();
-  reset();
-}
-
-
-
-void InfoPanel::reset()
-{
-  clear();
-  addWidget( WW<WContainerWidget>().setContentAlignment( AlignCenter )
-             .add( WW<WText>( wtr( "infopanel.empty.title" ) ).css( "media-title" ) )
-             .add( WW<WImage>( Settings::staticPath( "/icons/site-logo-big.png" ) ) )
-           );
-  addWidget( new WBreak );
-  addWidget( WW<WText>( wtr( "infopanel.empty.message" ) ) );
-  auto folderActions = createPanel( "mediabrowser.folderActions" );
-  folderActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.folderActions.playFolder" ) ).css( "btn btn-block btn-small btn-primary" ).onClick( [ = ]( WMouseEvent )
-  {
-    _playFolder.emit();
-  } ) );
-  folderActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.folderActions.playFolderRecursive" ) ).css( "btn btn-block btn-small" ).onClick( [ = ]( WMouseEvent )
-  {
-    _playFolderRecursive.emit();
-  } ) );
-  addWidget( folderActions.first );
-  wasResetted().emit();
-}
-
-
-void InfoPanel::info( Media media )
-{
-  clear();
-  WContainerWidget *header = WW<WContainerWidget>().setContentAlignment( AlignCenter );
-  Dbo::Transaction t( *session );
-  WString title = media.title( t );
-  header->addWidget( WW<WText>( title ).css( "media-title" ) );
-  Dbo::ptr<MediaAttachment> previewAttachment = media.preview( t, Media::PreviewPlayer );
-
-  if( previewAttachment )
-  {
-    WLink previewLink = previewAttachment->link( previewAttachment, t, header );
-    WLink fullImage = previewLink;
-
-    Dbo::ptr<MediaAttachment> fullImageAttachment = media.preview( t, Media::PreviewFull );
-
-    if( fullImageAttachment )
-      fullImage = fullImageAttachment->link( fullImageAttachment, t, header );
-
-    WAnchor *fullImageLink = new WAnchor {fullImage, new WImage{previewLink, title}};
-    fullImageLink->setTarget( Wt::AnchorTarget::TargetNewWindow );
-    header->addWidget( fullImageLink );
-  }
-  else
-  {
-    auto iconType = ( media.mimetype().find( "video" ) == string::npos ) ? Settings::AudioFile : Settings::VideoFile;
-    WImage *icon = new WImage { settings->icon( iconType ) };
-    header->addWidget( icon );
-  }
-
-  auto mediaInfoPanel = createPanel( "mediabrowser.information" );
-  WTable *table = new WTable( mediaInfoPanel.second );
-  table->setWidth( WLength( 100, WLength::Percentage ) );
-  labelValueBox( "mediabrowser.filename", media.filename(), table );
-  labelValueBox( "mediabrowser.filesize", Utils::formatFileSize( fs::file_size( media.path() ) ), table );
-
-  MediaPropertiesPtr mediaProperties = media.properties( t );
-
-  if( mediaProperties )
-  {
-    labelValueBox( "mediabrowser.creation_time", mediaProperties->creationTime().toString(), table );
-    labelValueBox( "mediabrowser.medialength", WTime( 0, 0, 0 ).addSecs( mediaProperties->duration() ).toString(), table );
-
-    if( media.mimetype().find( "video" ) != string::npos && mediaProperties->width() > 0 && mediaProperties->height() > 0 )
-      labelValueBox( "mediabrowser.resolution", WString( "{1}x{2}" ).arg( mediaProperties->width() ).arg( mediaProperties->height() ), table );
-  }
-
-  Ratings rating = MediaRating::ratingFor( media, t );
-
-  if( rating.users > 0 )
-  {
-    WContainerWidget *avgRatingWidget = new WContainerWidget;
-
-    for( int i = 1; i <= 5; i++ )
-    {
-      avgRatingWidget->addWidget( WW<WImage>( Settings::staticPath( "/icons/rating_small.png" ) ).css( rating.ratingAverage < i ? "rating-unrated" : "" ) );
-    }
-
-    labelValueBox( "mediabrowser.rating", avgRatingWidget, table );
-  }
-
-  auto actions = createPanel( "mediabrowser.actions" );
-  actions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.play" ) ).css( "btn btn-block btn-small btn-primary" ).onClick( [ = ]( WMouseEvent )
-  {
-    _play.emit( media );
-  } ) );
-  actions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.queue" ) ).css( "btn btn-block btn-small" ).onClick( [ = ]( WMouseEvent )
-  {
-    _queue.emit( media );
-  } ) );
-  actions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.share" ) ).css( "btn btn-block btn-small" ).onClick( [ = ]( WMouseEvent )
-  {
-    Wt::Dbo::Transaction t( *session );
-    auto shareMessageBox = new WMessageBox( wtr( "mediabrowser.share" ), wtr( "mediabrowser.share.dialog" ).arg( media.title( t ) ).arg( settings->shareLink( media.uid() ).url() ), NoIcon, Ok );
-    shareMessageBox->button( Ok )->clicked().connect( [ = ]( WMouseEvent )
-    {
-      shareMessageBox->accept();
-    } );
-    shareMessageBox->show();
-  } ) );
-  addWidget( WW<WPushButton>( wtr( "button.close.info" ) ).css( "btn btn-primary btn-block hidden-desktop" )
-             .onClick( [ = ]( WMouseEvent )
-  {
-    wasResetted().emit();
-  } ) );
-  addWidget( header );
-  addWidget( mediaInfoPanel.first );
-  addWidget( actions.first );
-
-  if( isAdmin )
-  {
-    auto adminActions = createPanel( "mediabrowser.admin.actions" );
-    adminActions.first->addStyleClass( "visible-desktop" );
-    adminActions.first->collapse();
-    adminActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.admin.settitle" ) ).css( "btn btn-block btn-small btn-primary" ).onClick( [ = ]( WMouseEvent )
-    {
-      setTitle().emit( media );
-    } ) );
-    adminActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.admin.setposter" ) ).css( "btn btn-block btn-small btn-primary" ).onClick( [ = ]( WMouseEvent )
-    {
-      setPoster().emit( media );
-    } ) );
-    adminActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.admin.deletepreview" ) ).css( "btn btn-block btn-small btn-danger" ).onClick( [ = ]( WMouseEvent )
-    {
-      deletePoster().emit( media );
-    } ) );
-    adminActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.admin.deleteattachments" ) ).css( "btn btn-block btn-small btn-danger" ).onClick( [ = ]( WMouseEvent )
-    {
-      deleteAttachments().emit( media );
-    } ) );
-    addWidget( adminActions.first );
-  }
-
-  gotInfo().emit();
-}
-
-
-pair<WPanel *, WContainerWidget *> InfoPanel::createPanel( string titleKey )
-{
-  WPanel *panel = new WPanel();
-  panel->setTitle( wtr( titleKey ) );
-  panel->setCollapsible( true );
-  panel->setMargin( 10, Wt::Side::Top );
-  settings->setAnimation( Settings::PanelAnimation, panel );
-  setHeaderCollapsible( panel );
-  WContainerWidget *container = new WContainerWidget();
-  panel->setCentralWidget( container );
-  return {panel, container};
-}
-
-void InfoPanel::labelValueBox( string label, Wt::WString value, WTable *container )
-{
-  return labelValueBox( label, new WText {value}, container );
-}
-
-void InfoPanel::labelValueBox( string label, WWidget *widget, WTable *container )
-{
-  int currentRow = container->rowCount();
-  container->elementAt( currentRow, 0 )->addWidget( WW<WText>( wtr( label ) ).css( "label label-info" ) );
-  container->elementAt( currentRow, 1 )->addWidget( WW<WContainerWidget>().css( "media-info-value" ).setContentAlignment( AlignRight ).add( widget ) );
-}
-
-
 
 void MediaCollectionBrowser::Private::browse( CollectionPath *currentPath )
 {
