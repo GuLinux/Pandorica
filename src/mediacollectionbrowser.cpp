@@ -61,7 +61,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace Wt;
 using namespace std;
-using namespace boost;
 namespace fs = boost::filesystem;
 using namespace WtCommons;
 
@@ -97,12 +96,10 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
   addWidget( d->breadcrumb );
   addWidget( d->goToParent = WW<WPushButton>( wtr( "button.parent.directory" ) ).css( "btn btn-block hidden-desktop" ).onClick( [ = ]( WMouseEvent )
   {
-    d->browse( d->currentPath->parent() );
+    d->browse( d->rootPath );
   } ) );
   addWidget( WW<WContainerWidget>().css( "hidden-desktop" ).add( mobileMediaInfoPanelWidget ) );
   addWidget( mainContainer );
-  d->currentPath = new RootCollectionPath {settings, session, collection};
-  d->collectionPaths[ROOT_PATH_ID] = d->currentPath;
   collection->scanned().connect( this, &MediaCollectionBrowser::reload );
   d->setup(desktopMediaInfoPanel);
   d->setup(mobileMediaInfoPanelWidget);
@@ -131,7 +128,8 @@ void MediaCollectionBrowser::Private::setup(MediaInfoPanel *infoPanel)
   {
     for( Media media : collection->sortedMediasList() )
     {
-      if( currentPath->hasMedia( media ) )
+      auto medias = currentPath->medias(); 
+      if( count_if(medias.begin(), medias.end(), [&media](Media &m) { return m.uid() == media.uid(); }) > 0 )
         queueSignal.emit( media );
     }
   } );
@@ -139,7 +137,8 @@ void MediaCollectionBrowser::Private::setup(MediaInfoPanel *infoPanel)
   {
     for( Media media : collection->sortedMediasList() )
     {
-      if( currentPath->hasMediaInSubPath( media ) )
+      auto medias = currentPath->allMedias(); 
+      if( count_if(medias.begin(), medias.end(), [&media](Media &m) { return m.uid() == media.uid(); }) > 0 )
         queueSignal.emit( media );
     }
   } );
@@ -147,93 +146,53 @@ void MediaCollectionBrowser::Private::setup(MediaInfoPanel *infoPanel)
   resetPanel.connect([=](_n6) { infoPanel->reset(); });
 }
 
-void MediaCollectionBrowser::Private::browse( CollectionPath *currentPath )
+void MediaCollectionBrowser::Private::browse( const shared_ptr< MediaDirectory > &mediaDirectory )
 {
-  this->currentPath = currentPath;
+  currentPath = mediaDirectory;
   resetPanel.emit();
   browser->clear();
   rebuildBreadcrumb();
-  currentPath->render( [ = ]( string key, CollectionPath * collectionPath )
-  {
-    if( collectionPaths[key] )
-    {
-      delete collectionPaths[key];
-      collectionPaths.erase( key );
-    }
-
-    collectionPaths[key] = collectionPath;
-    addDirectory( collectionPath );
-  }, [ = ]( Media media )
-  {
-    addMedia( media );
-  } );
+  for(auto dir: currentPath->subDirectories())
+    addDirectory(dir);
+  for(auto media: currentPath->medias())
+    addMedia(media);
+//   currentPath->render( [ = ]( string key, CollectionPath * collectionPath )
+//   {
+//     if( collectionPaths[key] )
+//     {
+//       delete collectionPaths[key];
+//       collectionPaths.erase( key );
+//     }
+// 
+//     collectionPaths[key] = collectionPath;
+//     addDirectory( collectionPath );
+//   }, [ = ]( Media media )
+//   {
+//     addMedia( media );
+//   } );
 }
+
+
+RootMediaDirectory::RootMediaDirectory( MediaCollection *mediaCollection ): MediaDirectory(fs::path()), mediaCollection(mediaCollection)
+{
+}
+
+vector< shared_ptr< MediaDirectory > > RootMediaDirectory::subDirectories() const
+{
+  return mediaCollection->rootDirectories();
+}
+
 
 bool MediaCollectionBrowser::currentDirectoryHas( Media &media ) const
 {
-  return d->currentPath->hasMedia( media );
+  return count_if(d->currentPath->medias().begin(), d->currentPath->medias().end(), [&media](Media &m) { return m.uid() == media.uid(); });
 }
 
 
 
-
-void DirectoryCollectionPath::render( OnDirectoryAdded directoryAdded, OnMediaAdded mediaAdded )
+void MediaCollectionBrowser::Private::addDirectory( const shared_ptr<MediaDirectory> &directory )
 {
-  MediaDirectory mediaDirectory{path};
-
-  for( MediaEntry m : mediaCollection->collection() )
-  {
-    mediaDirectory.add(m.second);
-  }
-  vector<Media> medias = mediaDirectory.medias();
-  std::sort( medias.begin(), medias.end(), []( const Media & a, const Media & b )->bool { return ( a.filename() < b.filename() ); } );
-
-  for( std::shared_ptr<MediaDirectory> directory: mediaDirectory.subDirectories() )
-  {
-    directoryAdded( directory->path().string(), new DirectoryCollectionPath {directory->path(), mediaCollection, this} );
-  }
-
-  for( Media media : medias )
-    mediaAdded( media );
-}
-
-
-bool DirectoryCollectionPath::hasMedia( Media &media )
-{
-  return media.parentDirectory() == path;
-}
-
-bool DirectoryCollectionPath::hasMediaInSubPath( Media &media )
-{
-  return media.parentDirectory().string().find( path.string() ) != string::npos;
-}
-
-
-void RootCollectionPath::render( OnDirectoryAdded directoryAdded, OnMediaAdded mediaAdded )
-{
-  for( string directory : settings->mediasDirectories( session ) )
-  {
-    if( mediaCollection->isAllowed( directory ) )
-      directoryAdded( directory, new DirectoryCollectionPath {directory, mediaCollection, this} );
-  }
-}
-
-
-string DirectoryCollectionPath::label() const
-{
-  return path.filename().string();
-}
-
-string RootCollectionPath::label() const
-{
-  return wtr( "mediacollection.root" ).toUTF8();
-}
-
-
-
-void MediaCollectionBrowser::Private::addDirectory( CollectionPath *directory )
-{
-  auto onClick = [ = ]( WMouseEvent )
+  auto onClick = [=]( WMouseEvent )
   {
     browse( directory );
   };
@@ -413,31 +372,22 @@ void MediaCollectionBrowser::Private::rebuildBreadcrumb()
                          .onClick( [ = ]( WMouseEvent )
   {
     Dbo::Transaction t( *session );
-
-    for( auto path : collectionPaths )
-    {
-      if( path.first == ROOT_PATH_ID )
-        continue;
-
-      delete path.second;
-      collectionPaths.erase( path.first );
-    }
-
     collection->rescan( t );
-    browse( collectionPaths[ROOT_PATH_ID] );
+    browse( rootPath );
   } ) );
-  list<CollectionPath *> paths;
-  CollectionPath *current = currentPath;
+   list<shared_ptr<MediaDirectory>> paths;
+  shared_ptr<MediaDirectory> current = currentPath;
 
-  while( current )
+  while( current && current != rootPath )
   {
     paths.push_front( current );
     current = current->parent();
   }
 
+  paths.push_front(rootPath);
   goToParent->setEnabled( paths.size() > 1 );
 
-  for( CollectionPath * path : paths )
+  for( shared_ptr<MediaDirectory> path : paths )
   {
     WContainerWidget *item = new WContainerWidget;
 
@@ -466,10 +416,5 @@ Signal< Media > &MediaCollectionBrowser::queue()
 
 MediaCollectionBrowser::~MediaCollectionBrowser()
 {
-  for( auto collectionPath : d->collectionPaths )
-  {
-    delete collectionPath.second;
-    d->collectionPaths.erase( collectionPath.first );
-  }
 }
 

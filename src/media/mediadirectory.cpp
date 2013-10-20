@@ -23,23 +23,26 @@
 
 using namespace std;
 
-MediaDirectory::Private::Private( MediaDirectory *q, const boost::filesystem::path &path ) : q( q ), path( path )
+MediaDirectory::Private::Private( MediaDirectory *q, const boost::filesystem::path &path, const shared_ptr< MediaDirectory > &parent ) : q( q ), path( path ), parent(parent)
 {
 }
 
-MediaDirectory::MediaDirectory( const boost::filesystem::path &path ) : d( this, path )
+MediaDirectory::MediaDirectory( const boost::filesystem::path &path, const std::shared_ptr<MediaDirectory> &parent ) : d( this, path, parent )
 {
 }
 
-MediaDirectory::MediaDirectory() : d(this, "")
+string MediaDirectory::label() const
 {
-  d->valid = false;
+  return d->label.empty() ? path().filename().string() : d->label;
 }
 
-MediaDirectory::operator bool()
+shared_ptr< MediaDirectory > MediaDirectory::parent()
 {
-  return d->valid;
+  return d->parent;
 }
+
+
+
 
 bool MediaDirectory::operator==( const MediaDirectory &other ) const
 {
@@ -77,7 +80,7 @@ void MediaDirectory::add( const Media &media )
 void MediaDirectory::Private::addTree( const Media &media, const boost::filesystem::path &directory )
 {
   if( subdirectories.count( directory ) == 0 )
-    subdirectories[directory] = shared_ptr<MediaDirectory> {new MediaDirectory{directory}};
+    subdirectories[directory] = shared_ptr<MediaDirectory> {new MediaDirectory{directory, q->ptr()}};
 
   subdirectories[directory]->add( media );
 }
@@ -87,9 +90,9 @@ vector< Media > MediaDirectory::allMedias() const
   vector<Media> _allMedias;
   copy( d->medias.begin(), d->medias.end(), back_insert_iterator<vector<Media>>( _allMedias ) );
 
-  for( auto subDirectory : d->subdirectories )
+  for( auto subDirectory : subDirectories() )
   {
-    auto subDirectoryMedias = subDirectory.second->allMedias();
+    auto subDirectoryMedias = subDirectory->allMedias();
     copy( subDirectoryMedias.begin(), subDirectoryMedias.end(), back_insert_iterator<vector<Media>>( _allMedias ) );
   }
 
@@ -100,6 +103,17 @@ vector< Media > MediaDirectory::medias() const
 {
   return d->medias;
 }
+
+void MediaDirectory::setLabel( const string &label )
+{
+  d->label = label;
+}
+
+std::shared_ptr< MediaDirectory > MediaDirectory::ptr()
+{
+  return shared_from_this();
+}
+
 
 vector< shared_ptr< MediaDirectory > > MediaDirectory::subDirectories() const
 {

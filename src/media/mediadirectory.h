@@ -23,20 +23,22 @@
 #include <boost/filesystem.hpp>
 #include <ostream>
 class Media;
-class MediaDirectory
+class MediaDirectory : public std::enable_shared_from_this<MediaDirectory>
 {
   public:
-    MediaDirectory( const boost::filesystem::path &path );
-    MediaDirectory();
+    MediaDirectory( const boost::filesystem::path &path, const std::shared_ptr<MediaDirectory> &parent = std::shared_ptr<MediaDirectory>() );
     ~MediaDirectory();
-    std::vector<std::shared_ptr<MediaDirectory>> subDirectories() const;
-    std::vector<Media> medias() const;
-    std::vector<Media> allMedias() const;
+    virtual std::vector<std::shared_ptr<MediaDirectory>> subDirectories() const;
+    virtual std::vector<Media> medias() const;
+    virtual std::vector<Media> allMedias() const;
+    std::string label() const;
     void add( const Media &media );
     bool operator ==(const MediaDirectory &other) const;
     boost::filesystem::path path() const;
     friend std::ostream & operator<<( std::ostream &os, const MediaDirectory &md );
-    operator bool();
+    void setLabel(const std::string &label);
+    std::shared_ptr<MediaDirectory> parent();
+    std::shared_ptr<MediaDirectory> ptr();
   private:
     D_PTR;
 };

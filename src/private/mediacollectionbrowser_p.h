@@ -44,60 +44,32 @@ class MediaCollection;
 typedef std::pair<std::string,Media> MediaEntry;
 typedef std::function<std::string(Wt::WObject*)> GetIconF;
 
-class CollectionPath;
-typedef std::function<void(std::string key, CollectionPath *collectionPath)> OnDirectoryAdded;
-typedef std::function<void(Media media)> OnMediaAdded;
-
-class CollectionPath {
-public:
-  CollectionPath(CollectionPath *parent = 0) : parent_(parent) {}
-  virtual void render(OnDirectoryAdded directoryAdded, OnMediaAdded mediaAdded ) = 0;
-  virtual std::string label() const = 0;
-  CollectionPath *parent() { return parent_; }
-  virtual bool hasMedia(Media &media) = 0;
-  virtual bool hasMediaInSubPath(Media &media) = 0;
-private:
-  CollectionPath *parent_;
-};
-
-class DirectoryCollectionPath : public CollectionPath {
-public:
-  DirectoryCollectionPath(boost::filesystem::path path, MediaCollection *mediaCollection, CollectionPath *parent) : CollectionPath(parent), path(path), mediaCollection(mediaCollection) {}
-  virtual void render(OnDirectoryAdded directoryAdded, OnMediaAdded mediaAdded);
-  virtual std::string label() const;
-  virtual bool hasMedia(Media& media);
-  virtual bool hasMediaInSubPath(Media& media);
-private:
-  boost::filesystem::path path;
-  MediaCollection *mediaCollection;
-};
-
-class RootCollectionPath : public CollectionPath {
-public:
-  RootCollectionPath(Settings *settings, Session *session, MediaCollection *mediaCollection) : CollectionPath(), settings(settings), session(session), mediaCollection(mediaCollection) {}
-  virtual void render(OnDirectoryAdded directoryAdded, OnMediaAdded mediaAdded);
-  virtual std::string label() const;
-  virtual bool hasMedia(Media& media) { return false; }
-  virtual bool hasMediaInSubPath(Media& media) { return true; }
-private:
-  Settings *settings;
-  MediaCollection *mediaCollection;
-  Session* session;
-};
-
 typedef std::function<void(Wt::WMouseEvent)> OnClick;
+
+class RootMediaDirectory : public MediaDirectory
+{
+public:
+    RootMediaDirectory(MediaCollection *mediaCollection);
+    virtual std::vector< std::shared_ptr< MediaDirectory > > subDirectories() const;
+private:
+  MediaCollection *mediaCollection;
+};
 
 class MediaCollectionBrowser::Private {
 public:
     Private(MediaCollection *collection, Settings *settings, Session *session, MediaCollectionBrowser *q)
-        : collection(collection) , settings(settings), session(session), q(q) {}
+        : collection(collection) , settings(settings), session(session), q(q), rootPath(new RootMediaDirectory(collection)), currentPath(rootPath)
+        {
+          rootPath->setLabel(wtr( "mediacollection.root" ).toUTF8());
+        }
     void rebuildBreadcrumb();
-    void browse(CollectionPath *currentPath);
+    void browse(const std::shared_ptr<MediaDirectory> &mediaDirectory);
     void setup(MediaInfoPanel *infoPanel);
     MediaCollection *const collection;
     Settings *settings;
     Session *session;
-    CollectionPath *currentPath = 0;
+    std::shared_ptr<MediaDirectory> rootPath;
+    std::shared_ptr<MediaDirectory> currentPath;
     Wt::WContainerWidget* breadcrumb;
     Wt::WContainerWidget* browser;
     Wt::Signal<Media> playSignal;
@@ -105,7 +77,6 @@ public:
     Wt::Signal<Media> infoRequested;
     Wt::Signal<> resetPanel;
     static std::string formatFileSize(long size);
-    std::map<std::string,CollectionPath*> collectionPaths;
     Wt::WPushButton* goToParent;
     
     
@@ -114,7 +85,7 @@ public:
     void clearAttachmentsFor(Media media);
     void setPosterFor(Media media);
 private:
-    void addDirectory(CollectionPath *directory);
+    void addDirectory( const std::shared_ptr< MediaDirectory > &directory );
     void addMedia(Media& media);
     Wt::WContainerWidget* addIcon(Wt::WString filename, GetIconF icon, OnClick onClick);
     MediaCollectionBrowser* q;

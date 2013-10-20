@@ -27,12 +27,13 @@
 class MediaDirectory::Private
 {
   public:
-    Private( MediaDirectory *q, const boost::filesystem::path &path );
+    Private( MediaDirectory *q, const boost::filesystem::path &path, const std::shared_ptr<MediaDirectory> &parent );
     boost::filesystem::path path;
     std::vector<Media> medias;
     std::map<boost::filesystem::path, std::shared_ptr<MediaDirectory>> subdirectories;
     void addTree(const Media &media, const boost::filesystem::path &directories);
-    bool valid = true;
+    std::string label;
+    std::shared_ptr<MediaDirectory> parent;
   private:
     MediaDirectory *const q;
 };
