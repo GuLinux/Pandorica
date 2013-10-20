@@ -349,4 +349,5 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
 <message id="mediacollectionbrowser_ascending">Ascendente</message>
 <message id="mediacollectionbrowser_descending">Discendente</message>
 <message id="mediacollectionbrowser_sort_by">Ordina...</message>
+<message id="mediacollectionbrowser_rating">Votazioni</message>
 </messages>

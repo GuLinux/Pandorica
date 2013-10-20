@@ -297,4 +297,5 @@ For other webservers (Apache, Lighttpd, Ngnix) read the proper documentation.
 <message id="mediacollectionbrowser_ascending">Ascending</message>
 <message id="mediacollectionbrowser_descending">Descending</message>
 <message id="mediacollectionbrowser_sort_by">Sort By...</message>
+<message id="mediacollectionbrowser_rating">Rating</message>
 </messages>

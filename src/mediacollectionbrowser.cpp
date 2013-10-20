@@ -125,6 +125,7 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
   };
   addSortMenuItem(wtr("mediacollectionbrowser_file_name"), [=]{d->sortBy = Private::Alpha; }, sortMenuGroup)->setChecked(d->sortBy == Private::Alpha);
   addSortMenuItem(wtr("mediacollectionbrowser_date_added"), [=]{d->sortBy = Private::Date; }, sortMenuGroup)->setChecked(d->sortBy == Private::Date);
+  addSortMenuItem(wtr("mediacollectionbrowser_rating"), [=]{d->sortBy = Private::Rating; }, sortMenuGroup)->setChecked(d->sortBy == Private::Rating);
   sortByMenu->addSeparator();
   addSortMenuItem(wtr("mediacollectionbrowser_ascending"), [=]{d->sortDirection = Private::Asc; }, sortOrderMenuGroup)->setChecked(d->sortDirection == Private::Asc);
   addSortMenuItem(wtr("mediacollectionbrowser_descending"), [=]{d->sortDirection = Private::Desc; }, sortOrderMenuGroup)->setChecked(d->sortDirection == Private::Desc);
@@ -201,6 +202,7 @@ void MediaCollectionBrowser::Private::browse( const shared_ptr< MediaDirectory >
       auto _2props = _2.properties(t);
       return (_1props && _2props) ? _1props->creationTime() < _2props->creationTime() : false;
     }},
+    {Sort::Rating, [&t](const Media &_1, const Media &_2) { return MediaRating::ratingFor(_1, t).ratingAverage < MediaRating::ratingFor(_2, t).ratingAverage;}},
   };
   vector<Media> medias = currentPath->medias();
   if(sortDirection == Asc)
