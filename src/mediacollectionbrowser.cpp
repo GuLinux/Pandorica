@@ -99,12 +99,11 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
 
   d->browser->setList( true );
   WContainerWidget *breadcrumb = WW<WContainerWidget>().css("breadcrumb visible-desktop");
-  WPushButton *reloadButton = WW<WPushButton>( wtr( "mediacollection.reload" ) ).css( "btn btn-small" )
-                         .onClick( [ = ]( WMouseEvent )
+  WPushButton *reloadButton = WW<WPushButton>( wtr( "mediacollection.reload" ) ).css( "btn btn-small" ).onClick([=](WMouseEvent)
   {
     Dbo::Transaction t( *session );
     collection->rescan( t );
-    d->browse( d->rootPath );
+    d->browse( d->currentPath == d->flatPath ? d->flatPath : d->rootPath );
   } );
   WPushButton *sortByButton = WW<WPushButton>(wtr("mediacollectionbrowser_sort_by")).css("btn btn-small");
   WPopupMenu *sortByMenu = new WPopupMenu(); 
