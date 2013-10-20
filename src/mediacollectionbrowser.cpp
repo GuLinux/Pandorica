@@ -198,7 +198,7 @@ void MediaCollectionBrowser::Private::browse( const shared_ptr< MediaDirectory >
     {Sort::Alpha, [](Media _1, Media _2) { return _1.filename() < _2.filename();}},
     {Sort::Date, [&t](Media _1, Media _2) { auto _1props = _1.properties(t); auto _2props = _2.properties(t); return (_1props && _2props) ? _1props->creationTime() < _2props->creationTime() : false; }},
   };
-  auto sorter = [=,&sorters](Media &_1, Media &_2) {
+  auto sorter = [=,&sorters](Media _1, Media _2) {
     bool sorted = sorters[sortBy](_1, _2);
     return sortDirection == Asc ? sorted : !sorted;
   };
