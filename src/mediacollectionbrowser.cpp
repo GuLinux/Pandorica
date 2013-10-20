@@ -255,14 +255,12 @@ void MediaCollectionBrowser::Private::clearAttachmentsFor( Media media )
 
 void MediaCollectionBrowser::Private::setPosterFor( Media media )
 {
-  // TODO: very messy... FFMPEGMedia is of course deleted, need to create a copy...
-  FFMPEGMedia *ffmpegMedia = new FFMPEGMedia {media, [=](const string &level) { return wApp->log(level); } };
+  shared_ptr<FFMPEGMedia> ffmpegMedia (new FFMPEGMedia {media, [=](const string &level) { return wApp->log(level); } });
   WDialog *dialog = new WDialog( wtr( "mediabrowser.admin.setposter" ) );
   auto createThumbs = new CreateThumbnails {wApp, settings, dialog};
   dialog->footer()->addWidget( WW<WPushButton>( wtr( "button.cancel" ) ).css( "btn btn-danger" ).onClick( [ = ]( WMouseEvent )
   {
     dialog->reject();
-    delete ffmpegMedia;
   } ) );
   dialog->footer()->addWidget( WW<WPushButton>( wtr( "button.ok" ) ).css( "btn btn-success" ).onClick( [ = ]( WMouseEvent )
   {
@@ -271,14 +269,13 @@ void MediaCollectionBrowser::Private::setPosterFor( Media media )
     t.commit();
     dialog->accept();
     q->reload();
-    delete ffmpegMedia;
   } ) );
   dialog->show();
   dialog->resize( 500, 500 );
   auto runStep = [ = ]
   {
     Dbo::Transaction t( *session );
-    createThumbs->run( ffmpegMedia, media, dialog->contents(), &t, MediaScannerStep::OverwriteIfExisting );
+    createThumbs->run( ffmpegMedia.get(), media, dialog->contents(), &t, MediaScannerStep::OverwriteIfExisting );
   };
   createThumbs->redo().connect( [ = ]( _n6 )
   {
