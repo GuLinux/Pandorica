@@ -27,6 +27,7 @@ class MediaDirectory
 {
   public:
     MediaDirectory( const boost::filesystem::path &path );
+    MediaDirectory();
     ~MediaDirectory();
     std::vector<std::shared_ptr<MediaDirectory>> subDirectories() const;
     std::vector<Media> medias() const;
@@ -35,7 +36,7 @@ class MediaDirectory
     bool operator ==(const MediaDirectory &other) const;
     boost::filesystem::path path() const;
     friend std::ostream & operator<<( std::ostream &os, const MediaDirectory &md );
-
+    operator bool();
   private:
     D_PTR;
 };

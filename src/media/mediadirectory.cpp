@@ -31,6 +31,16 @@ MediaDirectory::MediaDirectory( const boost::filesystem::path &path ) : d( this,
 {
 }
 
+MediaDirectory::MediaDirectory() : d(this, "")
+{
+  d->valid = false;
+}
+
+MediaDirectory::operator bool()
+{
+  return d->valid;
+}
+
 bool MediaDirectory::operator==( const MediaDirectory &other ) const
 {
   return d->path == other.d->path;
