@@ -76,28 +76,6 @@ private:
   std::pair<Wt::WPanel*,Wt::WContainerWidget*> createPanel(std::string titleKey);
 };
 
-class InfoPanelMultiplex : public Wt::WObject {
-public:
-  InfoPanelMultiplex(Wt::WObject* parent = 0) : Wt::WObject(parent) {}
-  void info(Media media);
-  void reset();
-  inline Wt::Signal<Media> &play() { return _play; }
-  inline Wt::Signal<Media> &queue() { return _queue; }
-  inline Wt::Signal<Media> &setTitle() { return _setTitle; }
-  inline Wt::Signal<Media> &setPoster() { return _setPoster; }
-  inline Wt::Signal<Media> &deletePoster() { return _deletePoster; }
-  inline Wt::Signal<Media> &deleteAttachments() { return _deleteAttachments; }
-  InfoPanel *add(InfoPanel *panel);
-  void setup();
-private:
-  Wt::Signal<Media> _play;
-  Wt::Signal<Media> _queue;
-  Wt::Signal<Media> _setTitle;
-  Wt::Signal<Media> _setPoster;
-  Wt::Signal<Media> _deletePoster;
-  Wt::Signal<Media> _deleteAttachments;
-  std::vector<InfoPanel*> panels;
-};
 
 class CollectionPath;
 typedef std::function<void(std::string key, CollectionPath *collectionPath)> OnDirectoryAdded;
@@ -148,7 +126,7 @@ public:
         : collection(collection) , settings(settings), session(session), q(q) {}
     void rebuildBreadcrumb();
     void browse(CollectionPath *currentPath);
-public:
+    void setup(InfoPanel *infoPanel);
     MediaCollection *const collection;
     Settings *settings;
     Session *session;
@@ -157,7 +135,8 @@ public:
     Wt::WContainerWidget* browser;
     Wt::Signal<Media> playSignal;
     Wt::Signal<Media> queueSignal;
-    InfoPanelMultiplex* infoPanel;
+    Wt::Signal<Media> infoRequested;
+    Wt::Signal<> resetPanel;
     static std::string formatFileSize(long size);
     std::map<std::string,CollectionPath*> collectionPaths;
     Wt::WPushButton* goToParent;

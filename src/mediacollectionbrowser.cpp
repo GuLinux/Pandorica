@@ -67,12 +67,11 @@ using namespace WtCommons;
 MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Settings *settings, Session *session, WContainerWidget *parent )
   : WContainerWidget( parent ), d(collection, settings, session, this )
 {
-  d->infoPanel = new InfoPanelMultiplex( this );
   d->breadcrumb = WW<WContainerWidget>().css( "breadcrumb visible-desktop" );
   d->breadcrumb->setList( true );
   d->browser = WW<WContainerWidget>().css( "thumbnails" ).setMargin( WLength::Auto, Left ).setMargin( WLength::Auto, Right );
   WContainerWidget *mainContainer = new WContainerWidget;
-  InfoPanel *mobileInfoPanelWidget = d->infoPanel->add( WW<InfoPanel>( session, settings ) );
+  InfoPanel *mobileInfoPanelWidget = WW<InfoPanel>( session, settings ) ;
   mobileInfoPanelWidget->setHidden( true );
   mobileInfoPanelWidget->gotInfo().connect( [ = ]( _n6 )
   {
@@ -88,11 +87,10 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
 
   WContainerWidget *row = WW<WContainerWidget>( container ).css( "row-fluid" );
   InfoPanel *desktopInfoPanel = WW<InfoPanel>( session, settings ).addCss( "visible-desktop span4" );
-  row->addWidget( d->infoPanel->add( desktopInfoPanel ) );
+  row->addWidget( desktopInfoPanel );
   row->addWidget( WW<WContainerWidget>().css( "mediabrowser span8" ).add( d->browser ) );
 
 
-  d->infoPanel->setup();
   d->browser->setList( true );
   addWidget( d->breadcrumb );
   addWidget( d->goToParent = WW<WPushButton>( wtr( "button.parent.directory" ) ).css( "btn btn-block hidden-desktop" ).onClick( [ = ]( WMouseEvent )
@@ -104,34 +102,8 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
   d->currentPath = new RootCollectionPath {settings, session, collection};
   d->collectionPaths[ROOT_PATH_ID] = d->currentPath;
   collection->scanned().connect( this, &MediaCollectionBrowser::reload );
-  d->infoPanel->play().connect( [ = ]( Media media, _n5 )
-  {
-    d->playSignal.emit( media );
-  } );
-  d->infoPanel->queue().connect( [ = ]( Media media, _n5 )
-  {
-    d->queueSignal.emit( media );
-  } );
-  d->infoPanel->setTitle().connect( d.get(), &MediaCollectionBrowser::Private::setTitleFor );
-  d->infoPanel->setPoster().connect( d.get(), &MediaCollectionBrowser::Private::setPosterFor );
-  d->infoPanel->deletePoster().connect( d.get(), &MediaCollectionBrowser::Private::clearThumbnailsFor );
-  d->infoPanel->deleteAttachments().connect( d.get(), &MediaCollectionBrowser::Private::clearAttachmentsFor);
-  desktopInfoPanel->playFolder().connect( [ = ]( _n6 )
-  {
-    for( Media media : collection->sortedMediasList() )
-    {
-      if( d->currentPath->hasMedia( media ) )
-        d->queueSignal.emit( media );
-    }
-  } );
-  desktopInfoPanel->playFolderRecursive().connect( [ = ]( _n6 )
-  {
-    for( Media media : collection->sortedMediasList() )
-    {
-      if( d->currentPath->hasMediaInSubPath( media ) )
-        d->queueSignal.emit( media );
-    }
-  } );
+  d->setup(desktopInfoPanel);
+  d->setup(mobileInfoPanelWidget);
 }
 
 void MediaCollectionBrowser::reload()
@@ -139,6 +111,39 @@ void MediaCollectionBrowser::reload()
   d->browse( d->currentPath );
 }
 
+void MediaCollectionBrowser::Private::setup(InfoPanel *infoPanel)
+{
+  infoPanel->play().connect( [ = ]( Media media, _n5 )
+  {
+    playSignal.emit( media );
+  } );
+  infoPanel->queue().connect( [ = ]( Media media, _n5 )
+  {
+    queueSignal.emit( media );
+  } );
+  infoPanel->setTitle().connect( this, &MediaCollectionBrowser::Private::setTitleFor );
+  infoPanel->setPoster().connect( this, &MediaCollectionBrowser::Private::setPosterFor );
+  infoPanel->deletePoster().connect( this, &MediaCollectionBrowser::Private::clearThumbnailsFor );
+  infoPanel->deleteAttachments().connect( this, &MediaCollectionBrowser::Private::clearAttachmentsFor);
+  infoPanel->playFolder().connect( [ = ]( _n6 )
+  {
+    for( Media media : collection->sortedMediasList() )
+    {
+      if( currentPath->hasMedia( media ) )
+        queueSignal.emit( media );
+    }
+  } );
+  infoPanel->playFolderRecursive().connect( [ = ]( _n6 )
+  {
+    for( Media media : collection->sortedMediasList() )
+    {
+      if( currentPath->hasMediaInSubPath( media ) )
+        queueSignal.emit( media );
+    }
+  } );
+  infoRequested.connect([=](Media &media, _n5) { infoPanel->info(media);});
+  resetPanel.connect([=](_n6) { infoPanel->reset(); });
+}
 
 
 InfoPanel::InfoPanel( Session *session, Settings *settings, Wt::WContainerWidget *parent ): WContainerWidget( parent ), session( session ), settings( settings )
@@ -150,55 +155,6 @@ InfoPanel::InfoPanel( Session *session, Settings *settings, Wt::WContainerWidget
 }
 
 
-
-
-InfoPanel *InfoPanelMultiplex::add( InfoPanel *panel )
-{
-  panels.push_back( panel );
-  return panel;
-}
-void InfoPanelMultiplex::setup()
-{
-  for( InfoPanel * panel : panels )
-  {
-    panel->play().connect( [ = ]( Media & media, _n5 )
-    {
-      play().emit( media );
-    } );
-    panel->queue().connect( [ = ]( Media & media, _n5 )
-    {
-      queue().emit( media );
-    } );
-    panel->setTitle().connect( [ = ]( Media & media, _n5 )
-    {
-      setTitle().emit( media );
-    } );
-    panel->setPoster().connect( [ = ]( Media & media, _n5 )
-    {
-      setPoster().emit( media );
-    } );
-    panel->deletePoster().connect( [ = ]( Media & media, _n5 )
-    {
-      deletePoster().emit( media );
-    } );
-    panel->deleteAttachments().connect( [ = ]( Media & media, _n5 )
-    {
-      deleteAttachments().emit( media );
-    } );
-  }
-}
-
-
-void InfoPanelMultiplex::info( Media media )
-{
-  for( InfoPanel * panel : panels )
-    panel->info( media );
-}
-void InfoPanelMultiplex::reset()
-{
-  for( InfoPanel * panel : panels )
-    panel->reset();
-}
 
 void InfoPanel::reset()
 {
@@ -370,7 +326,7 @@ void InfoPanel::labelValueBox( string label, WWidget *widget, WTable *container 
 void MediaCollectionBrowser::Private::browse( CollectionPath *currentPath )
 {
   this->currentPath = currentPath;
-  infoPanel->reset();
+  resetPanel.emit();
   browser->clear();
   rebuildBreadcrumb();
   currentPath->render( [ = ]( string key, CollectionPath * collectionPath )
@@ -471,7 +427,7 @@ void MediaCollectionBrowser::Private::addMedia( Media &media )
 
   auto onClick = [ = ]( WMouseEvent e )
   {
-    infoPanel->info( media );
+    infoRequested.emit(media);
   };
 
   GetIconF icon = []( WObject * )
