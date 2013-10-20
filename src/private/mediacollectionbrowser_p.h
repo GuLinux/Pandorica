@@ -28,7 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include "Wt-Commons/wt_helpers.h"
 #include "mediacollectionbrowser.h"
-
+#include <functional>
 class MediaInfoPanel;
 
 namespace Wt {
@@ -57,11 +57,7 @@ private:
 
 class MediaCollectionBrowser::Private {
 public:
-    Private(MediaCollection *collection, Settings *settings, Session *session, MediaCollectionBrowser *q)
-        : collection(collection) , settings(settings), session(session), q(q), rootPath(new RootMediaDirectory(collection)), currentPath(rootPath)
-        {
-          rootPath->setLabel(wtr( "mediacollection.root" ).toUTF8());
-        }
+    Private(MediaCollection *collection, Settings *settings, Session *session, MediaCollectionBrowser *q);
     void rebuildBreadcrumb();
     void browse(const std::shared_ptr<MediaDirectory> &mediaDirectory);
     void setup(MediaInfoPanel *infoPanel);
@@ -78,8 +74,9 @@ public:
     Wt::Signal<> resetPanel;
     static std::string formatFileSize(long size);
     Wt::WPushButton* goToParent;
-    
-    
+    typedef std::function<bool(const Media&, const Media&)> MediaSorter;
+    enum Sort { AlphaAsc, AlphaDesc, DateAsc, DateDesc};
+    Sort sortBy = AlphaAsc;
     void setTitleFor(Media media);
     void clearThumbnailsFor(Media media);
     void clearAttachmentsFor(Media media);

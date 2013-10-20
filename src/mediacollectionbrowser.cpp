@@ -64,6 +64,11 @@ using namespace std;
 namespace fs = boost::filesystem;
 using namespace WtCommons;
 
+MediaCollectionBrowser::Private::Private(MediaCollection *collection, Settings *settings, Session *session, MediaCollectionBrowser *q)
+  : collection(collection) , settings(settings), session(session), q(q), rootPath(new RootMediaDirectory(collection)), currentPath(rootPath)
+{
+  rootPath->setLabel(wtr( "mediacollection.root" ).toUTF8());
+}
 
 MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Settings *settings, Session *session, WContainerWidget *parent )
   : WContainerWidget( parent ), d(collection, settings, session, this )
@@ -94,13 +99,35 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
 
   d->browser->setList( true );
   WContainerWidget *breadcrumb = WW<WContainerWidget>().css("breadcrumb visible-desktop");
-  breadcrumb->addWidget( WW<WPushButton>( wtr( "mediacollection.reload" ) ).css( "btn btn-small" )
+  WPushButton *reloadButton = WW<WPushButton>( wtr( "mediacollection.reload" ) ).css( "btn btn-small" )
                          .onClick( [ = ]( WMouseEvent )
   {
     Dbo::Transaction t( *session );
     collection->rescan( t );
     d->browse( d->rootPath );
-  } ) );
+  } );
+  WPushButton *sortByButton = WW<WPushButton>(wtr("mediacollectionbrowser_sort_by")).css("btn btn-small");
+  WPopupMenu *sortByMenu = new WPopupMenu();
+  auto addSortMenuItem = [=](const WString &label, Private::Sort sortType) {
+    WMenuItem *item = sortByMenu->addItem(label);
+    item->setCheckable(true);
+    item->triggered().connect([=](WMenuItem*,_n5){
+      for(auto otherItem : sortByMenu->items())
+        otherItem->setChecked(false);
+      item->setChecked(true);
+      d->sortBy = sortType;
+      reload(); 
+    });
+    item->setChecked(d->sortBy == sortType);
+    return item;
+  };
+  addSortMenuItem(wtr("mediacollectionbrowser_file_name_ascending"), Private::AlphaAsc);
+  addSortMenuItem(wtr("mediacollectionbrowser_file_name_descending"), Private::AlphaDesc);
+  addSortMenuItem(wtr("mediacollectionbrowser_date_added_ascending"), Private::DateAsc);
+  addSortMenuItem(wtr("mediacollectionbrowser_date_added_descending"), Private::DateDesc);
+  sortByButton->setMenu(sortByMenu);
+  
+  breadcrumb->addWidget(WW<WContainerWidget>().css("btn-group").add(reloadButton).add(sortByButton));
   breadcrumb->addWidget(d->breadcrumb);
   addWidget( breadcrumb );
   addWidget( d->goToParent = WW<WPushButton>( wtr( "button.parent.directory" ) ).css( "btn btn-block hidden-desktop" ).onClick( [ = ]( WMouseEvent )
@@ -163,22 +190,17 @@ void MediaCollectionBrowser::Private::browse( const shared_ptr< MediaDirectory >
   rebuildBreadcrumb();
   for(auto dir: currentPath->subDirectories())
     addDirectory(dir);
-  for(auto media: currentPath->medias())
+  Dbo::Transaction t(*session);
+  map<Sort, MediaSorter> sorters {
+    {Sort::AlphaAsc, [](const Media &_1, const Media &_2) { return _1.filename() < _2.filename(); }},
+    {Sort::AlphaDesc, [](const Media &_1, const Media &_2) { return _1.filename() >= _2.filename(); }},
+    {Sort::DateAsc, [&t](const Media &_1, const Media &_2) { return _1.properties(t)->creationTime() < _2.properties(t)->creationTime(); }},
+    {Sort::DateDesc, [&t](const Media &_1, const Media &_2) { return _1.properties(t)->creationTime() >= _2.properties(t)->creationTime(); }},
+  };
+  vector<Media> medias = currentPath->medias();
+  sort(medias.begin(), medias.end(), sorters[sortBy]);
+  for(auto media: medias)
     addMedia(media);
-//   currentPath->render( [ = ]( string key, CollectionPath * collectionPath )
-//   {
-//     if( collectionPaths[key] )
-//     {
-//       delete collectionPaths[key];
-//       collectionPaths.erase( key );
-//     }
-// 
-//     collectionPaths[key] = collectionPath;
-//     addDirectory( collectionPath );
-//   }, [ = ]( Media media )
-//   {
-//     addMedia( media );
-//   } );
 }
 
 
