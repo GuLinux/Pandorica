@@ -65,7 +65,7 @@ namespace fs = boost::filesystem;
 using namespace WtCommons;
 
 MediaCollectionBrowser::Private::Private(MediaCollection *collection, Settings *settings, Session *session, MediaCollectionBrowser *q)
-  : collection(collection) , settings(settings), session(session), q(q), rootPath(new RootMediaDirectory(collection)), currentPath(rootPath)
+  : collection(collection) , settings(settings), session(session), q(q), rootPath(new RootMediaDirectory(collection)), flatPath(new FlatMediaDirectory(collection)), currentPath(rootPath)
 {
   rootPath->setLabel(wtr( "mediacollection.root" ).toUTF8());
 }
@@ -110,28 +110,34 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
   WPopupMenu *sortByMenu = new WPopupMenu(); 
   shared_ptr<vector<WMenuItem*>> sortMenuGroup(new vector<WMenuItem*>);
   shared_ptr<vector<WMenuItem*>> sortOrderMenuGroup(new vector<WMenuItem*>);
-  auto addSortMenuItem = [=](const WString &label, function<void()> onClick, const shared_ptr<vector<WMenuItem*>> &group) {
-    WMenuItem *item = sortByMenu->addItem(label);
+  auto addCheckableItem = [=](WMenu *menu, const WString &label, function<void()> onClick, const shared_ptr<vector<WMenuItem*>> &group) {
+    WMenuItem *item = menu->addItem(label);
     item->setCheckable(true);
     item->triggered().connect([=](WMenuItem*,_n5){
       for(auto otherItem : *group)
         otherItem->setChecked(false);
       item->setChecked(true);
       onClick();
-      reload(); 
     });
     group->push_back(item);
     return item;
   };
-  addSortMenuItem(wtr("mediacollectionbrowser_file_name"), [=]{d->sortBy = Private::Alpha; }, sortMenuGroup)->setChecked(d->sortBy == Private::Alpha);
-  addSortMenuItem(wtr("mediacollectionbrowser_date_added"), [=]{d->sortBy = Private::Date; }, sortMenuGroup)->setChecked(d->sortBy == Private::Date);
-  addSortMenuItem(wtr("mediacollectionbrowser_rating"), [=]{d->sortBy = Private::Rating; }, sortMenuGroup)->setChecked(d->sortBy == Private::Rating);
+  addCheckableItem(sortByMenu, wtr("mediacollectionbrowser_file_name"), [=]{d->sortBy = Private::Alpha; reload(); }, sortMenuGroup)->setChecked(d->sortBy == Private::Alpha);
+  addCheckableItem(sortByMenu, wtr("mediacollectionbrowser_date_added"), [=]{d->sortBy = Private::Date; reload(); }, sortMenuGroup)->setChecked(d->sortBy == Private::Date);
+  addCheckableItem(sortByMenu, wtr("mediacollectionbrowser_rating"), [=]{d->sortBy = Private::Rating; reload(); }, sortMenuGroup)->setChecked(d->sortBy == Private::Rating);
   sortByMenu->addSeparator();
-  addSortMenuItem(wtr("mediacollectionbrowser_ascending"), [=]{d->sortDirection = Private::Asc; }, sortOrderMenuGroup)->setChecked(d->sortDirection == Private::Asc);
-  addSortMenuItem(wtr("mediacollectionbrowser_descending"), [=]{d->sortDirection = Private::Desc; }, sortOrderMenuGroup)->setChecked(d->sortDirection == Private::Desc);
+  addCheckableItem(sortByMenu, wtr("mediacollectionbrowser_ascending"), [=]{d->sortDirection = Private::Asc; reload(); }, sortOrderMenuGroup)->setChecked(d->sortDirection == Private::Asc);
+  addCheckableItem(sortByMenu, wtr("mediacollectionbrowser_descending"), [=]{d->sortDirection = Private::Desc; reload(); }, sortOrderMenuGroup)->setChecked(d->sortDirection == Private::Desc);
   sortByButton->setMenu(sortByMenu);
+
+  shared_ptr<vector<WMenuItem*>> viewModeItems(new vector<WMenuItem*>);
+  WPushButton *viewModeButton = WW<WPushButton>(wtr("mediacollectionbrowser_view_mode")).css("btn btn-small");
+  WPopupMenu *viewModeMenu = new WPopupMenu();
+  viewModeButton->setMenu(viewModeMenu);
   
-  breadcrumb->addWidget(WW<WContainerWidget>().css("btn-group").add(reloadButton).add(sortByButton));
+  addCheckableItem(viewModeMenu, wtr("mediacollectionbrowser_filesystem_view"), [=]{ d->browse(d->rootPath); }, viewModeItems)->setChecked(true);
+  addCheckableItem(viewModeMenu, wtr("mediacollectionbrowser_all_medias"), [=]{ d->browse(d->flatPath);  d->breadcrumb->clear(); }, viewModeItems);
+  breadcrumb->addWidget(WW<WContainerWidget>().css("btn-group").add(reloadButton).add(viewModeButton).add(sortByButton));
   breadcrumb->addWidget(d->breadcrumb);
   addWidget( breadcrumb );
   addWidget( d->goToParent = WW<WPushButton>( wtr( "button.parent.directory" ) ).css( "btn btn-block hidden-desktop" ).onClick( [ = ]( WMouseEvent )
@@ -222,6 +228,28 @@ vector< shared_ptr< MediaDirectory > > RootMediaDirectory::subDirectories() cons
 {
   return mediaCollection->rootDirectories();
 }
+
+
+FlatMediaDirectory::FlatMediaDirectory( MediaCollection *mediaCollection ): MediaDirectory( fs::path() ), mediaCollection(mediaCollection)
+{
+}
+std::vector< Media > FlatMediaDirectory::allMedias() const
+{
+  auto collection = mediaCollection->collection();
+  vector<Media> all;
+  transform(collection.begin(), collection.end(), back_insert_iterator<vector<Media>>(all), [](const pair<string,Media> &p){ return p.second; });
+  return all;
+}
+
+std::vector< Media > FlatMediaDirectory::medias() const
+{
+  return allMedias();
+}
+std::vector< std::shared_ptr< MediaDirectory > > FlatMediaDirectory::subDirectories() const
+{
+  return {};
+}
+
 
 
 bool MediaCollectionBrowser::currentDirectoryHas( Media &media ) const

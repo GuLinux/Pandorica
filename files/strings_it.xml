@@ -350,4 +350,7 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
 <message id="mediacollectionbrowser_descending">Discendente</message>
 <message id="mediacollectionbrowser_sort_by">Ordina...</message>
 <message id="mediacollectionbrowser_rating">Votazioni</message>
+<message id="mediacollectionbrowser_view_mode">Tipo Visualizzazione</message>
+<message id="mediacollectionbrowser_filesystem_view">Visualizzazione Filesystem</message>
+<message id="mediacollectionbrowser_all_medias">Tutti i Media</message>
 </messages>

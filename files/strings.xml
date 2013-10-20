@@ -298,4 +298,7 @@ For other webservers (Apache, Lighttpd, Ngnix) read the proper documentation.
 <message id="mediacollectionbrowser_descending">Descending</message>
 <message id="mediacollectionbrowser_sort_by">Sort By...</message>
 <message id="mediacollectionbrowser_rating">Rating</message>
+<message id="mediacollectionbrowser_view_mode">View Mode</message>
+<message id="mediacollectionbrowser_filesystem_view">Filesystem View</message>
+<message id="mediacollectionbrowser_all_medias">All Medias</message>
 </messages>

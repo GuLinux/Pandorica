@@ -54,6 +54,16 @@ public:
 private:
   MediaCollection *mediaCollection;
 };
+class FlatMediaDirectory : public MediaDirectory
+{
+public:
+    FlatMediaDirectory(MediaCollection *mediaCollection);
+    virtual std::vector< std::shared_ptr< MediaDirectory > > subDirectories() const;
+    virtual std::vector< Media > medias() const;
+    virtual std::vector< Media > allMedias() const;
+private:
+  MediaCollection *mediaCollection;
+};
 
 class MediaCollectionBrowser::Private {
 public:
@@ -65,6 +75,7 @@ public:
     Settings *settings;
     Session *session;
     std::shared_ptr<MediaDirectory> rootPath;
+    std::shared_ptr<MediaDirectory> flatPath;
     std::shared_ptr<MediaDirectory> currentPath;
     Wt::WContainerWidget* breadcrumb;
     Wt::WContainerWidget* browser;
