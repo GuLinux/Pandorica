@@ -32,7 +32,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace Wt;
 using namespace std;
-using namespace boost;
 namespace fs = boost::filesystem;
 using namespace WtCommons;
 
@@ -205,7 +204,7 @@ void Playlist::Private::playlistIncrement(Playlist::Private::Direction direction
 
 void Playlist::play(PlaylistItem* itemToPlay)
 {
-  if(itemToPlay && std::find(begin(d->internalQueue), end(-DinternalQueue), itemToPlay) != d->internalQueue.end()) {
+  if(itemToPlay && std::find(begin(d->internalQueue), end(d->internalQueue), itemToPlay) != d->internalQueue.end()) {
     d->playSignal.emit(itemToPlay);
   }
 }

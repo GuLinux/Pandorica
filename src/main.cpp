@@ -50,10 +50,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace Wt;
 using namespace std;
-using namespace boost;
-namespace fs = filesystem;
+namespace fs = boost::filesystem;
 using namespace WtCommons;
-namespace po = program_options;
+namespace po = boost::program_options;
 
 list<WApplication *> instances;
 
@@ -123,13 +122,13 @@ struct CmdOptions
       argv_temp[current++] = pc;
     }
 
-    return { lexical_cast<int>( strings.size() ), argv_temp };
+    return { boost::lexical_cast<int>( strings.size() ), argv_temp };
   }
 };
 
 template<class T> T optionValue( po::variables_map &options, string optionName )
 {
-  return any_cast<T>( options[optionName].value() );
+  return boost::any_cast<T>( options[optionName].value() );
 }
 
 bool checkForWrongOptions( bool errorCondition, string errorMessage )
@@ -158,7 +157,7 @@ bool initServer( int argc, char **argv, WServer &server, po::variables_map &vm )
 
   try
   {
-    filesystem::create_directories( configDirectory );
+    fs::create_directories( configDirectory );
   }
   catch
     ( std::exception &e )
@@ -203,8 +202,8 @@ bool initServer( int argc, char **argv, WServer &server, po::variables_map &vm )
 
   auto po_parsed = po::command_line_parser( argc, argv ).options( pandorica_all_options ).allow_unregistered().run();
   po::store( po_parsed, vm );
-  vector<string> wt_options = po::collect_unrecognized( po_parsed.options, program_options::include_positional );
-  wt_options.insert( wt_options.begin(), argv[0] );
+  vector<string> wt_options = po::collect_unrecognized( po_parsed.options, boost::program_options::include_positional );
+  wt_options.insert( begin(wt_options), argv[0] );
   bool optionsAreWrong = false;
 
   optionsAreWrong |= checkForWrongOptions( optionValue<string>( vm, "server-mode" ) != "managed" && optionValue<string>( vm, "server-mode" ) != "standalone", "server-mode must be one of 'managed' or 'standalone'" );
@@ -233,7 +232,7 @@ bool initServer( int argc, char **argv, WServer &server, po::variables_map &vm )
   wt_options.push_back( optionValue<string>( vm, "docroot" ) );
 
   wt_options.push_back( "--http-port" );
-  wt_options.push_back( lexical_cast<string>( optionValue<int>( vm, "http-port" ) ) );
+  wt_options.push_back( boost::lexical_cast<string>( optionValue<int>( vm, "http-port" ) ) );
   std::cerr << "wt options: ";
 
   for( string option : wt_options )
@@ -251,7 +250,7 @@ bool addStaticResources( WServer &server )
 {
   CompositeResource *staticResources = new CompositeResource();
   string staticDirectory = Settings::sharedFilesDir("/static");
-  if( !filesystem::is_directory( staticDirectory ) )
+  if( !fs::is_directory( staticDirectory ) )
   {
     std::cerr << "Error! Shared files directory " << staticDirectory << " doesn't exist. Perhaps you didn't install Pandorica correctly?\n";
     return false;
@@ -265,8 +264,8 @@ bool addStaticResources( WServer &server )
     {
       string filePath {it->path().string()};
       string fileUrl {filePath};
-      replace_first( fileUrl, staticDirectory, "" );
-      replace_all(fileUrl, "\\", "/");
+      boost::replace_first( fileUrl, staticDirectory, "" );
+      boost::replace_all(fileUrl, "\\", "/");
       auto resource = new WFileResource {filePath, staticResources};
 
       if( !extensionsMimetypes[it->path().extension().string()].empty() )
@@ -336,7 +335,7 @@ int main( int argc, char **argv, char **envp )
       if( vm.count( "dump-schema" ) )
       {
         ofstream schema;
-        string schemaPath {any_cast<string>( vm["dump-schema"].value() )};
+        string schemaPath {boost::any_cast<string>( vm["dump-schema"].value() )};
         schema.open( schemaPath );
         schema << session.tableCreationSql();
         schema.close();

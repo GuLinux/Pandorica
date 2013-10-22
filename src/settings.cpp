@@ -38,7 +38,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace std;
 using namespace Wt;
-using namespace boost;
 
 namespace fs=boost::filesystem;
 
@@ -174,7 +173,7 @@ bool Settings::autoplay(const Media& media)
 
 
 
-WLink Settings::linkFor(filesystem::path p, Dbo::Session* session)
+WLink Settings::linkFor(fs::path p, Dbo::Session* session)
 {
   Dbo::Transaction t(*session);
   map<string,string> mediaDirectoriesDeployPaths;
@@ -217,7 +216,7 @@ WLink Settings::shareLink(string mediaId)
 }
 
 
-Wt::WLink Settings::Private::lightySecDownloadLinkFor(string secDownloadPrefix, string secDownloadRoot, string secureDownloadPassword, filesystem::path p)
+Wt::WLink Settings::Private::lightySecDownloadLinkFor(string secDownloadPrefix, string secDownloadRoot, string secureDownloadPassword, fs::path p)
 {
     string filePath = p.string();
     boost::replace_all(filePath, secDownloadRoot, "");
@@ -229,7 +228,7 @@ Wt::WLink Settings::Private::lightySecDownloadLinkFor(string secDownloadPrefix, 
     return secDownloadUrl;
 }
 
-Wt::WLink Settings::Private::nginxSecLinkFor(string secDownloadPrefix, string secLinkRoot, string secureDownloadPassword, filesystem::path p)
+Wt::WLink Settings::Private::nginxSecLinkFor(string secDownloadPrefix, string secLinkRoot, string secureDownloadPassword, fs::path p)
 {
     string filePath = p.string();
     boost::replace_all(filePath, secLinkRoot + '/', ""); // TODO: consistency check
@@ -269,7 +268,7 @@ string Settings::staticPath(const string& relativeUrl)
 }
 
 string sqlite3DatabasePath_;
-void Settings::init(program_options::variables_map commandLineOptions)
+void Settings::init(boost::program_options::variables_map commandLineOptions)
 {
   if( boost::any_cast<string>(commandLineOptions["server-mode"].value()) == "managed")
     staticFilesDeployPath = boost::any_cast<string>(commandLineOptions["static-deploy-path"].value()) ;

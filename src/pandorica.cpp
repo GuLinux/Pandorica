@@ -74,12 +74,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace Wt;
 using namespace std;
-using namespace boost;
 namespace fs = boost::filesystem;
 namespace P=PandoricaPrivate;
 using namespace WtCommons;
 
-typedef std::function<void(filesystem::path)> RunOnPath;
+typedef std::function<void(fs::path)> RunOnPath;
 
 
 P::PandoricaPrivate::PandoricaPrivate(Pandorica *q)
@@ -371,7 +370,7 @@ void Pandorica::refresh() {
 }
 
 
-string P::PandoricaPrivate::extensionFor ( filesystem::path p ) {
+string P::PandoricaPrivate::extensionFor ( fs::path p ) {
   string extension = p.extension().string();
   boost::algorithm::to_lower(extension);
   return extension;
