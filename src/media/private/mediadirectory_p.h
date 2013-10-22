@@ -34,6 +34,7 @@ class MediaDirectory::Private
     void addTree(const Media &media, const boost::filesystem::path &directories);
     std::string label;
     std::shared_ptr<MediaDirectory> parent;
+    bool contains(const std::vector<Media> mediaList, const Media &media) const;
   private:
     MediaDirectory *const q;
 };

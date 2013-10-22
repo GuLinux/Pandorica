@@ -79,6 +79,7 @@ add_subdirectory(media)
 add_subdirectory(utils)
 
 if(WIN32)
+  set(DISABLE_WIN32 False CACHE bool "Disable win32 app mode (enabling console output)")
   if( (QT4_FOUND OR Qt5Widgets_FOUND) AND NOT DISABLE_WIN32)
     add_executable(${app_name} WIN32 ${pandorica_SOURCES}  pandorica.rc ${Pandorica_RCC_SRCS} )
   else((QT4_FOUND OR Qt5Widgets_FOUND) AND NOT DISABLE_WIN32)
@@ -117,8 +118,8 @@ if(WIN32)
 
 endif(WIN32)
 
-target_link_libraries(${app_name} ${Qt5Widgets_LIBRARIES} ${QT_QTCORE_LIBRARY} ${QT_QTNETWORK_LIBRARY} ${QT_QTGUI_LIBRARY} 
+target_link_libraries(${app_name} ${GRAPHICSMAGICK_LDFLAGS} ${Qt5Widgets_LIBRARIES} ${QT_QTCORE_LIBRARY} ${QT_QTNETWORK_LIBRARY} ${QT_QTGUI_LIBRARY} 
   ${AVFORMAT_LDFLAGS} ${AVCODEC_LDFLAGS} ${AVUTIL_LDFLAGS} ${SWSCALE_LDFLAGS} ${LIBPNG_LIBRARIES}
-  ${WT_LINK_LIBS} ${Boost_LIBRARIES} ${GRAPHICSMAGICK_LIBRARIES} ${WIN32_LIBS} )
+  ${WT_LINK_LIBS} ${Boost_LIBRARIES} ${WIN32_LIBS} )
 install(TARGETS ${app_name} RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 

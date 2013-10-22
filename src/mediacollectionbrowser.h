@@ -37,7 +37,7 @@ public:
   virtual ~MediaCollectionBrowser();
   Wt::Signal<Media> &queue();
   Wt::Signal<Media> &play();
-  bool currentDirectoryHas(Media &media) const;
+  bool currentDirectoryHas( const Media &media ) const;
   void reload();
 private:
   D_PTR;

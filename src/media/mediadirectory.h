@@ -39,6 +39,8 @@ class MediaDirectory : public std::enable_shared_from_this<MediaDirectory>
     void setLabel(const std::string &label);
     std::shared_ptr<MediaDirectory> parent();
     std::shared_ptr<MediaDirectory> ptr();
+    bool contains(const Media &media) const;
+    bool recursiveContains(const Media &media) const;
   private:
     D_PTR;
 };

@@ -49,6 +49,20 @@ bool MediaDirectory::operator==( const MediaDirectory &other ) const
   return d->path == other.d->path;
 }
 
+bool MediaDirectory::contains( const Media &media ) const
+{
+  return d->contains(medias(), media);
+}
+
+bool MediaDirectory::recursiveContains( const Media &media ) const
+{
+  return d->contains(allMedias(), media);
+}
+
+bool MediaDirectory::Private::contains( const std::vector< Media > mediaList, const Media &media ) const
+{
+  return count_if(mediaList.begin(), mediaList.end(), [&media](const Media &m) { return m.uid() == media.uid(); } );
+}
 
 
 MediaDirectory::~MediaDirectory()

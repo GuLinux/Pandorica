@@ -173,8 +173,7 @@ void MediaCollectionBrowser::Private::setup(MediaInfoPanel *infoPanel)
   {
     for( Media media : collection->sortedMediasList() )
     {
-      auto medias = currentPath->medias(); 
-      if( count_if(medias.begin(), medias.end(), [&media](Media &m) { return m.uid() == media.uid(); }) > 0 )
+      if( currentPath->contains(media) )
         queueSignal.emit( media );
     }
   } );
@@ -182,8 +181,7 @@ void MediaCollectionBrowser::Private::setup(MediaInfoPanel *infoPanel)
   {
     for( Media media : collection->sortedMediasList() )
     {
-      auto medias = currentPath->allMedias(); 
-      if( count_if(medias.begin(), medias.end(), [&media](Media &m) { return m.uid() == media.uid(); }) > 0 )
+      if( currentPath->recursiveContains(media) )
         queueSignal.emit( media );
     }
   } );
@@ -252,9 +250,9 @@ std::vector< std::shared_ptr< MediaDirectory > > FlatMediaDirectory::subDirector
 
 
 
-bool MediaCollectionBrowser::currentDirectoryHas( Media &media ) const
+bool MediaCollectionBrowser::currentDirectoryHas( const Media &media ) const
 {
-  return count_if(d->currentPath->medias().begin(), d->currentPath->medias().end(), [&media](Media &m) { return m.uid() == media.uid(); });
+  return d->currentPath->contains(media);
 }
 
 
