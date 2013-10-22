@@ -61,7 +61,7 @@ bool MediaDirectory::recursiveContains( const Media &media ) const
 
 bool MediaDirectory::Private::contains( const std::vector< Media > mediaList, const Media &media ) const
 {
-  return count_if(mediaList.begin(), mediaList.end(), [&media](const Media &m) { return m.uid() == media.uid(); } );
+  return count_if(begin(mediaList), end(mediaList), [&media](const Media &m) { return m.uid() == media.uid(); } );
 }
 
 
@@ -102,12 +102,12 @@ void MediaDirectory::Private::addTree( const Media &media, const boost::filesyst
 vector< Media > MediaDirectory::allMedias() const
 {
   vector<Media> _allMedias;
-  copy( d->medias.begin(), d->medias.end(), back_insert_iterator<vector<Media>>( _allMedias ) );
+  copy( begin(d->medias), end(d->medias), back_insert_iterator<vector<Media>>( _allMedias ) );
 
   for( auto subDirectory : subDirectories() )
   {
     auto subDirectoryMedias = subDirectory->allMedias();
-    copy( subDirectoryMedias.begin(), subDirectoryMedias.end(), back_insert_iterator<vector<Media>>( _allMedias ) );
+    copy( begin(subDirectoryMedias), end(subDirectoryMedias), back_insert_iterator<vector<Media>>( _allMedias ) );
   }
 
   return _allMedias;

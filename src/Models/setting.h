@@ -81,7 +81,7 @@ public:
     template<class Type>
     static std::vector<Type> values(std::string key, Wt::Dbo::Transaction &transaction) {
       std::vector<Type> collection;
-      Wt::Dbo::collection<Wt::Dbo::ptr<Setting>> dboValues = transaction.session().find<Setting>().where("\"key\" = ?").bind(key);
+      auto dboValues = transaction.session().find<Setting>().where("\"key\" = ?").bind(key).resultList();
       std::transform(dboValues.begin(), dboValues.end(), std::back_insert_iterator<std::vector<Type>>(collection),
                      [=](Wt::Dbo::ptr<Setting> setting) { return boost::lexical_cast<Type>(setting->_value); });
       return collection;

@@ -126,7 +126,7 @@ void MediaCollection::Private::listDirectory( boost::filesystem::path path, shar
   try
   {
     copy( fs::recursive_directory_iterator( path, fs::symlink_option::recurse ), fs::recursive_directory_iterator(), back_inserter( v ) );
-    sort( v.begin(), v.end() );
+//     sort( v.begin(), v.end() ); // TODO: not needed?
 
     for( fs::directory_entry entry : v )
     {
@@ -168,12 +168,11 @@ Signal<> &MediaCollection::scanned()
 vector< Media > MediaCollection::sortedMediasList() const
 {
   vector<Media> medias;
-  transform( d->collection.begin(), d->collection.end(),
-             back_insert_iterator<vector<Media>>( medias ), []( pair<string, Media> mediaElement )
+  transform( begin(d->collection), end(d->collection), back_insert_iterator<vector<Media>>( medias ), []( pair<string, Media> mediaElement )
   {
     return mediaElement.second;
   } );
-  sort( medias.begin(), medias.end(), []( const Media & first, const Media & second )
+  sort( begin(medias), end(medias), []( const Media & first, const Media & second )
   {
     return lexicographical_compare( first.fullPath(), second.fullPath(), boost::is_iless() );
   } );

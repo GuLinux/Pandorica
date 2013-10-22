@@ -195,7 +195,7 @@ void P::PandoricaPrivate::registerSession()
 }
 void P::PandoricaPrivate::unregisterSession()
 {
-  P::pandoricaSessions.erase(remove_if( P::pandoricaSessions.begin(), P::pandoricaSessions.end(), [this](P::PandoricaSession s) { return q->sessionId() ==  s.sessionId; } ), P::pandoricaSessions.end() );
+  P::pandoricaSessions.erase(remove_if( begin(P::pandoricaSessions), end(P::pandoricaSessions), [this](P::PandoricaSession s) { return q->sessionId() ==  s.sessionId; } ), P::pandoricaSessions.end() );
   updateSessions();
 }
 

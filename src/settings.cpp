@@ -84,7 +84,7 @@ void Settings::addMediaDirectory(string directory, Dbo::Session* session)
 
 void Settings::removeMediaDirectory(string directory, Dbo::Session* session)
 {
-  d->mediaDirectories.erase(remove_if(d->mediaDirectories.begin(), d->mediaDirectories.end(), [=](string d) { return d == directory; }), d->mediaDirectories.end());
+  d->mediaDirectories.erase(remove_if(begin(d->mediaDirectories), end(d->mediaDirectories), [=](string d) { return d == directory; }), end(d->mediaDirectories));
   Dbo::Transaction t(*session);
   Setting::write<string>("media_directories", d->mediaDirectories, t);
   t.commit();

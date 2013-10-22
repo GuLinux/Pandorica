@@ -210,7 +210,7 @@ std::vector< std::string > FindOrphansDialog::Private::orphans( Dbo::Transaction
   select media_id from media_rating \
   order by media_id" ).resultList();
   vector<string> mediaIds;
-  remove_copy_if( mediaIdsDbo.begin(), mediaIdsDbo.end(), back_insert_iterator<vector<string>>( mediaIds ), [ = ]( string mediaId )
+  remove_copy_if( begin(mediaIdsDbo), end(mediaIdsDbo), back_insert_iterator<vector<string>>( mediaIds ), [ = ]( string mediaId )
   {
     return mediaCollection->media( mediaId ).valid();
   } );
@@ -222,7 +222,7 @@ vector<string> tokenize( string filename )
 {
   vector<string> tokens;
   boost::regex re( "(\\b|[-_.,;:])+" );
-  boost::sregex_token_iterator i( filename.begin(), filename.end(), re, -1 );
+  boost::sregex_token_iterator i( begin(filename), end(filename), re, -1 );
   boost::sregex_token_iterator j;
 
   while( i != j )
@@ -244,7 +244,7 @@ FileSuggestion::FileSuggestion( string filePath, string mediaId, vector<string> 
 
   for( string token : myTokens )
   {
-    int occurrences = count( originalFileTokens.begin(), originalFileTokens.end(), token );
+    int occurrences = count( begin(originalFileTokens), end(originalFileTokens), token );
     score += occurrences;
   }
 }
@@ -290,7 +290,7 @@ void FindOrphansDialog::Private::populateMovedFiles( WApplication *app )
     if( suggestions.size() == 0 )
       continue;
 
-    sort( suggestions.begin(), suggestions.end(), []( FileSuggestion a, FileSuggestion b )
+    sort( begin(suggestions), end(suggestions), []( FileSuggestion a, FileSuggestion b )
     {
       return a.score > b.score;
     } );

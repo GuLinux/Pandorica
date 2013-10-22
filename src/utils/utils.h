@@ -56,7 +56,7 @@ public:
     
     template<typename Out, typename In, typename TransformF>
     static Out transform(In in, Out out, TransformF f) {
-      std::transform(in.begin(), in.end(), std::back_insert_iterator<Out>(out), f);
+      std::transform(begin(in), end(in), std::back_insert_iterator<Out>(out), f);
       return out;
     }
 private:

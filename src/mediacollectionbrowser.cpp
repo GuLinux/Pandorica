@@ -210,7 +210,7 @@ void MediaCollectionBrowser::Private::browse( const shared_ptr< MediaDirectory >
   };
   vector<Media> medias = currentPath->medias();
   if(sortDirection == Asc)
-  sort(medias.begin(), medias.end(), sorters[sortBy]);
+  sort(begin(medias), end(medias), sorters[sortBy]);
   else
     sort(medias.rbegin(), medias.rend(), sorters[sortBy]);
   for(auto media: medias)
@@ -235,7 +235,7 @@ std::vector< Media > FlatMediaDirectory::allMedias() const
 {
   auto collection = mediaCollection->collection();
   vector<Media> all;
-  transform(collection.begin(), collection.end(), back_insert_iterator<vector<Media>>(all), [](const pair<string,Media> &p){ return p.second; });
+  transform(begin(collection), end(collection), back_insert_iterator<vector<Media>>(all), [](const pair<string,Media> &p){ return p.second; });
   return all;
 }
 

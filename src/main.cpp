@@ -62,7 +62,7 @@ WApplication *createApplication( const WEnvironment &env )
   auto app = new Pandorica( env );
   app->aboutToQuit().connect( [ = ]( WApplication * app, _n5 )
   {
-    instances.erase( std::remove( instances.begin(), instances.end(), app ) );
+    instances.erase( std::remove( begin(instances), end(instances), app ) );
   } );
   instances.push_back( app );
   return app;

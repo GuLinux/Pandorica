@@ -203,13 +203,13 @@ void SelectDirectories::Private::addSubItems( WStandardItem *item, bool sync )
       }
     } );
     log( "notice" ) << "Sorting tree for path: " << path.string();
-    sort( paths.begin(), paths.end(), [ = ]( fs::path a, fs::path b )
+    sort( begin(paths), end(paths), [ = ]( fs::path a, fs::path b )
     {
       return a.filename() < b.filename();
     } );
     auto addItems = [ = ]
     {
-      for_each( paths.begin(), paths.end(), [ = ]( fs::path p )
+      for_each( begin(paths), end(paths), [ = ]( fs::path p )
       {
         log( "notice" ) << "Adding subpath " << p.string() << " to path " << path.string();
 

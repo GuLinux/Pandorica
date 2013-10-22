@@ -57,7 +57,7 @@ QueueItem::QueueItem(Media media, std::list< QueueItem* >& queue, WContainerWidg
   };
   
   auto moveElement = [=,&queue](int direction) {
-    auto element = std::find(queue.begin(), queue.end(), queueItem);
+    auto element = std::find(begin(queue), end(queue), queueItem);
     auto nextElement = element;
     direction>0 ? nextElement++ : nextElement--;
     swap(*nextElement, *element);
@@ -79,7 +79,7 @@ QueueItem::QueueItem(Media media, std::list< QueueItem* >& queue, WContainerWidg
   }));
   actionsContainer->addWidget(removeButton = WW<WImage>(Settings::staticPath("/icons/actions/delete.png"))
     .css("link-hand").onClick([=,&queue](WMouseEvent){
-    queue.erase(std::remove(queue.begin(), queue.end(), queueItem));
+    queue.erase(std::remove(begin(queue), end(queue), queueItem));
     delete queueItem;
     fixButtons();
   }));
@@ -191,12 +191,12 @@ void Playlist::previous()
 void Playlist::Private::playlistIncrement(Playlist::Private::Direction direction)
 {
   if(internalQueue.empty()) return;
-  if(0 == count_if(internalQueue.begin(), internalQueue.end(), [=](QueueItem *i) { return i->isCurrent(); } )) {
+  if(0 == count_if(begin(internalQueue), end(internalQueue), [=](QueueItem *i) { return i->isCurrent(); } )) {
     playSignal.emit(internalQueue.front());
     return;
   }
   
-  auto playingItem = find_if(internalQueue.begin(), internalQueue.end(), [=](QueueItem *i){ return i->isCurrent();});
+  auto playingItem = find_if(begin(internalQueue), end(internalQueue), [=](QueueItem *i){ return i->isCurrent();});
   if(playingItem == internalQueue.end()) {
     return;
   }
@@ -205,7 +205,7 @@ void Playlist::Private::playlistIncrement(Playlist::Private::Direction direction
 
 void Playlist::play(PlaylistItem* itemToPlay)
 {
-  if(itemToPlay && std::find(d->internalQueue.begin(), d->internalQueue.end(), itemToPlay) != d->internalQueue.end()) {
+  if(itemToPlay && std::find(begin(d->internalQueue), end(-DinternalQueue), itemToPlay) != d->internalQueue.end()) {
     d->playSignal.emit(itemToPlay);
   }
 }

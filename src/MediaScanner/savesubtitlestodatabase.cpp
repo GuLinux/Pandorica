@@ -69,7 +69,7 @@ void SaveSubtitlesToDatabase::run( FFMPEGMedia *ffmpegMedia, Media media, WConta
   setResult( Waiting );
   vector<FFMPEG::Stream> subtitles;
   auto allStreams = ffmpegMedia->streams();
-  copy_if( allStreams.begin(), allStreams.end(), back_inserter( subtitles ), [ = ]( const FFMPEG::Stream & s )
+  copy_if( begin(allStreams), end(allStreams), back_inserter( subtitles ), [ = ]( const FFMPEG::Stream & s )
   {
     return s.type == FFMPEG::Subtitles;
   } );
