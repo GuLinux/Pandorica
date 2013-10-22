@@ -94,21 +94,16 @@ void SaveSubtitlesToDatabase::run( FFMPEGMedia *ffmpegMedia, Media media, WConta
 #ifndef USE_NEW_SUBTITLES_EXTRACTOR
    boost::thread t( boost::bind( &SaveSubtitlesToDatabase::Private::extractSubtitles, d.get(), subtitles, container ) );
 #else
-  boost::condition_variable guiOk;
-  boost::mutex m;
-  boost::unique_lock<boost::mutex> lock( m );
-  auto createProgressBar = [ = , &guiOk]
+  auto createProgressBar = [=]
   {
     container->clear();
     container->addWidget( WW<WText>( wtr("mediascannerdialog.subtitlesgenericmessage")).padding(20, Side::Right) );
     container->addWidget( d->progressbar = new WProgressBar() );
     d->progressbar->setMaximum( 100 );
     d->app->triggerUpdate();
-    guiOk.notify_all();
+    boost::thread t( boost::bind( &SaveSubtitlesToDatabase::Private::extractSubtitles, d.get(), ffmpegMedia ) );
   };
   guiRun( d->app, createProgressBar );
-  guiOk.wait( lock );
-  boost::thread t( boost::bind( &SaveSubtitlesToDatabase::Private::extractSubtitles, d.get(), ffmpegMedia ) );
 #endif
 }
 
