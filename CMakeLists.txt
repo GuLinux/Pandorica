@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 2.8)
 enable_testing()
-
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 set(app_name Pandorica)
 project(${app_name})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -fstack-protector-all")
 add_definitions(-DWT_NO_SLOT_MACROS)
 find_package(Wt REQUIRED)
+find_package(FFMPEG REQUIRED)
+find_package(GraphicsMagick REQUIRED)
 INCLUDE (CheckIncludeFiles)
 include(FindPackageHandleStandardArgs)
 find_package(Boost REQUIRED COMPONENTS signals system filesystem chrono thread regex program_options random date_time OPTIONAL_COMPONENTS unit_test_framework )
@@ -22,10 +24,6 @@ if( NOT Disable_Qt )
 endif( NOT Disable_Qt )
 add_definitions(-DBOOST_SIGNALS_NO_DEPRECATION_WARNING)
 
-include(FindPkgConfig)
-message("PKGConfig Executable: ${PKG_CONFIG_EXECUTABLE}")
-pkg_check_modules(GRAPHICSMAGICK GraphicsMagick++ REQUIRED)
-add_definitions(${GRAPHICSMAGICK_CFLAGS})
 #add_definitions(-fno-stack-protector )
 
 include_directories(${Wt_INCLUDE_DIR} ${QT_INCLUDE_DIR} ${CMAKE_SOURCE_DIR} ${GRAPHICSMAGICK_INCLUDE_DIRS} src )
@@ -36,6 +34,8 @@ find_path(HAVE_DBO_POSTGRES Wt/Dbo/backend/Postgres)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(DBO_MYSQL DEFAULT_MSG HAVE_DBO_MYSQL)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(DBO_POSTGRES DEFAULT_MSG HAVE_DBO_POSTGRES)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(DBO_SQLITE3 DEFAULT_MSG HAVE_DBO_SQLITE3)
+
+
 
 add_definitions(-DHAVE_PNG)
 set(DISABLE_MYSQL False CACHE bool "Disable MySql Wt Backend")

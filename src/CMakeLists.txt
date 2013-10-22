@@ -18,14 +18,6 @@ SET( player_srcs serversettingspage.cpp Models/setting.cpp selectdirectories.cpp
     player/mediaelementjs.cpp
     player/purehtml5js.cpp
 )
-include(FindPkgConfig)
-message("PKGConfig Executable: ${PKG_CONFIG_EXECUTABLE}")
-# TODO : difficult to find on windows 32. Remove,  or implement alternatives (standalone ffmpeg binary? )
-pkg_check_modules(AVUTIL libavutil REQUIRED)
-pkg_check_modules(AVFORMAT libavformat REQUIRED)
-pkg_check_modules(AVCODEC libavcodec REQUIRED)
-pkg_check_modules(SWSCALE libswscale REQUIRED)
-pkg_check_modules(LIBPNG libpng REQUIRED)
 
 include_directories(libffmpegthumbnailer)
 
