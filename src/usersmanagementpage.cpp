@@ -84,9 +84,11 @@ void UsersManagementPage::Private::addUserRow( const Dbo::ptr< AuthInfo > &user,
   auto userEmail = user->email();
   row->elementAt( 0 )->addWidget( new WText( username ) );
   row->elementAt( 1 )->addWidget( new WText( userEmail ) );
-  WPushButton *groupsButton = WW<WPushButton>(wtr("menu.groups"));
-  groupsButton->setMenu( new WPopupMenu );
-  row->elementAt( 2 )->addWidget( groupsButton );
+  row->elementAt( 2 )->addWidget( groupsButton(transaction,
+                                [=](const Dbo::ptr<Group> &group){ return user->user()->groups.count( group ) > 0; },
+                                [=](const Dbo::ptr<Group> &group, Dbo::Transaction &t){ user->user().modify()->groups.insert( group ); },
+                                [=](const Dbo::ptr<Group> &group, Dbo::Transaction &t){ user->user().modify()->groups.erase( group ); }
+                                ));
   row->elementAt( 3 )->addWidget( WW<WPushButton>(wtr("button.remove")).css("btn btn-danger").onClick([=](WMouseEvent) {
     auto confirmation = WMessageBox::show(wtr("usersmanagement_remove_user"),
                                           wtr("usersmanagement_remove_user_confirm_text")
@@ -107,25 +109,29 @@ void UsersManagementPage::Private::addUserRow( const Dbo::ptr< AuthInfo > &user,
     session->execute("DELETE FROM \"auth_info\" WHERE id = ?").bind(user.id());
     populate();
   }));
+}
+
+
+WPushButton *UsersManagementPage::Private::groupsButton( Dbo::Transaction &transaction, GroupSelection groupSelection, GroupModTrigger onGroupChecked, UsersManagementPage::Private::GroupModTrigger onGroupUnchecked )
+{
+  WPushButton *groupsButton = WW<WPushButton>(wtr("menu.groups"));
+  groupsButton->setMenu( new WPopupMenu );
   for( auto group: transaction.session().find<Group>().resultList())
   {
     auto groupItem = groupsButton->menu()->addItem( group->groupName() );
     groupItem->setCheckable( true );
-    groupItem->setChecked( user->user()->groups.count( group ) > 0 );
+    groupItem->setChecked( groupSelection(group) );
     groupItem->triggered().connect( [ = ]( WMenuItem *, _n5 )
     {
       Dbo::Transaction t( *session );
 
       if( groupItem->isChecked() )
-      {
-        user->user().modify()->groups.insert( group );
-      }
+        onGroupChecked(group, t);
       else
-      {
-        user->user().modify()->groups.erase( group );
-      }
+        onGroupUnchecked(group, t);
     } );
   }
+  return groupsButton;
 }
 
 

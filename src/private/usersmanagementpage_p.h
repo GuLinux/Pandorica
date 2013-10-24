@@ -22,10 +22,12 @@
 
 #include "usersmanagementpage.h"
 #include <Models/user.h>
-
+#include <functional>
+class Group;
 namespace Wt
 {
   class WTable;
+  class WPushButton;
 }
 
 class Session;
@@ -39,8 +41,13 @@ class UsersManagementPage::Private
     Wt::WTable *usersContainer;
     void populate();
     void addUserRow(const Wt::Dbo::ptr<AuthInfo> &user, Wt::Dbo::Transaction &transaction);
+    typedef std::function<void(const Wt::Dbo::ptr<Group>&, Wt::Dbo::Transaction &)> GroupModTrigger;
+    typedef std::function<bool(const Wt::Dbo::ptr<Group>&)> GroupSelection;
+    Wt::WPushButton *groupsButton(Wt::Dbo::Transaction &transaction, GroupSelection groupSelection, GroupModTrigger onGroupChecked, GroupModTrigger onGroupUnchecked);
   private:
     class UsersManagementPage *const q;
 };
+
+
 
 #endif // PRIVATE_H
