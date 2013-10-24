@@ -47,6 +47,7 @@ public:
     dbo::hasMany(a, comments, dbo::ManyToOne, "user");
     dbo::hasMany(a, groups, dbo::ManyToMany, "groups_users");
     dbo::hasMany(a, ratings, dbo::ManyToOne, "user");
+    dbo::field(a, invitedEmailAddress, "invited_email_address");
   }
   
   static void rate(dbo::ptr<User> userPtr, const Media &media, int rating, Wt::Dbo::Transaction &transaction);
@@ -58,6 +59,7 @@ public:
   dbo::collection<dbo::ptr<Comment>> comments;
   dbo::collection< dbo::ptr<Group>> groups;
   dbo::collection<dbo::ptr<MediaRating>> ratings;
+  boost::optional<std::string> invitedEmailAddress;
 };
 
 typedef dbo::ptr<User> UserPtr;

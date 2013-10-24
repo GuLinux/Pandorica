@@ -182,7 +182,7 @@ bool initServer( int argc, char **argv, WServer &server, po::variables_map &vm )
   po::options_description pandorica_db_options( "Database Options" );
   pandorica_db_options.add_options()
   ( "sqlite3-database-path", po::value<string>()->default_value( configDirectory + "/Pandorica.sqlite" ), "sqlite3 database path." )
-  ( "dump-schema", po::value<string>(), "dumps the schema to a file (argument) and exits, useful to manually execute migrations." )
+  ( "dump-schema", po::value<string>(), "dumps the schema to a file (argument) and exits, useful to manually execute migrations (use '-' to write to stdout)." )
   ;
   po::options_description pandorica_managed_options( "Managed Mode Options" );
   pandorica_managed_options.add_options()
@@ -300,6 +300,26 @@ int main( int argc, char **argv, char **envp )
     server.addEntryPoint( Application, createApplication );
     string quitPassword;
     server.readConfigurationProperty( "quit-password", quitPassword );
+    
+    {
+      Session session( false );
+      WtCommons::MigrateDbo migrateDbo( session, session.connection(), ::Migrations::migrations() );
+
+      if( vm.count( "dump-schema" ) )
+      {
+        string schemaPath {boost::any_cast<string>( vm["dump-schema"].value() )};
+	if(schemaPath == "-") {
+	  cout << session.tableCreationSql();
+	} else {
+	  ofstream schema;
+	  schema.open( schemaPath );
+	  schema << session.tableCreationSql();
+	  schema.close();
+	  std::cout << "Schema correctly wrote to " << schemaPath << '\n';
+	}
+        return 0;
+      }
+    }
 
     auto checkForActiveSessions = [ = ]()
     {
@@ -327,22 +347,6 @@ int main( int argc, char **argv, char **envp )
         boost::this_thread::sleep_for( boost::chrono::milliseconds {30000} );
       }
     } );
-
-    {
-      Session session( false );
-      WtCommons::MigrateDbo migrateDbo( session, session.connection(), ::Migrations::migrations() );
-
-      if( vm.count( "dump-schema" ) )
-      {
-        ofstream schema;
-        string schemaPath {boost::any_cast<string>( vm["dump-schema"].value() )};
-        schema.open( schemaPath );
-        schema << session.tableCreationSql();
-        schema.close();
-        std::cout << "Schema correctly wrote to " << schemaPath << '\n';
-        return 0;
-      }
-    }
 
     Session::configureAuth();
     expireStaleSessions();
