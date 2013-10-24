@@ -66,17 +66,16 @@ void UsersManagementPage::Private::populate()
   header->elementAt(2)->addWidget(new WText("Groups"));
   Dbo::Transaction t( *session );
   auto users = session->find<AuthInfo>().resultList();
-  auto groups = session->find<Group>().resultList();
 
   for( auto user : users )
   {
-    addUserRow( user , groups );
+    addUserRow( user , t );
   }
 }
 
 
 
-void UsersManagementPage::Private::addUserRow( const Dbo::ptr< AuthInfo > &user, const Wt::Dbo::collection<Wt::Dbo::ptr<Group>> &groupsList )
+void UsersManagementPage::Private::addUserRow( const Dbo::ptr< AuthInfo > &user, Dbo::Transaction &transaction )
 {
   WTableRow *row = usersContainer->insertRow( usersContainer->rowCount() );
   auto username = user->identity( "loginname" );
@@ -85,11 +84,10 @@ void UsersManagementPage::Private::addUserRow( const Dbo::ptr< AuthInfo > &user,
   WPushButton *groupsButton = WW<WPushButton>();
   groupsButton->setMenu( new WPopupMenu );
   row->elementAt( 2 )->addWidget( groupsButton );
-
   WContainerWidget *groupsPanel = new WContainerWidget;
-
-  for( auto group : groupsList )
+  for( auto group: transaction.session().find<Group>().resultList())
   {
+    cerr << "User: " << user->identity("loginname") << ", group: " << group->groupName() << ", popup: " << (long)(groupsButton->menu()) << endl;
     auto groupItem = groupsButton->menu()->addItem( group->groupName() );
     groupItem->setCheckable( true );
     groupItem->setChecked( user->user()->groups.count( group ) > 0 );

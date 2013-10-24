@@ -38,7 +38,7 @@ class UsersManagementPage::Private
     Session *session;
     Wt::WTable *usersContainer;
     void populate();
-    void addUserRow(const Wt::Dbo::ptr<AuthInfo> &user, const Wt::Dbo::collection<Wt::Dbo::ptr<Group>> &groupsList);
+    void addUserRow(const Wt::Dbo::ptr<AuthInfo> &user, Wt::Dbo::Transaction &transaction);
   private:
     class UsersManagementPage *const q;
 };
