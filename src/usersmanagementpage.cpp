@@ -30,6 +30,7 @@
 #include <Wt/WPushButton>
 #include <Wt/WPopupMenu>
 #include <Wt/WMessageBox>
+#include <Wt/WLineEdit>
 #include "Models/models.h"
 #include "Wt-Commons/wt_helpers.h"
 
@@ -52,10 +53,30 @@ UsersManagementPage::~UsersManagementPage( )
 UsersManagementPage::UsersManagementPage( Session *session, Wt::WContainerWidget *parent )
   : d( this, session )
 {
+  WLineEdit *inviteEmailAddress = new WLineEdit;
+  inviteEmailAddress->setPlaceholderText("invite email address");
+  Dbo::Transaction t(*session);
+  auto inviteOnGroups = make_shared<vector<Dbo::ptr<Group>>>();
+  WPushButton *groupsButton = d->groupsButton(t,
+                                [=](const Dbo::ptr<Group> &group){ return false; },
+                                [=](const Dbo::ptr<Group> &group, Dbo::Transaction &t){ inviteOnGroups->push_back(group); },
+                                [=](const Dbo::ptr<Group> &group, Dbo::Transaction &t){ inviteOnGroups->erase(remove(begin(*inviteOnGroups), end(*inviteOnGroups), group));  }
+                                );
+  WPushButton *inviteButton = WW<WPushButton>("Invite").css("btn btn-primary").onClick([=](WMouseEvent){
+    d->invite(inviteEmailAddress->text().toUTF8(), *inviteOnGroups);
+    for(auto menuItem: groupsButton->menu()->items())
+      menuItem->setChecked(false);
+    inviteOnGroups->clear();
+    inviteEmailAddress->setText("");
+  });
+  addWidget(WW<WContainerWidget>().css("form-inline").add(inviteEmailAddress).add(groupsButton).add(inviteButton));
   addWidget( d->usersContainer = WW<WTable>().css("table table-striped table-bordered table-hover") );
   d->populate();
 }
 
+void UsersManagementPage::Private::invite(std::string email, const std::vector<Wt::Dbo::ptr<Group>> &groups)
+{
+}
 
 void UsersManagementPage::Private::populate()
 {
@@ -114,7 +135,7 @@ void UsersManagementPage::Private::addUserRow( const Dbo::ptr< AuthInfo > &user,
 
 WPushButton *UsersManagementPage::Private::groupsButton( Dbo::Transaction &transaction, GroupSelection groupSelection, GroupModTrigger onGroupChecked, UsersManagementPage::Private::GroupModTrigger onGroupUnchecked )
 {
-  WPushButton *groupsButton = WW<WPushButton>(wtr("menu.groups"));
+  WPushButton *groupsButton = WW<WPushButton>(wtr("menu.groups")).css("btn");
   groupsButton->setMenu( new WPopupMenu );
   for( auto group: transaction.session().find<Group>().resultList())
   {

@@ -44,6 +44,7 @@ class UsersManagementPage::Private
     typedef std::function<void(const Wt::Dbo::ptr<Group>&, Wt::Dbo::Transaction &)> GroupModTrigger;
     typedef std::function<bool(const Wt::Dbo::ptr<Group>&)> GroupSelection;
     Wt::WPushButton *groupsButton(Wt::Dbo::Transaction &transaction, GroupSelection groupSelection, GroupModTrigger onGroupChecked, GroupModTrigger onGroupUnchecked);
+    void invite(std::string email, const std::vector<Wt::Dbo::ptr<Group>> &groups);
   private:
     class UsersManagementPage *const q;
 };
