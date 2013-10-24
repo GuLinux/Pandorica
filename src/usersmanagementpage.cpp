@@ -29,6 +29,7 @@
 #include <Wt/WPanel>
 #include <Wt/WPushButton>
 #include <Wt/WPopupMenu>
+#include <Wt/WMessageBox>
 #include "Models/models.h"
 #include "Wt-Commons/wt_helpers.h"
 
@@ -51,7 +52,7 @@ UsersManagementPage::~UsersManagementPage( )
 UsersManagementPage::UsersManagementPage( Session *session, Wt::WContainerWidget *parent )
   : d( this, session )
 {
-  addWidget( d->usersContainer = new WTable );
+  addWidget( d->usersContainer = WW<WTable>().css("table table-striped table-bordered table-hover") );
   d->populate();
 }
 
@@ -61,14 +62,15 @@ void UsersManagementPage::Private::populate()
   usersContainer->clear();
   usersContainer->setHeaderCount(1);
   auto header = usersContainer->rowAt(0);
-  header->elementAt(0)->addWidget(new WText("Username"));
+  header->elementAt(0)->addWidget(new WText(wtr("usersmanagement_username")));
   header->elementAt(1)->addWidget(new WText("Email"));
-  header->elementAt(2)->addWidget(new WText("Groups"));
   Dbo::Transaction t( *session );
   auto users = session->find<AuthInfo>().resultList();
 
   for( auto user : users )
   {
+    if(!user->user())
+      continue;
     addUserRow( user , t );
   }
 }
@@ -81,13 +83,31 @@ void UsersManagementPage::Private::addUserRow( const Dbo::ptr< AuthInfo > &user,
   auto username = user->identity( "loginname" );
   row->elementAt( 0 )->addWidget( new WText( username ) );
   row->elementAt( 1 )->addWidget( new WText( user->email() ) );
-  WPushButton *groupsButton = WW<WPushButton>();
+  WPushButton *groupsButton = WW<WPushButton>(wtr("menu.groups"));
   groupsButton->setMenu( new WPopupMenu );
   row->elementAt( 2 )->addWidget( groupsButton );
+  row->elementAt( 3 )->addWidget( WW<WPushButton>(wtr("button.remove")).css("btn btn-danger").onClick([=](WMouseEvent) {
+    auto confirmation = WMessageBox::show("User Deletion", "Are you sure to remove user ____?", StandardButton::Ok | StandardButton::Cancel );
+    if(confirmation != StandardButton::Ok)
+      return;
+    Dbo::Transaction t(*session);
+    auto user_id = user->user().id();
+    session->execute("DELETE FROM \"groups_users\" WHERE user_id = ?").bind(user_id);
+    session->execute("DELETE FROM \"comment\" WHERE user_id = ?").bind(user_id);
+    session->execute("DELETE FROM \"media_rating\" WHERE user_id = ?").bind(user_id);
+    auto sessionsInfos = session->find<SessionInfo>().where("user_id = ?").bind(user->user().id()).resultList();
+    for(Dbo::ptr<SessionInfo> sessionInfo: sessionsInfos )
+      session->execute("DELETE FROM \"session_details\" WHERE session_info_session_id = ?").bind(sessionInfo.id());
+    session->execute("DELETE FROM \"session_info\" WHERE user_id = ?").bind(user_id);
+    session->execute("DELETE FROM \"user\" WHERE id = ?").bind(user_id);
+    session->execute("DELETE FROM \"auth_token\" WHERE auth_info_id = ?").bind(user.id());
+    session->execute("DELETE FROM \"auth_identity\" WHERE auth_info_id = ?").bind(user.id());
+    session->execute("DELETE FROM \"auth_info\" WHERE id = ?").bind(user.id());
+    populate();
+  }));
   WContainerWidget *groupsPanel = new WContainerWidget;
   for( auto group: transaction.session().find<Group>().resultList())
   {
-    cerr << "User: " << user->identity("loginname") << ", group: " << group->groupName() << ", popup: " << (long)(groupsButton->menu()) << endl;
     auto groupItem = groupsButton->menu()->addItem( group->groupName() );
     groupItem->setCheckable( true );
     groupItem->setChecked( user->user()->groups.count( group ) > 0 );
@@ -111,6 +131,7 @@ void UsersManagementPage::Private::addUserRow( const Dbo::ptr< AuthInfo > &user,
 void UsersManagementPage::dialog( Session *session )
 {
   WDialog *dialog = new WDialog;
+  dialog->setCaption(wtr("menu.usersmanagement"));
   dialog->contents()->addWidget( new UsersManagementPage( session ) );
   dialog->setClosable( true );
   dialog->show();

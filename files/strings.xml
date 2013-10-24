@@ -301,4 +301,6 @@ For other webservers (Apache, Lighttpd, Ngnix) read the proper documentation.
 <message id="mediacollectionbrowser_view_mode">View Mode</message>
 <message id="mediacollectionbrowser_filesystem_view">Filesystem View</message>
 <message id="mediacollectionbrowser_all_medias">All Medias</message>
+<message id="menu.usersmanagement">Users Panel</message>
+<message id="usersmanagement_username">Username</message>
 </messages>
