@@ -63,6 +63,7 @@ UsersManagementPage::UsersManagementPage( Session *session, Wt::WContainerWidget
                                 [=](const Dbo::ptr<Group> &group, Dbo::Transaction &t){ inviteOnGroups->erase(remove(begin(*inviteOnGroups), end(*inviteOnGroups), group));  }
                                 );
   WPushButton *inviteButton = WW<WPushButton>("Invite").css("btn btn-primary").onClick([=](WMouseEvent){
+    // TODO: email validation;
     d->invite(inviteEmailAddress->text().toUTF8(), *inviteOnGroups);
     for(auto menuItem: groupsButton->menu()->items())
       menuItem->setChecked(false);
@@ -76,6 +77,23 @@ UsersManagementPage::UsersManagementPage( Session *session, Wt::WContainerWidget
 
 void UsersManagementPage::Private::invite(std::string email, const std::vector<Wt::Dbo::ptr<Group>> &groups)
 {
+  Dbo::Transaction t(*session);
+  long existingUsers = session->query<long>("SELECT COUNT(*) FROM auth_info WHERE email = ? OR unverified_email = ?");
+  if(existingUsers > 0) {
+    cerr << "User already existing: " << email << endl;
+    // TODO: gui message
+    return;
+  }
+  existingUsers = session->query<long>("SELECT COUNT(*) FROM user WHERE invited_email_address = ?");
+  if(existingUsers > 0) {
+    cerr << "User already invited: " << email << endl;
+    // TODO: gui message
+    return;
+  }
+  auto newUser = session->add(new User);
+  for(auto group: groups)
+    newUser.modify()->groups.insert(group);
+  newUser.modify()->invitedEmailAddress = email;
 }
 
 void UsersManagementPage::Private::populate()
