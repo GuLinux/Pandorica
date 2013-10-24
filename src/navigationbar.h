@@ -58,6 +58,7 @@ public:
     Wt::Signal<> &viewAs();
     Wt::Signal<> &configureApp();
     Wt::Signal<> &showUserSettings();
+    Wt::Signal<> &usersManagement();
     
     void switchToPlayer();
     void updateUsersCount(int newUsersCount);

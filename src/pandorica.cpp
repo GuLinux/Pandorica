@@ -65,6 +65,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "serversettingspage.h"
 #include "navigationbar.h"
 #include "settingspage.h"
+#include "usersmanagementpage.h"
 #include <Wt/WConfig.h>
 #include <Wt/WStringListModel>
 #include <Wt/WComboBox>
@@ -255,6 +256,7 @@ void P::PandoricaPrivate::adminActions()
   navigationBar->findOrphans().connect([=](_n6) { (new FindOrphansDialog(mediaCollection, session, &settings))->run(); });
   navigationBar->manageGroups().connect([=](_n6) {  (new GroupsDialog(session, &settings))->show(); });
   navigationBar->configureApp().connect([=](_n6) { ServerSettingsPage::dialog(&settings, session, mediaCollection); });
+  navigationBar->usersManagement().connect([=](_n6) { UsersManagementPage::dialog(session); });
   navigationBar->mediaScanner().connect([=](bool onlyCurrentDirectory, _n5) {
     auto filterMediaCD = [=](Media& m) {
       return mediaCollectionBrowser->currentDirectoryHas(m);

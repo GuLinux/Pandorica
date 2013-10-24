@@ -64,6 +64,7 @@ set(pandorica_SOURCES ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs} ${p
     session.cpp 
     pandorica.cpp
     navigationbar.cpp 
+    usersmanagementpage.cpp
     main.cpp
 )
 

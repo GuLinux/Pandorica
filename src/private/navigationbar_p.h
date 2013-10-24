@@ -68,6 +68,7 @@ class NavigationBar::Private
     Wt::Signal<> viewAs;
     Wt::Signal<> configureApp;
     Wt::Signal<> showUserSettings;
+    Wt::Signal<> usersManagement;
 
     Wt::JSignal<std::string> playJS;
 
