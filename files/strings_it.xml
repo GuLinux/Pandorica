@@ -355,4 +355,6 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
 <message id="mediacollectionbrowser_all_medias">Tutti i Media</message>
 <message id="menu.usersmanagement">Pannello Utenti</message>
 <message id="usersmanagement_username">Nome Utente</message>
+<message id="usersmanagement_remove_user">Rimozione Utente</message>
+<message id="usersmanagement_remove_user_confirm_text">Sei sicuro di voler rimuovere l'utente {1} ({2})?</message>
 </messages>

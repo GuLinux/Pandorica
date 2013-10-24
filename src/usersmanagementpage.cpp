@@ -81,13 +81,16 @@ void UsersManagementPage::Private::addUserRow( const Dbo::ptr< AuthInfo > &user,
 {
   WTableRow *row = usersContainer->insertRow( usersContainer->rowCount() );
   auto username = user->identity( "loginname" );
+  auto userEmail = user->email();
   row->elementAt( 0 )->addWidget( new WText( username ) );
-  row->elementAt( 1 )->addWidget( new WText( user->email() ) );
+  row->elementAt( 1 )->addWidget( new WText( userEmail ) );
   WPushButton *groupsButton = WW<WPushButton>(wtr("menu.groups"));
   groupsButton->setMenu( new WPopupMenu );
   row->elementAt( 2 )->addWidget( groupsButton );
   row->elementAt( 3 )->addWidget( WW<WPushButton>(wtr("button.remove")).css("btn btn-danger").onClick([=](WMouseEvent) {
-    auto confirmation = WMessageBox::show("User Deletion", "Are you sure to remove user ____?", StandardButton::Ok | StandardButton::Cancel );
+    auto confirmation = WMessageBox::show(wtr("usersmanagement_remove_user"),
+                                          wtr("usersmanagement_remove_user_confirm_text")
+                                          .arg(username).arg(userEmail), StandardButton::Ok | StandardButton::Cancel );
     if(confirmation != StandardButton::Ok)
       return;
     Dbo::Transaction t(*session);
