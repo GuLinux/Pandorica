@@ -195,8 +195,9 @@ void MediaCollectionBrowser::Private::browse( const shared_ptr< MediaDirectory >
   resetPanel.emit();
   browser->clear();
   rebuildBreadcrumb();
-  for(auto dir: currentPath->subDirectories())
+  for(auto dir: currentPath->subDirectories()) {
     addDirectory(dir);
+  }
   Dbo::Transaction t(*session);
   map<Sort, MediaSorter> sorters {
     {Sort::Alpha, [](const Media &_1, const Media &_2) { return _1.filename() < _2.filename();}},
@@ -259,6 +260,8 @@ bool MediaCollectionBrowser::currentDirectoryHas( const Media &media ) const
 
 void MediaCollectionBrowser::Private::addDirectory( const shared_ptr<MediaDirectory> &directory )
 {
+  if(directory->allMedias().empty())
+    return;
   auto onClick = [=]( WMouseEvent )
   {
     browse( directory );
