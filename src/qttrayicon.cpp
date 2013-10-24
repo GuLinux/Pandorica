@@ -42,13 +42,7 @@ QtTrayIcon::~QtTrayIcon()
 
 
 QtTrayIcon::QtTrayIcon(Wt::WServer& wserver, QObject* parent): QObject(parent), wserver(wserver), 
-  systemTray(new QSystemTrayIcon{
-#ifdef WIN32
-    QIcon(":/tray-icon.png")
-#else
-    QIcon::fromTheme("pandorica")
-#endif
-  })
+  systemTray(new QSystemTrayIcon{QIcon::fromTheme("pandorica", QIcon(":/tray-icon.png")) })
 {
   systemTray->setToolTip("Pandorica");
   connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(appClosed()));
