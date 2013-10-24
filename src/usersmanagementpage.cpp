@@ -107,7 +107,6 @@ void UsersManagementPage::Private::addUserRow( const Dbo::ptr< AuthInfo > &user,
     session->execute("DELETE FROM \"auth_info\" WHERE id = ?").bind(user.id());
     populate();
   }));
-  WContainerWidget *groupsPanel = new WContainerWidget;
   for( auto group: transaction.session().find<Group>().resultList())
   {
     auto groupItem = groupsButton->menu()->addItem( group->groupName() );
