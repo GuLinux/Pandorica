@@ -157,7 +157,8 @@ bool AuthPage::Private::seedIfNoAdmins(dbo::Transaction& transaction, Auth::User
     addMyselfToAdmins->footer()->addWidget(WW<WPushButton>(wtr("button.ok")).onClick([=](WMouseEvent){
       dbo::Transaction t(*session);
       GroupPtr newGroup = session->add(new Group{groupName->text().toUTF8(), true});
-      newGroup.modify()->users.insert(session->user());
+      auto sessionUser = session->user();
+      newGroup.modify()->users.insert(sessionUser);
       t.commit();
       ::Utils::mailForNewAdmin(user.email(), user.identity("loginname"));
       addMyselfToAdmins->accept();
