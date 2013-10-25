@@ -59,6 +59,7 @@ UsersManagementPage::UsersManagementPage( Session *session, Wt::WContainerWidget
 {
   WLineEdit *inviteEmailAddress = WW<WLineEdit>().setMargin(5);
   inviteEmailAddress->setPlaceholderText(wtr("usersmanagement_invite_invite_email_address"));
+  inviteEmailAddress->setAttributeValue("type", "email");
   Dbo::Transaction t(*session);
   auto inviteOnGroups = make_shared<vector<Dbo::ptr<Group>>>();
   WPushButton *groupsButton = d->groupsButton(t,
