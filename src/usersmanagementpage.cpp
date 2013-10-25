@@ -70,7 +70,7 @@ UsersManagementPage::UsersManagementPage( Session *session, Wt::WContainerWidget
   groupsButton->setMargin(5);
   WCheckBox *sendEmailCheckbox = WW<WCheckBox>(wtr("usersmanagement_invite_send_email")).setMargin(5);
   sendEmailCheckbox->setCheckState(Wt::Checked);    
-  WPushButton *inviteButton = WW<WPushButton>(wtr("usersmanagement_invite_invite")).setMargin(5).css("btn btn-primary").onClick([=](WMouseEvent){
+  WPushButton *inviteButton = WW<WPushButton>(wtr("usersmanagement_invite_invite")).setMargin(5).css("btn btn-primary btn-small").onClick([=](WMouseEvent){
   // TODO: email validation;
     d->invite(inviteEmailAddress->text().toUTF8(), *inviteOnGroups);
     if(sendEmailCheckbox->checkState() == Wt::Checked)
@@ -83,8 +83,8 @@ UsersManagementPage::UsersManagementPage( Session *session, Wt::WContainerWidget
   });
 
   addWidget(WW<WGroupBox>(wtr("usersmanagement_invite_an_user")).css("fieldset-small").add(WW<WContainerWidget>().css("form-inline").add(inviteEmailAddress).add(groupsButton).add(inviteButton).add(sendEmailCheckbox)));
-  addWidget(WW<WGroupBox>(wtr("usersmanagement_invited_users")).css("fieldset-small").add(d->invitedUsersContainer = WW<WTable>().css("table table-striped table-bordered table-hover") ));
-  addWidget( WW<WGroupBox>(wtr("usersmanagement_registered_users")).css("fieldset-small").add(d->usersContainer = WW<WTable>().css("table table-striped table-bordered table-hover") ));
+  addWidget(WW<WGroupBox>(wtr("usersmanagement_invited_users")).css("fieldset-small").add(d->invitedUsersContainer = WW<WTable>().css("table table-striped table-condensed table-hover") ));
+  addWidget( WW<WGroupBox>(wtr("usersmanagement_registered_users")).css("fieldset-small").add(d->usersContainer = WW<WTable>().css("table table-striped table-condensed table-hover") ));
   d->populate();
 }
 
@@ -159,7 +159,7 @@ void UsersManagementPage::Private::addUserRow( Dbo::ptr< AuthInfo > &authInfo, D
                                 [=](const Dbo::ptr<Group> &group, Dbo::Transaction &t){ 
     user.modify()->groups.erase( group ); }
                                 ));
-  row->elementAt( 3 )->addWidget( WW<WPushButton>(wtr("button.remove")).css("btn btn-danger").onClick([=](WMouseEvent) {
+  row->elementAt( 3 )->addWidget( WW<WPushButton>(wtr("button.remove")).css("btn btn-danger btn-small").onClick([=](WMouseEvent) {
     auto confirmation = WMessageBox::show(wtr("usersmanagement_remove_user"),
                                           wtr("usersmanagement_remove_user_confirm_text")
                                           .arg(username).arg(userEmail), StandardButton::Ok | StandardButton::Cancel );
@@ -186,7 +186,7 @@ void UsersManagementPage::Private::addUserRow( Dbo::ptr< AuthInfo > &authInfo, D
 
 WPushButton *UsersManagementPage::Private::groupsButton( Dbo::Transaction &transaction, GroupSelection groupSelection, GroupModTrigger onGroupChecked, UsersManagementPage::Private::GroupModTrigger onGroupUnchecked )
 {
-  WPushButton *groupsButton = WW<WPushButton>(wtr("menu.groups")).css("btn");
+  WPushButton *groupsButton = WW<WPushButton>(wtr("menu.groups")).css("btn btn-small");
   groupsButton->setMenu( new WPopupMenu );
   for( auto group: transaction.session().find<Group>().resultList())
   {
