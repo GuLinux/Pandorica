@@ -308,11 +308,13 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
       o copia e incolla l'URL seguente nel tuo browser:</p>
       <p><b>{3}</b></p>
   </message>
-  <message id="unauthorized_user_login_subject">VideoStreaming: login utente non autorizzato</message>
+  
+
+  <message id="unauthorized_user_login_subject">Pandorica: login utente non autorizzato</message>
   <message id="unauthorized_user_login_body">L'utente {1} ({2}) ha appena provato a collegarsi.
     Dato che non risulta presente nella lista di utenti abilitati, deve essere moderato.
       Visita il sito {3}.</message>
-  <message id="new_admin_subject">VideoStreaming: nuovo amministratore aggiunto</message>
+  <message id="new_admin_subject">Pandorica: nuovo amministratore aggiunto</message>
   <message id="new_admin_body">L'utente {1} ({2}) è stato aggiunto alla lista di amministratori.</message>
 <message id="configure.app.deploytype">Tipo di Deploy</message>
 <message id="configure.app.deploytype.internal">Interno</message>
@@ -357,4 +359,10 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
 <message id="usersmanagement_username">Nome Utente</message>
 <message id="usersmanagement_remove_user">Rimozione Utente</message>
 <message id="usersmanagement_remove_user_confirm_text">Sei sicuro di voler rimuovere l'utente {1} ({2})?</message>
+<message id="usersmanagement_invite_invite_email_address">invita un indirizzo email</message>
+<message id="usersmanagement_invite_send_email">Invia Email</message>
+<message id="usersmanagement_invite_invite">Invita</message>
+<message id="usersmanagement_invite_an_user">Invita un Utente</message>
+<message id="usersmanagement_invited_users">Utenti Invitati</message>
+<message id="usersmanagement_registered_users">Utenti Registrati</message>
 </messages>

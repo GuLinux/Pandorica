@@ -52,6 +52,7 @@ public:
     static std::string titleHintFromFilename(std::string filename);
     static void mailForUnauthorizedUser(std::string email, Wt::WString identity);
     static void mailForNewAdmin(std::string email, Wt::WString identity);
+    static void inviteUserEmail(std::string email);
     static std::string formatFileSize(long size);
     static Wt::WInteractWidget *help(std::string titleKey, std::string contentKey, std::string side, Wt::WLength size = Wt::WLength::Auto);
     

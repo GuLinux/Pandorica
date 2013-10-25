@@ -240,11 +240,24 @@ clicking on the following link or copying the URL into your browser:
       <p><b>{3}</b></p>
   </message>
 
-  <message id="unauthorized_user_login_subject">VideoStreaming: unauthorized user login</message>
+  <message id="invite_user_subject">Pandorica Media Player</message>
+  <message id="invite_user_body">Hello! 
+    You are receiving this message because you were invited to use Pandorica Media Player!
+    You can login right now by clicking this URL: {1}.
+    If you think you received this message by error, please just ignore it.
+    Enjoy Pandorica!
+  </message>
+  <message id="invite_user_body_html"><i>Hello!</i>
+    You are receiving this message because you were invited to use <i><b>Pandorica Media Player</b></i>!
+    You can login right now by clicking <b><a href="{1}">this link</a></b>.
+    If you think you received this message by error, please just ignore it.
+    Enjoy <b>Pandorica</b>!
+  </message>
+  <message id="unauthorized_user_login_subject">Pandorica: unauthorized user login</message>
   <message id="unauthorized_user_login_body">The user {1} ({2}) just tried to login.
     Since it doesn't appear to be in the authorized users list, it needs to be moderated.
       Visit {3} to do it.</message>
-  <message id="new_admin_subject">VideoStreaming: new admin added</message>
+  <message id="new_admin_subject">Pandorica: new admin added</message>
   <message id="new_admin_body">The user {1} ({2}) was just added to the administrators list.</message>
   <message id="configure.app.deploytype">Deploy Type</message>
 <message id="configure.app.deploytype.internal">Internal</message>
@@ -305,4 +318,10 @@ For other webservers (Apache, Lighttpd, Ngnix) read the proper documentation.
 <message id="usersmanagement_username">Username</message>
 <message id="usersmanagement_remove_user">Remove User</message>
 <message id="usersmanagement_remove_user_confirm_text">Are you sure to remove user {1} ({2})?</message>
+<message id="usersmanagement_invite_invite_email_address">invite email address</message>
+<message id="usersmanagement_invite_send_email">Send Email</message>
+<message id="usersmanagement_invite_invite">Invite</message>
+<message id="usersmanagement_invite_an_user">Invite an User</message>
+<message id="usersmanagement_invited_users">Invited Users</message>
+<message id="usersmanagement_registered_users">Registered Users</message>
 </messages>

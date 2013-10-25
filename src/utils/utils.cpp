@@ -82,6 +82,19 @@ void Utils::mailForUnauthorizedUser( string email, WString identity )
   client.send( message );
 }
 
+void Utils::inviteUserEmail( string email )
+{
+  Mail::Client client;
+  Mail::Message message;
+  message.setFrom( Utils::Private::authMailbox() );
+  message.setSubject( WString::tr( "invite_user_subject" ) );
+  message.setBody( WString::tr( "invite_user_body" ).arg( wApp->makeAbsoluteUrl( wApp->bookmarkUrl( "/" ) ) ) );
+  message.addHtmlBody( WString::tr( "invite_user_body_html" ).arg( wApp->makeAbsoluteUrl( wApp->bookmarkUrl( "/" ) ) ) );
+  message.addRecipient( Mail::To, email );
+  client.connect();
+  client.send( message );
+}
+
 
 Mail::Mailbox Utils::Private::adminMailbox()
 {

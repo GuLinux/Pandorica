@@ -38,9 +38,10 @@ class UsersManagementPage::Private
     virtual ~Private();
 
     Session *session;
+    Wt::WTable *invitedUsersContainer;
     Wt::WTable *usersContainer;
     void populate();
-    void addUserRow(const Wt::Dbo::ptr<AuthInfo> &user, Wt::Dbo::Transaction &transaction);
+    void addUserRow( Wt::Dbo::ptr< AuthInfo > &authInfo, Wt::Dbo::ptr< User > &user, Wt::WTable *table, Wt::Dbo::Transaction &transaction );
     typedef std::function<void(const Wt::Dbo::ptr<Group>&, Wt::Dbo::Transaction &)> GroupModTrigger;
     typedef std::function<bool(const Wt::Dbo::ptr<Group>&)> GroupSelection;
     Wt::WPushButton *groupsButton(Wt::Dbo::Transaction &transaction, GroupSelection groupSelection, GroupModTrigger onGroupChecked, GroupModTrigger onGroupUnchecked);
