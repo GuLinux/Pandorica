@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WPopupMenu>
 #include <Wt/WImage>
 #include <Wt/WMemoryResource>
+#include <Wt/WCalendar>
 #include "Wt-Commons/wt_helpers.h"
 #include "Wt-Commons/wt_helpers.h"
 #include "settings.h"
@@ -56,6 +57,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WTable>
 #include <Wt/WToolBar>
 #include <Wt/WCheckBox>
+#include <Wt/WSlider>
+#include <Wt/WComboBox>
 #include "utils/d_ptr_implementation.h"
 #include "mediainfopanel.h"
 
@@ -139,10 +142,10 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
   WPushButton *filtersButton = WW<WPushButton>("Filters").css("btn btn-small").setMenu(new WPopupMenu);
   filtersButton->menu()->itemClosed().connect([=](WMenuItem *item, _n5) { d->mediaFilters.erase(item); reload(); });
   auto addFilterMenuItem = filtersButton->menu()->addSectionHeader("Add Filter...");
-  filtersButton->menu()->addItem("Title")->triggered().connect([=](WMenuItem*, _n5){ d->titleFilterDialog(filtersButton->menu()); });
-  filtersButton->menu()->addItem("Filename");
-  filtersButton->menu()->addItem("Date");
-  filtersButton->menu()->addItem("Rating");
+  filtersButton->menu()->addItem("Name")->triggered().connect([=](WMenuItem*, _n5){ d->titleFilterDialog(filtersButton->menu()); });
+//   filtersButton->menu()->addItem("Filename");
+  filtersButton->menu()->addItem("Date")->triggered().connect([=](WMenuItem*, _n5){ d->dateFilterDialog(filtersButton->menu()); });
+  filtersButton->menu()->addItem("Rating")->triggered().connect([=](WMenuItem*, _n5){ d->ratingFilterDialog(filtersButton->menu()); });
   filtersButton->menu()->addSeparator();
   filtersButton->menu()->addSectionHeader("Current Filters");
   breadcrumb->addWidget(WW<WToolBar>().addButton(reloadButton).addButton(viewModeButton).addButton(sortByButton).addButton(filtersButton));
@@ -161,21 +164,84 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
 
 void MediaCollectionBrowser::Private::titleFilterDialog( WMenu *menu )
 {
-  WDialog *dialog = new WDialog("Filter by title");
+  WDialog *dialog = new WDialog("Filter by name");
   dialog->setModal(true);
   dialog->setClosable(true);
-  WLineEdit *titleLineEdit = new WLineEdit;
+  WLineEdit *titleLineEdit = WW<WLineEdit>().css("input-block-level");
   titleLineEdit->setEmptyText("insert title filter");
-  WCheckBox *caseSensitiveCheckbox = new WCheckBox("Case sensitive");
+  WCheckBox *caseSensitiveCheckbox = WW<WCheckBox>("Case sensitive").css("input-block-level");
   dialog->contents()->addWidget(titleLineEdit);
   dialog->contents()->addWidget(caseSensitiveCheckbox);
-  dialog->footer()->addWidget(WW<WPushButton>("OK").css("btn btn-primary").onClick([=](WMouseEvent){
+  WPushButton *okButton;
+  dialog->footer()->addWidget(okButton = WW<WPushButton>(wtr("button.ok")).disable().css("btn btn-primary").onClick([=](WMouseEvent){
     auto menuItem = menu->addItem(WString("Title contains {1}").arg(titleLineEdit->text()));
     menuItem->setCloseable(true);
     mediaFilters[menuItem] = [=] (Dbo::Transaction &t, const Media &media) {
       string filter = titleLineEdit->text().toUTF8();
       string mediaTitle = media.title(t).toUTF8();
       return caseSensitiveCheckbox->checkState() == Wt::Checked ? boost::algorithm::contains(mediaTitle, filter) : boost::algorithm::icontains(mediaTitle, filter) ;
+    };
+    dialog->done(WDialog::DialogCode::Accepted);
+    q->reload();
+  }));
+  auto checkButtonEnabled = [=] { okButton->setEnabled(!titleLineEdit->text().empty()); };
+  titleLineEdit->changed().connect([=](_n1){ checkButtonEnabled(); });
+  titleLineEdit->keyWentUp().connect([=](WKeyEvent) { checkButtonEnabled(); } );
+  dialog->show();
+}
+
+void MediaCollectionBrowser::Private::dateFilterDialog( WMenu *menu )
+{
+  WDialog *dialog = new WDialog("Filter by date");
+  dialog->setModal(true);
+  dialog->setClosable(true);
+  WCalendar *calendar = new WCalendar();
+  calendar->select(WDate::currentDate());
+  WComboBox *dateFilterType = WW<WComboBox>().addCss("input-block-level");
+  dateFilterType->addItem("Date is at least...");
+  dateFilterType->addItem("Date is at most...");
+  dialog->contents()->addWidget(dateFilterType);
+  dialog->contents()->addWidget(calendar);
+  WPushButton *okButton;
+  dialog->footer()->addWidget(okButton = WW<WPushButton>(wtr("button.ok")).css("btn btn-primary").onClick([=](WMouseEvent){
+    int dateFilterTypeIndex = dateFilterType->currentIndex();
+    auto menuItem = menu->addItem(WString(dateFilterTypeIndex>0 ? "Date lesser than {1}" : "Date greater than {1}").arg(calendar->selection().begin()->toString()));
+    menuItem->setCloseable(true);
+    mediaFilters[menuItem] = [=] (Dbo::Transaction &t, const Media &media) {
+      if(dateFilterTypeIndex == 0)
+        return media.creationTime(t).date() >= *calendar->selection().begin();
+      return media.creationTime(t).date() <= *calendar->selection().begin();
+    };
+    dialog->done(WDialog::DialogCode::Accepted);
+    q->reload();
+  }));
+  dialog->show();
+}
+
+void MediaCollectionBrowser::Private::ratingFilterDialog( WMenu *menu )
+{
+  WDialog *dialog = new WDialog("Filter by rating");
+  dialog->setModal(true);
+  dialog->setClosable(true);
+  WComboBox *ratingFilterType = WW<WComboBox>().addCss("input-block-level");
+  ratingFilterType->addItem("Rating is at least...");
+  ratingFilterType->addItem("Rating is at most...");
+  WSlider *ratingSlider = new WSlider(Wt::Horizontal);
+  ratingSlider->setMinimum(0);
+  ratingSlider->setMaximum(5);
+  ratingSlider->setNativeControl(true);
+  ratingSlider->setTickInterval(1);
+  dialog->contents()->addWidget( ratingFilterType );
+  dialog->contents()->addWidget(ratingSlider);
+  WPushButton *okButton;
+  dialog->footer()->addWidget(okButton = WW<WPushButton>(wtr("button.ok")).css("btn btn-primary").onClick([=](WMouseEvent){
+    int ratingFilterTypeIndex = ratingFilterType->currentIndex();
+    auto menuItem = menu->addItem(WString( ratingFilterTypeIndex >0 ? "Rating lesser than {1}" : "Rating greater than {1}").arg(ratingSlider->value()));
+    menuItem->setCloseable(true);
+    mediaFilters[menuItem] = [=] (Dbo::Transaction &t, const Media &media) {
+      if(ratingFilterTypeIndex == 0)
+        return MediaRating::ratingFor(media, t).ratingAverage >= ratingSlider->value();
+      return MediaRating::ratingFor(media, t).ratingAverage <= ratingSlider->value();
     };
     dialog->done(WDialog::DialogCode::Accepted);
     q->reload();
