@@ -35,6 +35,7 @@
 #include <Wt/WCheckBox>
 #include <Wt/WGroupBox>
 #include <Wt/WGroupBox>
+#include <Wt/WRegExpValidator>
 #include "Models/models.h"
 #include "Wt-Commons/wt_helpers.h"
 #include "pandorica.h"
@@ -59,6 +60,8 @@ UsersManagementPage::UsersManagementPage( Session *session, Wt::WContainerWidget
   : d( this, session )
 {
   WLineEdit *inviteEmailAddress = WW<WLineEdit>().setMargin(5);
+  inviteEmailAddress->setValidator(new WRegExpValidator("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}"));
+  inviteEmailAddress->validator()->setMandatory(true);
   inviteEmailAddress->setPlaceholderText(wtr("usersmanagement_invite_invite_email_address"));
   inviteEmailAddress->setAttributeValue("type", "email");
   Dbo::Transaction t(*session);
@@ -72,7 +75,10 @@ UsersManagementPage::UsersManagementPage( Session *session, Wt::WContainerWidget
   WCheckBox *sendEmailCheckbox = WW<WCheckBox>(wtr("usersmanagement_invite_send_email")).setMargin(5);
   sendEmailCheckbox->setCheckState(Wt::Checked);    
   WPushButton *inviteButton = WW<WPushButton>(wtr("usersmanagement_invite_invite")).setMargin(5).css("btn btn-primary btn-small").onClick([=](WMouseEvent){
-  // TODO: email validation;
+    if(inviteEmailAddress->validate() != WValidator::Valid) {
+      WMessageBox::show(wtr("error"), wtr("validation_email_invalid"), StandardButton::Ok);
+      return;
+    }
     d->invite(inviteEmailAddress->text().toUTF8(), *inviteOnGroups, sendEmailCheckbox->checkState() == Wt::Checked);
     for(auto menuItem: groupsButton->menu()->items())
       menuItem->setChecked(false);

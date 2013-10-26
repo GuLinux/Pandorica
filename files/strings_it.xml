@@ -372,4 +372,5 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
 <message id="usersmanagement_invite_invitation_successful_body">{1} è stato correttamente aggiunto alla lista degli utenti invitati.<br />
 È stata inviata una email a {1} per notificare l'invito.</message>
 <message id="usersmanagement_invite_invitation_successful_email_sent">{1} è stato correttamente aggiunto alla lista degli utenti invitati.</message>
+<message id="validation_email_invalid">Per favore inserire un indirizzo email valido.</message>
 </messages>
