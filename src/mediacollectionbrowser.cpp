@@ -229,10 +229,12 @@ void MediaCollectionBrowser::Private::ratingFilterDialog( WMenu *menu )
   WSlider *ratingSlider = new WSlider(Wt::Horizontal);
   ratingSlider->setMinimum(0);
   ratingSlider->setMaximum(5);
-  ratingSlider->setNativeControl(true);
   ratingSlider->setTickInterval(1);
+  WText *currentValue = WW<WText>(ratingSlider->valueText()).setMargin(5, Side::Left);
+  ratingSlider->valueChanged().connect([=](int rating, _n5){ currentValue->setText(boost::lexical_cast<string>(rating));});
   dialog->contents()->addWidget( ratingFilterType );
   dialog->contents()->addWidget(ratingSlider);
+  dialog->contents()->addWidget(currentValue);
   WPushButton *okButton;
   dialog->footer()->addWidget(okButton = WW<WPushButton>(wtr("button.ok")).css("btn btn-primary").onClick([=](WMouseEvent){
     int ratingFilterTypeIndex = ratingFilterType->currentIndex();
