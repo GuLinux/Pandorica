@@ -117,6 +117,16 @@ Dbo::ptr< MediaAttachment > Media::preview(Dbo::Transaction& transaction, Media:
 }
 
 
+WDateTime Media::creationTime(Wt::Dbo::Transaction &transaction) const
+{
+  auto mediaProperties = this->properties(transaction);
+  if(!mediaProperties) {
+    boost::posix_time::ptime lastWrite = boost::posix_time::from_time_t(boost::filesystem::last_write_time(m_path));
+    return WDateTime::fromPosixTime(lastWrite);
+  }
+  return mediaProperties->creationTime();
+}
+
 Dbo::collection<MediaAttachmentPtr> Media::subtitles(Dbo::Transaction& transaction) const
 {
   return transaction.session().find<MediaAttachment>().where("media_id = ? AND type = 'subtitles'").bind(uid()).resultList();

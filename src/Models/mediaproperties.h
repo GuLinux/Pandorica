@@ -47,6 +47,7 @@ public:
   inline int width() const { return _width; }
   inline int height() const { return _height; }
   inline Wt::WDateTime creationTime() const { return Wt::WDateTime::fromPosixTime(_creationTime); }
+  inline boost::posix_time::ptime posixCreationTime() const { return _creationTime; }
   void setTitle(const std::string &title) { _title = title; }
   void setFileName(const std::string &fileName) { _filename = fileName; }
   MediaProperties() = default;

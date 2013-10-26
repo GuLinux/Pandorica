@@ -57,7 +57,7 @@ public:
   static Media invalid();
   bool operator ==(const Media &other) const;
   friend std::ostream & operator<<( std::ostream &os, const Media &m );
-
+  Wt::WDateTime creationTime(Wt::Dbo::Transaction &transaction) const;
 private:
   boost::filesystem::path m_path;
   std::string m_uid;
