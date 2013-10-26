@@ -46,11 +46,15 @@ class Pandorica : public Wt::WApplication
     virtual void refresh();
     void authEvent();
     Wt::Signal<Wt::WApplication *> &aboutToQuit() const;
+    enum NotificationType { Alert, Error, Success, Information };
+    void notify(const Wt::WString &text, NotificationType notificationType, int autocloseAfterSeconds = 0);
   protected:
     virtual void notify( const Wt::WEvent &e );
   private:
     PandoricaPrivate::PandoricaPrivate *const d;
   private:
 };
+
+#define pApp dynamic_cast<Pandorica*>(wApp)
 
 #endif // STREAMINGAPP_H

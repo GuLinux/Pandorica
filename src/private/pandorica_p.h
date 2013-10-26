@@ -80,6 +80,7 @@ namespace PandoricaPrivate {
     Wt::WContainerWidget * userSettingsPage;
     Wt::Signal<PlaylistItem*> nowPlaying;
     Wt::Signal<Wt::WApplication*> aboutToQuit;
+    Wt::WContainerWidget *notifications;
   private:
     void ratingFor(Media media, Wt::Dbo::Transaction t);
     Wt::WMenuItem* activeUsersMenuItem = 0;

@@ -365,4 +365,11 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
 <message id="usersmanagement_invite_an_user">Invita un Utente</message>
 <message id="usersmanagement_invited_users">Utenti Invitati</message>
 <message id="usersmanagement_registered_users">Utenti Registrati</message>
+<message id="error">Errore</message>
+<message id="usersmanagement_invite_user_already_existing">Errore: {1} è già un utente registrato</message>
+<message id="usersmanagement_invite_user_already_invited">Errore: {1} è già stato invitato.</message>
+<message id="usersmanagement_invite_invitation_successful">Invitato con successo</message>
+<message id="usersmanagement_invite_invitation_successful_body">{1} è stato correttamente aggiunto alla lista degli utenti invitati.<br />
+È stata inviata una email a {1} per notificare l'invito.</message>
+<message id="usersmanagement_invite_invitation_successful_email_sent">{1} è stato correttamente aggiunto alla lista degli utenti invitati.</message>
 </messages>

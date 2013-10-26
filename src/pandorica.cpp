@@ -157,6 +157,26 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
 }
 
 
+void Pandorica::notify( const WString &text, Pandorica::NotificationType notificationType, int autocloseAfterSeconds )
+{
+  static map<NotificationType,string> notificationTypes {
+    { Alert, "" },
+    { Error, "alert-error" },
+    { Success, "alert-success" },
+    { Information, "alert-information" },
+  };
+  WPushButton *closeButton = WW<WPushButton>().setTextFormat(Wt::XHTMLText).setText("&times;").css("close").setAttribute("data-dismiss", "alert");
+  WContainerWidget *notification = WW<WContainerWidget>().addCss("alert alert-block pandorica-notification").addCss(notificationTypes[notificationType]).add(closeButton).add(new WText(text));
+  d->notifications->addWidget(notification);
+  if(autocloseAfterSeconds > 0) {
+    WTimer::singleShot(autocloseAfterSeconds * 1000, [=](WMouseEvent) {
+      delete notification;
+    });
+  }
+}
+
+
+
 void Pandorica::authEvent()
 {
   Dbo::Transaction t(*d->session);
@@ -170,6 +190,7 @@ void Pandorica::authEvent()
   wApp->log("notice") << "created sessionInfo with sessionId=" << sessionInfoPtr->sessionId();
   d->mediaCollection = new MediaCollection(&d->settings, d->session, this);
   d->mainWidget->addWidget(d->navigationBar = new NavigationBar(d->session, d->mediaCollection, &d->settings));
+  d->mainWidget->addWidget(d->notifications = WW<WContainerWidget>());
   d->widgetsStack = new WStackedWidget();
   d->widgetsStack->setTransitionAnimation({WAnimation::Fade});
   d->navigationBar->setup(t, d->widgetsStack, {

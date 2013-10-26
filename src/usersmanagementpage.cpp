@@ -37,6 +37,7 @@
 #include <Wt/WGroupBox>
 #include "Models/models.h"
 #include "Wt-Commons/wt_helpers.h"
+#include "pandorica.h"
 
 using namespace Wt;
 using namespace std;
@@ -72,9 +73,7 @@ UsersManagementPage::UsersManagementPage( Session *session, Wt::WContainerWidget
   sendEmailCheckbox->setCheckState(Wt::Checked);    
   WPushButton *inviteButton = WW<WPushButton>(wtr("usersmanagement_invite_invite")).setMargin(5).css("btn btn-primary btn-small").onClick([=](WMouseEvent){
   // TODO: email validation;
-    d->invite(inviteEmailAddress->text().toUTF8(), *inviteOnGroups);
-    if(sendEmailCheckbox->checkState() == Wt::Checked)
-      Utils::inviteUserEmail(inviteEmailAddress->text().toUTF8());
+    d->invite(inviteEmailAddress->text().toUTF8(), *inviteOnGroups, sendEmailCheckbox->checkState() == Wt::Checked);
     for(auto menuItem: groupsButton->menu()->items())
       menuItem->setChecked(false);
     inviteOnGroups->clear();
@@ -88,25 +87,30 @@ UsersManagementPage::UsersManagementPage( Session *session, Wt::WContainerWidget
   d->populate();
 }
 
-void UsersManagementPage::Private::invite(std::string email, const std::vector<Wt::Dbo::ptr<Group>> &groups)
+void UsersManagementPage::Private::invite(std::string email, const std::vector<Wt::Dbo::ptr<Group>> &groups, bool sendEmail)
 {
   Dbo::Transaction t(*session);
-  long existingUsers = session->query<long>("SELECT COUNT(*) FROM auth_info WHERE email = ? OR unverified_email = ?");
+  long existingUsers = session->query<long>("SELECT COUNT(*) FROM auth_info WHERE email = ? OR unverified_email = ?").bind(email).bind(email);
   if(existingUsers > 0) {
     cerr << "User already existing: " << email << endl;
-    // TODO: gui message
+    WMessageBox::show(wtr("error"), wtr("usersmanagement_invite_user_already_existing").arg(email), StandardButton::Ok);
     return;
   }
-  existingUsers = session->query<long>("SELECT COUNT(*) FROM user WHERE invited_email_address = ?");
+  existingUsers = session->query<long>("SELECT COUNT(*) FROM \"user\" WHERE invited_email_address = ?").bind(email);
   if(existingUsers > 0) {
-    cerr << "User already invited: " << email << endl;
-    // TODO: gui message
+    WMessageBox::show(wtr("error"), wtr("usersmanagement_invite_user_already_invited").arg(email), StandardButton::Ok);
     return;
   }
   auto newUser = session->add(new User);
   for(auto group: groups)
     newUser.modify()->groups.insert(group);
   newUser.modify()->invitedEmailAddress = email;
+  if(sendEmail) {
+    Utils::inviteUserEmail(email);
+    WMessageBox::show(wtr("usersmanagement_invite_invitation_successful"), wtr("usersmanagement_invite_invitation_successful_email_sent").arg(email), StandardButton::Ok);
+  } else {
+    WMessageBox::show(wtr("usersmanagement_invite_invitation_successful"), wtr("usersmanagement_invite_invitation_successful_body"), StandardButton::Ok);
+  }
 }
 
 void UsersManagementPage::Private::populate()
