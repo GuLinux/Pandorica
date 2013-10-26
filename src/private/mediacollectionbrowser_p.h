@@ -94,6 +94,8 @@ public:
     void clearThumbnailsFor(Media media);
     void clearAttachmentsFor(Media media);
     void setPosterFor(Media media);
+    std::map<Wt::WMenuItem*, std::function<bool(Wt::Dbo::Transaction &, const Media&)>> mediaFilters;
+    void titleFilterDialog(Wt::WMenu *menu);
 private:
     void addDirectory( const std::shared_ptr< MediaDirectory > &directory );
     void addMedia(Media& media);

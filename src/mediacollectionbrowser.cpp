@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "utils/utils.h"
 
 #include <boost/format.hpp>
+#include <boost/algorithm/string.hpp>
 #include <algorithm>
 #include <Wt/Dbo/Transaction>
 #include <Wt/WTime>
@@ -54,6 +55,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WTimer>
 #include <Wt/WTable>
 #include <Wt/WToolBar>
+#include <Wt/WCheckBox>
 #include "utils/d_ptr_implementation.h"
 #include "mediainfopanel.h"
 
@@ -104,8 +106,7 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
     collection->rescan( t );
     d->browse( d->currentPath == d->flatPath ? d->flatPath : d->rootPath );
   } );
-  WPushButton *sortByButton = WW<WPushButton>(wtr("mediacollectionbrowser_sort_by")).css("btn btn-small");
-  WPopupMenu *sortByMenu = new WPopupMenu(); 
+  WPushButton *sortByButton = WW<WPushButton>(wtr("mediacollectionbrowser_sort_by")).css("btn btn-small").setMenu(new WPopupMenu);
   shared_ptr<vector<WMenuItem*>> sortMenuGroup(new vector<WMenuItem*>);
   shared_ptr<vector<WMenuItem*>> sortOrderMenuGroup(new vector<WMenuItem*>);
   auto addCheckableItem = [=](WMenu *menu, const WString &label, function<void()> onClick, const shared_ptr<vector<WMenuItem*>> &group) {
@@ -120,22 +121,31 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
     group->push_back(item);
     return item;
   };
-  addCheckableItem(sortByMenu, wtr("mediacollectionbrowser_file_name"), [=]{d->sortBy = Private::Alpha; reload(); }, sortMenuGroup)->setChecked(d->sortBy == Private::Alpha);
-  addCheckableItem(sortByMenu, wtr("mediacollectionbrowser_date_added"), [=]{d->sortBy = Private::Date; reload(); }, sortMenuGroup)->setChecked(d->sortBy == Private::Date);
-  addCheckableItem(sortByMenu, wtr("mediacollectionbrowser_rating"), [=]{d->sortBy = Private::Rating; reload(); }, sortMenuGroup)->setChecked(d->sortBy == Private::Rating);
-  sortByMenu->addSeparator();
-  addCheckableItem(sortByMenu, wtr("mediacollectionbrowser_ascending"), [=]{d->sortDirection = Private::Asc; reload(); }, sortOrderMenuGroup)->setChecked(d->sortDirection == Private::Asc);
-  addCheckableItem(sortByMenu, wtr("mediacollectionbrowser_descending"), [=]{d->sortDirection = Private::Desc; reload(); }, sortOrderMenuGroup)->setChecked(d->sortDirection == Private::Desc);
-  sortByButton->setMenu(sortByMenu);
+  addCheckableItem(sortByButton->menu(), wtr("mediacollectionbrowser_file_name"), [=]{d->sortBy = Private::Alpha; reload(); }, sortMenuGroup)->setChecked(d->sortBy == Private::Alpha);
+  addCheckableItem(sortByButton->menu(), wtr("mediacollectionbrowser_date_added"), [=]{d->sortBy = Private::Date; reload(); }, sortMenuGroup)->setChecked(d->sortBy == Private::Date);
+  addCheckableItem(sortByButton->menu(), wtr("mediacollectionbrowser_rating"), [=]{d->sortBy = Private::Rating; reload(); }, sortMenuGroup)->setChecked(d->sortBy == Private::Rating);
+  sortByButton->menu()->addSeparator();
+  addCheckableItem(sortByButton->menu(), wtr("mediacollectionbrowser_ascending"), [=]{d->sortDirection = Private::Asc; reload(); }, sortOrderMenuGroup)->setChecked(d->sortDirection == Private::Asc);
+  addCheckableItem(sortByButton->menu(), wtr("mediacollectionbrowser_descending"), [=]{d->sortDirection = Private::Desc; reload(); }, sortOrderMenuGroup)->setChecked(d->sortDirection == Private::Desc);
+  sortByButton->setMenu(sortByButton->menu());
 
   shared_ptr<vector<WMenuItem*>> viewModeItems(new vector<WMenuItem*>);
-  WPushButton *viewModeButton = WW<WPushButton>(wtr("mediacollectionbrowser_view_mode")).css("btn btn-small");
-  WPopupMenu *viewModeMenu = new WPopupMenu();
-  viewModeButton->setMenu(viewModeMenu);
+  WPushButton *viewModeButton = WW<WPushButton>(wtr("mediacollectionbrowser_view_mode")).css("btn btn-small").setMenu(new WPopupMenu);
   
-  addCheckableItem(viewModeMenu, wtr("mediacollectionbrowser_filesystem_view"), [=]{ d->browse(d->rootPath); }, viewModeItems)->setChecked(true);
-  addCheckableItem(viewModeMenu, wtr("mediacollectionbrowser_all_medias"), [=]{ d->browse(d->flatPath); }, viewModeItems);
-  breadcrumb->addWidget(WW<WToolBar>().addButton(reloadButton).addButton(viewModeButton).addButton(sortByButton));
+  
+  addCheckableItem(viewModeButton->menu(), wtr("mediacollectionbrowser_filesystem_view"), [=]{ d->browse(d->rootPath); }, viewModeItems)->setChecked(true);
+  addCheckableItem(viewModeButton->menu(), wtr("mediacollectionbrowser_all_medias"), [=]{ d->browse(d->flatPath); }, viewModeItems);
+
+  WPushButton *filtersButton = WW<WPushButton>("Filters").css("btn btn-small").setMenu(new WPopupMenu);
+  filtersButton->menu()->itemClosed().connect([=](WMenuItem *item, _n5) { d->mediaFilters.erase(item); reload(); });
+  auto addFilterMenuItem = filtersButton->menu()->addSectionHeader("Add Filter...");
+  filtersButton->menu()->addItem("Title")->triggered().connect([=](WMenuItem*, _n5){ d->titleFilterDialog(filtersButton->menu()); });
+  filtersButton->menu()->addItem("Filename");
+  filtersButton->menu()->addItem("Date");
+  filtersButton->menu()->addItem("Rating");
+  filtersButton->menu()->addSeparator();
+  filtersButton->menu()->addSectionHeader("Current Filters");
+  breadcrumb->addWidget(WW<WToolBar>().addButton(reloadButton).addButton(viewModeButton).addButton(sortByButton).addButton(filtersButton));
   breadcrumb->addWidget(d->breadcrumb);
   addWidget( breadcrumb );
   addWidget( d->goToParent = WW<WPushButton>( wtr( "button.parent.directory" ) ).css( "btn btn-block hidden-desktop" ).onClick( [ = ]( WMouseEvent )
@@ -148,6 +158,31 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
   d->setup(desktopMediaInfoPanel);
   d->setup(mobileMediaInfoPanelWidget);
 }
+
+void MediaCollectionBrowser::Private::titleFilterDialog( WMenu *menu )
+{
+  WDialog *dialog = new WDialog("Filter by title");
+  dialog->setModal(true);
+  dialog->setClosable(true);
+  WLineEdit *titleLineEdit = new WLineEdit;
+  titleLineEdit->setEmptyText("insert title filter");
+  WCheckBox *caseSensitiveCheckbox = new WCheckBox("Case sensitive");
+  dialog->contents()->addWidget(titleLineEdit);
+  dialog->contents()->addWidget(caseSensitiveCheckbox);
+  dialog->footer()->addWidget(WW<WPushButton>("OK").css("btn btn-primary").onClick([=](WMouseEvent){
+    auto menuItem = menu->addItem(WString("Title contains {1}").arg(titleLineEdit->text()));
+    menuItem->setCloseable(true);
+    mediaFilters[menuItem] = [=] (Dbo::Transaction &t, const Media &media) {
+      string filter = titleLineEdit->text().toUTF8();
+      string mediaTitle = media.title(t).toUTF8();
+      return caseSensitiveCheckbox->checkState() == Wt::Checked ? boost::algorithm::contains(mediaTitle, filter) : boost::algorithm::icontains(mediaTitle, filter) ;
+    };
+    dialog->done(WDialog::DialogCode::Accepted);
+    q->reload();
+  }));
+  dialog->show();
+}
+
 
 void MediaCollectionBrowser::reload()
 {
@@ -273,6 +308,9 @@ void MediaCollectionBrowser::Private::addMedia( Media &media )
   wApp->log( "notice" ) << "adding media " << media.path();
   Dbo::Transaction t( *session );
 
+  for(auto filter: mediaFilters)
+    if(! filter.second(t, media))
+      return;
   auto onClick = [ = ]( WMouseEvent e )
   {
     infoRequested.emit(media);
