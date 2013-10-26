@@ -53,11 +53,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WGroupBox>
 #include <Wt/WTimer>
 #include <Wt/WTable>
+#include <Wt/WToolBar>
 #include "utils/d_ptr_implementation.h"
 #include "mediainfopanel.h"
 
-
-#define ROOT_PATH_ID "///ROOT///"
 
 using namespace Wt;
 using namespace std;
@@ -136,7 +135,7 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
   
   addCheckableItem(viewModeMenu, wtr("mediacollectionbrowser_filesystem_view"), [=]{ d->browse(d->rootPath); }, viewModeItems)->setChecked(true);
   addCheckableItem(viewModeMenu, wtr("mediacollectionbrowser_all_medias"), [=]{ d->browse(d->flatPath); }, viewModeItems);
-  breadcrumb->addWidget(WW<WContainerWidget>().css("btn-group").add(reloadButton).add(viewModeButton).add(sortByButton));
+  breadcrumb->addWidget(WW<WToolBar>().addButton(reloadButton).addButton(viewModeButton).addButton(sortByButton));
   breadcrumb->addWidget(d->breadcrumb);
   addWidget( breadcrumb );
   addWidget( d->goToParent = WW<WPushButton>( wtr( "button.parent.directory" ) ).css( "btn btn-block hidden-desktop" ).onClick( [ = ]( WMouseEvent )
