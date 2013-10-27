@@ -223,7 +223,7 @@ void MediaCollectionBrowser::Private::dateFilterDialog( WMenu *menu )
   auto onDialogOk = [=]{
     int dateFilterTypeIndex = dateFilterType->currentIndex();
     return FilterDialogResult {
-      wtr(dateFilterTypeIndex>0 ? "mediacollectionbrowser_filters_dategt_menuitem" : "mediacollectionbrowser_filters_datelt_menuitem")
+      wtr(dateFilterTypeIndex>0 ? "mediacollectionbrowser_filters_datelt_menuitem" : "mediacollectionbrowser_filters_dategt_menuitem")
         .arg(calendar->selection().begin()->toString()),
       [=] (Dbo::Transaction &t, const Media &media) {
         if(dateFilterTypeIndex == 0)
@@ -256,7 +256,7 @@ void MediaCollectionBrowser::Private::ratingFilterDialog( WMenu *menu )
   auto onDialogOk = [=] {
     int ratingFilterTypeIndex = ratingFilterType->currentIndex();
     return FilterDialogResult {
-      wtr( ratingFilterTypeIndex >0 ? "mediacollectionbrowser_filters_ratinggt_menuitem" : "mediacollectionbrowser_filters_ratinglt_menuitem").arg(ratingSlider->value()),
+      wtr( ratingFilterTypeIndex >0 ? "mediacollectionbrowser_filters_ratinglt_menuitem" : "mediacollectionbrowser_filters_ratinggt_menuitem").arg(ratingSlider->value()),
       [=] (Dbo::Transaction &t, const Media &media) {
         if(ratingFilterTypeIndex == 0)
           return MediaRating::ratingFor(media, t).ratingAverage >= ratingSlider->value();
