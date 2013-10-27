@@ -93,7 +93,7 @@ Session::Session(bool full)
   : d()
 {
   d->createConnection();
-  d->connection->setProperty("show-queries", "true");
+  d->connection->setProperty("show-queries", "false");
   setConnection(*d->connection);
   mapClass<User>("user");
   mapClass<Group>("group");
