@@ -139,15 +139,15 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
   addCheckableItem(viewModeButton->menu(), wtr("mediacollectionbrowser_filesystem_view"), [=]{ d->browse(d->rootPath); }, viewModeItems)->setChecked(true);
   addCheckableItem(viewModeButton->menu(), wtr("mediacollectionbrowser_all_medias"), [=]{ d->browse(d->flatPath); }, viewModeItems);
 
-  WPushButton *filtersButton = WW<WPushButton>("Filters").css("btn btn-small").setMenu(new WPopupMenu);
+  WPushButton *filtersButton = WW<WPushButton>(wtr("mediacollectionbrowser_filters")).css("btn btn-small").setMenu(new WPopupMenu);
   filtersButton->menu()->itemClosed().connect([=](WMenuItem *item, _n5) { d->mediaFilters.erase(item); reload(); });
-  auto addFilterMenuItem = filtersButton->menu()->addSectionHeader("Add Filter...");
-  filtersButton->menu()->addItem("Name")->triggered().connect([=](WMenuItem*, _n5){ d->titleFilterDialog(filtersButton->menu()); });
+  auto addFilterMenuItem = filtersButton->menu()->addSectionHeader(wtr("mediacollectionbrowser_filters_add_filter"));
+  filtersButton->menu()->addItem(wtr("mediacollectionbrowser_filters_name"))->triggered().connect([=](WMenuItem*, _n5){ d->titleFilterDialog(filtersButton->menu()); });
 //   filtersButton->menu()->addItem("Filename");
-  filtersButton->menu()->addItem("Date")->triggered().connect([=](WMenuItem*, _n5){ d->dateFilterDialog(filtersButton->menu()); });
-  filtersButton->menu()->addItem("Rating")->triggered().connect([=](WMenuItem*, _n5){ d->ratingFilterDialog(filtersButton->menu()); });
+  filtersButton->menu()->addItem(wtr("mediacollectionbrowser_filters_date"))->triggered().connect([=](WMenuItem*, _n5){ d->dateFilterDialog(filtersButton->menu()); });
+  filtersButton->menu()->addItem(wtr("mediacollectionbrowser_filters_rating"))->triggered().connect([=](WMenuItem*, _n5){ d->ratingFilterDialog(filtersButton->menu()); });
   filtersButton->menu()->addSeparator();
-  filtersButton->menu()->addSectionHeader("Current Filters");
+  filtersButton->menu()->addSectionHeader(wtr("mediacollectionbrowser_filters_current_filters"));
   breadcrumb->addWidget(WW<WToolBar>().addButton(reloadButton).addButton(viewModeButton).addButton(sortByButton).addButton(filtersButton));
   breadcrumb->addWidget(d->breadcrumb);
   addWidget( breadcrumb );
@@ -162,93 +162,116 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
   d->setup(mobileMediaInfoPanelWidget);
 }
 
-void MediaCollectionBrowser::Private::titleFilterDialog( WMenu *menu )
+
+void MediaCollectionBrowser::Private::addFilterDialog( const WString &title, WWidget *content, function<FilterDialogResult()> onOkClicked, std::function<void(Wt::WPushButton*)> okButtonEnabler, WMenu *menu )
 {
-  WDialog *dialog = new WDialog("Filter by name");
+  WDialog *dialog = new WDialog(title);
   dialog->setModal(true);
   dialog->setClosable(true);
-  WLineEdit *titleLineEdit = WW<WLineEdit>().css("input-block-level");
-  titleLineEdit->setEmptyText("insert title filter");
-  WCheckBox *caseSensitiveCheckbox = WW<WCheckBox>("Case sensitive").css("input-block-level");
-  dialog->contents()->addWidget(titleLineEdit);
-  dialog->contents()->addWidget(caseSensitiveCheckbox);
+  dialog->contents()->addWidget(content);
   WPushButton *okButton;
-  dialog->footer()->addWidget(okButton = WW<WPushButton>(wtr("button.ok")).disable().css("btn btn-primary").onClick([=](WMouseEvent){
-    auto menuItem = menu->addItem(WString("Title contains {1}").arg(titleLineEdit->text()));
+  dialog->footer()->addWidget(okButton = WW<WPushButton>(wtr("button.ok")).css("btn btn-primary").onClick([=](WMouseEvent){
+    FilterDialogResult result = onOkClicked();
+    auto menuItem = menu->addItem(result.menuItemTitle);
     menuItem->setCloseable(true);
-    mediaFilters[menuItem] = [=] (Dbo::Transaction &t, const Media &media) {
-      string filter = titleLineEdit->text().toUTF8();
-      string mediaTitle = media.title(t).toUTF8();
-      return caseSensitiveCheckbox->checkState() == Wt::Checked ? boost::algorithm::contains(mediaTitle, filter) : boost::algorithm::icontains(mediaTitle, filter) ;
-    };
+    mediaFilters[menuItem] = result.mediaFilter;
     dialog->done(WDialog::DialogCode::Accepted);
     q->reload();
   }));
-  auto checkButtonEnabled = [=] { okButton->setEnabled(!titleLineEdit->text().empty()); };
-  titleLineEdit->changed().connect([=](_n1){ checkButtonEnabled(); });
-  titleLineEdit->keyWentUp().connect([=](WKeyEvent) { checkButtonEnabled(); } );
+  okButtonEnabler(okButton);
   dialog->show();
+}
+
+
+void MediaCollectionBrowser::Private::titleFilterDialog( WMenu *menu )
+{
+  WLineEdit *titleLineEdit = WW<WLineEdit>().css("input-block-level");
+  titleLineEdit->setEmptyText("insert title filter");
+  WCheckBox *caseSensitiveCheckbox = WW<WCheckBox>("Case sensitive").css("input-block-level");
+  
+  auto onDialogOk = [=]{
+    return FilterDialogResult{
+      wtr("mediacollectionbrowser_filters_name_menuitem").arg(titleLineEdit->text()),
+      [=] (Dbo::Transaction &t, const Media &media) {
+        string filter = titleLineEdit->text().toUTF8();
+        string mediaTitle = media.title(t).toUTF8();
+        return caseSensitiveCheckbox->checkState() == Wt::Checked ? boost::algorithm::contains(mediaTitle, filter) : boost::algorithm::icontains(mediaTitle, filter) ;
+      }
+    };
+  };
+  
+  addFilterDialog(
+    wtr("mediacollectionbrowser_filters_name_dialogtitle"),
+    WW<WContainerWidget>().add(titleLineEdit).add(caseSensitiveCheckbox),
+    onDialogOk,
+    [=](WPushButton *okButton){
+      titleLineEdit->changed().connect([=](_n1){ okButton->setEnabled(!titleLineEdit->text().empty()); });
+      titleLineEdit->keyWentUp().connect([=](WKeyEvent) { okButton->setEnabled(!titleLineEdit->text().empty()); } );
+      okButton->disable();
+    },
+    menu
+  );
 }
 
 void MediaCollectionBrowser::Private::dateFilterDialog( WMenu *menu )
 {
-  WDialog *dialog = new WDialog("Filter by date");
-  dialog->setModal(true);
-  dialog->setClosable(true);
   WCalendar *calendar = new WCalendar();
   calendar->select(WDate::currentDate());
   WComboBox *dateFilterType = WW<WComboBox>().addCss("input-block-level");
-  dateFilterType->addItem("Date is at least...");
-  dateFilterType->addItem("Date is at most...");
-  dialog->contents()->addWidget(dateFilterType);
-  dialog->contents()->addWidget(calendar);
-  WPushButton *okButton;
-  dialog->footer()->addWidget(okButton = WW<WPushButton>(wtr("button.ok")).css("btn btn-primary").onClick([=](WMouseEvent){
+  dateFilterType->addItem(wtr("mediacollectionbrowser_filters_dategt_menu"));
+  dateFilterType->addItem(wtr("mediacollectionbrowser_filters_datelt_menu"));
+  auto onDialogOk = [=]{
     int dateFilterTypeIndex = dateFilterType->currentIndex();
-    auto menuItem = menu->addItem(WString(dateFilterTypeIndex>0 ? "Date lesser than {1}" : "Date greater than {1}").arg(calendar->selection().begin()->toString()));
-    menuItem->setCloseable(true);
-    mediaFilters[menuItem] = [=] (Dbo::Transaction &t, const Media &media) {
-      if(dateFilterTypeIndex == 0)
-        return media.creationTime(t).date() >= *calendar->selection().begin();
-      return media.creationTime(t).date() <= *calendar->selection().begin();
+    return FilterDialogResult {
+      wtr(dateFilterTypeIndex>0 ? "mediacollectionbrowser_filters_dategt_menuitem" : "mediacollectionbrowser_filters_datelt_menuitem")
+        .arg(calendar->selection().begin()->toString()),
+      [=] (Dbo::Transaction &t, const Media &media) {
+        if(dateFilterTypeIndex == 0)
+          return media.creationTime(t).date() >= *calendar->selection().begin();
+        return media.creationTime(t).date() <= *calendar->selection().begin();
+      }
     };
-    dialog->done(WDialog::DialogCode::Accepted);
-    q->reload();
-  }));
-  dialog->show();
+  };
+  addFilterDialog(
+    wtr("mediacollectionbrowser_filters_bydate_dialogtitle"),
+    WW<WContainerWidget>().add(dateFilterType).add(calendar),
+    onDialogOk,
+    [=](WPushButton *okButton){ okButton->enable(); },
+    menu
+  );
 }
 
 void MediaCollectionBrowser::Private::ratingFilterDialog( WMenu *menu )
 {
-  WDialog *dialog = new WDialog("Filter by rating");
-  dialog->setModal(true);
-  dialog->setClosable(true);
   WComboBox *ratingFilterType = WW<WComboBox>().addCss("input-block-level");
-  ratingFilterType->addItem("Rating is at least...");
-  ratingFilterType->addItem("Rating is at most...");
+  ratingFilterType->addItem(wtr("mediacollectionbrowser_filters_ratinggt_menu"));
+  ratingFilterType->addItem(wtr("mediacollectionbrowser_filters_ratinglt_menu"));
   WSlider *ratingSlider = new WSlider(Wt::Horizontal);
   ratingSlider->setMinimum(0);
   ratingSlider->setMaximum(5);
   ratingSlider->setTickInterval(1);
   WText *currentValue = WW<WText>(ratingSlider->valueText()).setMargin(5, Side::Left);
   ratingSlider->valueChanged().connect([=](int rating, _n5){ currentValue->setText(boost::lexical_cast<string>(rating));});
-  dialog->contents()->addWidget( ratingFilterType );
-  dialog->contents()->addWidget(ratingSlider);
-  dialog->contents()->addWidget(currentValue);
-  WPushButton *okButton;
-  dialog->footer()->addWidget(okButton = WW<WPushButton>(wtr("button.ok")).css("btn btn-primary").onClick([=](WMouseEvent){
+  
+  auto onDialogOk = [=] {
     int ratingFilterTypeIndex = ratingFilterType->currentIndex();
-    auto menuItem = menu->addItem(WString( ratingFilterTypeIndex >0 ? "Rating lesser than {1}" : "Rating greater than {1}").arg(ratingSlider->value()));
-    menuItem->setCloseable(true);
-    mediaFilters[menuItem] = [=] (Dbo::Transaction &t, const Media &media) {
-      if(ratingFilterTypeIndex == 0)
-        return MediaRating::ratingFor(media, t).ratingAverage >= ratingSlider->value();
-      return MediaRating::ratingFor(media, t).ratingAverage <= ratingSlider->value();
+    return FilterDialogResult {
+      wtr( ratingFilterTypeIndex >0 ? "mediacollectionbrowser_filters_ratinggt_menuitem" : "mediacollectionbrowser_filters_ratinglt_menuitem").arg(ratingSlider->value()),
+      [=] (Dbo::Transaction &t, const Media &media) {
+        if(ratingFilterTypeIndex == 0)
+          return MediaRating::ratingFor(media, t).ratingAverage >= ratingSlider->value();
+        return MediaRating::ratingFor(media, t).ratingAverage <= ratingSlider->value();
+      }
     };
-    dialog->done(WDialog::DialogCode::Accepted);
-    q->reload();
-  }));
-  dialog->show();
+  };
+  
+  addFilterDialog(
+    wtr("mediacollectionbrowser_filters_by_rating_dialogtitle"),
+    WW<WContainerWidget>().add(ratingFilterType).add(ratingSlider).add(currentValue),
+    onDialogOk,
+    [=](WPushButton *okButton){ okButton->enable(); },
+    menu
+  );
 }
 
 

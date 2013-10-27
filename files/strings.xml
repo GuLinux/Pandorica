@@ -332,4 +332,22 @@ For other webservers (Apache, Lighttpd, Ngnix) read the proper documentation.
 An email message notifying the invitation was sent to {1}.</message>
 <message id="usersmanagement_invite_invitation_successful_email_sent">{1} was correctly added to the invited users list.</message>
 <message id="validation_email_invalid">Please type a valid email address.</message>
+<message id="mediacollectionbrowser_filters">Filtersp</message>
+<message id="mediacollectionbrowser_filters_name">Name</message>
+<message id="mediacollectionbrowser_filters_date">Date</message>
+<message id="mediacollectionbrowser_filters_rating">Rating</message>
+<message id="mediacollectionbrowser_filters_current_filters">Current Filters</message>
+<message id="mediacollectionbrowser_filters_add_filter">Add Filter</message>
+<message id="mediacollectionbrowser_filters_name_menuitem">Name contains {1}</message>
+<message id="mediacollectionbrowser_filters_name_dialogtitle">Filter by name</message>
+<message id="mediacollectionbrowser_filters_dategt_menu">Date is at least...</message>
+<message id="mediacollectionbrowser_filters_datelt_menu">Date is at most...</message>
+<message id="mediacollectionbrowser_filters_dategt_menuitem">Date is at least {1}</message>
+<message id="mediacollectionbrowser_filters_datelt_menuitem">Date is at most {1}</message>
+<message id="mediacollectionbrowser_filters_bydate_dialogtitle">Filter by date</message>
+<message id="mediacollectionbrowser_filters_by_rating_dialogtitle">Filter by rating</message>
+<message id="mediacollectionbrowser_filters_ratinggt_menu">Rating is at least...</message>
+<message id="mediacollectionbrowser_filters_ratinglt_menu">Rating is at most...</message>
+<message id="mediacollectionbrowser_filters_ratinggt_menuitem">Rating is at least {1}</message>
+<message id="mediacollectionbrowser_filters_ratinglt_menuitem">Rating is at most {1}</message>
 </messages>

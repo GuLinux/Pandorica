@@ -373,4 +373,22 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
 È stata inviata una email a {1} per notificare l'invito.</message>
 <message id="usersmanagement_invite_invitation_successful_email_sent">{1} è stato correttamente aggiunto alla lista degli utenti invitati.</message>
 <message id="validation_email_invalid">Per favore inserire un indirizzo email valido.</message>
+<message id="mediacollectionbrowser_filters">Filtri</message>
+<message id="mediacollectionbrowser_filters_name">Nome</message>
+<message id="mediacollectionbrowser_filters_date">Data</message>
+<message id="mediacollectionbrowser_filters_rating">Voto</message>
+<message id="mediacollectionbrowser_filters_current_filters">Filtri Correnti</message>
+<message id="mediacollectionbrowser_filters_add_filter">Aggiungi Filtri</message>
+<message id="mediacollectionbrowser_filters_name_menuitem">Nome Contiene {1}</message>
+<message id="mediacollectionbrowser_filters_name_dialogtitle">Filtra per nome</message>
+<message id="mediacollectionbrowser_filters_dategt_menu">La data è almeno...</message>
+<message id="mediacollectionbrowser_filters_datelt_menu">La data è al più...</message>
+<message id="mediacollectionbrowser_filters_dategt_menuitem">La data è almeno {1}</message>
+<message id="mediacollectionbrowser_filters_datelt_menuitem">La data è al più {1}</message>
+<message id="mediacollectionbrowser_filters_bydate_dialogtitle">Filtra per data</message>
+<message id="mediacollectionbrowser_filters_by_rating_dialogtitle">Filtra per voto</message>
+<message id="mediacollectionbrowser_filters_ratinggt_menu">Il voto è almeno...</message>
+<message id="mediacollectionbrowser_filters_ratinglt_menu">Il voto è al più...</message>
+<message id="mediacollectionbrowser_filters_ratinggt_menuitem">Il voto è almeno {1}</message>
+<message id="mediacollectionbrowser_filters_ratinglt_menuitem">Il voto è al più {1}</message>
 </messages>

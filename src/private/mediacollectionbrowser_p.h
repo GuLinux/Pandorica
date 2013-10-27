@@ -94,16 +94,23 @@ public:
     void clearThumbnailsFor(Media media);
     void clearAttachmentsFor(Media media);
     void setPosterFor(Media media);
-    std::map<Wt::WMenuItem*, std::function<bool(Wt::Dbo::Transaction &, const Media&)>> mediaFilters;
+    typedef std::function<bool(Wt::Dbo::Transaction &, const Media&)> MediaFilter;
+    std::map<Wt::WMenuItem*, MediaFilter> mediaFilters;
     void titleFilterDialog(Wt::WMenu *menu);
     void dateFilterDialog(Wt::WMenu *menu);
     void ratingFilterDialog(Wt::WMenu *menu);
+    struct FilterDialogResult {
+      Wt::WString menuItemTitle;
+      MediaFilter mediaFilter;
+    };
+    void addFilterDialog( const Wt::WString &title, Wt::WWidget *content, std::function<FilterDialogResult()> onOkClicked, std::function<void(Wt::WPushButton*)> okButtonEnabler, Wt::WMenu *menu );
 private:
     void addDirectory( const std::shared_ptr< MediaDirectory > &directory );
     void addMedia(Media& media);
     Wt::WContainerWidget* addIcon(Wt::WString filename, GetIconF icon, OnClick onClick);
     MediaCollectionBrowser* q;
 };
+
 
 
 #endif
