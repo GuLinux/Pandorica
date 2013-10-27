@@ -324,6 +324,17 @@ map<string, string> FFMPEGMedia::Private::readMetadata( AVDictionary *metadata )
   return result;
 }
 
+void FFMPEGMedia::lock()
+{
+  d->mutex.lock();
+}
+
+void FFMPEGMedia::unlock()
+{
+  d->mutex.unlock();
+}
+
+
 
 FFMPEGMedia::~FFMPEGMedia()
 {

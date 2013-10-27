@@ -74,6 +74,8 @@ class FFMPEGMedia
     std::string metadata( std::string key ) const;
     std::vector<FFMPEG::Stream> streams() const;
     void extractSubtitles(std::function<bool()> keepGoing, std::function<void(double)> percentCallback = [](double){});
+    void lock();
+    void unlock();
   private:
     D_PTR;
 };

@@ -52,6 +52,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Magick++/Image.h>
 #include <Magick++/Geometry.h>
 #include "utils/d_ptr_implementation.h"
+#include <boost/thread/mutex.hpp>
 
 using namespace Wt;
 using namespace std;
@@ -188,6 +189,7 @@ void CreateThumbnails::Private::addImageChooser(Wt::WContainerWidget* container)
 void CreateThumbnails::Private::chooseRandomFrame(WContainerWidget* container)
 {
   delete thumbnail;
+  boost::unique_lock<FFMPEGMedia> lock(*currentFFMPEGMedia);
   int fullSize = max(currentFFMPEGMedia->resolution().first, currentFFMPEGMedia->resolution().second);
   thumbnailFor(fullSize, 10);
 
