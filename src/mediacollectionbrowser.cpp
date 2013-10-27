@@ -174,6 +174,7 @@ void MediaCollectionBrowser::Private::addFilterDialog( const WString &title, WWi
     FilterDialogResult result = onOkClicked();
     auto menuItem = menu->addItem(result.menuItemTitle);
     menuItem->setCloseable(true);
+    menuItem->addStyleClass("menuitem-closeable");
     mediaFilters[menuItem] = result.mediaFilter;
     dialog->done(WDialog::DialogCode::Accepted);
     q->reload();

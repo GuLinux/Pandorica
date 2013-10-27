@@ -269,3 +269,10 @@ body {
   margin-bottom: 0px;
 }
 
+.menuitem-closeable a {
+  display: inline-block!important;
+}
+
+.menuitem-closeable .close {
+  min-width: 25px;
+}
