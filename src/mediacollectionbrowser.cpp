@@ -187,8 +187,8 @@ void MediaCollectionBrowser::Private::addFilterDialog( const WString &title, WWi
 void MediaCollectionBrowser::Private::titleFilterDialog( WMenu *menu )
 {
   WLineEdit *titleLineEdit = WW<WLineEdit>().css("input-block-level");
-  titleLineEdit->setEmptyText("insert title filter");
-  WCheckBox *caseSensitiveCheckbox = WW<WCheckBox>("Case sensitive").css("input-block-level");
+  titleLineEdit->setEmptyText(wtr("mediacollectionbrowser_filters_name_should_contain"));
+  WCheckBox *caseSensitiveCheckbox = WW<WCheckBox>(wtr("mediacollectionbrowser_filters_name_case_sensitive")).css("input-block-level");
   
   auto onDialogOk = [=]{
     return FilterDialogResult{
