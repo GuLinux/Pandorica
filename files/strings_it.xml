@@ -379,7 +379,7 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
 <message id="mediacollectionbrowser_filters_rating">Voto</message>
 <message id="mediacollectionbrowser_filters_current_filters">Filtri Correnti</message>
 <message id="mediacollectionbrowser_filters_add_filter">Aggiungi Filtri</message>
-<message id="mediacollectionbrowser_filters_name_menuitem">Nome Contiene {1}</message>
+<message id="mediacollectionbrowser_filters_name_menuitem">Nome Contiene "<i>{1}</i>"</message>
 <message id="mediacollectionbrowser_filters_name_dialogtitle">Filtra per nome</message>
 <message id="mediacollectionbrowser_filters_dategt_menu">La data è almeno...</message>
 <message id="mediacollectionbrowser_filters_datelt_menu">La data è al più...</message>

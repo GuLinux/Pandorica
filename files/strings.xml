@@ -338,7 +338,7 @@ An email message notifying the invitation was sent to {1}.</message>
 <message id="mediacollectionbrowser_filters_rating">Rating</message>
 <message id="mediacollectionbrowser_filters_current_filters">Current Filters</message>
 <message id="mediacollectionbrowser_filters_add_filter">Add Filter</message>
-<message id="mediacollectionbrowser_filters_name_menuitem">Name contains {1}</message>
+<message id="mediacollectionbrowser_filters_name_menuitem">Name contains "{1}>"</message>
 <message id="mediacollectionbrowser_filters_name_dialogtitle">Filter by name</message>
 <message id="mediacollectionbrowser_filters_dategt_menu">Date is at least...</message>
 <message id="mediacollectionbrowser_filters_datelt_menu">Date is at most...</message>
