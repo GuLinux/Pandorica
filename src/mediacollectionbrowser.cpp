@@ -467,10 +467,11 @@ void MediaCollectionBrowser::Private::setPosterFor( Media media )
   } ) );
   dialog->show();
   dialog->resize( 500, 500 );
+  createThumbs->setupGui(dialog->contents());
   auto runStep = [ = ]
   {
     Dbo::Transaction t( *session );
-    createThumbs->run( ffmpegMedia.get(), media, dialog->contents(), &t, MediaScannerStep::OverwriteIfExisting );
+    createThumbs->run( ffmpegMedia.get(), media, &t, MediaScannerStep::OverwriteIfExisting );
   };
   createThumbs->redo().connect( [ = ]( _n6 )
   {

@@ -60,7 +60,7 @@ ScanMediaInfoStep::ScanMediaInfoStep( WApplication *app, WObject *parent )
 }
 
 
-void ScanMediaInfoStep::run( FFMPEGMedia *ffmpegMedia, Media media, WContainerWidget *, Dbo::Transaction *transaction, MediaScannerStep::ExistingFlags onExisting )
+void ScanMediaInfoStep::run( FFMPEGMedia *ffmpegMedia, Media media, Dbo::Transaction *transaction, MediaScannerStep::ExistingFlags onExisting )
 {
   setResult( Waiting );
   MediaPropertiesPtr mediaPropertiesPtr = media.properties( *transaction );

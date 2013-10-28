@@ -62,7 +62,7 @@ SaveSubtitlesToDatabase::SaveSubtitlesToDatabase( WApplication *app, WObject *pa
 {
 }
 
-void SaveSubtitlesToDatabase::run( FFMPEGMedia *ffmpegMedia, Media media, WContainerWidget *container, Dbo::Transaction *transaction, MediaScannerStep::ExistingFlags onExisting )
+void SaveSubtitlesToDatabase::run( FFMPEGMedia *ffmpegMedia, Media media, Dbo::Transaction *transaction, MediaScannerStep::ExistingFlags onExisting )
 {
   setResult( Waiting );
   vector<FFMPEG::Stream> subtitles;

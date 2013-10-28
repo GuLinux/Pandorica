@@ -182,7 +182,7 @@ void MediaScannerDialog::Private::runStepsFor(Media media, WApplication* app, Se
     app->triggerUpdate();
   });
   for(MediaScannerStep *step: steps) {
-    step->run(&ffmpegMedia, media, stepsContents[step].content, &t);
+    step->run(&ffmpegMedia, media, &t);
   }
   while(!canContinue && !canceled && !skipped) {
     bool stepsAreSkipped = true;
@@ -197,7 +197,7 @@ void MediaScannerDialog::Private::runStepsFor(Media media, WApplication* app, Se
       stepsAreFinished &= stepResult == MediaScannerStep::Skip || stepResult == MediaScannerStep::Done;
       
       if(stepResult == MediaScannerStep::Redo)
-        step->run(&ffmpegMedia, media, stepsContents[step].content, &t);
+        step->run(&ffmpegMedia, media, &t);
     }
     canContinue |= stepsAreSkipped;
     guiRun(app, [=] {

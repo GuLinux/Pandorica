@@ -147,7 +147,7 @@ void ImageUploader::uploaded()
 }
 
 
-void CreateThumbnails::run( FFMPEGMedia *ffmpegMedia, Media media, WContainerWidget *container, Dbo::Transaction *transaction, MediaScannerStep::ExistingFlags onExisting )
+void CreateThumbnails::run( FFMPEGMedia *ffmpegMedia, Media media, Dbo::Transaction *transaction, MediaScannerStep::ExistingFlags onExisting )
 {
   setResult( Waiting );
 
@@ -225,18 +225,6 @@ void CreateThumbnails::Private::chooseRandomFrame()
       redo.emit();
       redoSignalWasConnected = true;
     } );
-    /*
-        container->addWidget( WW<WContainerWidget>()
-        .add( WW<WText>( wtr( "mediascannerdialog.thumbnaillabel" ) ).css( "small-text" ).setInline( false ) )
-        .add( imagePreview )
-        .setContentAlignment( AlignCenter ) );
-        imageUploader->previewImage().connect( [ = ]( Blob blob, _n5 )
-        {
-          delete thumbnail;
-          fullImage = blob;
-          thumbnail = new WMemoryResource {"image/png", vectorFrom( resize( blob, IMAGE_SIZE_PREVIEW ) ), container};
-          imagePreview->setImageLink( thumbnail );
-        } );*/
     wApp->triggerUpdate();
   } );
 }
