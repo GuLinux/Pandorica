@@ -31,13 +31,16 @@ class MediaCollection;
 class ScanMediaInfoStep : public MediaScannerStep, Wt::WObject
 {
 public:
-  ScanMediaInfoStep(Wt::WApplication *app, Wt::WObject *parent = 0);
-  virtual ~ScanMediaInfoStep();
-  virtual void run(FFMPEGMedia* ffmpegMedia, Media media, Wt::WContainerWidget *container, Wt::Dbo::Transaction *transaction, ExistingFlags onExisting = SkipIfExisting);
-  virtual void save(Wt::Dbo::Transaction *transaction);
-  inline virtual std::string stepName() const {return "scanMediaInfoStep"; }
+    ScanMediaInfoStep(Wt::WApplication *app, Wt::WObject *parent = 0);
+    virtual ~ScanMediaInfoStep();
+    virtual void run(FFMPEGMedia* ffmpegMedia, Media media, Wt::WContainerWidget *, Wt::Dbo::Transaction *transaction, ExistingFlags onExisting = SkipIfExisting);
+    virtual void save(Wt::Dbo::Transaction *transaction);
+    inline virtual std::string stepName() const {
+        return "scanMediaInfoStep";
+    }
+    virtual void setupGui(Wt::WContainerWidget* container);
 private:
-  D_PTR;
+    D_PTR;
 };
 
 #endif // SCANMEDIAINFOPAGE_H

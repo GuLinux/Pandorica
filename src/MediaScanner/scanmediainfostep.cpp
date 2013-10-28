@@ -60,7 +60,7 @@ ScanMediaInfoStep::ScanMediaInfoStep( WApplication *app, WObject *parent )
 }
 
 
-void ScanMediaInfoStep::run( FFMPEGMedia *ffmpegMedia, Media media, WContainerWidget *container, Dbo::Transaction *transaction, MediaScannerStep::ExistingFlags onExisting )
+void ScanMediaInfoStep::run( FFMPEGMedia *ffmpegMedia, Media media, WContainerWidget *, Dbo::Transaction *transaction, MediaScannerStep::ExistingFlags onExisting )
 {
   setResult( Waiting );
   MediaPropertiesPtr mediaPropertiesPtr = media.properties( *transaction );
@@ -75,7 +75,7 @@ void ScanMediaInfoStep::run( FFMPEGMedia *ffmpegMedia, Media media, WContainerWi
   d->newTitle = titleSuggestion;
   d->ffmpegMedia = ffmpegMedia;
   d->media = media;
-  guiRun( d->app, boost::bind( &ScanMediaInfoStep::Private::setupGui, d.get(), container, titleSuggestion ) );
+  guiRun( d->app, [=]{ d->editTitle->setText(titleSuggestion); d->app->triggerUpdate(); } );
   setResult( Done );
 }
 
@@ -93,19 +93,15 @@ void ScanMediaInfoStep::save( Dbo::Transaction *transaction )
 }
 
 
-
-void ScanMediaInfoStep::Private::setupGui( Wt::WContainerWidget *container, std::string titleSuggestion )
+void ScanMediaInfoStep::setupGui(WContainerWidget* container)
 {
-  WLabel *label = new WLabel( wtr( "mediascanner.media.title" ) );
-  WLineEdit *editTitle = WW<WLineEdit>( titleSuggestion ).css( "span5" );
-  editTitle->changed().connect( [ = ]( _n1 )
-  {
-    newTitle = editTitle->text().toUTF8();
-  } );
-  label->setBuddy( editTitle );
-  container->addWidget( WW<WContainerWidget>().css( "form-inline" ).add( label ).add( editTitle ) );
-  app->triggerUpdate();
+    WLabel *label = new WLabel( wtr( "mediascanner.media.title" ) );
+    d->editTitle = WW<WLineEdit>().css( "span5" );
+    d->editTitle->changed().connect( [ = ]( _n1 ) { d->newTitle = d->editTitle->text().toUTF8(); });
+    label->setBuddy( d->editTitle );
+    container->addWidget( WW<WContainerWidget>().css( "form-inline" ).add( label ).add( d->editTitle ) );
 }
+
 
 
 

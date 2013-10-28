@@ -41,6 +41,7 @@ class MediaScannerStep
 public:
   enum StepResult { Waiting, Done, Skip, Redo };
   enum ExistingFlags { SkipIfExisting, OverwriteIfExisting};
+  virtual void setupGui(Wt::WContainerWidget *container) {}
   virtual void run(FFMPEGMedia *ffmpegMedia, Media media, Wt::WContainerWidget *container, Wt::Dbo::Transaction *transaction, ExistingFlags onExisting = SkipIfExisting) = 0;
   virtual StepResult result();
   virtual void setResult(StepResult result);

@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace Wt
 {
   class WApplication;
+class WLineEdit;
 }
 
 class Session;
@@ -42,7 +43,7 @@ class ScanMediaInfoStep::Private
     bool titleIsReady;
     FFMPEGMedia *ffmpegMedia;
     Media media;
-    void setupGui( Wt::WContainerWidget *container, std::string titleSuggestion );
+    Wt::WLineEdit *editTitle;
   private:
     class ScanMediaInfoStep *const q;
 };

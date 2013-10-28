@@ -174,6 +174,13 @@ void MediaScannerDialog::Private::runStepsFor(Media media, WApplication* app, Se
   skipped = false;
   FFMPEGMedia ffmpegMedia{media, [=](const string &level) { return app->log(level); } };
   Dbo::Transaction t(session);
+  guiRun(app, [=]{
+    for(MediaScannerStep *step: steps) {
+      stepsContents[step].content->clear();
+      step->setupGui(stepsContents[step].content);
+    }
+    app->triggerUpdate();
+  });
   for(MediaScannerStep *step: steps) {
     step->run(&ffmpegMedia, media, stepsContents[step].content, &t);
   }
