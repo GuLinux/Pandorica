@@ -87,19 +87,20 @@ class CreateThumbnails::Private
     Magick::Blob resize( Magick::Blob blob, uint32_t size, uint32_t quality = 75 );
     Magick::Blob fullImage;
 
-    void addImageChooser( Wt::WContainerWidget *container );
-    void chooseRandomFrame( Wt::WContainerWidget *container );
+    void chooseRandomFrame();
     ThumbnailPosition randomPosition( FFMPEGMedia *ffmpegMedia );
 
     Media currentMedia;
     ThumbnailPosition currentPosition;
     FFMPEGMedia *currentFFMPEGMedia;
     Wt::Signal<> redo;
-  private:
-    class CreateThumbnails *const q;
+    Wt::WImage *previewImage;
     double currentTime;
     double duration;
     Wt::WMemoryResource *thumbnail = 0;
+    bool redoSignalWasConnected = false;
+  private:
+    class CreateThumbnails *const q;
 };
 
 #endif // CREATETHUMBNAILSPRIVATE_H
