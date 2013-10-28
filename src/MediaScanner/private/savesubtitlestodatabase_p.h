@@ -36,9 +36,9 @@ class WProgressBar;
 class SaveSubtitlesToDatabase::Private
 {
 public:
-  Private(Wt::WApplication* app, SaveSubtitlesToDatabase* q);
-    void extractSubtitles(std::vector< FFMPEG::Stream > subtitles, Wt::WContainerWidget* container);
-    void extractSubtitles(FFMPEGMedia *ffmpegMedia);
+  Private(const std::shared_ptr< MediaScannerSemaphore >& semaphore, Wt::WApplication* app, SaveSubtitlesToDatabase* q);
+    void extractSubtitles(FFMPEGMedia* ffmpegMedia, const std::shared_ptr< boost::unique_lock<MediaScannerSemaphore>>& semaphoreLock);
+    MediaScannerSemaphore semaphore;
     Wt::WApplication* app;
     std::vector<MediaAttachment*> subtitlesToSave;
     Media media;

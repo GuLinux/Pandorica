@@ -36,7 +36,7 @@ class CreateThumbnails : public MediaScannerStep, Wt::WObject
 {
 public:
     ~CreateThumbnails();
-    CreateThumbnails(Wt::WApplication *app, Settings* settings, Wt::WObject* parent = 0);
+    CreateThumbnails(const std::shared_ptr<MediaScannerSemaphore> &semaphore, Wt::WApplication *app, Settings* settings, Wt::WObject* parent = 0);
     void run(FFMPEGMedia* ffmpegMedia, Media media, Wt::Dbo::Transaction *transaction, ExistingFlags onExisting = SkipIfExisting);
     virtual void save(Wt::Dbo::Transaction *transaction);
     virtual Wt::Signal<> &redo();

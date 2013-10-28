@@ -48,8 +48,8 @@ using namespace std;
 using namespace std::chrono;
 using namespace WtCommons;
 
-SaveSubtitlesToDatabase::Private::Private( Wt::WApplication *app, SaveSubtitlesToDatabase *q )
-  : app( app ), q( q )
+SaveSubtitlesToDatabase::Private::Private( const shared_ptr<MediaScannerSemaphore> &semaphore, Wt::WApplication *app, SaveSubtitlesToDatabase *q )
+  : semaphore(*semaphore), app( app ), q( q )
 {
 }
 
@@ -57,13 +57,14 @@ SaveSubtitlesToDatabase::~SaveSubtitlesToDatabase()
 {
 }
 
-SaveSubtitlesToDatabase::SaveSubtitlesToDatabase( WApplication *app, WObject *parent )
-  : WObject( parent ), d( app, this )
+SaveSubtitlesToDatabase::SaveSubtitlesToDatabase( const shared_ptr<MediaScannerSemaphore>& semaphore, WApplication* app, WObject* parent )
+  : WObject( parent ), d( semaphore, app, this )
 {
 }
 
 void SaveSubtitlesToDatabase::run( FFMPEGMedia *ffmpegMedia, Media media, Dbo::Transaction *transaction, MediaScannerStep::ExistingFlags onExisting )
 {
+  auto semaphoreLock = make_shared<boost::unique_lock<MediaScannerSemaphore>>(d->semaphore);
   setResult( Waiting );
   vector<FFMPEG::Stream> subtitles;
   auto allStreams = ffmpegMedia->streams();
@@ -89,7 +90,7 @@ void SaveSubtitlesToDatabase::run( FFMPEGMedia *ffmpegMedia, Media media, Dbo::T
   d->media = media;
   transaction->session().execute( "DELETE FROM media_attachment WHERE media_id = ? AND type = 'subtitles'" ).bind( media.uid() );
   d->subtitlesToSave.clear();
-  boost::thread t( boost::bind( &SaveSubtitlesToDatabase::Private::extractSubtitles, d.get(), ffmpegMedia ) );
+  boost::thread t( boost::bind( &SaveSubtitlesToDatabase::Private::extractSubtitles, d.get(), ffmpegMedia, semaphoreLock) );
 }
 
 void SaveSubtitlesToDatabase::setupGui( WContainerWidget *container )
@@ -101,7 +102,7 @@ void SaveSubtitlesToDatabase::setupGui( WContainerWidget *container )
 
 
 
-void SaveSubtitlesToDatabase::Private::extractSubtitles( FFMPEGMedia *ffmpegMedia )
+void SaveSubtitlesToDatabase::Private::extractSubtitles( FFMPEGMedia *ffmpegMedia, const shared_ptr<boost::unique_lock<MediaScannerSemaphore>> &semaphoreLock )
 {
   auto progressCallback = [ = ]( double p )
   {
@@ -128,75 +129,6 @@ void SaveSubtitlesToDatabase::Private::extractSubtitles( FFMPEGMedia *ffmpegMedi
 }
 
 
-void SaveSubtitlesToDatabase::Private::extractSubtitles( vector< FFMPEG::Stream > subtitles, WContainerWidget *container )
-{
-  int current {0};
-  WTime start = WTime::currentServerTime();
-
-  for( FFMPEG::Stream subtitle : subtitles )
-  {
-    string subtitleName = subtitle.metadata["title"];
-    string subtitleLanguage = subtitle.metadata["language"];
-    current++;
-    guiRun( app, [ = ]
-    {
-      container->clear();
-      WString text = wtr( "mediascannerdialog.subtitlesmessage" ).arg( current ).arg( subtitles.size() ).arg( subtitle.index ).arg( subtitleName.empty() ? "N/A" : subtitleName ).arg( subtitleLanguage );
-      container->addWidget( WW<WText>( text ).css( "small-text" ) );
-      wApp->triggerUpdate();
-    } );
-    time_point<high_resolution_clock> now {high_resolution_clock::now()};
-    string tempFile = ( boost::format( "%s/temp_subtitle_%d.srt" ) % boost::filesystem::temp_directory_path().string() % now.time_since_epoch().count() ).str();
-    string cmd = ( boost::format( "ffmpeg -loglevel quiet -y -i \"%s\" -map 0:%d -c srt \"%s\"" ) % media.fullPath() % subtitle.index % tempFile ).str();
-    cerr << "Executing command \"" << cmd << "\"\n";
-#ifdef WIN32
-    PROCESS_INFORMATION procInfo;
-    STARTUPINFO info = {sizeof( info )};
-    char cmdline[cmd.size() + 1];
-    strcpy( cmdline, cmd.c_str() );
-
-    if( CreateProcess( NULL, cmdline, NULL, NULL , true, 0, NULL, NULL, &info, &procInfo ) )
-    {
-      ::WaitForSingleObject( procInfo.hProcess, INFINITE );
-      CloseHandle( procInfo.hProcess );
-      CloseHandle( procInfo.hThread );
-    }
-
-#else
-    system( cmd.c_str() );
-#endif
-    cerr << "Temp file exists? " << boost::filesystem::exists( tempFile ) << endl;
-    cerr.flush();
-    ifstream subfile( tempFile );
-
-    if( !subfile.is_open() )
-      continue; // TODO: error?
-
-    stringstream s;
-    s << subfile.rdbuf();
-    subfile.close();
-    std::remove( tempFile.c_str() );
-    vector<unsigned char> data;
-
-    for( auto c : s.str() )
-    {
-      data.push_back( c );
-    }
-
-    MediaAttachment *subtitleAttachment = new MediaAttachment( "subtitles", subtitleName, subtitleLanguage, media.uid(), "text/plain", data );
-    subtitlesToSave.push_back( subtitleAttachment );
-  }
-
-  guiRun( app, [ = ]
-  {
-    container->clear();
-    container->addWidget( WW<WText>( WString::trn( "mediascannerdialog.subtitles_extracted", subtitlesToSave.size() ).arg( subtitlesToSave.size() ) ).css( "small-text" ) );
-    wApp->triggerUpdate();
-  } );
-  q->setResult( MediaScannerStep::Done );
-  log( "notice" ) << "Old ffmpeg binary subtitles extraction ok! elapsed: " << start.secsTo( WTime::currentServerTime() );
-
-}
 
 MediaScannerStep::StepResult SaveSubtitlesToDatabase::result()
 {

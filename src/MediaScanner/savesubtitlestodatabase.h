@@ -31,7 +31,7 @@ class SaveSubtitlesToDatabase :  Wt::WObject, public MediaScannerStep
 {
 public:
     ~SaveSubtitlesToDatabase();
-    SaveSubtitlesToDatabase(Wt::WApplication* app, Wt::WObject* parent);
+    SaveSubtitlesToDatabase(const std::shared_ptr<MediaScannerSemaphore> &semaphore, Wt::WApplication* app, Wt::WObject* parent);
     virtual void run(FFMPEGMedia* ffmpegMedia, Media media, Wt::Dbo::Transaction *transaction, ExistingFlags onExisting = SkipIfExisting);
     virtual void save(Wt::Dbo::Transaction *transaction);
     inline virtual std::string stepName() const {return "saveSubtitlesToDatabase"; }

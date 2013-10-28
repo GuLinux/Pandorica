@@ -80,7 +80,8 @@ class ImageUploader : public Wt::WContainerWidget
 class CreateThumbnails::Private
 {
   public:
-    Private( Wt::WApplication *app, Settings *settings, CreateThumbnails *q );
+    Private( const std::shared_ptr< MediaScannerSemaphore >& semaphore, Wt::WApplication* app, Settings* settings, CreateThumbnails* q );
+    MediaScannerSemaphore semaphore;
     Settings *settings;
     Wt::WApplication *app;
     void thumbnailFor( int size, int quality = 8 );

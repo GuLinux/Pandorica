@@ -53,6 +53,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Magick++/Geometry.h>
 #include "utils/d_ptr_implementation.h"
 #include <boost/thread/mutex.hpp>
+#include <mutex>
 
 using namespace Wt;
 using namespace std;
@@ -69,13 +70,13 @@ vector<uint8_t> vectorFrom( Blob blob )
 time_point<high_resolution_clock> serverStartTimeForRandomSeeding {high_resolution_clock::now()};
 mt19937_64 randomEngine {( uint64_t ) serverStartTimeForRandomSeeding.time_since_epoch().count()};
 
-CreateThumbnails::Private::Private( WApplication *app, Settings *settings, CreateThumbnails *q )
-  : app( app ), settings( settings ), q( q )
+CreateThumbnails::Private::Private( const std::shared_ptr<MediaScannerSemaphore> &semaphore, WApplication *app, Settings *settings, CreateThumbnails *q )
+  : semaphore(*semaphore), app( app ), settings( settings ), q( q )
 {
 }
 
-CreateThumbnails::CreateThumbnails( WApplication *app, Settings *settings, WObject *parent )
-  : WObject( parent ), d( app, settings, this )
+CreateThumbnails::CreateThumbnails( const std::shared_ptr< MediaScannerSemaphore >& semaphore, WApplication* app, Settings* settings, WObject* parent )
+  : WObject( parent ), d( semaphore, app, settings, this )
 {
 
 }
@@ -149,6 +150,7 @@ void ImageUploader::uploaded()
 
 void CreateThumbnails::run( FFMPEGMedia *ffmpegMedia, Media media, Dbo::Transaction *transaction, MediaScannerStep::ExistingFlags onExisting )
 {
+  unique_lock<MediaScannerSemaphore> lock(d->semaphore);
   setResult( Waiting );
 
   if( onExisting == SkipIfExisting && transaction->session().query<int>( "SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'preview'" ).bind( media.uid() ) > 0 )

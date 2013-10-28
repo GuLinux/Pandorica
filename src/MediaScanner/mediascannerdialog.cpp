@@ -83,8 +83,8 @@ MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, Med
 
   d->steps = {
     new ScanMediaInfoStep{semaphore, wApp, this},
-    new SaveSubtitlesToDatabase{wApp, this},
-    new CreateThumbnails{wApp, settings, this},
+    new SaveSubtitlesToDatabase{semaphore, wApp, this},
+    new CreateThumbnails{semaphore, wApp, settings, this},
   };
   
   WContainerWidget* stepsContainer = new WContainerWidget;
