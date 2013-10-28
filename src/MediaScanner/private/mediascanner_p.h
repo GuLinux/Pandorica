@@ -17,35 +17,22 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
+#ifndef PRIVATE_H
+#define PRIVATE_H
 
+#include "MediaScanner/mediascanner.h"
 
-
-#ifndef SCANMEDIAINFOPAGEPRIVATE_H
-#define SCANMEDIAINFOPAGEPRIVATE_H
-#include <string>
-#include <Wt/WContainerWidget>
-#include "MediaScanner/scanmediainfostep.h"
-
-namespace Wt
+class MediaScanner::Private
 {
-  class WApplication;
-class WLineEdit;
-}
-
-class Session;
-
-class ScanMediaInfoStep::Private
-{
-  public:
-    Private( ScanMediaInfoStep* q, const std::shared_ptr< MediaScannerSemaphore >& semaphore, Wt::WApplication* app );
-    Wt::WApplication *app;
-    std::string newTitle;
-    bool titleIsReady;
-    FFMPEGMedia *ffmpegMedia;
-    Media media;
-    Wt::WLineEdit *editTitle;
-    MediaScannerSemaphore semaphore;
-  private:
-    class ScanMediaInfoStep *const q;
+public:
+    Private(MediaScanner* q, Session* session, Settings* settings, MediaCollection* mediaCollection, std::function<bool(Media&)> scanFilter);
+    virtual ~Private();
+    Session* session;
+    Settings* settings;
+    MediaCollection* mediaCollection;
+    std::function<bool(Media&)> scanFilter;
+private:
+    class MediaScanner* const q;
 };
-#endif // SCANMEDIAINFOPAGEPRIVATE_H
+
+#endif // PRIVATE_H

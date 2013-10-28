@@ -190,7 +190,7 @@ void SelectDirectories::Private::addSubItems( WStandardItem *item, bool sync )
     fs::directory_iterator it {path};
     vector<fs::path> paths;
     log( "notice" ) << "Filtering directory tree for path: " << path.string();
-    copy_if( it, fs::directory_iterator(), back_insert_iterator<vector<fs::path>>( paths ), [ = ]( fs::path p )
+    copy_if( it, fs::directory_iterator(), back_inserter( paths ), [ = ]( fs::path p )
     {
       try
       {

@@ -102,12 +102,12 @@ void MediaDirectory::Private::addTree( const Media &media, const boost::filesyst
 vector< Media > MediaDirectory::allMedias() const
 {
   vector<Media> _allMedias;
-  copy( begin(d->medias), end(d->medias), back_insert_iterator<vector<Media>>( _allMedias ) );
+  copy( begin(d->medias), end(d->medias), back_inserter( _allMedias ) );
 
   for( auto subDirectory : subDirectories() )
   {
     auto subDirectoryMedias = subDirectory->allMedias();
-    copy( begin(subDirectoryMedias), end(subDirectoryMedias), back_insert_iterator<vector<Media>>( _allMedias ) );
+    copy( begin(subDirectoryMedias), end(subDirectoryMedias), back_inserter( _allMedias ) );
   }
 
   return _allMedias;

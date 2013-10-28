@@ -31,7 +31,7 @@ class MediaCollection;
 class ScanMediaInfoStep : public MediaScannerStep, Wt::WObject
 {
 public:
-    ScanMediaInfoStep(Wt::WApplication *app, Wt::WObject *parent = 0);
+    ScanMediaInfoStep(const std::shared_ptr<MediaScannerSemaphore> &semaphore, Wt::WApplication *app, Wt::WObject *parent = 0);
     virtual ~ScanMediaInfoStep();
     virtual void run(FFMPEGMedia* ffmpegMedia, Media media, Wt::Dbo::Transaction *transaction, ExistingFlags onExisting = SkipIfExisting);
     virtual void save(Wt::Dbo::Transaction *transaction);

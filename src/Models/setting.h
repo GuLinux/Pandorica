@@ -82,7 +82,7 @@ public:
     static std::vector<Type> values(std::string key, Wt::Dbo::Transaction &transaction) {
       std::vector<Type> collection;
       auto dboValues = transaction.session().find<Setting>().where("\"key\" = ?").bind(key).resultList();
-      std::transform(dboValues.begin(), dboValues.end(), std::back_insert_iterator<std::vector<Type>>(collection),
+      std::transform(dboValues.begin(), dboValues.end(), std::back_inserter(collection),
                      [=](Wt::Dbo::ptr<Setting> setting) { return boost::lexical_cast<Type>(setting->_value); });
       return collection;
     }

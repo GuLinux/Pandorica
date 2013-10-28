@@ -58,6 +58,19 @@ Utils::~Utils()
 {
 }
 
+Scope::Scope(function<void()> setup, function<void()> tearDown) : tearDown(tearDown)
+{
+  setup();
+}
+Scope::Scope(function<void()> tearDown) : Scope([]{}, tearDown)
+{
+}
+Scope::~Scope()
+{
+  tearDown();
+}
+
+
 void Utils::mailForNewAdmin( string email, WString identity )
 {
   Mail::Client client;

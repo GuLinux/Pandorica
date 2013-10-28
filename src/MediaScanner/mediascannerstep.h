@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MEDIASCANNERSTEP_H
 #include <Wt/WSignal>
 #include "media/media.h"
+#include <functional>
 
 class FFMPEGMedia;
 namespace Wt {
@@ -35,6 +36,20 @@ class WApplication;
 }
 
 #define guiRun(app, f) WServer::instance()->post(app->sessionId(), f)
+
+class MediaScannerSemaphore : public std::enable_shared_from_this<MediaScannerSemaphore> {
+public:
+  MediaScannerSemaphore(std::function<void()> runOnFree, std::function<void()> runOnBusy);
+  MediaScannerSemaphore(MediaScannerSemaphore& parent);
+  MediaScannerSemaphore &operator=(MediaScannerSemaphore& parent);
+  ~MediaScannerSemaphore();
+  void lock();
+  void unlock();
+private:
+  class Private;
+  friend class Private;
+  const std::unique_ptr<Private> d;
+};
 
 class MediaScannerStep
 {

@@ -18,34 +18,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
 
+#ifndef MEDIASCANNER_H
+#define MEDIASCANNER_H
 
-
-#ifndef SCANMEDIAINFOPAGEPRIVATE_H
-#define SCANMEDIAINFOPAGEPRIVATE_H
-#include <string>
 #include <Wt/WContainerWidget>
-#include "MediaScanner/scanmediainfostep.h"
+#include "utils/d_ptr.h"
+#include <functional>
 
-namespace Wt
-{
-  class WApplication;
-class WLineEdit;
-}
-
+class Media;
+class MediaCollection;
+class Settings;
 class Session;
-
-class ScanMediaInfoStep::Private
+class MediaScanner :  Wt::WContainerWidget
 {
-  public:
-    Private( ScanMediaInfoStep* q, const std::shared_ptr< MediaScannerSemaphore >& semaphore, Wt::WApplication* app );
-    Wt::WApplication *app;
-    std::string newTitle;
-    bool titleIsReady;
-    FFMPEGMedia *ffmpegMedia;
-    Media media;
-    Wt::WLineEdit *editTitle;
-    MediaScannerSemaphore semaphore;
-  private:
-    class ScanMediaInfoStep *const q;
+public:
+    ~MediaScanner();
+    MediaScanner(Session* session, Settings* settings, MediaCollection* mediaCollection, std::function<bool(Media&)> scanFilter = [](Media&){ return true; }, Wt::WContainerWidget* parent = 0);
+    void scan();
+private:
+    D_PTR;
 };
-#endif // SCANMEDIAINFOPAGEPRIVATE_H
+
+#endif // MEDIASCANNER_H

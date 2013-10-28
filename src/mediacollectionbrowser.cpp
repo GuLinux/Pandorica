@@ -358,7 +358,7 @@ std::vector< Media > FlatMediaDirectory::allMedias() const
 {
   auto collection = mediaCollection->collection();
   vector<Media> all;
-  transform(begin(collection), end(collection), back_insert_iterator<vector<Media>>(all), [](const pair<string,Media> &p){ return p.second; });
+  transform(begin(collection), end(collection), back_inserter(all), [](const pair<string,Media> &p){ return p.second; });
   return all;
 }
 
@@ -452,6 +452,7 @@ void MediaCollectionBrowser::Private::setPosterFor( Media media )
 {
   shared_ptr<FFMPEGMedia> ffmpegMedia (new FFMPEGMedia {media, [=](const string &level) { return wApp->log(level); } });
   WDialog *dialog = new WDialog( wtr( "mediabrowser.admin.setposter" ) );
+  auto semaphore = make_shared<MediaScannerSemaphore>([]{}, []{});
   auto createThumbs = new CreateThumbnails {wApp, settings, dialog};
   dialog->footer()->addWidget( WW<WPushButton>( wtr( "button.cancel" ) ).css( "btn btn-danger" ).onClick( [ = ]( WMouseEvent )
   {
@@ -468,6 +469,7 @@ void MediaCollectionBrowser::Private::setPosterFor( Media media )
   dialog->show();
   dialog->resize( 500, 500 );
   createThumbs->setupGui(dialog->contents());
+
   auto runStep = [ = ]
   {
     Dbo::Transaction t( *session );

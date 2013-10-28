@@ -46,6 +46,8 @@ if(Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
   register_unit_test(mediadirectory mediadirectorytest.cpp ${CMAKE_SOURCE_DIR}/src/media/mediadirectory.cpp ${CMAKE_SOURCE_DIR}/src/media/media.cpp )
   link_unit_test(mediadirectory ${Wt_DBO_LIBRARY} ${Wt_LIBRARIES} ${WIN32_LIBS})
   
+  register_unit_test(mediascannersemaphore mediascannersemaphoretest.cpp ${CMAKE_SOURCE_DIR}/src/MediaScanner/mediascannerstep.cpp)
+  link_unit_test(mediascannersemaphore ${WIN32_LIBS})
   
   pkg_check_modules(AVUTIL libavutil REQUIRED)
   pkg_check_modules(AVFORMAT libavformat REQUIRED)

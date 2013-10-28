@@ -210,7 +210,7 @@ std::vector< std::string > FindOrphansDialog::Private::orphans( Dbo::Transaction
   select media_id from media_rating \
   order by media_id" ).resultList();
   vector<string> mediaIds;
-  remove_copy_if( begin(mediaIdsDbo), end(mediaIdsDbo), back_insert_iterator<vector<string>>( mediaIds ), [ = ]( string mediaId )
+  remove_copy_if( begin(mediaIdsDbo), end(mediaIdsDbo), back_inserter( mediaIds ), [ = ]( string mediaId )
   {
     return mediaCollection->media( mediaId ).valid();
   } );

@@ -79,8 +79,10 @@ MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, Med
   finished().connect([=](DialogCode code, _n5) {
     scanFinished().emit();
   });
+  auto semaphore = make_shared<MediaScannerSemaphore>([]{ cerr << "MediaScanner free" << endl; }, []{ cerr << "MediaScanner busy" << endl; });
+
   d->steps = {
-    new ScanMediaInfoStep{wApp, this},
+    new ScanMediaInfoStep{semaphore, wApp, this},
     new SaveSubtitlesToDatabase{wApp, this},
     new CreateThumbnails{wApp, settings, this},
   };

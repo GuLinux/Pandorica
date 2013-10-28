@@ -220,7 +220,7 @@ FFMPegStreamConversion::~FFMPegStreamConversion()
   uint8_t *output;
   uint64_t outputSize = avio_close_dyn_buf( outputFormatContext->pb, &output );
   stream.data.clear();
-  copy( output, output + outputSize, back_insert_iterator<BinaryData>( stream.data ) );
+  copy( output, output + outputSize, back_inserter( stream.data ) );
   av_free( output );
 }
 

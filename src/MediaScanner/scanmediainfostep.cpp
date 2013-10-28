@@ -42,6 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "utils/d_ptr_implementation.h"
 
 #include "Models/models.h"
+#include <boost/thread.hpp>
 
 using namespace Wt;
 using namespace std;
@@ -49,19 +50,21 @@ using namespace std::chrono;
 namespace fs = boost::filesystem;
 using namespace WtCommons;
 
-ScanMediaInfoStep::Private::Private( ScanMediaInfoStep *q, WApplication *app )
-  : q( q ), app( app )
+ScanMediaInfoStep::Private::Private( ScanMediaInfoStep *q, const shared_ptr< MediaScannerSemaphore >& semaphore, WApplication *app )
+  : q( q ), semaphore(*semaphore), app( app )
 {
 }
 
-ScanMediaInfoStep::ScanMediaInfoStep( WApplication *app, WObject *parent )
-  : WObject( parent ), d( this, app )
+ScanMediaInfoStep::ScanMediaInfoStep( const shared_ptr< MediaScannerSemaphore >& semaphore, WApplication* app, WObject* parent )
+  : WObject( parent ), d( this, semaphore, app )
 {
 }
 
 
-void ScanMediaInfoStep::run( FFMPEGMedia *ffmpegMedia, Media media, Dbo::Transaction *transaction, MediaScannerStep::ExistingFlags onExisting )
+void ScanMediaInfoStep::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transaction* transaction, MediaScannerStep::ExistingFlags onExisting )
 {
+  boost::unique_lock<MediaScannerSemaphore> semaphoreLock(d->semaphore);
+  
   setResult( Waiting );
   MediaPropertiesPtr mediaPropertiesPtr = media.properties( *transaction );
 
@@ -87,7 +90,7 @@ void ScanMediaInfoStep::save( Dbo::Transaction *transaction )
 
   transaction->session().execute( "DELETE FROM media_properties WHERE media_id = ?" ).bind( d->media.uid() );
   pair<int, int> resolution = d->ffmpegMedia->resolution();
-  auto mediaProperties = new MediaProperties {d->media.uid(), d->newTitle, d->media.fullPath(), d->ffmpegMedia->durationInSeconds(), fs::file_size( d->media.path() ), resolution.first, resolution.second};
+  auto mediaProperties = new MediaProperties {d->media.uid(), d->newTitle, d->media.fullPath(), d->ffmpegMedia->durationInSeconds(), static_cast<int64_t>(fs::file_size( d->media.path())), resolution.first, resolution.second};
   transaction->session().add( mediaProperties );
   setResult( Waiting );
 }

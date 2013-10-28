@@ -168,7 +168,7 @@ Signal<> &MediaCollection::scanned()
 vector< Media > MediaCollection::sortedMediasList() const
 {
   vector<Media> medias;
-  transform( begin(d->collection), end(d->collection), back_insert_iterator<vector<Media>>( medias ), []( pair<string, Media> mediaElement )
+  transform( begin(d->collection), end(d->collection), back_inserter( medias ), []( pair<string, Media> mediaElement )
   {
     return mediaElement.second;
   } );
