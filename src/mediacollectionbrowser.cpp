@@ -473,7 +473,7 @@ void MediaCollectionBrowser::Private::setPosterFor( Media media )
   auto runStep = [ = ]
   {
     Dbo::Transaction t( *session );
-    createThumbs->run( ffmpegMedia.get(), media, &t, MediaScannerStep::OverwriteIfExisting );
+    createThumbs->run( ffmpegMedia.get(), media, &t, [](bool){}, MediaScannerStep::OverwriteIfExisting );
   };
   createThumbs->redo().connect( [ = ]( _n6 )
   {

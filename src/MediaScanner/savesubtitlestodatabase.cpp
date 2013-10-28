@@ -62,7 +62,7 @@ SaveSubtitlesToDatabase::SaveSubtitlesToDatabase( const shared_ptr<MediaScannerS
 {
 }
 
-void SaveSubtitlesToDatabase::run( FFMPEGMedia *ffmpegMedia, Media media, Dbo::Transaction *transaction, MediaScannerStep::ExistingFlags onExisting )
+void SaveSubtitlesToDatabase::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transaction* transaction, function<void(bool)> showGui, MediaScannerStep::ExistingFlags onExisting )
 {
   auto semaphoreLock = make_shared<boost::unique_lock<MediaScannerSemaphore>>(d->semaphore);
   setResult( Waiting );
@@ -86,11 +86,13 @@ void SaveSubtitlesToDatabase::run( FFMPEGMedia *ffmpegMedia, Media media, Dbo::T
     setResult( Skip );
     return;
   }
+  showGui(true);
 
   d->media = media;
   transaction->session().execute( "DELETE FROM media_attachment WHERE media_id = ? AND type = 'subtitles'" ).bind( media.uid() );
   d->subtitlesToSave.clear();
-  boost::thread t( boost::bind( &SaveSubtitlesToDatabase::Private::extractSubtitles, d.get(), ffmpegMedia, semaphoreLock) );
+  d->extractSubtitles(ffmpegMedia, semaphoreLock);
+//   boost::thread t( boost::bind( &SaveSubtitlesToDatabase::Private::extractSubtitles, d.get(), ffmpegMedia, semaphoreLock) );
 }
 
 void SaveSubtitlesToDatabase::setupGui( WContainerWidget *container )

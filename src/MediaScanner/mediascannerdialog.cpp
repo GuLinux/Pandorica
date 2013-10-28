@@ -79,7 +79,19 @@ MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, Med
   finished().connect([=](DialogCode code, _n5) {
     scanFinished().emit();
   });
-  auto semaphore = make_shared<MediaScannerSemaphore>([]{ cerr << "MediaScanner free" << endl; }, []{ cerr << "MediaScanner busy" << endl; });
+  WApplication *app = wApp;
+  auto semaphore = make_shared<MediaScannerSemaphore>([=]{
+    guiRun(app, [=]{
+      app->log("notice") << "MediaScanner free";
+      d->buttonNext->enable();
+      app->triggerUpdate();
+    });
+  }, [=]{
+    guiRun(app, [=]{
+      app->log("notice") << "MediaScanner busy";
+      d->buttonNext->disable();
+      app->triggerUpdate(); });
+  });
 
   d->steps = {
     new ScanMediaInfoStep{semaphore, wApp, this},
@@ -178,43 +190,58 @@ void MediaScannerDialog::Private::runStepsFor(Media media, WApplication* app, Se
   Dbo::Transaction t(session);
   guiRun(app, [=]{
     for(MediaScannerStep *step: steps) {
+      auto stepName= step->stepName();
       stepsContents[step].content->clear();
       step->setupGui(stepsContents[step].content);
     }
     app->triggerUpdate();
   });
+  list<boost::thread> threads;
   for(MediaScannerStep *step: steps) {
-    step->run(&ffmpegMedia, media, &t);
-  }
-  while(!canContinue && !canceled && !skipped) {
-    bool stepsAreSkipped = true;
-    bool stepsAreFinished = true;
+    auto showGui = [=](bool visible){
+      guiRun(app, [=]{
+	app->log("notice") << "setting gui visibility for step: " << visible;
+	stepsContents[step].groupBox->setHidden(!visible);
+      });
+    };
+          auto stepName= step->stepName();
 
-    
-    for(MediaScannerStep *step: steps) {
-      auto stepResult = step->result();
-      if(stepResult != MediaScannerStep::Skip)
-        guiRun(app, [=] { stepsContents[step].groupBox->show(); });
-      stepsAreSkipped &= stepResult == MediaScannerStep::Skip;
-      stepsAreFinished &= stepResult == MediaScannerStep::Skip || stepResult == MediaScannerStep::Done;
-      
-      if(stepResult == MediaScannerStep::Redo)
-        step->run(&ffmpegMedia, media, &t);
-    }
-    canContinue |= stepsAreSkipped;
-    guiRun(app, [=] {
-      buttonSkip->enable();
-      buttonNext->setEnabled(stepsAreFinished && ! stepsAreSkipped);
-      wApp->triggerUpdate();
-    });
-    if(!canContinue && !canceled && !skipped)
-      boost::this_thread::sleep_for(boost::chrono::milliseconds{50});
+    threads.push_back(boost::thread([=,&t,&media,&ffmpegMedia,&showGui]{step->run(&ffmpegMedia, media, &t, showGui);}));
+//     step->run(&ffmpegMedia, media, &t);
   }
-  if(canceled || skipped)
-    for(auto step: steps)
-      step->setResult(MediaScannerStep::StepResult::Skip);
-  if(canceled)
-    return;
+  for(boost::thread &stepThread: threads)
+    stepThread.join();
+//   while(!canContinue && !canceled && !skipped) {
+//     bool stepsAreSkipped = true;
+//     bool stepsAreFinished = true;
+// 
+//     
+//     for(MediaScannerStep *step: steps) {
+//       auto stepResult = step->result();
+//       if(stepResult != MediaScannerStep::Skip)
+//         guiRun(app, [=] { stepsContents[step].groupBox->show(); });
+//       stepsAreSkipped &= stepResult == MediaScannerStep::Skip;
+//       stepsAreFinished &= stepResult == MediaScannerStep::Skip || stepResult == MediaScannerStep::Done;
+//       
+//       if(stepResult == MediaScannerStep::Redo)
+//         step->run(&ffmpegMedia, media, &t);
+//     }
+//     canContinue |= stepsAreSkipped;
+//     guiRun(app, [=] {
+//       buttonSkip->enable();
+//       buttonNext->setEnabled(stepsAreFinished && ! stepsAreSkipped);
+//       wApp->triggerUpdate();
+//     });
+//     if(!canContinue && !canceled && !skipped)
+//       boost::this_thread::sleep_for(boost::chrono::milliseconds{50});
+//   }
+//   if(canceled || skipped)
+//     for(auto step: steps)
+//       step->setResult(MediaScannerStep::StepResult::Skip);
+//   if(canceled)
+//     return;
+  while(!canContinue)
+    boost::this_thread::sleep_for(boost::chrono::milliseconds{200});
   if(!skipped) {
     for(MediaScannerStep *step: steps) {
       step->save(&t);

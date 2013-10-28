@@ -61,7 +61,7 @@ ScanMediaInfoStep::ScanMediaInfoStep( const shared_ptr< MediaScannerSemaphore >&
 }
 
 
-void ScanMediaInfoStep::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transaction* transaction, MediaScannerStep::ExistingFlags onExisting )
+void ScanMediaInfoStep::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transaction* transaction, function<void(bool)> showGui, MediaScannerStep::ExistingFlags onExisting )
 {
   boost::unique_lock<MediaScannerSemaphore> semaphoreLock(d->semaphore);
   
@@ -73,6 +73,7 @@ void ScanMediaInfoStep::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transac
     setResult( Skip );
     return;
   }
+  showGui(true);
 
   string titleSuggestion = ffmpegMedia->metadata( "title" ).empty() ? Utils::titleHintFromFilename( media.filename() ) : ffmpegMedia->metadata( "title" );
   d->newTitle = titleSuggestion;
