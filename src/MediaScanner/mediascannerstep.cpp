@@ -1,5 +1,6 @@
 #include "MediaScanner/mediascannerstep.h"
 #include <set>
+#include <boost/thread.hpp>
 using namespace std;
 
 MediaScannerStep::StepResult MediaScannerStep::result()
@@ -21,6 +22,7 @@ public:
     void addLock(MediaScannerSemaphore *child);
     void tryUnlock(MediaScannerSemaphore *child);
     set<MediaScannerSemaphore*> locks;
+    boost::mutex mutex;
 private:
     MediaScannerSemaphore *q;
 };
@@ -56,6 +58,7 @@ MediaScannerSemaphore& MediaScannerSemaphore::operator=(MediaScannerSemaphore& p
 
 void MediaScannerSemaphore::Private::addLock(MediaScannerSemaphore* child)
 {
+  boost::unique_lock<boost::mutex> lock(mutex);
   if(locks.empty())
     runOnBusy();
   locks.insert(child);
@@ -63,6 +66,7 @@ void MediaScannerSemaphore::Private::addLock(MediaScannerSemaphore* child)
 
 void MediaScannerSemaphore::Private::tryUnlock(MediaScannerSemaphore* child)
 {
+  boost::unique_lock<boost::mutex> lock(mutex);
   if(locks.empty())
     return;
   for(auto it = begin(locks); it != end(locks); ++it)
