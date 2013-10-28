@@ -37,6 +37,7 @@ public:
     inline virtual std::string stepName() const {return "saveSubtitlesToDatabase"; }
     virtual void setResult( StepResult result );
     virtual StepResult result();
+    virtual void setupGui( Wt::WContainerWidget *container );
 private:
   D_PTR;
 };

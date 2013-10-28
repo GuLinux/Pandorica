@@ -41,6 +41,7 @@ public:
     virtual void save(Wt::Dbo::Transaction *transaction);
     virtual Wt::Signal<> &redo();
     inline virtual std::string stepName() const {return "createThumbnails"; }
+    virtual void setupGui( Wt::WContainerWidget *container );
 private:
   D_PTR;
 };

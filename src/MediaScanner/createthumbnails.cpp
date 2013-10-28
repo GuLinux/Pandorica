@@ -155,6 +155,13 @@ void CreateThumbnails::run(FFMPEGMedia* ffmpegMedia, Media media, WContainerWidg
   setResult(Done);
 }
 
+
+void CreateThumbnails::setupGui( WContainerWidget *container )
+{
+  MediaScannerStep::setupGui( container );
+}
+
+
 void CreateThumbnails::Private::addImageChooser(Wt::WContainerWidget* container)
 {
   guiRun(app, [=]{
@@ -232,8 +239,6 @@ Signal<>& CreateThumbnails::redo()
 {
   return d->redo;
 }
-
-
 
 ThumbnailPosition CreateThumbnails::Private::randomPosition(FFMPEGMedia* ffmpegMedia)
 {
