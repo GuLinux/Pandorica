@@ -37,14 +37,13 @@ class Session;
 class ScanMediaInfoStep::Private
 {
   public:
-    Private( ScanMediaInfoStep* q, const std::shared_ptr< MediaScannerSemaphore >& semaphore, Wt::WApplication* app );
+    Private( ScanMediaInfoStep* q, Wt::WApplication* app );
     Wt::WApplication *app;
     std::string newTitle;
     bool titleIsReady;
     FFMPEGMedia *ffmpegMedia;
     Media media;
     Wt::WLineEdit *editTitle;
-    MediaScannerSemaphore semaphore;
   private:
     class ScanMediaInfoStep *const q;
 };

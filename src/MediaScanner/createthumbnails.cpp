@@ -72,13 +72,13 @@ vector<uint8_t> vectorFrom( Blob blob )
 time_point<high_resolution_clock> serverStartTimeForRandomSeeding {high_resolution_clock::now()};
 mt19937_64 randomEngine {( uint64_t ) serverStartTimeForRandomSeeding.time_since_epoch().count()};
 
-CreateThumbnails::Private::Private( const std::shared_ptr<MediaScannerSemaphore> &semaphore, WApplication *app, Settings *settings, CreateThumbnails *q )
-  : semaphore(*semaphore), app( app ), settings( settings ), q( q )
+CreateThumbnails::Private::Private( WApplication *app, Settings *settings, CreateThumbnails *q )
+  : app( app ), settings( settings ), q( q )
 {
 }
 
 CreateThumbnails::CreateThumbnails( const std::shared_ptr< MediaScannerSemaphore >& semaphore, WApplication* app, Settings* settings, WObject* parent )
-  : WObject( parent ), d( semaphore, app, settings, this )
+  : WObject( parent ), MediaScannerStep(semaphore), d( app, settings, this )
 {
 
 }
@@ -153,14 +153,14 @@ void ImageUploader::uploaded()
 void CreateThumbnails::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transaction* transaction, function<void(bool)> showGui, MediaScannerStep::ExistingFlags onExisting )
 {
   d->app->log("notice") << __PRETTY_FUNCTION__;
-  unique_lock<MediaScannerSemaphore> lock(d->semaphore);
+  unique_lock<MediaScannerSemaphore> lock(semaphore);
 
   if( onExisting == SkipIfExisting && transaction->session().query<int>( "SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'preview'" ).bind( media.uid() ) > 0 )
   {
     return;
   }
   showGui(true);
-  d->semaphore.needsSaving(true);
+  semaphore.needsSaving(true);
   d->currentMedia = media;
   d->currentFFMPEGMedia = ffmpegMedia;
 
@@ -187,7 +187,7 @@ void CreateThumbnails::setupGui( WContainerWidget *container )
     // This means that on next run, it will be asked again.
     // Should should try and save some kind of flag instead?
     d->previewImage->setHidden(skipImageCheckbox->isChecked());
-    d->semaphore.needsSaving(!skipImageCheckbox->isChecked());
+    semaphore.needsSaving(!skipImageCheckbox->isChecked());
 //     setResult( skipImageCheckbox->isChecked() ? MediaScannerStep::Skip : (d->thumbnail ? MediaScannerStep::Done : MediaScannerStep::Waiting) );
   } );
   WContainerWidget *imageContainer = new WContainerWidget;
@@ -196,13 +196,13 @@ void CreateThumbnails::setupGui( WContainerWidget *container )
   container->addWidget( imageContainer );
   imageUploader->previewImage().connect( [ = ]( Blob blob, _n5 )
   {
-    unique_lock<MediaScannerSemaphore> lock(d->semaphore);
+    unique_lock<MediaScannerSemaphore> lock(semaphore);
     delete d->thumbnail;
     d->fullImage = blob;
     d->thumbnail = new WMemoryResource {"image/png", vectorFrom( d->resize( blob, IMAGE_SIZE_PREVIEW ) ), container};
     d->previewImage->setImageLink( d->thumbnail );
     d->previewImage->show();
-    d->semaphore.needsSaving(true);
+    semaphore.needsSaving(true);
   } );
 }
 
@@ -215,7 +215,7 @@ void CreateThumbnails::Private::createThumbnailFromMedia(const unique_lock< Medi
     app->triggerUpdate();
   };
   guiRun(app, setLoadingIcon);
-  boost::unique_lock<FFMPEGMedia> lockFFMPeg( *currentFFMPEGMedia );
+  unique_lock<FFMPEGMedia> lockFFMPeg( *currentFFMPEGMedia );
   delete thumbnail;
   
   findRandomPosition();
@@ -233,7 +233,7 @@ void CreateThumbnails::Private::createThumbnailFromMedia(const unique_lock< Medi
     if( !redoSignalWasConnected ) {
       previewImage->clicked().connect( [=]( WMouseEvent ) {
 	boost::thread reload([=]{
-	  unique_lock<MediaScannerSemaphore> lock(semaphore);
+	  unique_lock<MediaScannerSemaphore> lock(q->semaphore);
 	  createThumbnailFromMedia(lock);
 	});
       });
@@ -304,9 +304,6 @@ ThumbnailPosition ThumbnailPosition::from( int timeInSeconds )
 
 void CreateThumbnails::save( Dbo::Transaction *transaction )
 {
-  Scope scope([=]{d->semaphore.needsSaving(false);});
-  if(!d->semaphore.needsSaving()) return;
-
   log( "notice" ) << "Deleting old data from media_attachment for media_id " << d->currentMedia.uid();
   transaction->session().execute( "DELETE FROM media_attachment WHERE media_id = ? AND type = 'preview'" ).bind( d->currentMedia.uid() );
   MediaAttachment *fullAttachment = new MediaAttachment {"preview", "full", "", d->currentMedia.uid(), "image/png", vectorFrom( d->fullImage ) };
@@ -339,25 +336,5 @@ void CreateThumbnails::Private::thumbnailFor( int size, int quality )
 
   videoThumbnailer.generateThumbnail( currentMedia.fullPath(), ThumbnailerImageType::Png, data );
   fullImage = { data.data(), data.size() };
-  /*
-  video_thumbnailer *thumbnailer = video_thumbnailer_create();
-  thumbnailer->overlay_film_strip = currentMedia.mimetype().find("video") == string::npos ? 0 : 1;
-
-  if(currentPosition.percent>0)
-    thumbnailer->seek_percentage = currentPosition.percent;
-  else
-    thumbnailer->seek_time = (char*)currentPosition.timing.c_str();;
-
-  thumbnailer->thumbnail_image_type = Png;
-
-  image_data *imageData = video_thumbnailer_create_image_data();
-  thumbnailer->thumbnail_image_quality = quality;
-  thumbnailer->thumbnail_size = size;
-  video_thumbnailer_generate_thumbnail_to_buffer(thumbnailer, currentMedia.fullPath().c_str(), imageData);
-  fullImage = {imageData->image_data_ptr, (uint32_t) imageData->image_data_size};
-  //   vector<uint8_t> data{imageData->image_data_ptr, imageData->image_data_ptr + imageData->image_data_size};
-  video_thumbnailer_destroy_image_data(imageData);
-  video_thumbnailer_destroy(thumbnailer);
-  */
 }
 

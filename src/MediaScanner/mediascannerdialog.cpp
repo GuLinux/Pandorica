@@ -210,43 +210,12 @@ void MediaScannerDialog::Private::runStepsFor(Media media, WApplication* app, Se
 //     threads.push_back(boost::thread([=,&t,&media,&ffmpegMedia]{step->run(&ffmpegMedia, media, &t, showGui);}));
     step->run(&ffmpegMedia, media, &t, showGui);
   }
-//   for(boost::thread &stepThread: threads)
-//     stepThread.join();
-//   while(!canContinue && !canceled && !skipped) {
-//     bool stepsAreSkipped = true;
-//     bool stepsAreFinished = true;
-// 
-//     
-//     for(MediaScannerStep *step: steps) {
-//       auto stepResult = step->result();
-//       if(stepResult != MediaScannerStep::Skip)
-//         guiRun(app, [=] { stepsContents[step].groupBox->show(); });
-//       stepsAreSkipped &= stepResult == MediaScannerStep::Skip;
-//       stepsAreFinished &= stepResult == MediaScannerStep::Skip || stepResult == MediaScannerStep::Done;
-//       
-//       if(stepResult == MediaScannerStep::Redo)
-//         step->run(&ffmpegMedia, media, &t);
-//     }
-//     canContinue |= stepsAreSkipped;
-//     guiRun(app, [=] {
-//       buttonSkip->enable();
-//       buttonNext->setEnabled(stepsAreFinished && ! stepsAreSkipped);
-//       wApp->triggerUpdate();
-//     });
-//     if(!canContinue && !canceled && !skipped)
-//       boost::this_thread::sleep_for(boost::chrono::milliseconds{50});
-//   }
-//   if(canceled || skipped)
-//     for(auto step: steps)
-//       step->setResult(MediaScannerStep::StepResult::Skip);
-//   if(canceled)
-//     return;
-    while(!canContinue && semaphore->needsSaving() )
-      boost::this_thread::sleep_for(boost::chrono::milliseconds{200});
-    for(MediaScannerStep *step: steps) {
-      step->save(&t);
-    t.commit();
+  while(!canContinue && semaphore->needsSaving() )
+    boost::this_thread::sleep_for(boost::chrono::milliseconds{200});
+  for(MediaScannerStep *step: steps) {
+    step->saveIfNeeded(&t);
   }
+  t.commit();
 }
 
 

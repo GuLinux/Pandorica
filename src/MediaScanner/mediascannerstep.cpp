@@ -1,6 +1,8 @@
 #include "MediaScanner/mediascannerstep.h"
+#include <utils/utils.h>
 #include <set>
 #include <boost/thread.hpp>
+#include <Wt/WServer>
 using namespace std;
 
 class MediaScannerSemaphore::Private {
@@ -106,6 +108,21 @@ void MediaScannerSemaphore::Private::removeNeedsSaving(MediaScannerSemaphore* ch
   boost::unique_lock<boost::mutex> lock(mutex);
   for(auto it = begin(needingSaving); it != end(needingSaving); ++it)
     if(child == *it) needingSaving.erase(it);
+}
+
+MediaScannerStep::MediaScannerStep(const std::shared_ptr< MediaScannerSemaphore >& semaphore)
+  : semaphore(*semaphore)
+{
+
+}
+
+void MediaScannerStep::saveIfNeeded(Wt::Dbo::Transaction* transaction)
+{
+  Wt::WServer::instance()->log("notice") << __PRETTY_FUNCTION__;
+  Scope scope([=]{ semaphore.needsSaving(false); });
+  if(!semaphore.needsSaving() ) return;
+  Wt::WServer::instance()->log("notice") << "needs saving, calling save() on MediaScannerStep: " << stepName();
+  save(transaction);
 }
 
 

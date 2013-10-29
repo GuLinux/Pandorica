@@ -50,13 +50,13 @@ using namespace std::chrono;
 namespace fs = boost::filesystem;
 using namespace WtCommons;
 
-ScanMediaInfoStep::Private::Private( ScanMediaInfoStep *q, const shared_ptr< MediaScannerSemaphore >& semaphore, WApplication *app )
-  : q( q ), semaphore(*semaphore), app( app )
+ScanMediaInfoStep::Private::Private( ScanMediaInfoStep *q, WApplication *app )
+  : q( q ), app( app )
 {
 }
 
 ScanMediaInfoStep::ScanMediaInfoStep( const shared_ptr< MediaScannerSemaphore >& semaphore, WApplication* app, WObject* parent )
-  : WObject( parent ), d( this, semaphore, app )
+  : WObject( parent ), MediaScannerStep(semaphore), d( this, app )
 {
 }
 
@@ -64,7 +64,7 @@ ScanMediaInfoStep::ScanMediaInfoStep( const shared_ptr< MediaScannerSemaphore >&
 void ScanMediaInfoStep::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transaction* transaction, function<void(bool)> showGui, MediaScannerStep::ExistingFlags onExisting )
 {
   d->app->log("notice") << __PRETTY_FUNCTION__;
-  boost::unique_lock<MediaScannerSemaphore> semaphoreLock(d->semaphore);
+  boost::unique_lock<MediaScannerSemaphore> semaphoreLock(semaphore);
   
   MediaPropertiesPtr mediaPropertiesPtr = media.properties( *transaction );
 
@@ -75,7 +75,7 @@ void ScanMediaInfoStep::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transac
   }
   d->app->log("notice") << "running showGui";
   showGui(true);
-  d->semaphore.needsSaving(true);
+  semaphore.needsSaving(true);
   string titleSuggestion = ffmpegMedia->metadata( "title" ).empty() ? Utils::titleHintFromFilename( media.filename() ) : ffmpegMedia->metadata( "title" );
   d->newTitle = titleSuggestion;
   d->ffmpegMedia = ffmpegMedia;
@@ -86,9 +86,6 @@ void ScanMediaInfoStep::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transac
 
 void ScanMediaInfoStep::save( Dbo::Transaction *transaction )
 {
-  Scope scope([=]{d->semaphore.needsSaving(false);});
-  if(!d->semaphore.needsSaving()) return;
-
   transaction->session().execute( "DELETE FROM media_properties WHERE media_id = ?" ).bind( d->media.uid() );
   pair<int, int> resolution = d->ffmpegMedia->resolution();
   auto mediaProperties = new MediaProperties {d->media.uid(), d->newTitle, d->media.fullPath(), d->ffmpegMedia->durationInSeconds(), static_cast<int64_t>(fs::file_size( d->media.path())), resolution.first, resolution.second};

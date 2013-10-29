@@ -56,11 +56,15 @@ private:
 class MediaScannerStep
 {
 public:
+  MediaScannerStep(const std::shared_ptr<MediaScannerSemaphore> &semaphore);
   enum ExistingFlags { SkipIfExisting, OverwriteIfExisting};
   virtual void setupGui(Wt::WContainerWidget *container) {}
   virtual void run(FFMPEGMedia *ffmpegMedia, Media media, Wt::Dbo::Transaction *transaction, std::function<void(bool)> showGui, ExistingFlags onExisting = SkipIfExisting) = 0;
-  virtual void save(Wt::Dbo::Transaction *transaction) = 0;
   virtual std::string stepName() const = 0;
+  void saveIfNeeded(Wt::Dbo::Transaction *transaction);
+protected:
+  virtual void save(Wt::Dbo::Transaction *transaction) = 0;
+  MediaScannerSemaphore semaphore;
 };
 
 #endif // MEDIASCANNERSTEP_H

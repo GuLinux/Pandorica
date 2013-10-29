@@ -49,8 +49,8 @@ using namespace std;
 using namespace std::chrono;
 using namespace WtCommons;
 
-SaveSubtitlesToDatabase::Private::Private( const shared_ptr<MediaScannerSemaphore> &semaphore, Wt::WApplication *app, SaveSubtitlesToDatabase *q )
-  : semaphore(*semaphore), app( app ), q( q )
+SaveSubtitlesToDatabase::Private::Private( Wt::WApplication *app, SaveSubtitlesToDatabase *q )
+  : app( app ), q( q )
 {
 }
 
@@ -59,13 +59,13 @@ SaveSubtitlesToDatabase::~SaveSubtitlesToDatabase()
 }
 
 SaveSubtitlesToDatabase::SaveSubtitlesToDatabase( const shared_ptr<MediaScannerSemaphore>& semaphore, WApplication* app, WObject* parent )
-  : WObject( parent ), d( semaphore, app, this )
+  : WObject( parent ), MediaScannerStep(semaphore), d( app, this )
 {
 }
 
 void SaveSubtitlesToDatabase::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transaction* transaction, function<void(bool)> showGui, MediaScannerStep::ExistingFlags onExisting )
 {
-  auto semaphoreLock = make_shared<boost::unique_lock<MediaScannerSemaphore>>(d->semaphore);
+  auto semaphoreLock = make_shared<boost::unique_lock<MediaScannerSemaphore>>(semaphore);
   vector<FFMPEG::Stream> subtitles;
   auto allStreams = ffmpegMedia->streams();
   copy_if( begin( allStreams ), end( allStreams ), back_inserter( subtitles ), [ = ]( const FFMPEG::Stream & s )
@@ -85,7 +85,7 @@ void SaveSubtitlesToDatabase::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::T
     return;
   }
   showGui(true);
-  d->semaphore.needsSaving(true);
+  semaphore.needsSaving(true);
 
   d->media = media;
   transaction->session().execute( "DELETE FROM media_attachment WHERE media_id = ? AND type = 'subtitles'" ).bind( media.uid() );
@@ -114,7 +114,7 @@ void SaveSubtitlesToDatabase::Private::extractSubtitles( FFMPEGMedia *ffmpegMedi
       app->triggerUpdate();
     } );
   };
-  ffmpegMedia->extractSubtitles( [ = ] { return semaphore.needsSaving(); }, progressCallback );
+  ffmpegMedia->extractSubtitles( [ = ] { return q->semaphore.needsSaving(); }, progressCallback );
 
   for( FFMPEG::Stream & stream : ffmpegMedia->streams() )
   {
@@ -132,8 +132,7 @@ void SaveSubtitlesToDatabase::Private::extractSubtitles( FFMPEGMedia *ffmpegMedi
 
 void SaveSubtitlesToDatabase::save( Dbo::Transaction *transaction )
 {
-  Scope scope([=]{d->semaphore.needsSaving(false);});
-  if(!d->semaphore.needsSaving() || d->subtitlesToSave.empty()) return;
+  if(d->subtitlesToSave.empty()) return;
 
   transaction->session().execute( "DELETE FROM media_attachment WHERE media_id = ? AND type = 'subtitles'" ).bind( d->media.uid() );
 
