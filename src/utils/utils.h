@@ -46,9 +46,8 @@ private:
 
 class Scope {
 public:
-  Scope(std::function<void()> setup, std::function<void()> tearDown);
-  Scope(std::function<void()> tearDown);
-  ~Scope();
+  Scope(std::function<void()> _tearDown) : tearDown(_tearDown) {}
+  ~Scope() { tearDown(); }
 private:
   std::function<void()> tearDown;
 };

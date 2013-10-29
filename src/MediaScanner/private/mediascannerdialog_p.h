@@ -76,6 +76,6 @@ public:
     std::shared_ptr<MediaScannerSemaphore> semaphore;
 private:
     class MediaScannerDialog* const q;
-    void runStepsFor(Media media, Wt::WApplication* app, Session& session);
+    void runStepsFor(Media media, Wt::WApplication* app, Wt::Dbo::Transaction& transaction);
 };
 #endif // MEDIASCANNERDIALOGPRIVATE_H

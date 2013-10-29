@@ -40,6 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/chrono.hpp>
 
 #include "utils/d_ptr_implementation.h"
+#include <utils/utils.h>
 
 using namespace Wt;
 using namespace std;
@@ -118,6 +119,7 @@ MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, Med
 
 MediaScannerDialog::~MediaScannerDialog()
 {
+  wApp->log("notice") << __PRETTY_FUNCTION__;
 }
 
 Signal<>& MediaScannerDialog::scanFinished()
@@ -149,7 +151,7 @@ void MediaScannerDialog::run()
       stepContainers.second.content->clear();
     wApp->triggerUpdate();
   };
-  WServer::instance()->ioService().post(boost::bind(&MediaScannerDialog::Private::scanMedias, d.get(), wApp, updateGuiProgress, onScanFinished ));
+  boost::thread(boost::bind(&MediaScannerDialog::Private::scanMedias, d.get(), wApp, updateGuiProgress, onScanFinished ));
 }
 
 void MediaScannerDialog::Private::scanMedias(Wt::WApplication* app, function<void()> updateGuiProgress, function<void()> onScanFinish)
@@ -159,11 +161,17 @@ void MediaScannerDialog::Private::scanMedias(Wt::WApplication* app, function<voi
   scanningProgress = {0, {}};
   Session session;
   Dbo::Transaction transaction(session);
+  Scope onFinish([=,&transaction]{
+    boost::this_thread::sleep_for(boost::chrono::milliseconds{500});
+    guiRun(app, [=] { updateGuiProgress(); onScanFinish(); });
+    transaction.commit();
+  });
   mediaCollection->rescan(transaction);
-  
   for(auto mediaPair: mediaCollection->collection()) {
-    if(canceled)
+    if(canceled) {
+      cerr << "canceled!\n";
       return;
+    }
     Media media = mediaPair.second;
     scanningProgress.progress++;
     scanningProgress.currentFile = media.filename();
@@ -179,18 +187,15 @@ void MediaScannerDialog::Private::scanMedias(Wt::WApplication* app, function<voi
         stepContent.second.groupBox->hide();
       updateGuiProgress();
     });
-      runStepsFor(media, app, session);
+    runStepsFor(media, app, transaction);
   }
-  boost::this_thread::sleep_for(boost::chrono::milliseconds{500});
-  guiRun(app, [=] { updateGuiProgress(); onScanFinish(); });
 }
 
 
-void MediaScannerDialog::Private::runStepsFor(Media media, WApplication* app, Session& session)
+void MediaScannerDialog::Private::runStepsFor(Media media, WApplication* app, Dbo::Transaction& transaction)
 {
   canContinue = false;
   FFMPEGMedia ffmpegMedia{media, [=](const string &level) { return app->log(level); } };
-  Dbo::Transaction t(session);
   guiRun(app, [=]{
     for(MediaScannerStep *step: steps) {
       auto stepName= step->stepName();
@@ -208,14 +213,13 @@ void MediaScannerDialog::Private::runStepsFor(Media media, WApplication* app, Se
       });
     };
 //     threads.push_back(boost::thread([=,&t,&media,&ffmpegMedia]{step->run(&ffmpegMedia, media, &t, showGui);}));
-    step->run(&ffmpegMedia, media, t, showGui);
+    step->run(&ffmpegMedia, media, transaction, showGui);
   }
   while(!canContinue && semaphore->needsSaving() )
     boost::this_thread::sleep_for(boost::chrono::milliseconds{200});
   for(MediaScannerStep *step: steps) {
-    step->saveIfNeeded(t);
+    step->saveIfNeeded(transaction);
   }
-  t.commit();
 }
 
 
