@@ -41,19 +41,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <thread>
 #include <Wt/WFileUpload>
 #include <Wt/WCheckBox>
+#include <Wt/WOverlayLoadingIndicator>
 #include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <iterator>
 #include <vector>
-
+#include <condition_variable>
 #include "Models/models.h"
 
 #include <Magick++/Image.h>
 #include <Magick++/Geometry.h>
 #include "utils/d_ptr_implementation.h"
 #include <utils/utils.h>
-#include <boost/thread/mutex.hpp>
+#include <boost/thread.hpp>
 #include <mutex>
 
 using namespace Wt;
@@ -153,15 +154,11 @@ void CreateThumbnails::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transact
 {
   d->app->log("notice") << __PRETTY_FUNCTION__;
   unique_lock<MediaScannerSemaphore> lock(d->semaphore);
-  setResult( Waiting );
 
   if( onExisting == SkipIfExisting && transaction->session().query<int>( "SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'preview'" ).bind( media.uid() ) > 0 )
   {
-    setResult( Skip );
-    d->app->log("notice") << "skipping media";
     return;
   }
-  d->app->log("notice") << "running showGui";
   showGui(true);
   d->semaphore.needsSaving(true);
   d->currentMedia = media;
@@ -172,9 +169,7 @@ void CreateThumbnails::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transact
     return;
   }
 
-  d->currentPosition = d->randomPosition( ffmpegMedia );
-  d->chooseRandomFrame();
-  setResult( Done );
+  d->createThumbnailFromMedia(lock);
 }
 
 
@@ -192,7 +187,8 @@ void CreateThumbnails::setupGui( WContainerWidget *container )
     // This means that on next run, it will be asked again.
     // Should should try and save some kind of flag instead?
     d->previewImage->setHidden(skipImageCheckbox->isChecked());
-    setResult( skipImageCheckbox->isChecked() ? MediaScannerStep::Skip : (d->thumbnail ? MediaScannerStep::Done : MediaScannerStep::Waiting) );
+    d->semaphore.needsSaving(!skipImageCheckbox->isChecked());
+//     setResult( skipImageCheckbox->isChecked() ? MediaScannerStep::Skip : (d->thumbnail ? MediaScannerStep::Done : MediaScannerStep::Waiting) );
   } );
   WContainerWidget *imageContainer = new WContainerWidget;
   imageContainer->setContentAlignment( AlignCenter );
@@ -200,20 +196,30 @@ void CreateThumbnails::setupGui( WContainerWidget *container )
   container->addWidget( imageContainer );
   imageUploader->previewImage().connect( [ = ]( Blob blob, _n5 )
   {
+    unique_lock<MediaScannerSemaphore> lock(d->semaphore);
     delete d->thumbnail;
     d->fullImage = blob;
     d->thumbnail = new WMemoryResource {"image/png", vectorFrom( d->resize( blob, IMAGE_SIZE_PREVIEW ) ), container};
     d->previewImage->setImageLink( d->thumbnail );
     d->previewImage->show();
-    setResult( MediaScannerStep::Done );
+    d->semaphore.needsSaving(true);
   } );
 }
 
 
-void CreateThumbnails::Private::chooseRandomFrame()
+void CreateThumbnails::Private::createThumbnailFromMedia(const unique_lock< MediaScannerSemaphore > &semaphoreLock)
 {
+  app->log("notice") << __PRETTY_FUNCTION__;
+  auto setLoadingIcon = [=]{
+    previewImage->setImageLink(Settings::staticPath("/icons/loader-large.gif"));
+    app->triggerUpdate();
+  };
+  guiRun(app, setLoadingIcon);
+  boost::unique_lock<FFMPEGMedia> lockFFMPeg( *currentFFMPEGMedia );
   delete thumbnail;
-  boost::unique_lock<FFMPEGMedia> lock( *currentFFMPEGMedia );
+  
+  findRandomPosition();
+  
   int fullSize = max( currentFFMPEGMedia->resolution().first, currentFFMPEGMedia->resolution().second );
   thumbnailFor( fullSize, 10 );
 
@@ -224,14 +230,15 @@ void CreateThumbnails::Private::chooseRandomFrame()
     previewImage->setImageLink( thumbnail );
     previewImage->setHidden( false );
 
-    if( !redoSignalWasConnected )
-      previewImage->clicked().connect( [ = ]( WMouseEvent )
-    {
-      q->setResult( MediaScannerStep::Redo )
-      ;
-      redo.emit();
+    if( !redoSignalWasConnected ) {
+      previewImage->clicked().connect( [=]( WMouseEvent ) {
+	boost::thread reload([=]{
+	  unique_lock<MediaScannerSemaphore> lock(semaphore);
+	  createThumbnailFromMedia(lock);
+	});
+      });
       redoSignalWasConnected = true;
-    } );
+    }
     wApp->triggerUpdate();
   } );
 }
@@ -252,11 +259,11 @@ Signal<> &CreateThumbnails::redo()
   return d->redo;
 }
 
-ThumbnailPosition CreateThumbnails::Private::randomPosition( FFMPEGMedia *ffmpegMedia )
+void CreateThumbnails::Private::findRandomPosition()
 {
   auto randomNumber = randomEngine();
 
-  if( ffmpegMedia->durationInSeconds() < 100 )
+  if( currentFFMPEGMedia->durationInSeconds() < 100 )
   {
     int percent = randomNumber % 100;
 
@@ -266,7 +273,8 @@ ThumbnailPosition CreateThumbnails::Private::randomPosition( FFMPEGMedia *ffmpeg
     if( percent > 80 )
       percent -= 20;
 
-    return {percent};
+    currentPosition = {percent};
+    return;
   }
 
   int percent {0};
@@ -275,11 +283,11 @@ ThumbnailPosition CreateThumbnails::Private::randomPosition( FFMPEGMedia *ffmpeg
   while( percent < 10 || percent > 80 )
   {
     randomNumber = randomEngine();
-    position = randomNumber % ffmpegMedia->durationInSeconds();
-    percent = position * 100.0 / ffmpegMedia->durationInSeconds();
+    position = randomNumber % currentFFMPEGMedia->durationInSeconds();
+    percent = position * 100.0 / currentFFMPEGMedia->durationInSeconds();
   }
 
-  return ThumbnailPosition::from( position );;
+  currentPosition = ThumbnailPosition::from( position );
 }
 
 ThumbnailPosition ThumbnailPosition::from( int timeInSeconds )
@@ -298,8 +306,6 @@ void CreateThumbnails::save( Dbo::Transaction *transaction )
 {
   Scope scope([=]{d->semaphore.needsSaving(false);});
   if(!d->semaphore.needsSaving()) return;
-  if( result() != Done )
-    return;
 
   log( "notice" ) << "Deleting old data from media_attachment for media_id " << d->currentMedia.uid();
   transaction->session().execute( "DELETE FROM media_attachment WHERE media_id = ? AND type = 'preview'" ).bind( d->currentMedia.uid() );
@@ -312,7 +318,6 @@ void CreateThumbnails::save( Dbo::Transaction *transaction )
   log( "notice" ) << "Images saved";
   d->currentMedia = Media::invalid();
   d->currentFFMPEGMedia = 0;
-  setResult( Waiting );
 }
 
 #include "videothumbnailer.h"

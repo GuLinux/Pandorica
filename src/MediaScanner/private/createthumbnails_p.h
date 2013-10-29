@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Magick++/Blob.h>
 #include "media/media.h"
 #include "MediaScanner/createthumbnails.h"
+#include <mutex>
 
 namespace Magick
 {
@@ -88,8 +89,8 @@ class CreateThumbnails::Private
     Magick::Blob resize( Magick::Blob blob, uint32_t size, uint32_t quality = 75 );
     Magick::Blob fullImage;
 
-    void chooseRandomFrame();
-    ThumbnailPosition randomPosition( FFMPEGMedia *ffmpegMedia );
+    void createThumbnailFromMedia(const std::unique_lock< MediaScannerSemaphore >& semaphoreLock);
+    void findRandomPosition();
 
     Media currentMedia;
     ThumbnailPosition currentPosition;

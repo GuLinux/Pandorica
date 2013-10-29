@@ -3,16 +3,6 @@
 #include <boost/thread.hpp>
 using namespace std;
 
-MediaScannerStep::StepResult MediaScannerStep::result()
-{
-  return _result;
-}
-
-void MediaScannerStep::setResult( MediaScannerStep::StepResult result )
-{
-  _result = result;
-}
-
 class MediaScannerSemaphore::Private {
 public:
     Private(function<void()> runOnFree, function<void()> runOnBusy, MediaScannerSemaphore *q);

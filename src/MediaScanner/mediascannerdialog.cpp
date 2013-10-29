@@ -66,7 +66,6 @@ MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, Med
   }));
   footer()->addWidget(d->buttonSkip = WW<WPushButton>(wtr("button.skip")).css("btn btn-warning").onClick([=](WMouseEvent) {
     d->semaphore->needsSaving(false);
-    d->skipped = true;
   }));
   footer()->addWidget(d->buttonNext = WW<WPushButton>(wtr("button.next")).css("btn btn-primary").setEnabled(false).onClick([=](WMouseEvent) { d->canContinue = true; }));
   footer()->addWidget(d->buttonClose = WW<WPushButton>(wtr("button.close")).css("btn btn-success").onClick([=](WMouseEvent) {
@@ -83,16 +82,16 @@ MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, Med
   WApplication *app = wApp;
   d->semaphore = make_shared<MediaScannerSemaphore>([=]{
     guiRun(app, [=]{
-      app->log("notice") << "MediaScanner free";
       d->buttonNext->enable();
       d->buttonSkip->enable();
+      d->buttonCancel->enable();
       app->triggerUpdate();
     });
   }, [=]{
     guiRun(app, [=]{
-      app->log("notice") << "MediaScanner busy";
       d->buttonNext->disable();
       d->buttonSkip->disable();
+      d->buttonCancel->disable();
       app->triggerUpdate();
     });
   });
@@ -156,6 +155,7 @@ void MediaScannerDialog::run()
 void MediaScannerDialog::Private::scanMedias(Wt::WApplication* app, function<void()> updateGuiProgress, function<void()> onScanFinish)
 {
   canceled = false;
+  semaphore->needsSaving(false);
   scanningProgress = {0, {}};
   Session session;
   Dbo::Transaction transaction(session);
@@ -189,7 +189,6 @@ void MediaScannerDialog::Private::scanMedias(Wt::WApplication* app, function<voi
 void MediaScannerDialog::Private::runStepsFor(Media media, WApplication* app, Session& session)
 {
   canContinue = false;
-  skipped = false;
   FFMPEGMedia ffmpegMedia{media, [=](const string &level) { return app->log(level); } };
   Dbo::Transaction t(session);
   guiRun(app, [=]{
@@ -208,11 +207,11 @@ void MediaScannerDialog::Private::runStepsFor(Media media, WApplication* app, Se
 	guiToShow->setHidden(!visible);
       });
     };
-    threads.push_back(boost::thread([=,&t,&media,&ffmpegMedia]{step->run(&ffmpegMedia, media, &t, showGui);}));
-//     step->run(&ffmpegMedia, media, &t);
+//     threads.push_back(boost::thread([=,&t,&media,&ffmpegMedia]{step->run(&ffmpegMedia, media, &t, showGui);}));
+    step->run(&ffmpegMedia, media, &t, showGui);
   }
-  for(boost::thread &stepThread: threads)
-    stepThread.join();
+//   for(boost::thread &stepThread: threads)
+//     stepThread.join();
 //   while(!canContinue && !canceled && !skipped) {
 //     bool stepsAreSkipped = true;
 //     bool stepsAreFinished = true;

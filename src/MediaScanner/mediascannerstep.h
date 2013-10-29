@@ -56,16 +56,11 @@ private:
 class MediaScannerStep
 {
 public:
-  enum StepResult { Waiting, Done, Skip, Redo };
   enum ExistingFlags { SkipIfExisting, OverwriteIfExisting};
   virtual void setupGui(Wt::WContainerWidget *container) {}
   virtual void run(FFMPEGMedia *ffmpegMedia, Media media, Wt::Dbo::Transaction *transaction, std::function<void(bool)> showGui, ExistingFlags onExisting = SkipIfExisting) = 0;
-  virtual StepResult result();
-  virtual void setResult(StepResult result);
   virtual void save(Wt::Dbo::Transaction *transaction) = 0;
   virtual std::string stepName() const = 0;
-private:
-  StepResult _result;
 };
 
 #endif // MEDIASCANNERSTEP_H

@@ -64,11 +64,9 @@ public:
     Wt::WText* progressBarTitle;
     Settings* settings;
     std::map<MediaScannerStep*, StepContent> stepsContents;
-    Wt::WPushButton* buttonRetry;
     void scanMedias(Wt::WApplication* app, std::function<void()> updateGuiProgress, std::function<void()> onScanFinish);
     bool canContinue;
     bool canceled;
-    bool skipped;
     Wt::WPushButton* buttonCancel;
     Wt::WPushButton* buttonSkip;
     Wt::Signal<> scanFinished;

@@ -35,8 +35,6 @@ public:
     virtual void run(FFMPEGMedia* ffmpegMedia, Media media, Wt::Dbo::Transaction *transaction, std::function<void(bool)> showGui, ExistingFlags onExisting = SkipIfExisting);
     virtual void save(Wt::Dbo::Transaction *transaction);
     inline virtual std::string stepName() const {return "saveSubtitlesToDatabase"; }
-    virtual void setResult( StepResult result );
-    virtual StepResult result();
     virtual void setupGui( Wt::WContainerWidget *container );
 private:
   D_PTR;

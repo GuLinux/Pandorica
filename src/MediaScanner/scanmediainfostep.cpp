@@ -66,12 +66,10 @@ void ScanMediaInfoStep::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transac
   d->app->log("notice") << __PRETTY_FUNCTION__;
   boost::unique_lock<MediaScannerSemaphore> semaphoreLock(d->semaphore);
   
-  setResult( Waiting );
   MediaPropertiesPtr mediaPropertiesPtr = media.properties( *transaction );
 
   if( onExisting == SkipIfExisting && mediaPropertiesPtr )
   {
-    setResult( Skip );
     d->app->log("notice") << "skipping media";
     return;
   }
@@ -83,7 +81,6 @@ void ScanMediaInfoStep::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transac
   d->ffmpegMedia = ffmpegMedia;
   d->media = media;
   guiRun( d->app, [=]{ d->editTitle->setText(titleSuggestion); d->app->triggerUpdate(); } );
-  setResult( Done );
 }
 
 
@@ -91,14 +88,11 @@ void ScanMediaInfoStep::save( Dbo::Transaction *transaction )
 {
   Scope scope([=]{d->semaphore.needsSaving(false);});
   if(!d->semaphore.needsSaving()) return;
-  if( result() != Done )
-    return;
 
   transaction->session().execute( "DELETE FROM media_properties WHERE media_id = ?" ).bind( d->media.uid() );
   pair<int, int> resolution = d->ffmpegMedia->resolution();
   auto mediaProperties = new MediaProperties {d->media.uid(), d->newTitle, d->media.fullPath(), d->ffmpegMedia->durationInSeconds(), static_cast<int64_t>(fs::file_size( d->media.path())), resolution.first, resolution.second};
   transaction->session().add( mediaProperties );
-  setResult( Waiting );
 }
 
 

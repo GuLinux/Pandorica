@@ -66,7 +66,6 @@ SaveSubtitlesToDatabase::SaveSubtitlesToDatabase( const shared_ptr<MediaScannerS
 void SaveSubtitlesToDatabase::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transaction* transaction, function<void(bool)> showGui, MediaScannerStep::ExistingFlags onExisting )
 {
   auto semaphoreLock = make_shared<boost::unique_lock<MediaScannerSemaphore>>(d->semaphore);
-  setResult( Waiting );
   vector<FFMPEG::Stream> subtitles;
   auto allStreams = ffmpegMedia->streams();
   copy_if( begin( allStreams ), end( allStreams ), back_inserter( subtitles ), [ = ]( const FFMPEG::Stream & s )
@@ -76,7 +75,6 @@ void SaveSubtitlesToDatabase::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::T
 
   if( subtitles.size() == 0 )
   {
-    setResult( Skip );
     return;
   }
 
@@ -84,7 +82,6 @@ void SaveSubtitlesToDatabase::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::T
 
   if( onExisting == SkipIfExisting && subtitlesOnDb == subtitles.size() )
   {
-    setResult( Skip );
     return;
   }
   showGui(true);
@@ -117,7 +114,7 @@ void SaveSubtitlesToDatabase::Private::extractSubtitles( FFMPEGMedia *ffmpegMedi
       app->triggerUpdate();
     } );
   };
-  ffmpegMedia->extractSubtitles( [ = ] { return q->result() != MediaScannerStep::Skip && q->result() != MediaScannerStep::StepResult::Done; }, progressCallback );
+  ffmpegMedia->extractSubtitles( [ = ] { return semaphore.needsSaving(); }, progressCallback );
 
   for( FFMPEG::Stream & stream : ffmpegMedia->streams() )
   {
@@ -128,45 +125,20 @@ void SaveSubtitlesToDatabase::Private::extractSubtitles( FFMPEGMedia *ffmpegMedi
   }
 
   progressCallback( 100 );
-  q->setResult( MediaScannerStep::Done );
 
 }
 
-
-
-MediaScannerStep::StepResult SaveSubtitlesToDatabase::result()
-{
-  boost::unique_lock<boost::mutex> lock( d->resultMutex );
-  return MediaScannerStep::result();
-}
-
-void SaveSubtitlesToDatabase::setResult( MediaScannerStep::StepResult result )
-{
-  boost::unique_lock<boost::mutex> lock( d->resultMutex );
-  MediaScannerStep::setResult( result );
-}
 
 
 void SaveSubtitlesToDatabase::save( Dbo::Transaction *transaction )
 {
   Scope scope([=]{d->semaphore.needsSaving(false);});
-  if(!d->semaphore.needsSaving()) return;
-
-  if( result() != Done )
-    return;
-
-  if( d->subtitlesToSave.empty() )
-  {
-    setResult( Waiting );
-    return;
-  }
+  if(!d->semaphore.needsSaving() || d->subtitlesToSave.empty()) return;
 
   transaction->session().execute( "DELETE FROM media_attachment WHERE media_id = ? AND type = 'subtitles'" ).bind( d->media.uid() );
 
   for( MediaAttachment * subtitle : d->subtitlesToSave )
     transaction->session().add( subtitle );
-
-  setResult( Waiting );
 }
 
 
