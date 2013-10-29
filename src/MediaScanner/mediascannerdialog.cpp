@@ -65,6 +65,7 @@ MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, Med
     reject();
   }));
   footer()->addWidget(d->buttonSkip = WW<WPushButton>(wtr("button.skip")).css("btn btn-warning").onClick([=](WMouseEvent) {
+    d->semaphore->needsSaving(false);
     d->skipped = true;
   }));
   footer()->addWidget(d->buttonNext = WW<WPushButton>(wtr("button.next")).css("btn btn-primary").setEnabled(false).onClick([=](WMouseEvent) { d->canContinue = true; }));
@@ -80,23 +81,26 @@ MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, Med
     scanFinished().emit();
   });
   WApplication *app = wApp;
-  auto semaphore = make_shared<MediaScannerSemaphore>([=]{
+  d->semaphore = make_shared<MediaScannerSemaphore>([=]{
     guiRun(app, [=]{
       app->log("notice") << "MediaScanner free";
       d->buttonNext->enable();
+      d->buttonSkip->enable();
       app->triggerUpdate();
     });
   }, [=]{
     guiRun(app, [=]{
       app->log("notice") << "MediaScanner busy";
       d->buttonNext->disable();
-      app->triggerUpdate(); });
+      d->buttonSkip->disable();
+      app->triggerUpdate();
+    });
   });
 
   d->steps = {
-    new ScanMediaInfoStep{semaphore, wApp, this},
-    new SaveSubtitlesToDatabase{semaphore, wApp, this},
-    new CreateThumbnails{semaphore, wApp, settings, this},
+    new ScanMediaInfoStep{d->semaphore, wApp, this},
+    new SaveSubtitlesToDatabase{d->semaphore, wApp, this},
+    new CreateThumbnails{d->semaphore, wApp, settings, this},
   };
   
   WContainerWidget* stepsContainer = new WContainerWidget;
@@ -198,15 +202,13 @@ void MediaScannerDialog::Private::runStepsFor(Media media, WApplication* app, Se
   });
   list<boost::thread> threads;
   for(MediaScannerStep *step: steps) {
+    WWidget *guiToShow = stepsContents[step].groupBox;
     auto showGui = [=](bool visible){
       guiRun(app, [=]{
-	app->log("notice") << "setting gui visibility for step: " << visible;
-	stepsContents[step].groupBox->setHidden(!visible);
+	guiToShow->setHidden(!visible);
       });
     };
-          auto stepName= step->stepName();
-
-    threads.push_back(boost::thread([=,&t,&media,&ffmpegMedia,&showGui]{step->run(&ffmpegMedia, media, &t, showGui);}));
+    threads.push_back(boost::thread([=,&t,&media,&ffmpegMedia]{step->run(&ffmpegMedia, media, &t, showGui);}));
 //     step->run(&ffmpegMedia, media, &t);
   }
   for(boost::thread &stepThread: threads)
@@ -240,12 +242,10 @@ void MediaScannerDialog::Private::runStepsFor(Media media, WApplication* app, Se
 //       step->setResult(MediaScannerStep::StepResult::Skip);
 //   if(canceled)
 //     return;
-  while(!canContinue)
-    boost::this_thread::sleep_for(boost::chrono::milliseconds{200});
-  if(!skipped) {
+    while(!canContinue && semaphore->needsSaving() )
+      boost::this_thread::sleep_for(boost::chrono::milliseconds{200});
     for(MediaScannerStep *step: steps) {
       step->save(&t);
-    }
     t.commit();
   }
 }

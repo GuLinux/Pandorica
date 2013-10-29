@@ -25,6 +25,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WSignal>
 #include "media/media.h"
 #include "MediaScanner/mediascannerdialog.h"
+
+class MediaScannerSemaphore;
 class User;
 class Session;
 class MediaScannerStep;
@@ -73,6 +75,7 @@ public:
     Session* session;
     std::function<bool(Media&)> scanFilter;
     ScanningProgress scanningProgress;
+    std::shared_ptr<MediaScannerSemaphore> semaphore;
 private:
     class MediaScannerDialog* const q;
     void runStepsFor(Media media, Wt::WApplication* app, Session& session);

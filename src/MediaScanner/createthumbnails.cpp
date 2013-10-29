@@ -52,6 +52,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Magick++/Image.h>
 #include <Magick++/Geometry.h>
 #include "utils/d_ptr_implementation.h"
+#include <utils/utils.h>
 #include <boost/thread/mutex.hpp>
 #include <mutex>
 
@@ -150,16 +151,19 @@ void ImageUploader::uploaded()
 
 void CreateThumbnails::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transaction* transaction, function<void(bool)> showGui, MediaScannerStep::ExistingFlags onExisting )
 {
+  d->app->log("notice") << __PRETTY_FUNCTION__;
   unique_lock<MediaScannerSemaphore> lock(d->semaphore);
   setResult( Waiting );
 
   if( onExisting == SkipIfExisting && transaction->session().query<int>( "SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'preview'" ).bind( media.uid() ) > 0 )
   {
     setResult( Skip );
+    d->app->log("notice") << "skipping media";
     return;
   }
+  d->app->log("notice") << "running showGui";
   showGui(true);
-
+  d->semaphore.needsSaving(true);
   d->currentMedia = media;
   d->currentFFMPEGMedia = ffmpegMedia;
 
@@ -292,6 +296,8 @@ ThumbnailPosition ThumbnailPosition::from( int timeInSeconds )
 
 void CreateThumbnails::save( Dbo::Transaction *transaction )
 {
+  Scope scope([=]{d->semaphore.needsSaving(false);});
+  if(!d->semaphore.needsSaving()) return;
   if( result() != Done )
     return;
 

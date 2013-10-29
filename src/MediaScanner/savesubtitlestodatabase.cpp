@@ -38,6 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Models/models.h"
 #include <boost/thread.hpp>
 #include "utils/d_ptr_implementation.h"
+#include <utils/utils.h>
 #include <settings.h>
 #ifdef WIN32
 #include <windows.h>
@@ -87,6 +88,7 @@ void SaveSubtitlesToDatabase::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::T
     return;
   }
   showGui(true);
+  d->semaphore.needsSaving(true);
 
   d->media = media;
   transaction->session().execute( "DELETE FROM media_attachment WHERE media_id = ? AND type = 'subtitles'" ).bind( media.uid() );
@@ -147,6 +149,9 @@ void SaveSubtitlesToDatabase::setResult( MediaScannerStep::StepResult result )
 
 void SaveSubtitlesToDatabase::save( Dbo::Transaction *transaction )
 {
+  Scope scope([=]{d->semaphore.needsSaving(false);});
+  if(!d->semaphore.needsSaving()) return;
+
   if( result() != Done )
     return;
 

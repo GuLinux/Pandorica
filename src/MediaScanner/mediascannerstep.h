@@ -43,6 +43,8 @@ public:
   MediaScannerSemaphore(MediaScannerSemaphore& parent);
   MediaScannerSemaphore &operator=(MediaScannerSemaphore& parent);
   ~MediaScannerSemaphore();
+  void needsSaving(bool saving);
+  bool needsSaving();
   void lock();
   void unlock();
 private:

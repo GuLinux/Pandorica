@@ -63,6 +63,7 @@ ScanMediaInfoStep::ScanMediaInfoStep( const shared_ptr< MediaScannerSemaphore >&
 
 void ScanMediaInfoStep::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transaction* transaction, function<void(bool)> showGui, MediaScannerStep::ExistingFlags onExisting )
 {
+  d->app->log("notice") << __PRETTY_FUNCTION__;
   boost::unique_lock<MediaScannerSemaphore> semaphoreLock(d->semaphore);
   
   setResult( Waiting );
@@ -71,10 +72,12 @@ void ScanMediaInfoStep::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transac
   if( onExisting == SkipIfExisting && mediaPropertiesPtr )
   {
     setResult( Skip );
+    d->app->log("notice") << "skipping media";
     return;
   }
+  d->app->log("notice") << "running showGui";
   showGui(true);
-
+  d->semaphore.needsSaving(true);
   string titleSuggestion = ffmpegMedia->metadata( "title" ).empty() ? Utils::titleHintFromFilename( media.filename() ) : ffmpegMedia->metadata( "title" );
   d->newTitle = titleSuggestion;
   d->ffmpegMedia = ffmpegMedia;
@@ -86,6 +89,8 @@ void ScanMediaInfoStep::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transac
 
 void ScanMediaInfoStep::save( Dbo::Transaction *transaction )
 {
+  Scope scope([=]{d->semaphore.needsSaving(false);});
+  if(!d->semaphore.needsSaving()) return;
   if( result() != Done )
     return;
 
