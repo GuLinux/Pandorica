@@ -61,12 +61,12 @@ ScanMediaInfoStep::ScanMediaInfoStep( const shared_ptr< MediaScannerSemaphore >&
 }
 
 
-void ScanMediaInfoStep::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transaction* transaction, function<void(bool)> showGui, MediaScannerStep::ExistingFlags onExisting )
+void ScanMediaInfoStep::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transaction& transaction, function<void(bool)> showGui, MediaScannerStep::ExistingFlags onExisting )
 {
   d->app->log("notice") << __PRETTY_FUNCTION__;
   boost::unique_lock<MediaScannerSemaphore> semaphoreLock(semaphore);
   
-  MediaPropertiesPtr mediaPropertiesPtr = media.properties( *transaction );
+  MediaPropertiesPtr mediaPropertiesPtr = media.properties( transaction );
 
   if( onExisting == SkipIfExisting && mediaPropertiesPtr )
   {
@@ -84,12 +84,12 @@ void ScanMediaInfoStep::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transac
 }
 
 
-void ScanMediaInfoStep::save( Dbo::Transaction *transaction )
+void ScanMediaInfoStep::save( Dbo::Transaction& transaction )
 {
-  transaction->session().execute( "DELETE FROM media_properties WHERE media_id = ?" ).bind( d->media.uid() );
+  transaction.session().execute( "DELETE FROM media_properties WHERE media_id = ?" ).bind( d->media.uid() );
   pair<int, int> resolution = d->ffmpegMedia->resolution();
   auto mediaProperties = new MediaProperties {d->media.uid(), d->newTitle, d->media.fullPath(), d->ffmpegMedia->durationInSeconds(), static_cast<int64_t>(fs::file_size( d->media.path())), resolution.first, resolution.second};
-  transaction->session().add( mediaProperties );
+  transaction.session().add( mediaProperties );
 }
 
 

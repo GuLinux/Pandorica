@@ -116,7 +116,7 @@ MediaScannerStep::MediaScannerStep(const std::shared_ptr< MediaScannerSemaphore 
 
 }
 
-void MediaScannerStep::saveIfNeeded(Wt::Dbo::Transaction* transaction)
+void MediaScannerStep::saveIfNeeded(Wt::Dbo::Transaction& transaction)
 {
   Wt::WServer::instance()->log("notice") << __PRETTY_FUNCTION__;
   Scope scope([=]{ semaphore.needsSaving(false); });

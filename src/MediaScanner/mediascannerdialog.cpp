@@ -208,12 +208,12 @@ void MediaScannerDialog::Private::runStepsFor(Media media, WApplication* app, Se
       });
     };
 //     threads.push_back(boost::thread([=,&t,&media,&ffmpegMedia]{step->run(&ffmpegMedia, media, &t, showGui);}));
-    step->run(&ffmpegMedia, media, &t, showGui);
+    step->run(&ffmpegMedia, media, t, showGui);
   }
   while(!canContinue && semaphore->needsSaving() )
     boost::this_thread::sleep_for(boost::chrono::milliseconds{200});
   for(MediaScannerStep *step: steps) {
-    step->saveIfNeeded(&t);
+    step->saveIfNeeded(t);
   }
   t.commit();
 }

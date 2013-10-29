@@ -150,12 +150,12 @@ void ImageUploader::uploaded()
 }
 
 
-void CreateThumbnails::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transaction* transaction, function<void(bool)> showGui, MediaScannerStep::ExistingFlags onExisting )
+void CreateThumbnails::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transaction& transaction, function<void(bool)> showGui, MediaScannerStep::ExistingFlags onExisting )
 {
   d->app->log("notice") << __PRETTY_FUNCTION__;
   unique_lock<MediaScannerSemaphore> lock(semaphore);
 
-  if( onExisting == SkipIfExisting && transaction->session().query<int>( "SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'preview'" ).bind( media.uid() ) > 0 )
+  if( onExisting == SkipIfExisting && transaction.session().query<int>( "SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'preview'" ).bind( media.uid() ) > 0 )
   {
     return;
   }
@@ -302,16 +302,16 @@ ThumbnailPosition ThumbnailPosition::from( int timeInSeconds )
 }
 
 
-void CreateThumbnails::save( Dbo::Transaction *transaction )
+void CreateThumbnails::save( Dbo::Transaction& transaction )
 {
   log( "notice" ) << "Deleting old data from media_attachment for media_id " << d->currentMedia.uid();
-  transaction->session().execute( "DELETE FROM media_attachment WHERE media_id = ? AND type = 'preview'" ).bind( d->currentMedia.uid() );
+  transaction.session().execute( "DELETE FROM media_attachment WHERE media_id = ? AND type = 'preview'" ).bind( d->currentMedia.uid() );
   MediaAttachment *fullAttachment = new MediaAttachment {"preview", "full", "", d->currentMedia.uid(), "image/png", vectorFrom( d->fullImage ) };
   MediaAttachment *thumbnailAttachment = new MediaAttachment {"preview", "thumbnail", "", d->currentMedia.uid(), "image/png", vectorFrom( d->resize( d->fullImage, IMAGE_SIZE_THUMB, 60 ) ) };
   MediaAttachment *playerAttachment = new MediaAttachment {"preview", "player", "", d->currentMedia.uid(), "image/png", vectorFrom( d->resize( d->fullImage, IMAGE_SIZE_PLAYER ) ) };
-  transaction->session().add( fullAttachment );
-  transaction->session().add( thumbnailAttachment );
-  transaction->session().add( playerAttachment );
+  transaction.session().add( fullAttachment );
+  transaction.session().add( thumbnailAttachment );
+  transaction.session().add( playerAttachment );
   log( "notice" ) << "Images saved";
   d->currentMedia = Media::invalid();
   d->currentFFMPEGMedia = 0;

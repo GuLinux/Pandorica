@@ -63,7 +63,7 @@ SaveSubtitlesToDatabase::SaveSubtitlesToDatabase( const shared_ptr<MediaScannerS
 {
 }
 
-void SaveSubtitlesToDatabase::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transaction* transaction, function<void(bool)> showGui, MediaScannerStep::ExistingFlags onExisting )
+void SaveSubtitlesToDatabase::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transaction& transaction, function<void(bool)> showGui, MediaScannerStep::ExistingFlags onExisting )
 {
   auto semaphoreLock = make_shared<boost::unique_lock<MediaScannerSemaphore>>(semaphore);
   vector<FFMPEG::Stream> subtitles;
@@ -78,7 +78,7 @@ void SaveSubtitlesToDatabase::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::T
     return;
   }
 
-  int subtitlesOnDb = transaction->session().query<int>( "SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'subtitles'" ).bind( media.uid() );
+  int subtitlesOnDb = transaction.session().query<int>( "SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'subtitles'" ).bind( media.uid() );
 
   if( onExisting == SkipIfExisting && subtitlesOnDb == subtitles.size() )
   {
@@ -88,7 +88,7 @@ void SaveSubtitlesToDatabase::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::T
   semaphore.needsSaving(true);
 
   d->media = media;
-  transaction->session().execute( "DELETE FROM media_attachment WHERE media_id = ? AND type = 'subtitles'" ).bind( media.uid() );
+  transaction.session().execute( "DELETE FROM media_attachment WHERE media_id = ? AND type = 'subtitles'" ).bind( media.uid() );
   d->subtitlesToSave.clear();
   d->extractSubtitles(ffmpegMedia, semaphoreLock);
 //   boost::thread t( boost::bind( &SaveSubtitlesToDatabase::Private::extractSubtitles, d.get(), ffmpegMedia, semaphoreLock) );
@@ -130,14 +130,14 @@ void SaveSubtitlesToDatabase::Private::extractSubtitles( FFMPEGMedia *ffmpegMedi
 
 
 
-void SaveSubtitlesToDatabase::save( Dbo::Transaction *transaction )
+void SaveSubtitlesToDatabase::save( Dbo::Transaction& transaction )
 {
   if(d->subtitlesToSave.empty()) return;
 
-  transaction->session().execute( "DELETE FROM media_attachment WHERE media_id = ? AND type = 'subtitles'" ).bind( d->media.uid() );
+  transaction.session().execute( "DELETE FROM media_attachment WHERE media_id = ? AND type = 'subtitles'" ).bind( d->media.uid() );
 
   for( MediaAttachment * subtitle : d->subtitlesToSave )
-    transaction->session().add( subtitle );
+    transaction.session().add( subtitle );
 }
 
 
