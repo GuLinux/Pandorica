@@ -47,7 +47,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <fstream>
 #include <iterator>
 #include <vector>
-#include <condition_variable>
 #include "Models/models.h"
 
 #include <Magick++/Image.h>
@@ -259,11 +258,6 @@ Magick::Blob CreateThumbnails::Private::resize( Blob blob, uint32_t size, uint32
   return output;
 }
 
-
-Signal<> &CreateThumbnails::redo()
-{
-  return d->redo;
-}
 
 void CreateThumbnails::Private::findRandomPosition()
 {

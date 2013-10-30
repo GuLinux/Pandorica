@@ -94,7 +94,6 @@ class CreateThumbnails::Private
     Media currentMedia;
     ThumbnailPosition currentPosition;
     FFMPEGMedia *currentFFMPEGMedia;
-    Wt::Signal<> redo;
     Wt::WImage *previewImage;
     double currentTime;
     double duration;
