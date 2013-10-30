@@ -221,7 +221,13 @@ void CreateThumbnails::Private::createThumbnailFromMedia(const unique_lock< Medi
   findRandomPosition();
   
   int fullSize = max( currentFFMPEGMedia->resolution().first, currentFFMPEGMedia->resolution().second );
-  thumbnailFor( fullSize, 10 );
+  try {
+    thumbnailFor( fullSize, 10 );
+  } catch(std::exception &e) {
+    app->log("notice") << "Error creating thumbnail: " << e.what();
+    q->semaphore.needsSaving(false);
+    return;
+  }
 
   thumbnail = new WMemoryResource {"image/png", vectorFrom( resize( fullImage, IMAGE_SIZE_PREVIEW ) ), previewImage};
   guiRun( app, [ = ]
@@ -322,24 +328,17 @@ void CreateThumbnails::save( Dbo::Transaction& transaction )
 using namespace ffmpegthumbnailer;
 void CreateThumbnails::Private::thumbnailFor( int size, int quality )
 {
-  try {
-    vector<uint8_t> data;
-    VideoThumbnailer videoThumbnailer( size, false, true, quality, true );
-    FilmStripFilter filmStripFilter;
+  vector<uint8_t> data;
+  VideoThumbnailer videoThumbnailer( size, false, true, quality, true );
+  FilmStripFilter filmStripFilter;
+  if( currentMedia.mimetype().find( "video" ) != string::npos )
+    videoThumbnailer.addFilter( &filmStripFilter );
+  if( currentPosition.percent > 0 )
+    videoThumbnailer.setSeekPercentage( currentPosition.percent );
+  else
+    videoThumbnailer.setSeekTime( currentPosition.timing );
 
-    if( currentMedia.mimetype().find( "video" ) != string::npos )
-      videoThumbnailer.addFilter( &filmStripFilter );
-
-    if( currentPosition.percent > 0 )
-      videoThumbnailer.setSeekPercentage( currentPosition.percent );
-    else
-      videoThumbnailer.setSeekTime( currentPosition.timing );
-
-    videoThumbnailer.generateThumbnail( currentMedia.fullPath(), ThumbnailerImageType::Png, data );
-    fullImage = { data.data(), data.size() };
-  } catch(std::exception &e) {
-    app->log("notice") << "Error creating thumbnail: " << e.what();
-    q->semaphore.needsSaving(false);
-  }
+  videoThumbnailer.generateThumbnail( currentMedia.fullPath(), ThumbnailerImageType::Png, data );
+  fullImage = { data.data(), data.size() };
 }
 
