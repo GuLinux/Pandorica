@@ -61,6 +61,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WComboBox>
 #include "utils/d_ptr_implementation.h"
 #include "mediainfopanel.h"
+#include <boost/thread.hpp>
+#include <boost/chrono.hpp>
 
 
 using namespace Wt;
@@ -450,28 +452,49 @@ void MediaCollectionBrowser::Private::clearAttachmentsFor( Media media )
 
 void MediaCollectionBrowser::Private::setPosterFor( Media media )
 {
-  shared_ptr<FFMPEGMedia> ffmpegMedia (new FFMPEGMedia {media, [=](const string &level) { return wApp->log(level); } });
+  WPushButton *okButton, *cancelButton;
+  shared_ptr<bool> dialogClosed = make_shared<bool>(false);
+  cerr << "dialogClosed is " << *dialogClosed << endl;
   WDialog *dialog = new WDialog( wtr( "mediabrowser.admin.setposter" ) );
-  auto semaphore = make_shared<MediaScannerSemaphore>([]{}, []{});
-  auto createThumbs = new CreateThumbnails {semaphore, wApp, settings, dialog};
-  dialog->footer()->addWidget( WW<WPushButton>( wtr( "button.cancel" ) ).css( "btn btn-danger" ).onClick( [ = ]( WMouseEvent )
-  {
-    dialog->reject();
-  } ) );
-  dialog->footer()->addWidget( WW<WPushButton>( wtr( "button.ok" ) ).css( "btn btn-success" ).onClick( [ = ]( WMouseEvent )
-  {
-    Dbo::Transaction t( *session );
-    createThumbs->save(t);
-    t.commit();
-    dialog->accept();
-    q->reload();
-  } ) );
+  dialog->footer()->addWidget( cancelButton = WW<WPushButton>( wtr("button.cancel")).css( "btn btn-danger" ).onClick([=](WMouseEvent){ dialog->reject(); }));
+  dialog->footer()->addWidget( okButton = WW<WPushButton>(wtr("button.ok")).css( "btn btn-success" ).onClick([=](WMouseEvent){ dialog->accept(); }));
   dialog->show();
   dialog->resize( 500, 500 );
+  WApplication *app = wApp;
+  auto semaphore = make_shared<MediaScannerSemaphore>([=]{
+    guiRun(app, [=]{
+      okButton->enable();
+      cancelButton->enable();
+      app->triggerUpdate();
+    });
+  }, [=]{
+    guiRun(app, [=]{
+      okButton->disable();
+      cancelButton->disable();
+      app->triggerUpdate();
+    });
+  });
+  
+  dialog->finished().connect([=](WDialog::DialogCode result, _n5){
+    if(result != WDialog::Accepted)
+      semaphore->needsSaving(false);
+    *dialogClosed = true; 
+  });
+
+  auto createThumbs = new CreateThumbnails {semaphore, wApp, settings, dialog};
   createThumbs->setupGui(dialog->contents());
 
-  Dbo::Transaction t( *session );
-  createThumbs->run( ffmpegMedia.get(), media, t, [](bool){}, MediaScannerStep::OverwriteIfExisting );
+  boost::thread([=]{
+    Session threadSession;
+    Dbo::Transaction t( threadSession );
+    auto ffmpegMedia = make_shared<FFMPEGMedia>(media, [=](const string &level) { return app->log(level); });
+    createThumbs->run( ffmpegMedia.get(), media, t, [](bool){}, MediaScannerStep::OverwriteIfExisting );
+    while(! *dialogClosed)
+      boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
+    createThumbs->save(t);
+    t.commit();
+    guiRun(app, [=] { q->reload(); app->triggerUpdate(); });
+  });
 }
 
 
