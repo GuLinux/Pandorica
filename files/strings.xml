@@ -332,7 +332,7 @@ For other webservers (Apache, Lighttpd, Ngnix) read the proper documentation.
 An email message notifying the invitation was sent to {1}.</message>
 <message id="usersmanagement_invite_invitation_successful_email_sent">{1} was correctly added to the invited users list.</message>
 <message id="validation_email_invalid">Please type a valid email address.</message>
-<message id="mediacollectionbrowser_filters">Filtersp</message>
+<message id="mediacollectionbrowser_filters">Filters</message>
 <message id="mediacollectionbrowser_filters_name">Name</message>
 <message id="mediacollectionbrowser_filters_date">Date</message>
 <message id="mediacollectionbrowser_filters_rating">Rating</message>
