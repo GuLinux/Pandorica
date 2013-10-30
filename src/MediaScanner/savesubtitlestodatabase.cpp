@@ -37,6 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Wt-Commons/wt_helpers.h"
 #include "Models/models.h"
 #include <boost/thread.hpp>
+#include <mutex>
 #include "utils/d_ptr_implementation.h"
 #include <utils/utils.h>
 #include <settings.h>
@@ -65,7 +66,7 @@ SaveSubtitlesToDatabase::SaveSubtitlesToDatabase( const shared_ptr<MediaScannerS
 
 void SaveSubtitlesToDatabase::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transaction& transaction, MediaScannerStep::ExistingFlags onExisting )
 {
-  auto semaphoreLock = make_shared<boost::unique_lock<MediaScannerSemaphore>>(semaphore);
+  auto semaphoreLock = make_shared<unique_lock<MediaScannerSemaphore>>(semaphore);
   vector<FFMPEG::Stream> subtitles;
   auto allStreams = ffmpegMedia->streams();
   copy_if( begin( allStreams ), end( allStreams ), back_inserter( subtitles ), [ = ]( const FFMPEG::Stream & s )
@@ -102,7 +103,7 @@ void SaveSubtitlesToDatabase::setupGui( WContainerWidget *container )
 
 
 
-void SaveSubtitlesToDatabase::Private::extractSubtitles( FFMPEGMedia *ffmpegMedia, const shared_ptr<boost::unique_lock<MediaScannerSemaphore>> &semaphoreLock )
+void SaveSubtitlesToDatabase::Private::extractSubtitles( FFMPEGMedia *ffmpegMedia, const shared_ptr<unique_lock<MediaScannerSemaphore>> &semaphoreLock )
 {
   auto progressCallback = [ = ]( double p )
   {

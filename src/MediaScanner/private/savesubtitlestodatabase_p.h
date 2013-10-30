@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/thread/mutex.hpp>
 #include <ffmpegmedia.h>
 #include "MediaScanner/savesubtitlestodatabase.h"
+#include <mutex>
 
 class MediaAttachment;
 class Session;
@@ -37,7 +38,7 @@ class SaveSubtitlesToDatabase::Private
 {
 public:
     Private(Wt::WApplication* app, SaveSubtitlesToDatabase* q);
-    void extractSubtitles(FFMPEGMedia* ffmpegMedia, const std::shared_ptr< boost::unique_lock<MediaScannerSemaphore>>& semaphoreLock);
+    void extractSubtitles(FFMPEGMedia* ffmpegMedia, const std::shared_ptr< std::unique_lock< MediaScannerSemaphore > >& semaphoreLock);
     Wt::WApplication* app;
     std::vector<MediaAttachment*> subtitlesToSave;
     Media media;

@@ -1,7 +1,7 @@
 #include "MediaScanner/mediascannerstep.h"
 #include <utils/utils.h>
 #include <set>
-#include <boost/thread.hpp>
+#include <mutex>
 using namespace std;
 
 class MediaScannerSemaphore::Private {
@@ -17,7 +17,7 @@ public:
     bool needsSaving(MediaScannerSemaphore *child);
     set<MediaScannerSemaphore*> locks;
     set<MediaScannerSemaphore*> needingSaving;
-    boost::mutex mutex;
+    mutex semaphoreMutex;
 private:
     MediaScannerSemaphore *q;
 };
@@ -53,7 +53,7 @@ MediaScannerSemaphore& MediaScannerSemaphore::operator=(MediaScannerSemaphore& p
 
 void MediaScannerSemaphore::Private::addLock(MediaScannerSemaphore* child)
 {
-  boost::unique_lock<boost::mutex> lock(mutex);
+  unique_lock<mutex> lock(semaphoreMutex);
   if(locks.empty())
     runOnBusy();
   locks.insert(child);
@@ -61,7 +61,7 @@ void MediaScannerSemaphore::Private::addLock(MediaScannerSemaphore* child)
 
 void MediaScannerSemaphore::Private::tryUnlock(MediaScannerSemaphore* child)
 {
-  boost::unique_lock<boost::mutex> lock(mutex);
+  unique_lock<mutex> lock(semaphoreMutex);
   if(locks.empty())
     return;
   for(auto it = begin(locks); it != end(locks); ++it)
@@ -75,7 +75,7 @@ void MediaScannerSemaphore::needsSaving(bool saving)
   if(! d->parent && saving)
     throw runtime_error("Cannot call needsSaving(true) on a parent MediaScannerSemaphore instance");
   if(! d->parent) {
-    boost::unique_lock<boost::mutex> lock(d->mutex);
+    unique_lock<mutex> lock(d->semaphoreMutex);
     d->needingSaving.clear();
     return;
   }
@@ -94,17 +94,17 @@ bool MediaScannerSemaphore::needsSaving()
 
 void MediaScannerSemaphore::Private::addNeedsSaving(MediaScannerSemaphore* child)
 {
-  boost::unique_lock<boost::mutex> lock(mutex);
+  unique_lock<mutex> lock(semaphoreMutex);
   needingSaving.insert(child);
 }
 bool MediaScannerSemaphore::Private::needsSaving(MediaScannerSemaphore* child)
 {
-  boost::unique_lock<boost::mutex> lock(mutex);
+  unique_lock<mutex> lock(semaphoreMutex);
   return needingSaving.find(child) != needingSaving.end();
 }
 void MediaScannerSemaphore::Private::removeNeedsSaving(MediaScannerSemaphore* child)
 {
-  boost::unique_lock<boost::mutex> lock(mutex);
+  unique_lock<mutex> lock(semaphoreMutex);
   for(auto it = begin(needingSaving); it != end(needingSaving); ++it)
     if(child == *it) needingSaving.erase(it);
 }

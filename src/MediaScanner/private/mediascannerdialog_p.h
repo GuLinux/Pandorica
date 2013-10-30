@@ -64,7 +64,7 @@ public:
     Wt::WText* progressBarTitle;
     Settings* settings;
     std::map<MediaScannerStep*, StepContent> stepsContents;
-    void scanMedias(Wt::WApplication* app, std::function<void()> updateGuiProgress, std::function<void()> onScanFinish);
+    void scanMedias(std::function<void()> updateGuiProgress, std::function<void()> onScanFinish);
     bool canContinue;
     bool canceled;
     Wt::WPushButton* buttonCancel;
@@ -74,8 +74,11 @@ public:
     std::function<bool(Media&)> scanFilter;
     ScanningProgress scanningProgress;
     std::shared_ptr<MediaScannerSemaphore> semaphore;
+    Wt::WApplication *app;
+    void scanningMediaGuiControl(bool enabled);
 private:
     class MediaScannerDialog* const q;
-    void runStepsFor(Media media, Wt::WApplication* app, Wt::Dbo::Transaction& transaction);
+    void runStepsFor(Media media, Wt::Dbo::Transaction& transaction);
 };
+
 #endif // MEDIASCANNERDIALOGPRIVATE_H

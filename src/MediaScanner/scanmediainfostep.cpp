@@ -43,6 +43,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Models/models.h"
 #include <boost/thread.hpp>
+#include <mutex>
 
 using namespace Wt;
 using namespace std;
@@ -64,7 +65,7 @@ ScanMediaInfoStep::ScanMediaInfoStep( const shared_ptr< MediaScannerSemaphore >&
 void ScanMediaInfoStep::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transaction& transaction, MediaScannerStep::ExistingFlags onExisting )
 {
   d->app->log("notice") << __PRETTY_FUNCTION__;
-  boost::unique_lock<MediaScannerSemaphore> semaphoreLock(semaphore);
+  unique_lock<MediaScannerSemaphore> semaphoreLock(semaphore);
   
   MediaPropertiesPtr mediaPropertiesPtr = media.properties( transaction );
 

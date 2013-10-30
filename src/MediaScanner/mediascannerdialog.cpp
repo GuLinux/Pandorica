@@ -47,7 +47,7 @@ using namespace std;
 using namespace WtCommons;
 
 MediaScannerDialog::Private::Private(MediaScannerDialog* q, MediaCollection *mediaCollection, Session *session, Settings* settings, std::function<bool(Media&)> scanFilter)
-  : q(q), mediaCollection(mediaCollection), session(session), settings(settings), scanFilter(scanFilter)
+  : q(q), mediaCollection(mediaCollection), session(session), settings(settings), scanFilter(scanFilter), app(wApp)
 {
 }
 
@@ -87,22 +87,10 @@ MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, Med
   finished().connect([=](DialogCode code, _n5) {
     scanFinished().emit();
   });
-  WApplication *app = wApp;
-  d->semaphore = make_shared<MediaScannerSemaphore>([=]{
-    guiRun(app, [=]{
-      d->buttonNext->enable();
-      d->buttonSkip->enable();
-      d->buttonCancel->enable();
-      app->triggerUpdate();
-    });
-  }, [=]{
-    guiRun(app, [=]{
-      d->buttonNext->disable();
-      d->buttonSkip->disable();
-      d->buttonCancel->disable();
-      app->triggerUpdate();
-    });
-  });
+  d->semaphore = make_shared<MediaScannerSemaphore>(
+    [=]{ d->scanningMediaGuiControl(true); },
+    [=]{ d->scanningMediaGuiControl(false); }
+  );
 
   d->steps = {
     new ScanMediaInfoStep{d->semaphore, wApp, this},
@@ -124,6 +112,17 @@ MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, Med
   }
 }
 
+void MediaScannerDialog::Private::scanningMediaGuiControl(bool enabled)
+{
+  guiRun(app, [=] {
+    buttonNext->setEnabled(enabled);
+    buttonCancel->setEnabled(enabled);
+    buttonSkip->setEnabled(enabled);
+    app->triggerUpdate();
+  });
+}
+
+
 MediaScannerDialog::~MediaScannerDialog()
 {
   wApp->log("notice") << __PRETTY_FUNCTION__;
@@ -144,7 +143,7 @@ void MediaScannerDialog::run()
     d->progressBarTitle->setText(d->scanningProgress.currentFile);
     for(auto stepContainers : d->stepsContents)
       stepContainers.second.content->clear();
-    wApp->triggerUpdate();
+    d->app->triggerUpdate();
   };
   auto onScanFinished = [=] {
     d->buttonClose->enable();
@@ -156,12 +155,12 @@ void MediaScannerDialog::run()
     d->progressBarTitle->setText("");
     for(auto stepContainers : d->stepsContents)
       stepContainers.second.content->clear();
-    wApp->triggerUpdate();
+    d->app->triggerUpdate();
   };
-  boost::thread(boost::bind(&MediaScannerDialog::Private::scanMedias, d.get(), wApp, updateGuiProgress, onScanFinished ));
+  boost::thread(boost::bind(&MediaScannerDialog::Private::scanMedias, d.get(), updateGuiProgress, onScanFinished ));
 }
 
-void MediaScannerDialog::Private::scanMedias(Wt::WApplication* app, function<void()> updateGuiProgress, function<void()> onScanFinish)
+void MediaScannerDialog::Private::scanMedias(function<void()> updateGuiProgress, function<void()> onScanFinish)
 {
   canceled = false;
   semaphore->needsSaving(false);
@@ -193,12 +192,12 @@ void MediaScannerDialog::Private::scanMedias(Wt::WApplication* app, function<voi
         stepContent.second.groupBox->hide();
       updateGuiProgress();
     });
-    runStepsFor(media, app, transaction);
+    runStepsFor(media, transaction);
   }
 }
 
 
-void MediaScannerDialog::Private::runStepsFor(Media media, WApplication* app, Dbo::Transaction& transaction)
+void MediaScannerDialog::Private::runStepsFor(Media media, Dbo::Transaction& transaction)
 {
   canContinue = false;
 
@@ -216,10 +215,14 @@ void MediaScannerDialog::Private::runStepsFor(Media media, WApplication* app, Db
   });
   list<boost::thread> threads;
   for(MediaScannerStep *step: steps) {
-//     threads.push_back(boost::thread([=,&t,&media,&ffmpegMedia]{step->run(&ffmpegMedia, media, &t, showGui);}));
-    step->run(&ffmpegMedia, media, transaction);
-    if(! step->needsSaving())
-      guiRun(app, [=] { stepsContents[step].groupBox->hide(); app->triggerUpdate(); });
+    threads.push_back(boost::thread([=,&transaction,&media,&ffmpegMedia]{
+      step->run(&ffmpegMedia, media, transaction);
+      if(! step->needsSaving())
+	guiRun(app, [=] { stepsContents[step].groupBox->hide(); app->triggerUpdate(); });
+    }));
+    for(auto &stepThread: threads)
+      stepThread.join();
+//     step->run(&ffmpegMedia, media, transaction);
   }
   while(!canContinue && semaphore->needsSaving() )
     boost::this_thread::sleep_for(boost::chrono::milliseconds{200});

@@ -243,7 +243,7 @@ void CreateThumbnails::Private::createThumbnailFromMedia(const unique_lock< Medi
       });
       redoSignalWasConnected = true;
     }
-    wApp->triggerUpdate();
+    app->triggerUpdate();
   } );
 }
 
