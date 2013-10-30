@@ -38,10 +38,11 @@ public:
     ~CreateThumbnails();
     CreateThumbnails(const std::shared_ptr<MediaScannerSemaphore> &semaphore, Wt::WApplication *app, Settings* settings, Wt::WObject* parent = 0);
     void run(FFMPEGMedia* ffmpegMedia, Media media, Wt::Dbo::Transaction &transaction, std::function<void(bool)> showGui, ExistingFlags onExisting = SkipIfExisting);
-    virtual void save(Wt::Dbo::Transaction &transaction);
     virtual Wt::Signal<> &redo();
     inline virtual std::string stepName() const {return "createThumbnails"; }
     virtual void setupGui( Wt::WContainerWidget *container );
+protected:
+    virtual void save(Wt::Dbo::Transaction &transaction);
 private:
   D_PTR;
 };

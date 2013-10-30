@@ -118,7 +118,9 @@ MediaScannerStep::MediaScannerStep(const std::shared_ptr< MediaScannerSemaphore 
 void MediaScannerStep::saveIfNeeded(Wt::Dbo::Transaction& transaction)
 {
   Scope scope([=]{ semaphore.needsSaving(false); });
-  if(!semaphore.needsSaving() ) return;
+  if(!semaphore.needsSaving() ) {
+    return;
+  }
   save(transaction);
 }
 

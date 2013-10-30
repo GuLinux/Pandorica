@@ -476,8 +476,10 @@ void MediaCollectionBrowser::Private::setPosterFor( Media media )
   });
   
   dialog->finished().connect([=](WDialog::DialogCode result, _n5){
-    if(result != WDialog::Accepted)
+    if(result != WDialog::Accepted) {
       semaphore->needsSaving(false);
+      app->log("notice") << "needs saving: " << semaphore->needsSaving();
+    }
     *dialogClosed = true; 
   });
 
@@ -491,7 +493,7 @@ void MediaCollectionBrowser::Private::setPosterFor( Media media )
     createThumbs->run( ffmpegMedia.get(), media, t, [](bool){}, MediaScannerStep::OverwriteIfExisting );
     while(! *dialogClosed)
       boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
-    createThumbs->save(t);
+    createThumbs->saveIfNeeded(t);
     t.commit();
     guiRun(app, [=] { q->reload(); app->triggerUpdate(); });
   });
