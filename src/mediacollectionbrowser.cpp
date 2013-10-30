@@ -126,13 +126,20 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
     group->push_back(item);
     return item;
   };
-  addCheckableItem(sortByButton->menu(), wtr("mediacollectionbrowser_file_name"), [=]{d->sortBy = Private::Alpha; reload(); }, sortMenuGroup)->setChecked(d->sortBy == Private::Alpha);
+  auto sortByFileAscItem = addCheckableItem(sortByButton->menu(), wtr("mediacollectionbrowser_file_name"), [=]{d->sortBy = Private::Alpha; reload(); }, sortMenuGroup);
+  sortByFileAscItem->setChecked(d->sortBy == Private::Alpha);
   addCheckableItem(sortByButton->menu(), wtr("mediacollectionbrowser_date_added"), [=]{d->sortBy = Private::Date; reload(); }, sortMenuGroup)->setChecked(d->sortBy == Private::Date);
   addCheckableItem(sortByButton->menu(), wtr("mediacollectionbrowser_rating"), [=]{d->sortBy = Private::Rating; reload(); }, sortMenuGroup)->setChecked(d->sortBy == Private::Rating);
   sortByButton->menu()->addSeparator();
   addCheckableItem(sortByButton->menu(), wtr("mediacollectionbrowser_ascending"), [=]{d->sortDirection = Private::Asc; reload(); }, sortOrderMenuGroup)->setChecked(d->sortDirection == Private::Asc);
   addCheckableItem(sortByButton->menu(), wtr("mediacollectionbrowser_descending"), [=]{d->sortDirection = Private::Desc; reload(); }, sortOrderMenuGroup)->setChecked(d->sortDirection == Private::Desc);
-  sortByButton->setMenu(sortByButton->menu());
+  sortByButton->menu()->addSeparator();
+  sortByButton->menu()->addItem(wtr("mediacollectionbrowser_sorting_reset"))->triggered().connect([=](WMenuItem*, _n5){
+    d->sortDirection = Private::Asc;
+    d->sortBy = Private::Alpha; reload();
+    for(auto item: sortByButton->menu()->items())
+      item->setChecked(item == sortByFileAscItem);
+  });
 
   shared_ptr<vector<WMenuItem*>> viewModeItems(new vector<WMenuItem*>);
   WPushButton *viewModeButton = WW<WPushButton>(wtr("mediacollectionbrowser_view_mode")).css("btn btn-small").setMenu(new WPopupMenu);

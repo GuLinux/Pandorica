@@ -352,4 +352,5 @@ An email message notifying the invitation was sent to {1}.</message>
 <message id="mediacollectionbrowser_filters_ratinglt_menuitem">Rating is at most {1}</message>
 <message id="mediacollectionbrowser_filters_name_should_contain">name should contain...</message>
 <message id="mediacollectionbrowser_filters_name_case_sensitive">Case sensitive</message>
+<message id="mediacollectionbrowser_sorting_reset">Reset</message>
 </messages>
