@@ -63,6 +63,7 @@ MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, Med
   footer()->addWidget(d->progressBar);
   footer()->addWidget(d->buttonCancel = WW<WPushButton>(wtr("button.cancel")).css("btn btn-danger").onClick([=](WMouseEvent) {
     d->canceled = true;
+    d->semaphore->needsSaving(false);
     reject();
   }));
   footer()->addWidget(d->buttonSkip = WW<WPushButton>(wtr("button.skip")).css("btn btn-warning").onClick([=](WMouseEvent) {
@@ -162,14 +163,16 @@ void MediaScannerDialog::Private::scanMedias(Wt::WApplication* app, function<voi
   Session session;
   Dbo::Transaction transaction(session);
   Scope onFinish([=,&transaction]{
+      cerr << __PRETTY_FUNCTION__ << "\n"; cerr.flush();
     boost::this_thread::sleep_for(boost::chrono::milliseconds{500});
     guiRun(app, [=] { updateGuiProgress(); onScanFinish(); });
     transaction.commit();
+      cerr << __PRETTY_FUNCTION__ << " END \n"; cerr.flush();
   });
   mediaCollection->rescan(transaction);
   for(auto mediaPair: mediaCollection->collection()) {
     if(canceled) {
-      cerr << "canceled!\n";
+      cerr << "canceled!\n"; cerr.flush();
       return;
     }
     Media media = mediaPair.second;
