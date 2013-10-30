@@ -2,7 +2,6 @@
 #include <utils/utils.h>
 #include <set>
 #include <boost/thread.hpp>
-#include <Wt/WServer>
 using namespace std;
 
 class MediaScannerSemaphore::Private {
@@ -118,10 +117,8 @@ MediaScannerStep::MediaScannerStep(const std::shared_ptr< MediaScannerSemaphore 
 
 void MediaScannerStep::saveIfNeeded(Wt::Dbo::Transaction& transaction)
 {
-  Wt::WServer::instance()->log("notice") << __PRETTY_FUNCTION__;
   Scope scope([=]{ semaphore.needsSaving(false); });
   if(!semaphore.needsSaving() ) return;
-  Wt::WServer::instance()->log("notice") << "needs saving, calling save() on MediaScannerStep: " << stepName();
   save(transaction);
 }
 
