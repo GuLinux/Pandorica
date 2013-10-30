@@ -322,19 +322,24 @@ void CreateThumbnails::save( Dbo::Transaction& transaction )
 using namespace ffmpegthumbnailer;
 void CreateThumbnails::Private::thumbnailFor( int size, int quality )
 {
-  vector<uint8_t> data;
-  VideoThumbnailer videoThumbnailer( size, false, true, quality, true );
-  FilmStripFilter filmStripFilter;
+  try {
+    vector<uint8_t> data;
+    VideoThumbnailer videoThumbnailer( size, false, true, quality, true );
+    FilmStripFilter filmStripFilter;
 
-  if( currentMedia.mimetype().find( "video" ) != string::npos )
-    videoThumbnailer.addFilter( &filmStripFilter );
+    if( currentMedia.mimetype().find( "video" ) != string::npos )
+      videoThumbnailer.addFilter( &filmStripFilter );
 
-  if( currentPosition.percent > 0 )
-    videoThumbnailer.setSeekPercentage( currentPosition.percent );
-  else
-    videoThumbnailer.setSeekTime( currentPosition.timing );
+    if( currentPosition.percent > 0 )
+      videoThumbnailer.setSeekPercentage( currentPosition.percent );
+    else
+      videoThumbnailer.setSeekTime( currentPosition.timing );
 
-  videoThumbnailer.generateThumbnail( currentMedia.fullPath(), ThumbnailerImageType::Png, data );
-  fullImage = { data.data(), data.size() };
+    videoThumbnailer.generateThumbnail( currentMedia.fullPath(), ThumbnailerImageType::Png, data );
+    fullImage = { data.data(), data.size() };
+  } catch(std::exception &e) {
+    app->log("notice") << "Error creating thumbnail: " << e.what();
+    q->semaphore.needsSaving(false);
+  }
 }
 
