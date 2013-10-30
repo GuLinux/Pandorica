@@ -162,10 +162,10 @@ void CreateThumbnails::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transact
   d->currentMedia = media;
   d->currentFFMPEGMedia = ffmpegMedia;
 
-  if( !ffmpegMedia->isVideo() )
-  {
-    return;
-  }
+//   if( !ffmpegMedia->isVideo() )
+//   {
+//     return;
+//   }
 
   d->createThumbnailFromMedia(lock);
 }
@@ -207,7 +207,6 @@ void CreateThumbnails::setupGui( WContainerWidget *container )
 
 void CreateThumbnails::Private::createThumbnailFromMedia(const unique_lock< MediaScannerSemaphore > &semaphoreLock)
 {
-  app->log("notice") << __PRETTY_FUNCTION__;
   auto setLoadingIcon = [=]{
     previewImage->setImageLink(Settings::staticPath("/icons/loader-large.gif"));
     app->triggerUpdate();
@@ -215,7 +214,7 @@ void CreateThumbnails::Private::createThumbnailFromMedia(const unique_lock< Medi
   guiRun(app, setLoadingIcon);
   unique_lock<FFMPEGMedia> lockFFMPeg( *currentFFMPEGMedia );
   delete thumbnail;
-  
+  thumbnail = 0;
   findRandomPosition();
   
   int fullSize = max( currentFFMPEGMedia->resolution().first, currentFFMPEGMedia->resolution().second );
@@ -223,7 +222,13 @@ void CreateThumbnails::Private::createThumbnailFromMedia(const unique_lock< Medi
     thumbnailFor( fullSize, 10 );
   } catch(std::exception &e) {
     app->log("notice") << "Error creating thumbnail: " << e.what();
-    q->semaphore.needsSaving(false);
+    guiRun(app, [=]{ previewImage->hide(); app->triggerUpdate(); });
+    
+    fullImage = Blob();
+    cerr << "fullImage length: " << fullImage.length() << endl;
+    while(fullImage.length() == 0 && q->semaphore.needsSaving()) {
+      boost::this_thread::sleep_for(boost::chrono::milliseconds(200));
+    }
     return;
   }
 
@@ -232,7 +237,7 @@ void CreateThumbnails::Private::createThumbnailFromMedia(const unique_lock< Medi
   {
     previewImage->addStyleClass( "link-hand" );
     previewImage->setImageLink( thumbnail );
-    previewImage->setHidden( false );
+    previewImage->show();
 
     if( !redoSignalWasConnected ) {
       previewImage->clicked().connect( [=]( WMouseEvent ) {
@@ -303,6 +308,7 @@ ThumbnailPosition ThumbnailPosition::from( int timeInSeconds )
 
 void CreateThumbnails::save( Dbo::Transaction& transaction )
 {
+  if(d->fullImage.length() == 0) return;
   log( "notice" ) << "Deleting old data from media_attachment for media_id " << d->currentMedia.uid();
   transaction.session().execute( "DELETE FROM media_attachment WHERE media_id = ? AND type = 'preview'" ).bind( d->currentMedia.uid() );
   MediaAttachment *fullAttachment = new MediaAttachment {"preview", "full", "", d->currentMedia.uid(), "image/png", vectorFrom( d->fullImage ) };
