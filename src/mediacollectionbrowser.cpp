@@ -456,8 +456,8 @@ void MediaCollectionBrowser::Private::setPosterFor( Media media )
   shared_ptr<bool> dialogClosed = make_shared<bool>(false);
   cerr << "dialogClosed is " << *dialogClosed << endl;
   WDialog *dialog = new WDialog( wtr( "mediabrowser.admin.setposter" ) );
-  dialog->footer()->addWidget( cancelButton = WW<WPushButton>( wtr("button.cancel")).css( "btn btn-danger" ).onClick([=](WMouseEvent){ dialog->reject(); }));
-  dialog->footer()->addWidget( okButton = WW<WPushButton>(wtr("button.ok")).css( "btn btn-success" ).onClick([=](WMouseEvent){ dialog->accept(); }));
+  dialog->footer()->addWidget( cancelButton = WW<WPushButton>( wtr("button.cancel")).setEnabled(false).css( "btn btn-danger" ).onClick([=](WMouseEvent){ dialog->reject(); }));
+  dialog->footer()->addWidget( okButton = WW<WPushButton>(wtr("button.ok")).setEnabled(false).css( "btn btn-success" ).onClick([=](WMouseEvent){ dialog->accept(); }));
   dialog->show();
   dialog->resize( 500, 500 );
   WApplication *app = wApp;
@@ -490,7 +490,7 @@ void MediaCollectionBrowser::Private::setPosterFor( Media media )
     Session threadSession;
     Dbo::Transaction t( threadSession );
     auto ffmpegMedia = make_shared<FFMPEGMedia>(media, [=](const string &level) { return app->log(level); });
-    createThumbs->run( ffmpegMedia.get(), media, t, [](bool){}, MediaScannerStep::OverwriteIfExisting );
+    createThumbs->run( ffmpegMedia.get(), media, t, MediaScannerStep::OverwriteIfExisting );
     while(! *dialogClosed)
       boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
     createThumbs->saveIfNeeded(t);

@@ -195,25 +195,25 @@ void MediaScannerDialog::Private::scanMedias(Wt::WApplication* app, function<voi
 void MediaScannerDialog::Private::runStepsFor(Media media, WApplication* app, Dbo::Transaction& transaction)
 {
   canContinue = false;
+
   FFMPEGMedia ffmpegMedia{media, [=](const string &level) { return app->log(level); } };
   guiRun(app, [=]{
     for(MediaScannerStep *step: steps) {
-      auto stepName= step->stepName();
       stepsContents[step].content->clear();
       step->setupGui(stepsContents[step].content);
+      stepsContents[step].groupBox->show();
     }
     app->triggerUpdate();
   });
+  Scope hideStepContents([=]{
+    guiRun(app, [=] { for(auto stepContent: stepsContents) stepContent.second.groupBox->hide(); app->triggerUpdate(); });
+  });
   list<boost::thread> threads;
   for(MediaScannerStep *step: steps) {
-    WWidget *guiToShow = stepsContents[step].groupBox;
-    auto showGui = [=](bool visible){
-      guiRun(app, [=]{
-	guiToShow->setHidden(!visible);
-      });
-    };
 //     threads.push_back(boost::thread([=,&t,&media,&ffmpegMedia]{step->run(&ffmpegMedia, media, &t, showGui);}));
-    step->run(&ffmpegMedia, media, transaction, showGui);
+    step->run(&ffmpegMedia, media, transaction);
+    if(! step->needsSaving())
+      guiRun(app, [=] { stepsContents[step].groupBox->hide(); app->triggerUpdate(); });
   }
   while(!canContinue && semaphore->needsSaving() )
     boost::this_thread::sleep_for(boost::chrono::milliseconds{200});

@@ -149,7 +149,7 @@ void ImageUploader::uploaded()
 }
 
 
-void CreateThumbnails::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transaction& transaction, function<void(bool)> showGui, MediaScannerStep::ExistingFlags onExisting )
+void CreateThumbnails::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transaction& transaction, MediaScannerStep::ExistingFlags onExisting )
 {
   d->app->log("notice") << __PRETTY_FUNCTION__;
   unique_lock<MediaScannerSemaphore> lock(semaphore);
@@ -158,7 +158,6 @@ void CreateThumbnails::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transact
   {
     return;
   }
-  showGui(true);
   semaphore.needsSaving(true);
   d->currentMedia = media;
   d->currentFFMPEGMedia = ffmpegMedia;

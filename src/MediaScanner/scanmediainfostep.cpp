@@ -61,7 +61,7 @@ ScanMediaInfoStep::ScanMediaInfoStep( const shared_ptr< MediaScannerSemaphore >&
 }
 
 
-void ScanMediaInfoStep::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transaction& transaction, function<void(bool)> showGui, MediaScannerStep::ExistingFlags onExisting )
+void ScanMediaInfoStep::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transaction& transaction, MediaScannerStep::ExistingFlags onExisting )
 {
   d->app->log("notice") << __PRETTY_FUNCTION__;
   boost::unique_lock<MediaScannerSemaphore> semaphoreLock(semaphore);
@@ -74,7 +74,6 @@ void ScanMediaInfoStep::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transac
     return;
   }
   d->app->log("notice") << "running showGui";
-  showGui(true);
   semaphore.needsSaving(true);
   string titleSuggestion = ffmpegMedia->metadata( "title" ).empty() ? Utils::titleHintFromFilename( media.filename() ) : ffmpegMedia->metadata( "title" );
   d->newTitle = titleSuggestion;
@@ -101,8 +100,6 @@ void ScanMediaInfoStep::setupGui(WContainerWidget* container)
     label->setBuddy( d->editTitle );
     container->addWidget( WW<WContainerWidget>().css( "form-inline" ).add( label ).add( d->editTitle ) );
 }
-
-
 
 
 ScanMediaInfoStep::~ScanMediaInfoStep()

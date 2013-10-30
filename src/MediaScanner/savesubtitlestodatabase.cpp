@@ -63,7 +63,7 @@ SaveSubtitlesToDatabase::SaveSubtitlesToDatabase( const shared_ptr<MediaScannerS
 {
 }
 
-void SaveSubtitlesToDatabase::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transaction& transaction, function<void(bool)> showGui, MediaScannerStep::ExistingFlags onExisting )
+void SaveSubtitlesToDatabase::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transaction& transaction, MediaScannerStep::ExistingFlags onExisting )
 {
   auto semaphoreLock = make_shared<boost::unique_lock<MediaScannerSemaphore>>(semaphore);
   vector<FFMPEG::Stream> subtitles;
@@ -84,7 +84,6 @@ void SaveSubtitlesToDatabase::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::T
   {
     return;
   }
-  showGui(true);
   semaphore.needsSaving(true);
 
   d->media = media;

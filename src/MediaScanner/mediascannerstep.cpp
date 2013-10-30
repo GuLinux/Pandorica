@@ -112,7 +112,6 @@ void MediaScannerSemaphore::Private::removeNeedsSaving(MediaScannerSemaphore* ch
 MediaScannerStep::MediaScannerStep(const std::shared_ptr< MediaScannerSemaphore >& semaphore)
   : semaphore(*semaphore)
 {
-
 }
 
 void MediaScannerStep::saveIfNeeded(Wt::Dbo::Transaction& transaction)
@@ -122,6 +121,11 @@ void MediaScannerStep::saveIfNeeded(Wt::Dbo::Transaction& transaction)
     return;
   }
   save(transaction);
+}
+
+bool MediaScannerStep::needsSaving()
+{
+  return semaphore.needsSaving();
 }
 
 

@@ -32,7 +32,7 @@ class SaveSubtitlesToDatabase :  Wt::WObject, public MediaScannerStep
 public:
     ~SaveSubtitlesToDatabase();
     SaveSubtitlesToDatabase(const std::shared_ptr<MediaScannerSemaphore> &semaphore, Wt::WApplication* app, Wt::WObject* parent);
-    virtual void run(FFMPEGMedia* ffmpegMedia, Media media, Wt::Dbo::Transaction &transaction, std::function<void(bool)> showGui, ExistingFlags onExisting = SkipIfExisting);
+    virtual void run(FFMPEGMedia* ffmpegMedia, Media media, Wt::Dbo::Transaction &transaction, ExistingFlags onExisting = SkipIfExisting);
     inline virtual std::string stepName() const {return "saveSubtitlesToDatabase"; }
     virtual void setupGui( Wt::WContainerWidget *container );
 protected:

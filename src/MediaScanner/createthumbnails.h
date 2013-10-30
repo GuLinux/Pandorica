@@ -37,7 +37,7 @@ class CreateThumbnails : public MediaScannerStep, Wt::WObject
 public:
     ~CreateThumbnails();
     CreateThumbnails(const std::shared_ptr<MediaScannerSemaphore> &semaphore, Wt::WApplication *app, Settings* settings, Wt::WObject* parent = 0);
-    void run(FFMPEGMedia* ffmpegMedia, Media media, Wt::Dbo::Transaction &transaction, std::function<void(bool)> showGui, ExistingFlags onExisting = SkipIfExisting);
+    void run(FFMPEGMedia* ffmpegMedia, Media media, Wt::Dbo::Transaction &transaction, ExistingFlags onExisting = SkipIfExisting);
     inline virtual std::string stepName() const {return "createThumbnails"; }
     virtual void setupGui( Wt::WContainerWidget *container );
 protected:
