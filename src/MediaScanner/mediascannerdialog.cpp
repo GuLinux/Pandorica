@@ -63,14 +63,20 @@ MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, Med
   footer()->addWidget(d->progressBar);
   footer()->addWidget(d->buttonCancel = WW<WPushButton>(wtr("button.cancel")).css("btn btn-danger").onClick([=](WMouseEvent) {
     d->canceled = true;
+    d->buttonCancel->disable();
     d->semaphore->needsSaving(false);
     reject();
   }));
   footer()->addWidget(d->buttonSkip = WW<WPushButton>(wtr("button.skip")).css("btn btn-warning").onClick([=](WMouseEvent) {
+    d->buttonSkip->disable();
     d->semaphore->needsSaving(false);
   }));
-  footer()->addWidget(d->buttonNext = WW<WPushButton>(wtr("button.next")).css("btn btn-primary").setEnabled(false).onClick([=](WMouseEvent) { d->canContinue = true; }));
+  footer()->addWidget(d->buttonNext = WW<WPushButton>(wtr("button.next")).css("btn btn-primary").setEnabled(false).onClick([=](WMouseEvent) {
+    d->buttonNext->disable();
+    d->canContinue = true;
+  }));
   footer()->addWidget(d->buttonClose = WW<WPushButton>(wtr("button.close")).css("btn btn-success").onClick([=](WMouseEvent) {
+    d->buttonClose->disable();
     accept();
   }).setEnabled(false));
   contents()->addWidget(WW<WContainerWidget>()
