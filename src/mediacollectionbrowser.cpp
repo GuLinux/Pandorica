@@ -134,7 +134,9 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
   addCheckableItem(sortByButton->menu(), wtr("mediacollectionbrowser_ascending"), [=]{d->sortDirection = Private::Asc; reload(); }, sortOrderMenuGroup)->setChecked(d->sortDirection == Private::Asc);
   addCheckableItem(sortByButton->menu(), wtr("mediacollectionbrowser_descending"), [=]{d->sortDirection = Private::Desc; reload(); }, sortOrderMenuGroup)->setChecked(d->sortDirection == Private::Desc);
   sortByButton->menu()->addSeparator();
-  sortByButton->menu()->addItem(wtr("mediacollectionbrowser_sorting_reset"))->triggered().connect([=](WMenuItem*, _n5){
+  auto resetItem = sortByButton->menu()->addItem(wtr("mediacollectionbrowser_sorting_reset"));
+  resetItem->addStyleClass("link-hand");
+  resetItem->triggered().connect([=](WMenuItem*, _n5){
     d->sortDirection = Private::Asc;
     d->sortBy = Private::Alpha; reload();
     for(auto item: sortByButton->menu()->items())
