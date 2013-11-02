@@ -82,14 +82,17 @@ void Utils::mailForUnauthorizedUser( string email, WString identity )
   client.send( message );
 }
 
-void Utils::inviteUserEmail( string email )
+void Utils::inviteUserEmail( std::string email, const WString &body)
 {
   Mail::Client client;
   Mail::Message message;
   message.setFrom( Utils::Private::authMailbox() );
   message.setSubject( WString::tr( "invite_user_subject" ) );
-  message.setBody( WString::tr( "invite_user_body" ).arg( wApp->makeAbsoluteUrl( wApp->bookmarkUrl( "/" ) ) ) );
-  message.addHtmlBody( WString::tr( "invite_user_body_html" ).arg( wApp->makeAbsoluteUrl( wApp->bookmarkUrl( "/" ) ) ) );
+  if(body.empty()) {
+    message.setBody( WString::tr( "invite_user_body" ).arg( wApp->makeAbsoluteUrl( wApp->bookmarkUrl( "/" ) ) ) );
+    message.addHtmlBody( WString::tr( "invite_user_body_html" ).arg( wApp->makeAbsoluteUrl( wApp->bookmarkUrl( "/" ) ) ) );
+  } else
+    message.setBody(body);
   message.addRecipient( Mail::To, email );
   client.connect();
   client.send( message );

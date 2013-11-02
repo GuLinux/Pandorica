@@ -36,6 +36,7 @@
 #include <Wt/WGroupBox>
 #include <Wt/WGroupBox>
 #include <Wt/WRegExpValidator>
+#include <Wt/WTextArea>
 #include "Models/models.h"
 #include "Wt-Commons/wt_helpers.h"
 #include "pandorica.h"
@@ -112,8 +113,24 @@ void UsersManagementPage::Private::invite(std::string email, const std::vector<W
     newUser.modify()->groups.insert(group);
   newUser.modify()->invitedEmailAddress = email;
   if(sendEmail) {
-    Utils::inviteUserEmail(email);
-    WMessageBox::show(wtr("usersmanagement_invite_invitation_successful"), wtr("usersmanagement_invite_invitation_successful_email_sent").arg(email), StandardButton::Ok);
+    WDialog *sendEmailDialog = new WDialog;
+    sendEmailDialog->setCaption("Invite User");
+    WTextArea *customEmailText = WW<WTextArea>().css("input-block-level").setHidden(true);
+    customEmailText->setRows(10);
+    WCheckBox *setCustomEmailText = WW<WCheckBox>(wtr("usersmanagement_invite_use_a_custom_message")).css("input-block-level");
+    setCustomEmailText->changed().connect([=](_n1) { customEmailText->setHidden(! setCustomEmailText->isChecked()); });
+    sendEmailDialog->contents()->addWidget(WW<WText>(wtr("usersmanagement_invite_email_dialog_label").arg(email)));
+    sendEmailDialog->contents()->addWidget(setCustomEmailText);
+    sendEmailDialog->contents()->addWidget(customEmailText);
+    sendEmailDialog->footer()->addWidget(WW<WPushButton>(wtr("button.ok")).css("btn btn-primary").onClick([=](WMouseEvent){ sendEmailDialog->accept(); }));
+    sendEmailDialog->show();
+    sendEmailDialog->finished().connect([=](WDialog::DialogCode result, _n5) {
+      if(result != WDialog::Accepted)
+        return;
+      WString customText = setCustomEmailText->isChecked() ? customEmailText->text() : WString{};
+      Utils::inviteUserEmail(email, customText);
+      WMessageBox::show(wtr("usersmanagement_invite_invitation_successful"), wtr("usersmanagement_invite_invitation_successful_email_sent").arg(email), StandardButton::Ok);
+    });
   } else {
     WMessageBox::show(wtr("usersmanagement_invite_invitation_successful"), wtr("usersmanagement_invite_invitation_successful_body"), StandardButton::Ok);
   }

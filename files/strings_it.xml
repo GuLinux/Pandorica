@@ -292,7 +292,7 @@
   <message id="Wt.Auth.confirmmail.body">
 Ciao {1},
 
-Grazie per esserti registrato alla mia App Streaming!
+Grazie per esserti registrato su Pandorica Streaming!
 
 Per completare la tua registrazione, conferma il tuo account
 cliccando il link seguente o copiando l'URL nel tuo browser:
@@ -301,7 +301,7 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
 
  <message id="Wt.Auth.confirmmail.htmlbody">
     <h3>Ciao {1},</h3>
-    <p>Grazie per esserti registrato alla mia App Streaming!</p>
+    <p>Grazie per esserti registrato su Pandorica Streaming!</p>
     <p>Per completare la tua registrazione, conferma il tuo account
       cliccando il link seguente o copiando l'URL nel tuo browser.</p>
     <p><a href="{3}">Clicca qui per confermare</a> la tua registrazione,
@@ -393,4 +393,6 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
 <message id="mediacollectionbrowser_filters_ratinglt_menuitem">Il voto è al più {1}</message>
 <message id="mediacollectionbrowser_filters_name_should_contain">nome contenente...</message>
 <message id="mediacollectionbrowser_filters_name_case_sensitive">Controllo maiuscole/minuscole</message>
+<message id="usersmanagement_invite_use_a_custom_message">Usa un messaggio personalizzato</message>
+<message id="usersmanagement_invite_email_dialog_label">Una email verrà inviata a {1} per notificare l'invito.</message>
 </messages>

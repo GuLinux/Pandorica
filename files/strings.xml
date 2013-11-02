@@ -221,7 +221,7 @@
   <message id="Wt.Auth.confirmmail.body">
 Hello {1},
 
-Thank you for joining my Streaming Application!
+Thank you for joining my Pandorica Streaming Application!
 
 To complete your registration, please confirm your account by
 clicking on the following link or copying the URL into your browser:
@@ -230,7 +230,7 @@ clicking on the following link or copying the URL into your browser:
 
  <message id="Wt.Auth.confirmmail.htmlbody">
     <h3>Hello {1},</h3>
-    <p>Thank you for joining my Streaming Application!</p>
+    <p>Thank you for joining my Pandorica Streaming Application!</p>
     <p>To complete your registration, please confirm your
     account by clicking on the following link or copying the URL into
     your browser.</p>
@@ -353,4 +353,6 @@ An email message notifying the invitation was sent to {1}.</message>
 <message id="mediacollectionbrowser_filters_name_should_contain">name should contain...</message>
 <message id="mediacollectionbrowser_filters_name_case_sensitive">Case sensitive</message>
 <message id="mediacollectionbrowser_sorting_reset">Reset</message>
+<message id="usersmanagement_invite_use_a_custom_message">Use a custom message</message>
+<message id="usersmanagement_invite_email_dialog_label">An email will be sent to {1} to notify the invitation.</message>
 </messages>
