@@ -117,12 +117,17 @@ void UsersManagementPage::Private::invite(std::string email, const std::vector<W
     sendEmailDialog->setCaption("Invite User");
     WTextArea *customEmailText = WW<WTextArea>().css("input-block-level").setHidden(true);
     customEmailText->setRows(10);
+    WPushButton *okButton;
+    sendEmailDialog->footer()->addWidget(okButton = WW<WPushButton>(wtr("button.ok")).css("btn btn-primary").onClick([=](WMouseEvent){ sendEmailDialog->accept(); }));
     WCheckBox *setCustomEmailText = WW<WCheckBox>(wtr("usersmanagement_invite_use_a_custom_message")).css("input-block-level");
-    setCustomEmailText->changed().connect([=](_n1) { customEmailText->setHidden(! setCustomEmailText->isChecked()); });
+    setCustomEmailText->changed().connect([=](_n1) {
+      customEmailText->setHidden(! setCustomEmailText->isChecked());
+      okButton->setEnabled(!setCustomEmailText->isChecked() || !customEmailText->text().empty());
+    });
+    customEmailText->keyWentUp().connect([=](WKeyEvent){ okButton->setEnabled(!customEmailText->text().empty()); });
     sendEmailDialog->contents()->addWidget(WW<WText>(wtr("usersmanagement_invite_email_dialog_label").arg(email)));
     sendEmailDialog->contents()->addWidget(setCustomEmailText);
     sendEmailDialog->contents()->addWidget(customEmailText);
-    sendEmailDialog->footer()->addWidget(WW<WPushButton>(wtr("button.ok")).css("btn btn-primary").onClick([=](WMouseEvent){ sendEmailDialog->accept(); }));
     sendEmailDialog->show();
     sendEmailDialog->finished().connect([=](WDialog::DialogCode result, _n5) {
       if(result != WDialog::Accepted)
