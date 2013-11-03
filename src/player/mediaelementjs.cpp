@@ -61,11 +61,9 @@ void MediaElementJs::onPlayerReady()
   };
   
   // TODO: it's not working again, check why
-  /*
-  if(d->defaultTracks["subtitles"].isValid()) {
-      mediaElementOptions["startLanguage"] = (boost::format("'%s'") % d->defaultTracks["subtitles"].lang).str();
+  if(html5PlayerSetup.defaultTracks()["subtitles"].isValid()) {
+      mediaElementOptions["startLanguage"] = (boost::format("'%s'") % html5PlayerSetup.defaultTracks()["subtitles"].lang).str();
   }
-  */
 
   vector<string> tempOptions;
   string mediaElementOptionsString = boost::algorithm::join(

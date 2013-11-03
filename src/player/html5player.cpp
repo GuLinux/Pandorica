@@ -72,6 +72,7 @@ HTML5Player::HTML5Player(HTML5Player::SubType subType, WContainerWidget* parent)
     [=](const string &javascript) { d->templateWidget->doJavaScript(javascript); },
     [=]() { return d->sources[0].type.find("video/") == string::npos ? Audio : Video; },
     [=](const string &key) { return d->templateWidget->resolveWidget(key); },
+    [=]() { return d->defaultTracks; },
   };
   switch(subType) {
     case PureHTML5:

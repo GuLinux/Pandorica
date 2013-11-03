@@ -65,6 +65,7 @@ struct HTML5PlayerSetup {
   std::function<void(const std::string&)> doJavascript;
   std::function<HTML5Player::MediaType()> mediaType;
   std::function<Wt::WWidget*(const std::string &)> resolveWidget;
+  std::function<std::map<std::string,Track>()> defaultTracks;
 };
 
 class PlayerJavascript : public Wt::WObject {
