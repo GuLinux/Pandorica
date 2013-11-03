@@ -108,7 +108,8 @@ void QtTrayIcon::appStarted()
   timer->start(500);
   try {
     networkAddress = "localhost";
-    for(QString addr: Utils::transform(QNetworkInterface::allAddresses(), std::vector<QString>{}, [](QHostAddress a){ return a.toString(); }) ) {
+    std::vector<QString> tempStrings;
+    for(QString addr: Utils::transform(QNetworkInterface::allAddresses(), tempStrings, [](QHostAddress a){ return a.toString(); }) ) {
       if(addr.startsWith("192.168.") || addr.startsWith("10.0.")) {
         networkAddress = addr;
         break;

@@ -67,8 +67,9 @@ void MediaElementJs::onPlayerReady()
   }
   */
 
+  vector<string> tempOptions;
   string mediaElementOptionsString = boost::algorithm::join(
-    Utils::transform(mediaElementOptions, vector<string>{}, [](pair<string,string> o){
+    Utils::transform(mediaElementOptions, tempOptions, [](pair<string,string> o){
     return (boost::format("%s: %s") % o.first % o.second).str();
   }), ", ");
 

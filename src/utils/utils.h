@@ -66,7 +66,7 @@ public:
     static Wt::WInteractWidget *help(std::string titleKey, std::string contentKey, std::string side, Wt::WLength size = Wt::WLength::Auto);
     
     template<typename Out, typename In, typename TransformF>
-    static Out transform(In in, Out out, TransformF f) {
+    static Out &transform(In in, Out &out, TransformF f) {
       std::transform(in.begin(), in.end(), std::back_inserter(out), f);
       return out;
     }

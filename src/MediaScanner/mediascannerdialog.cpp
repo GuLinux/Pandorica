@@ -173,11 +173,13 @@ void MediaScannerDialog::Private::scanMedias(function<void()> updateGuiProgress,
     guiRun(app, [=] { updateGuiProgress(); onScanFinish(); });
   });
   mediaCollection->rescan(transaction);
-  for(auto mediaPair: mediaCollection->collection()) {
+  vector<Media> collection;
+  Utils::transform(mediaCollection->collection(), collection, [](pair<string,Media> m){ return m.second; });
+  sort(begin(collection), end(collection), [](const Media &_1, const Media &_2) { return _1.fullPath() < _2.fullPath(); } );
+  for(auto &media: collection) {
     if(canceled) {
       return;
     }
-    Media media = mediaPair.second;
     scanningProgress.progress++;
     scanningProgress.currentFile = media.filename();
     log("notice") << "Scanning file " << scanningProgress.progress << " of " << mediaCollection->collection().size() << ": " << scanningProgress.currentFile;
