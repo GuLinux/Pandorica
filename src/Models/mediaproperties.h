@@ -39,15 +39,15 @@ public:
     Wt::Dbo::field(a, _height, "height");
     Wt::Dbo::field(a, _creationTime, "creation_time");
   }
-  inline std::string mediaId() const { return _mediaId; }
-  inline std::string title() const { return _title; }
-  inline std::string filename() const { return _filename; }
-  inline int64_t duration() const { return _duration; }
-  inline int64_t size() const { return _size; }
-  inline int width() const { return _width; }
-  inline int height() const { return _height; }
-  inline Wt::WDateTime creationTime() const { return Wt::WDateTime::fromPosixTime(_creationTime); }
-  inline boost::posix_time::ptime posixCreationTime() const { return _creationTime; }
+  std::string mediaId() const { return _mediaId; }
+  std::string title() const { return _title; }
+  std::string filename() const { return _filename; }
+  int64_t duration() const { return _duration; }
+  int64_t size() const { return _size; }
+  int width() const { return _width; }
+  int height() const { return _height; }
+  Wt::WDateTime creationTime() const { return Wt::WDateTime::fromPosixTime(_creationTime); }
+  boost::posix_time::ptime posixCreationTime() const { return _creationTime; }
   void setTitle(const std::string &title) { _title = title; }
   void setFileName(const std::string &fileName) { _filename = fileName; }
   MediaProperties() = default;

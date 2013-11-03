@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/Dbo/ptr>
 #include <Wt/WString>
 #include <ostream>
+#include <boost/date_time.hpp>
 class MediaProperties;
 namespace Wt {
 namespace Dbo {
@@ -58,6 +59,7 @@ public:
   bool operator ==(const Media &other) const;
   friend std::ostream & operator<<( std::ostream &os, const Media &m );
   Wt::WDateTime creationTime(Wt::Dbo::Transaction &transaction) const;
+  boost::posix_time::ptime posixCreationTime(Wt::Dbo::Transaction &transaction) const;
 private:
   boost::filesystem::path m_path;
   std::string m_uid;

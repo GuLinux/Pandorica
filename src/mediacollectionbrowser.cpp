@@ -338,7 +338,7 @@ void MediaCollectionBrowser::Private::browse( const shared_ptr< MediaDirectory >
   Dbo::Transaction t(*session);
   map<Sort, MediaSorter> sorters {
     {Sort::Alpha, [](const Media &_1, const Media &_2) { return _1.filename() < _2.filename();}},
-    {Sort::Date, [&t](const Media &_1, const Media &_2) { return _1.creationTime(t) < _2.creationTime(t); }},
+    {Sort::Date, [&t](const Media &_1, const Media &_2) { return _1.posixCreationTime(t) < _2.posixCreationTime(t); }},
     {Sort::Rating, [&t](const Media &_1, const Media &_2) {
       return MediaRating::ratingFor(_1, t).score() < MediaRating::ratingFor(_2, t).score(); }},
   };

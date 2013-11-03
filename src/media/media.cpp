@@ -119,13 +119,19 @@ Dbo::ptr< MediaAttachment > Media::preview(Dbo::Transaction& transaction, Media:
 
 WDateTime Media::creationTime(Wt::Dbo::Transaction &transaction) const
 {
+  return WDateTime::fromPosixTime(posixCreationTime(transaction));
+}
+
+boost::posix_time::ptime Media::posixCreationTime(Wt::Dbo::Transaction &transaction) const
+{
   auto mediaProperties = this->properties(transaction);
   if(!mediaProperties) {
-    boost::posix_time::ptime lastWrite = boost::posix_time::from_time_t(boost::filesystem::last_write_time(m_path));
-    return WDateTime::fromPosixTime(lastWrite);
+    return boost::posix_time::from_time_t(boost::filesystem::last_write_time(m_path));
   }
-  return mediaProperties->creationTime();
+  return mediaProperties->posixCreationTime();
 }
+
+
 
 Dbo::collection<MediaAttachmentPtr> Media::subtitles(Dbo::Transaction& transaction) const
 {
