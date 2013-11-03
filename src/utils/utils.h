@@ -66,9 +66,13 @@ public:
     static Wt::WInteractWidget *help(std::string titleKey, std::string contentKey, std::string side, Wt::WLength size = Wt::WLength::Auto);
     
     template<typename Out, typename In, typename TransformF>
-    static Out &transform(In in, Out &out, TransformF f) {
-      std::transform(in.begin(), in.end(), std::back_inserter(out), f);
+    static Out &transform(const In &in, Out &out, TransformF f) {
+      std::transform(std::begin(in), std::end(in), std::back_inserter(out), f);
       return out;
+    }
+    template<typename List, typename SortF>
+    static void sort(List &list, SortF f) {
+      std::sort(std::begin(list), std::end(list), f);
     }
 private:
   D_PTR;

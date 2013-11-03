@@ -347,7 +347,7 @@ void MediaCollectionBrowser::Private::browse( const shared_ptr< MediaDirectory >
   sort(begin(medias), end(medias), sorters[sortBy]);
   else
     sort(medias.rbegin(), medias.rend(), sorters[sortBy]);
-  for(auto media: medias)
+  for(auto &media: medias)
     addMedia(media);
 }
 
@@ -406,7 +406,7 @@ void MediaCollectionBrowser::Private::addDirectory( const shared_ptr<MediaDirect
 }
 
 
-void MediaCollectionBrowser::Private::addMedia( Media &media )
+void MediaCollectionBrowser::Private::addMedia( const Media &media )
 {
   wApp->log( "notice" ) << "adding media " << media.path();
   Dbo::Transaction t( *session );
