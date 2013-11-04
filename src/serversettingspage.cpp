@@ -117,9 +117,10 @@ WContainerWidget* ServerSettingsPage::Private::selectMediaRootPage()
   selectDirectories->addTo(groupBox);
   return groupBox;
 }
+#include <boost/algorithm/string.hpp>
 
 string sanitizePath(string deployPath) {
-  if(deployPath[0] != '/')
+  if(deployPath[0] != '/' && ! boost::starts_with(deployPath, "http"))
     deployPath = string{"/"} + deployPath;
   if(deployPath[deployPath.size()-1] != '/')
     deployPath += "/";
