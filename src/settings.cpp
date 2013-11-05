@@ -228,19 +228,23 @@ Wt::WLink Settings::Private::lightySecDownloadLinkFor(string secDownloadPrefix, 
     return secDownloadUrl;
 }
 
+#include <Wt/Http/Client>
+
 Wt::WLink Settings::Private::nginxSecLinkFor(string secDownloadPrefix, string secLinkRoot, string secureDownloadPassword, fs::path p)
 {
-    string uri = p.string();
-    boost::replace_all(uri, secLinkRoot + '/', ""); // TODO: consistency check
+    Http::Client::URL url;
+    secDownloadPrefix = Http::Client::parseUrl(secDownloadPrefix, url) ? url.path : secDownloadPrefix;
+    string file = p.string();
+    boost::replace_all(file, secLinkRoot + '/', ""); // TODO: consistency check
     long expireTime = WDateTime::currentDateTime().addSecs(20000).toTime_t();
-    string secLink = (boost::format("%s%s%s%d") % secureDownloadPassword % secDownloadPrefix % uri % expireTime).str();
+    string secLink = (boost::format("%s%s%s%d") % secureDownloadPassword % secDownloadPrefix % file % expireTime).str();
     string token = Utils::base64Encode(Utils::md5( secLink ), false);
     token = boost::replace_all_copy(token, "=", "");
     token = boost::replace_all_copy(token, "+", "-");
     token = boost::replace_all_copy(token, "/", "_");
-    string secDownloadUrl = (boost::format("%s%s?st=%s&e=%d") % secDownloadPrefix % uri % token % expireTime).str();
+    string secDownloadUrl = (boost::format("%s%s?st=%s&e=%d") % secDownloadPrefix % file % token % expireTime).str();
     wApp->log("notice") << "****** secDownload: prefix=" << secDownloadPrefix;
-    wApp->log("notice") << "****** secDownload: filename=" << uri;
+    wApp->log("notice") << "****** secDownload: filename=" << file;
     wApp->log("notice") << "****** secDownload: url= " << secDownloadUrl;
     return secDownloadUrl;
 }
