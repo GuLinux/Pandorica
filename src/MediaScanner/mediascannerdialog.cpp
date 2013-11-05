@@ -146,7 +146,11 @@ void MediaScannerDialog::dialog()
 
   d->setupGui(contents(), footer());
   show();
+  scan();
+}
 
+void MediaScannerDialog::scan()
+{
   auto updateGuiProgress = [=] {
     d->progressBar->setValue(d->scanningProgress.progress);
     d->progressBarTitle->setText(d->scanningProgress.currentFile);
@@ -167,10 +171,6 @@ void MediaScannerDialog::dialog()
     d->app->triggerUpdate();
   };
   boost::thread(boost::bind(&MediaScannerDialog::Private::scanMedias, d.get(), updateGuiProgress, onScanFinished ));
-}
-
-void MediaScannerDialog::scan()
-{
 }
 
 void MediaScannerDialog::Private::scanMedias(function<void()> updateGuiProgress, function<void()> onScanFinish)
