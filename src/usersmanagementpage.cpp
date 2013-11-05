@@ -137,7 +137,7 @@ void UsersManagementPage::Private::invite(std::string email, const std::vector<W
       WMessageBox::show(wtr("usersmanagement_invite_invitation_successful"), wtr("usersmanagement_invite_invitation_successful_email_sent").arg(email), StandardButton::Ok);
     });
   } else {
-    WMessageBox::show(wtr("usersmanagement_invite_invitation_successful"), wtr("usersmanagement_invite_invitation_successful_body"), StandardButton::Ok);
+    WMessageBox::show(wtr("usersmanagement_invite_invitation_successful"), wtr("usersmanagement_invite_invitation_successful_body").arg(email), StandardButton::Ok);
   }
 }
 

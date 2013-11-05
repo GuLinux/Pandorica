@@ -369,9 +369,9 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
 <message id="usersmanagement_invite_user_already_existing">Errore: {1} è già un utente registrato</message>
 <message id="usersmanagement_invite_user_already_invited">Errore: {1} è già stato invitato.</message>
 <message id="usersmanagement_invite_invitation_successful">Invitato con successo</message>
-<message id="usersmanagement_invite_invitation_successful_body">{1} è stato correttamente aggiunto alla lista degli utenti invitati.<br />
+<message id="usersmanagement_invite_invitation_successful_email_sent">{1} è stato correttamente aggiunto alla lista degli utenti invitati.<br />
 È stata inviata una email a {1} per notificare l'invito.</message>
-<message id="usersmanagement_invite_invitation_successful_email_sent">{1} è stato correttamente aggiunto alla lista degli utenti invitati.</message>
+<message id="usersmanagement_invite_invitation_successful_body">{1} è stato correttamente aggiunto alla lista degli utenti invitati.</message>
 <message id="validation_email_invalid">Per favore inserire un indirizzo email valido.</message>
 <message id="mediacollectionbrowser_filters">Filtri</message>
 <message id="mediacollectionbrowser_filters_name">Nome</message>
