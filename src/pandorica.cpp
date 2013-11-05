@@ -47,7 +47,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "settings.h"
 #include "groupsdialog.h"
 #include "latestcommentsdialog.h"
-#include "MediaScanner/mediascannerdialog.h"
+#include "MediaScanner/mediascanner.h"
 #include "utils/utils.h"
 
 #include "Models/models.h"
@@ -282,11 +282,11 @@ void P::PandoricaPrivate::adminActions()
     auto filterMediaCD = [=](Media& m) {
       return mediaCollectionBrowser->currentDirectoryHas(m);
     };
-    MediaScannerDialog *dialog;
+    MediaScanner *dialog;
     if(onlyCurrentDirectory)
-      dialog = new MediaScannerDialog(session, &settings, mediaCollection, 0, filterMediaCD);
+      dialog = new MediaScanner(session, &settings, mediaCollection, 0, filterMediaCD);
     else
-      dialog = new MediaScannerDialog(session, &settings, mediaCollection, 0);
+      dialog = new MediaScanner(session, &settings, mediaCollection, 0);
     dialog->scanFinished().connect([=](_n6) {
       mediaCollectionBrowser->reload();
     });

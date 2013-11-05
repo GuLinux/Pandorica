@@ -17,22 +17,71 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#ifndef PRIVATE_H
-#define PRIVATE_H
 
+
+#ifndef MEDIASCANNERDIALOGPRIVATE_H
+#define MEDIASCANNERDIALOGPRIVATE_H
+#include <vector>
+#include <Wt/WSignal>
+#include "media/media.h"
 #include "MediaScanner/mediascanner.h"
+
+class MediaScannerSemaphore;
+class User;
+class Session;
+class MediaScannerStep;
+class Session;
+class Settings;
+namespace Wt {
+class WProgressBar;
+class WText;
+class WApplication;
+class WPushButton;
+class WContainerWidget;
+class WGroupBox;
+}
+
+class MediaCollection;
+
+struct StepContent {
+  Wt::WGroupBox *groupBox;
+  Wt::WContainerWidget *content;
+};
+struct ScanningProgress {
+  uint16_t progress;
+  std::string currentFile;
+};
 
 class MediaScanner::Private
 {
 public:
-    Private(MediaScanner* q, Session* session, Settings* settings, MediaCollection* mediaCollection, std::function<bool(Media&)> scanFilter);
-    virtual ~Private();
-    Session* session;
-    Settings* settings;
+    Private(MediaScanner* q, MediaCollection* mediaCollection, Session *session, Settings* settings, std::function<bool(Media&)> scanFilter);
+    Wt::WPushButton* buttonNext;
+    Wt::WPushButton* buttonClose;
+    std::vector<MediaScannerStep*> steps;
     MediaCollection* mediaCollection;
+    Wt::WProgressBar* progressBar = 0;
+    Wt::WText* progressBarTitle;
+    Settings* settings;
+    std::map<MediaScannerStep*, StepContent> stepsContents;
+    void scanMedias(std::function<void()> updateGuiProgress, std::function<void()> onScanFinish);
+    bool canContinue;
+    bool canceled;
+    Wt::WPushButton* buttonCancel;
+    Wt::WPushButton* buttonSkip;
+    Wt::Signal<> scanFinished;
+    Session* session;
     std::function<bool(Media&)> scanFilter;
+    ScanningProgress scanningProgress;
+    std::shared_ptr<MediaScannerSemaphore> semaphore;
+    Wt::WApplication *app;
+    void scanningMediaGuiControl(bool enabled);
+    void setupGui(Wt::WContainerWidget *mainContainer, Wt::WContainerWidget *buttonsContainer);
+    Wt::Signal<> accept;
+    Wt::Signal<> reject;
 private:
     class MediaScanner* const q;
+    void runStepsFor(Media media, Wt::Dbo::Transaction& transaction);
 };
 
-#endif // PRIVATE_H
+#endif // MEDIASCANNERDIALOGPRIVATE_H

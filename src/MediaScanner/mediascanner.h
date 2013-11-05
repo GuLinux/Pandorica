@@ -18,25 +18,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
 
-#ifndef MEDIASCANNER_H
-#define MEDIASCANNER_H
 
-#include <Wt/WContainerWidget>
+
+#ifndef MEDIASCANNERDIALOG_H
+#define MEDIASCANNERDIALOG_H
+
+#include <Wt/WDialog>
 #include "utils/d_ptr.h"
-#include <functional>
 
 class Media;
-class MediaCollection;
 class Settings;
+class MediaCollection;
 class Session;
-class MediaScanner :  Wt::WContainerWidget
+class MediaScanner : Wt::WDialog
 {
 public:
-    ~MediaScanner();
-    MediaScanner(Session* session, Settings* settings, MediaCollection* mediaCollection, std::function<bool(Media&)> scanFilter = [](Media&){ return true; }, Wt::WContainerWidget* parent = 0);
-    void scan();
+  MediaScanner(Session* session, Settings* settings, MediaCollection* mediaCollection, Wt::WObject* parent = 0, std::function<bool(Media&)> scanFilter = [](Media&){ return true; });
+    virtual ~MediaScanner();
+  void dialog();
+  void scan();
+  Wt::Signal<> &scanFinished();
 private:
-    D_PTR;
+  D_PTR;
 };
 
-#endif // MEDIASCANNER_H
+#endif // MEDIASCANNERDIALOG_H
