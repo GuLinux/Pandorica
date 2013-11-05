@@ -56,8 +56,8 @@ ScanMediaInfoStep::Private::Private( ScanMediaInfoStep *q, WApplication *app )
 {
 }
 
-ScanMediaInfoStep::ScanMediaInfoStep( const shared_ptr< MediaScannerSemaphore >& semaphore, WApplication* app, WObject* parent )
-  : WObject( parent ), MediaScannerStep(semaphore), d( this, app )
+ScanMediaInfoStep::ScanMediaInfoStep(const shared_ptr< MediaScannerSemaphore >& semaphore, WApplication* app)
+  : MediaScannerStep(semaphore), d( this, app )
 {
 }
 

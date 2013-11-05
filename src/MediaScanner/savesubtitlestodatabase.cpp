@@ -59,8 +59,8 @@ SaveSubtitlesToDatabase::~SaveSubtitlesToDatabase()
 {
 }
 
-SaveSubtitlesToDatabase::SaveSubtitlesToDatabase( const shared_ptr<MediaScannerSemaphore>& semaphore, WApplication* app, WObject* parent )
-  : WObject( parent ), MediaScannerStep(semaphore), d( app, this )
+SaveSubtitlesToDatabase::SaveSubtitlesToDatabase(const shared_ptr<MediaScannerSemaphore>& semaphore, WApplication* app)
+  : MediaScannerStep(semaphore), d( app, this )
 {
 }
 

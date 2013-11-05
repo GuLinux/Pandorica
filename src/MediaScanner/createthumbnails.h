@@ -32,11 +32,11 @@ namespace PandoricaPrivate {
 }
 
 class Settings;
-class CreateThumbnails : public MediaScannerStep, Wt::WObject
+class CreateThumbnails : public MediaScannerStep
 {
 public:
     ~CreateThumbnails();
-    CreateThumbnails(const std::shared_ptr<MediaScannerSemaphore> &semaphore, Wt::WApplication *app, Settings* settings, Wt::WObject* parent = 0);
+    CreateThumbnails(const std::shared_ptr<MediaScannerSemaphore> &semaphore, Wt::WApplication *app, Settings* settings);
     void run(FFMPEGMedia* ffmpegMedia, Media media, Wt::Dbo::Transaction &transaction, ExistingFlags onExisting = SkipIfExisting);
     inline virtual std::string stepName() const {return "createThumbnails"; }
     virtual void setupGui( Wt::WContainerWidget *container );

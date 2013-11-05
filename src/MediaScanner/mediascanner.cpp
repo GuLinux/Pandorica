@@ -62,9 +62,9 @@ MediaScanner::MediaScanner(Session* session, Settings* settings, MediaCollection
   );
 
   d->steps = {
-    new ScanMediaInfoStep{d->semaphore, wApp, this},
-    new SaveSubtitlesToDatabase{d->semaphore, wApp, this},
-    new CreateThumbnails{d->semaphore, wApp, settings, this},
+    make_shared<ScanMediaInfoStep>(d->semaphore, wApp),
+    make_shared<SaveSubtitlesToDatabase>(d->semaphore, wApp),
+    make_shared<CreateThumbnails>(d->semaphore, wApp, settings),
   };
   
 }
@@ -222,7 +222,7 @@ void MediaScanner::Private::runStepsFor(Media media, Dbo::Transaction& transacti
 
   FFMPEGMedia ffmpegMedia{media, [=](const string &level) { return app->log(level); } };
   guiRun(app, [=]{
-    for(MediaScannerStep *step: steps) {
+    for(auto step: steps) {
       stepsContents[step].content->clear();
       step->setupGui(stepsContents[step].content);
       stepsContents[step].groupBox->show();
@@ -233,11 +233,11 @@ void MediaScanner::Private::runStepsFor(Media media, Dbo::Transaction& transacti
     guiRun(app, [=] { for(auto stepContent: stepsContents) stepContent.second.groupBox->hide(); app->triggerUpdate(); });
   });
   list<boost::thread> threads;
-  for(MediaScannerStep *step: steps) {
+  for(auto step: steps) {
     threads.push_back(boost::thread([=,&transaction,&media,&ffmpegMedia]{
       step->run(&ffmpegMedia, media, transaction);
       if(! step->needsSaving())
-	guiRun(app, [=] { stepsContents[step].groupBox->hide(); app->triggerUpdate(); });
+        guiRun(app, [=] { stepsContents[step].groupBox->hide(); app->triggerUpdate(); });
     }));
     for(auto &stepThread: threads)
       stepThread.join();
@@ -245,7 +245,7 @@ void MediaScanner::Private::runStepsFor(Media media, Dbo::Transaction& transacti
   }
   while(!canContinue && semaphore->needsSaving() )
     boost::this_thread::sleep_for(boost::chrono::milliseconds{200});
-  for(MediaScannerStep *step: steps) {
+  for(auto step: steps) {
     step->saveIfNeeded(transaction);
   }
 }

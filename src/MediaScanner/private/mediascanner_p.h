@@ -58,12 +58,12 @@ public:
     Private(MediaScanner* q, MediaCollection* mediaCollection, Session *session, Settings* settings, std::function<bool(Media&)> scanFilter);
     Wt::WPushButton* buttonNext;
     Wt::WPushButton* buttonClose;
-    std::vector<MediaScannerStep*> steps;
+    std::vector<std::shared_ptr<MediaScannerStep>> steps;
     MediaCollection* mediaCollection;
     Wt::WProgressBar* progressBar = 0;
     Wt::WText* progressBarTitle;
     Settings* settings;
-    std::map<MediaScannerStep*, StepContent> stepsContents;
+    std::map<std::shared_ptr<MediaScannerStep>, StepContent> stepsContents;
     void scanMedias(std::function<void()> updateGuiProgress, std::function<void()> onScanFinish);
     bool canContinue;
     bool canceled;

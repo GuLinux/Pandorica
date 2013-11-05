@@ -76,8 +76,8 @@ CreateThumbnails::Private::Private( WApplication *app, Settings *settings, Creat
 {
 }
 
-CreateThumbnails::CreateThumbnails( const std::shared_ptr< MediaScannerSemaphore >& semaphore, WApplication* app, Settings* settings, WObject* parent )
-  : WObject( parent ), MediaScannerStep(semaphore), d( app, settings, this )
+CreateThumbnails::CreateThumbnails(const std::shared_ptr< MediaScannerSemaphore >& semaphore, WApplication* app, Settings* settings)
+  : MediaScannerStep(semaphore), d( app, settings, this )
 {
 
 }

@@ -28,10 +28,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class Session;
 class MediaCollection;
-class ScanMediaInfoStep : public MediaScannerStep, Wt::WObject
+class ScanMediaInfoStep : public MediaScannerStep
 {
 public:
-    ScanMediaInfoStep(const std::shared_ptr<MediaScannerSemaphore> &semaphore, Wt::WApplication *app, Wt::WObject *parent = 0);
+    ScanMediaInfoStep(const std::shared_ptr<MediaScannerSemaphore> &semaphore, Wt::WApplication *app);
     virtual ~ScanMediaInfoStep();
     virtual void run(FFMPEGMedia* ffmpegMedia, Media media, Wt::Dbo::Transaction &transaction, ExistingFlags onExisting = SkipIfExisting);
     inline virtual std::string stepName() const {

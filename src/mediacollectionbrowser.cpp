@@ -492,7 +492,7 @@ void MediaCollectionBrowser::Private::setPosterFor( Media media )
     *dialogClosed = true; 
   });
 
-  auto createThumbs = new CreateThumbnails {semaphore, wApp, settings, dialog};
+  auto createThumbs = make_shared<CreateThumbnails>(semaphore, wApp, settings);
   createThumbs->setupGui(dialog->contents());
 
   boost::thread([=]{

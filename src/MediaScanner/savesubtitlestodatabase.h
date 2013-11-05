@@ -27,11 +27,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "utils/d_ptr.h"
 
 class Session;
-class SaveSubtitlesToDatabase :  Wt::WObject, public MediaScannerStep
+class SaveSubtitlesToDatabase :  public MediaScannerStep
 {
 public:
     ~SaveSubtitlesToDatabase();
-    SaveSubtitlesToDatabase(const std::shared_ptr<MediaScannerSemaphore> &semaphore, Wt::WApplication* app, Wt::WObject* parent);
+    SaveSubtitlesToDatabase(const std::shared_ptr<MediaScannerSemaphore> &semaphore, Wt::WApplication* app);
     virtual void run(FFMPEGMedia* ffmpegMedia, Media media, Wt::Dbo::Transaction &transaction, ExistingFlags onExisting = SkipIfExisting);
     inline virtual std::string stepName() const {return "saveSubtitlesToDatabase"; }
     virtual void setupGui( Wt::WContainerWidget *container );
