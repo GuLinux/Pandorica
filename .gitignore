@@ -8,3 +8,5 @@ webroot/uploads
 .directory
 wt_config_pg_zerogoki.xml
 nbproject/
+CMakeLists.txt.user
+

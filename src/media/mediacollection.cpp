@@ -48,9 +48,9 @@ void MediaCollection::rescan( Dbo::Transaction &transaction )
     WServer::instance()->post( d->app->sessionId(), [ = ]
   {
     d->loadingIndicator = new WOverlayLoadingIndicator();
-    wApp->root()->addWidget( d->loadingIndicator->widget() );
+    d->app->root()->addWidget( d->loadingIndicator->widget() );
     d->loadingIndicator->widget()->show();
-    wApp->triggerUpdate();
+    d->app->triggerUpdate();
   } );
   UserPtr user = transaction.session().find<User>().where( "id = ?" ).bind( d->userId );
   d->allowedPaths = user->allowedPaths();
@@ -68,7 +68,7 @@ void MediaCollection::rescan( Dbo::Transaction &transaction )
   {
     d->scanned.emit();
     d->loadingIndicator->widget()->hide();
-    wApp->triggerUpdate();
+    d->app->triggerUpdate();
     delete d->loadingIndicator;
   } );
 }

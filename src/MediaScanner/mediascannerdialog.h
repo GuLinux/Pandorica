@@ -35,7 +35,8 @@ class MediaScannerDialog : Wt::WDialog
 public:
   MediaScannerDialog(Session* session, Settings* settings, MediaCollection* mediaCollection, Wt::WObject* parent = 0, std::function<bool(Media&)> scanFilter = [](Media&){ return true; });
     virtual ~MediaScannerDialog();
-  void run();
+  void dialog();
+  void scan();
   Wt::Signal<> &scanFinished();
 private:
   D_PTR;

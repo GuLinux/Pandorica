@@ -54,39 +54,8 @@ MediaScannerDialog::Private::Private(MediaScannerDialog* q, MediaCollection *med
 MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, MediaCollection* mediaCollection, WObject* parent, function<bool(Media&)> scanFilter)
     : d(this, mediaCollection, session, settings, scanFilter)
 {
-  resize(700, 650);
-  setWindowTitle(wtr("mediascanner.title"));
-  setClosable(false);
-  setResizable(true);
-  d->progressBar = new WProgressBar;
-  d->progressBar->addStyleClass("pull-left");
-  footer()->addWidget(d->progressBar);
-  footer()->addWidget(d->buttonCancel = WW<WPushButton>(wtr("button.cancel")).css("btn btn-danger").onClick([=](WMouseEvent) {
-    d->canceled = true;
-    d->buttonCancel->disable();
-    d->semaphore->needsSaving(false);
-    reject();
-  }));
-  footer()->addWidget(d->buttonSkip = WW<WPushButton>(wtr("button.skip")).css("btn btn-warning").onClick([=](WMouseEvent) {
-    d->buttonSkip->disable();
-    d->semaphore->needsSaving(false);
-  }));
-  footer()->addWidget(d->buttonNext = WW<WPushButton>(wtr("button.next")).css("btn btn-primary").setEnabled(false).onClick([=](WMouseEvent) {
-    d->buttonNext->disable();
-    d->canContinue = true;
-  }));
-  footer()->addWidget(d->buttonClose = WW<WPushButton>(wtr("button.close")).css("btn btn-success").onClick([=](WMouseEvent) {
-    d->buttonClose->disable();
-    accept();
-  }).setEnabled(false));
-  contents()->addWidget(WW<WContainerWidget>()
-    .add(d->progressBarTitle = WW<WText>().css("mediascannerdialog-filename"))
-    .padding(6)
-    .setContentAlignment(AlignCenter)
-  );
-  finished().connect([=](DialogCode code, _n5) {
-    scanFinished().emit();
-  });
+  d->accept.connect([=](_n6){ scanFinished().emit(); });
+  d->reject.connect([=](_n6){ scanFinished().emit(); });
   d->semaphore = make_shared<MediaScannerSemaphore>(
     [=]{ d->scanningMediaGuiControl(true); },
     [=]{ d->scanningMediaGuiControl(false); }
@@ -98,19 +67,50 @@ MediaScannerDialog::MediaScannerDialog(Session* session, Settings* settings, Med
     new CreateThumbnails{d->semaphore, wApp, settings, this},
   };
   
-  WContainerWidget* stepsContainer = new WContainerWidget;
-  contents()->addWidget(stepsContainer);
+}
 
-  for(auto step: d->steps) {
+void MediaScannerDialog::Private::setupGui(Wt::WContainerWidget *mainContainer, Wt::WContainerWidget *buttonsContainer)
+{
+  progressBar = new WProgressBar;
+  progressBar->addStyleClass("pull-left");
+  buttonsContainer->addWidget(progressBar);
+  buttonsContainer->addWidget(buttonCancel = WW<WPushButton>(wtr("button.cancel")).css("btn btn-danger").onClick([=](WMouseEvent) {
+    canceled = true;
+    buttonCancel->disable();
+    semaphore->needsSaving(false);
+    reject.emit();
+  }));
+  buttonsContainer->addWidget(buttonSkip = WW<WPushButton>(wtr("button.skip")).css("btn btn-warning").onClick([=](WMouseEvent) {
+    buttonSkip->disable();
+    semaphore->needsSaving(false);
+  }));
+  buttonsContainer->addWidget(buttonNext = WW<WPushButton>(wtr("button.next")).css("btn btn-primary").setEnabled(false).onClick([=](WMouseEvent) {
+    buttonNext->disable();
+    canContinue = true;
+  }));
+  buttonsContainer->addWidget(buttonClose = WW<WPushButton>(wtr("button.close")).css("btn btn-success").onClick([=](WMouseEvent) {
+    buttonClose->disable();
+    accept.emit();
+  }).setEnabled(false));
+  mainContainer->addWidget(WW<WContainerWidget>()
+    .add(progressBarTitle = WW<WText>().css("mediascannerdialog-filename"))
+    .padding(6)
+    .setContentAlignment(AlignCenter)
+  );
+  WContainerWidget* stepsContainer = new WContainerWidget;
+  mainContainer->addWidget(stepsContainer);
+
+  for(auto step: steps) {
     auto groupBox = new WGroupBox(wtr(string{"stepname."} + step->stepName() ));
     groupBox->setStyleClass("step-groupbox");
     auto container = new WContainerWidget;
     groupBox->addWidget(container);
-    d->stepsContents[step] = {groupBox, container};
+    stepsContents[step] = {groupBox, container};
     stepsContainer->addWidget(groupBox);
     groupBox->setPadding(5);
   }
 }
+
 
 void MediaScannerDialog::Private::scanningMediaGuiControl(bool enabled)
 {
@@ -134,10 +134,19 @@ Signal<>& MediaScannerDialog::scanFinished()
 }
 
 
-void MediaScannerDialog::run()
+void MediaScannerDialog::dialog()
 {
+  resize(700, 650);
+  setWindowTitle(wtr("mediascanner.title"));
+  setClosable(false);
+  setResizable(true);
+
+  d->accept.connect([=](_n6){ accept(); });
+  d->reject.connect([=](_n6){ reject(); });
+
+  d->setupGui(contents(), footer());
   show();
-  d->progressBar->setMaximum(d->mediaCollection->collection().size());
+
   auto updateGuiProgress = [=] {
     d->progressBar->setValue(d->scanningProgress.progress);
     d->progressBarTitle->setText(d->scanningProgress.currentFile);
@@ -160,6 +169,10 @@ void MediaScannerDialog::run()
   boost::thread(boost::bind(&MediaScannerDialog::Private::scanMedias, d.get(), updateGuiProgress, onScanFinished ));
 }
 
+void MediaScannerDialog::scan()
+{
+}
+
 void MediaScannerDialog::Private::scanMedias(function<void()> updateGuiProgress, function<void()> onScanFinish)
 {
   canceled = false;
@@ -173,6 +186,10 @@ void MediaScannerDialog::Private::scanMedias(function<void()> updateGuiProgress,
     guiRun(app, [=] { updateGuiProgress(); onScanFinish(); });
   });
   mediaCollection->rescan(transaction);
+  guiRun(app, [=]{
+      progressBar->setMaximum(mediaCollection->collection().size());
+      app->triggerUpdate();
+  });
   vector<Media> collection;
   Utils::transform(mediaCollection->collection(), collection, [](pair<string,Media> m){ return m.second; });
   sort(begin(collection), end(collection), [](const Media &_1, const Media &_2) { return _1.fullPath() < _2.fullPath(); } );

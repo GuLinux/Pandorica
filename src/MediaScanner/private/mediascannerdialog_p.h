@@ -76,6 +76,9 @@ public:
     std::shared_ptr<MediaScannerSemaphore> semaphore;
     Wt::WApplication *app;
     void scanningMediaGuiControl(bool enabled);
+    void setupGui(Wt::WContainerWidget *mainContainer, Wt::WContainerWidget *buttonsContainer);
+    Wt::Signal<> accept;
+    Wt::Signal<> reject;
 private:
     class MediaScannerDialog* const q;
     void runStepsFor(Media media, Wt::Dbo::Transaction& transaction);

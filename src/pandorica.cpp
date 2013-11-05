@@ -290,7 +290,7 @@ void P::PandoricaPrivate::adminActions()
     dialog->scanFinished().connect([=](_n6) {
       mediaCollectionBrowser->reload();
     });
-    dialog->run();
+    dialog->dialog();
   });
   navigationBar->viewAs().connect([=](_n6) {
     WDialog *dialog = new WDialog;
