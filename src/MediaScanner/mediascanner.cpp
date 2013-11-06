@@ -46,13 +46,13 @@ using namespace Wt;
 using namespace std;
 using namespace WtCommons;
 
-MediaScanner::Private::Private(MediaScanner* q, MediaCollection *mediaCollection, Session *session, Settings* settings, std::function<bool(Media&)> scanFilter)
-  : q(q), mediaCollection(mediaCollection), session(session), settings(settings), scanFilter(scanFilter), app(wApp)
+MediaScanner::Private::Private(MediaScanner* q, MediaCollection *mediaCollection, Session *session, Settings* settings)
+  : q(q), mediaCollection(mediaCollection), session(session), settings(settings), app(wApp)
 {
 }
 
-MediaScanner::MediaScanner(Session* session, Settings* settings, MediaCollection* mediaCollection, WObject* parent, function<bool(Media&)> scanFilter)
-    : d(this, mediaCollection, session, settings, scanFilter)
+MediaScanner::MediaScanner(Session* session, Settings* settings, MediaCollection* mediaCollection)
+    : d(this, mediaCollection, session, settings)
 {
   d->accept.connect([=](_n6){ scanFinished().emit(); });
   d->reject.connect([=](_n6){ scanFinished().emit(); });
@@ -71,6 +71,8 @@ MediaScanner::MediaScanner(Session* session, Settings* settings, MediaCollection
 
 void MediaScanner::Private::setupGui(Wt::WContainerWidget *mainContainer, Wt::WContainerWidget *buttonsContainer)
 {
+  mainContainer->clear();
+  buttonsContainer->clear();
   progressBar = new WProgressBar;
   progressBar->addStyleClass("pull-left");
   buttonsContainer->addWidget(progressBar);
@@ -136,20 +138,20 @@ Signal<>& MediaScanner::scanFinished()
 
 void MediaScanner::dialog()
 {
-  resize(700, 650);
-  setWindowTitle(wtr("mediascanner.title"));
-  setClosable(false);
-  setResizable(true);
+  WDialog *dialog = new WDialog();
+  dialog->resize(700, 650);
+  dialog->setWindowTitle(wtr("mediascanner.title"));
+  dialog->setClosable(false);
+  dialog->setResizable(true);
 
-  d->accept.connect([=](_n6){ accept(); });
-  d->reject.connect([=](_n6){ reject(); });
+  d->accept.connect([=](_n6){ dialog->accept(); });
+  d->reject.connect([=](_n6){ dialog->reject(); });
 
-  d->setupGui(contents(), footer());
-  show();
-  scan();
+  d->setupGui(dialog->contents(), dialog->footer());
+  dialog->show();
 }
 
-void MediaScanner::scan()
+void MediaScanner::scan(function<bool(Media&)> scanFilter)
 {
   auto updateGuiProgress = [=] {
     d->progressBar->setValue(d->scanningProgress.progress);
@@ -170,10 +172,10 @@ void MediaScanner::scan()
       stepContainers.second.content->clear();
     d->app->triggerUpdate();
   };
-  boost::thread(boost::bind(&MediaScanner::Private::scanMedias, d.get(), updateGuiProgress, onScanFinished ));
+  boost::thread(boost::bind(&MediaScanner::Private::scanMedias, d.get(), updateGuiProgress, onScanFinished, scanFilter ));
 }
 
-void MediaScanner::Private::scanMedias(function<void()> updateGuiProgress, function<void()> onScanFinish)
+void MediaScanner::Private::scanMedias(function<void()> updateGuiProgress, function<void()> onScanFinish, function<bool(Media &)> scanFilter)
 {
   canceled = false;
   semaphore->needsSaving(false);

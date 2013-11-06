@@ -55,7 +55,7 @@ struct ScanningProgress {
 class MediaScanner::Private
 {
 public:
-    Private(MediaScanner* q, MediaCollection* mediaCollection, Session *session, Settings* settings, std::function<bool(Media&)> scanFilter);
+    Private(MediaScanner* q, MediaCollection* mediaCollection, Session *session, Settings* settings);
     Wt::WPushButton* buttonNext;
     Wt::WPushButton* buttonClose;
     std::vector<std::shared_ptr<MediaScannerStep>> steps;
@@ -64,14 +64,13 @@ public:
     Wt::WText* progressBarTitle;
     Settings* settings;
     std::map<std::shared_ptr<MediaScannerStep>, StepContent> stepsContents;
-    void scanMedias(std::function<void()> updateGuiProgress, std::function<void()> onScanFinish);
+    void scanMedias(std::function<void()> updateGuiProgress, std::function<void()> onScanFinish, std::function<bool(Media&)> scanFilter);
     bool canContinue;
     bool canceled;
     Wt::WPushButton* buttonCancel;
     Wt::WPushButton* buttonSkip;
     Wt::Signal<> scanFinished;
     Session* session;
-    std::function<bool(Media&)> scanFilter;
     ScanningProgress scanningProgress;
     std::shared_ptr<MediaScannerSemaphore> semaphore;
     Wt::WApplication *app;

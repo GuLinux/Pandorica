@@ -30,13 +30,13 @@ class Media;
 class Settings;
 class MediaCollection;
 class Session;
-class MediaScanner : Wt::WDialog
+class MediaScanner
 {
 public:
-  MediaScanner(Session* session, Settings* settings, MediaCollection* mediaCollection, Wt::WObject* parent = 0, std::function<bool(Media&)> scanFilter = [](Media&){ return true; });
+  MediaScanner(Session* session, Settings* settings, MediaCollection* mediaCollection);
     virtual ~MediaScanner();
   void dialog();
-  void scan();
+  void scan(std::function<bool(Media&)> scanFilter = [](Media&){ return true; });
   Wt::Signal<> &scanFinished();
 private:
   D_PTR;

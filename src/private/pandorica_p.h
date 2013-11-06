@@ -36,6 +36,7 @@ class Playlist;
 class MediaCollection;
 class MediaCollectionBrowser;
 class Player;
+class MediaScanner;
 class Pandorica;
 namespace PandoricaPrivate {
   class PandoricaPrivate;
@@ -81,6 +82,7 @@ namespace PandoricaPrivate {
     Wt::Signal<PlaylistItem*> nowPlaying;
     Wt::Signal<Wt::WApplication*> aboutToQuit;
     Wt::WContainerWidget *notifications;
+    std::shared_ptr<MediaScanner> mediaScanner;
   private:
     void ratingFor(Media media, Wt::Dbo::Transaction t);
     Wt::WMenuItem* activeUsersMenuItem = 0;

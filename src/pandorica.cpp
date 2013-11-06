@@ -279,18 +279,13 @@ void P::PandoricaPrivate::adminActions()
   navigationBar->configureApp().connect([=](_n6) { ServerSettingsPage::dialog(&settings, session, mediaCollection); });
   navigationBar->usersManagement().connect([=](_n6) { UsersManagementPage::dialog(session); });
   navigationBar->mediaScanner().connect([=](bool onlyCurrentDirectory, _n5) {
-    auto filterMediaCD = [=](Media& m) {
-      return mediaCollectionBrowser->currentDirectoryHas(m);
-    };
-    MediaScanner *dialog;
+    mediaScanner->dialog();
     if(onlyCurrentDirectory)
-      dialog = new MediaScanner(session, &settings, mediaCollection, 0, filterMediaCD);
+      mediaScanner->scan([=](Media& m) {
+        return mediaCollectionBrowser->currentDirectoryHas(m);
+      });
     else
-      dialog = new MediaScanner(session, &settings, mediaCollection, 0);
-    dialog->scanFinished().connect([=](_n6) {
-      mediaCollectionBrowser->reload();
-    });
-    dialog->dialog();
+      mediaScanner->scan();
   });
   navigationBar->viewAs().connect([=](_n6) {
     WDialog *dialog = new WDialog;
@@ -371,6 +366,10 @@ void Pandorica::setupGui()
     WServer::instance()->post(sessionId, [=] { d->parseFileParameter(); });
   });
   d->mainWidget->animateShow({WAnimation::Fade});
+  d->mediaScanner = make_shared<MediaScanner>(d->session, &d->settings, d->mediaCollection);
+  d->mediaScanner->scanFinished().connect([=](_n6) {
+    d->mediaCollectionBrowser->reload();
+  });
 }
 
 
