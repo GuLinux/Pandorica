@@ -71,6 +71,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WComboBox>
 #include <Wt/WPushButton>
 #include <Wt/WDefaultLoadingIndicator>
+#include <mutex>
 
 
 using namespace Wt;
@@ -219,6 +220,27 @@ void P::PandoricaPrivate::unregisterSession()
   P::pandoricaSessions.erase(remove_if( begin(P::pandoricaSessions), end(P::pandoricaSessions), [this](P::PandoricaSession s) { return q->sessionId() ==  s.sessionId; } ), P::pandoricaSessions.end() );
   updateSessions();
 }
+
+
+PandoricaInstances P::PandoricaPrivate::instances()
+{
+  static vector<Pandorica*> _instances {};
+  static mutex instancesMutex;
+
+  auto instancesMutexLock = make_shared<unique_lock<mutex>>(instancesMutex);
+
+  return PandoricaInstances(&_instances, [instancesMutexLock](void *) { instancesMutexLock.get(); });
+}
+
+void P::PandoricaPrivate::post( function<void()> f, bool includeMine )
+{
+  auto pandoricaInstances = instances();
+  for(auto i: *pandoricaInstances) {
+    if( i != q || includeMine)
+      WServer::instance()->post(i->sessionId(), f);
+  }
+}
+
 
 void Pandorica::notify( const WEvent &e )
 {

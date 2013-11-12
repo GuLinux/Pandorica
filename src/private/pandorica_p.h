@@ -38,6 +38,8 @@ class MediaCollectionBrowser;
 class Player;
 class MediaScanner;
 class Pandorica;
+typedef std::shared_ptr<std::vector<Pandorica*>> PandoricaInstances;
+
 namespace PandoricaPrivate {
   class PandoricaPrivate;
   
@@ -83,10 +85,13 @@ namespace PandoricaPrivate {
     Wt::Signal<Wt::WApplication*> aboutToQuit;
     Wt::WContainerWidget *notifications;
     std::shared_ptr<MediaScanner> mediaScanner;
+    PandoricaInstances instances();
+    void post(std::function<void()> f, bool includeMine = false);
   private:
     void ratingFor(Media media, Wt::Dbo::Transaction t);
     Wt::WMenuItem* activeUsersMenuItem = 0;
     long sessionsCount = -1;
   };
 }
+
 #endif
