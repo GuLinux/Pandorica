@@ -204,21 +204,21 @@ void Pandorica::authEvent()
   setupGui();
 }
 
-void updateSessions() {
-  for(P::PandoricaSession session: P::pandoricaSessions) {
-    WServer::instance()->post(session.sessionId, boost::bind(&P::PandoricaPrivate::updateUsersCount, session.d));
-  }
-}
-
 void P::PandoricaPrivate::registerSession()
 {
-  P::pandoricaSessions.push_back({wApp->sessionId(), q, this});
-  updateSessions();
+  {
+    auto sessions = instances();
+    sessions->push_back(q);
+  }
+  post([=](Pandorica *app){ app->d->updateUsersCount(); }, true);
 }
 void P::PandoricaPrivate::unregisterSession()
 {
-  P::pandoricaSessions.erase(remove_if( begin(P::pandoricaSessions), end(P::pandoricaSessions), [this](P::PandoricaSession s) { return q->sessionId() ==  s.sessionId; } ), P::pandoricaSessions.end() );
-  updateSessions();
+  {
+    auto sessions = instances();
+    sessions->erase(remove_if(begin(*sessions), end(*sessions), [this]( Pandorica *i) { return i == q;}));
+  }
+  post([=](Pandorica *app){ app->d->updateUsersCount(); }, false);
 }
 
 
@@ -232,13 +232,19 @@ PandoricaInstances P::PandoricaPrivate::instances()
   return PandoricaInstances(&_instances, [instancesMutexLock](void *) { instancesMutexLock.get(); });
 }
 
-void P::PandoricaPrivate::post( function<void()> f, bool includeMine )
+void P::PandoricaPrivate::post( function<void(Pandorica *app)> f, bool includeMine )
 {
   auto pandoricaInstances = instances();
   for(auto i: *pandoricaInstances) {
     if( i != q || includeMine)
-      WServer::instance()->post(i->sessionId(), f);
+      WServer::instance()->post(i->sessionId(), bind(f, i));
   }
+}
+
+void P::PandoricaPrivate::updateUsersCount()
+{
+  wApp->log("notice") << "refreshing users count";
+  navigationBar->updateUsersCount(instances()->size());
 }
 
 
@@ -284,12 +290,6 @@ Pandorica::~Pandorica() {
   WServer::instance()->log("notice") << "Deleted-pointer";
 }
 
-
-void P::PandoricaPrivate::updateUsersCount()
-{
-  wApp->log("notice") << "refreshing users count";
-  navigationBar->updateUsersCount(P::pandoricaSessions.size());
-}
 
 
 void P::PandoricaPrivate::adminActions()

@@ -43,13 +43,6 @@ typedef std::shared_ptr<std::vector<Pandorica*>> PandoricaInstances;
 namespace PandoricaPrivate {
   class PandoricaPrivate;
   
-  struct PandoricaSession {
-    std::string sessionId;
-    Pandorica *app;
-    PandoricaPrivate *d;
-  };
-  std::vector<PandoricaSession> pandoricaSessions;
-  
   class PandoricaPrivate {
   public:
     PandoricaPrivate(Pandorica* q);
@@ -86,7 +79,7 @@ namespace PandoricaPrivate {
     Wt::WContainerWidget *notifications;
     std::shared_ptr<MediaScanner> mediaScanner;
     PandoricaInstances instances();
-    void post(std::function<void()> f, bool includeMine = false);
+    void post(std::function<void(Pandorica *app)> f, bool includeMine = false);
   private:
     void ratingFor(Media media, Wt::Dbo::Transaction t);
     Wt::WMenuItem* activeUsersMenuItem = 0;

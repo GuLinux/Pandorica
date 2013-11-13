@@ -51,6 +51,7 @@ class Pandorica : public Wt::WApplication
   protected:
     virtual void notify( const Wt::WEvent &e );
   private:
+    friend class PandoricaPrivate::PandoricaPrivate;
     PandoricaPrivate::PandoricaPrivate *const d;
   private:
 };
