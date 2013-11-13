@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef STREAMINGAPP_PRIVATE_H
 #define STREAMINGAPP_PRIVATE_H
+#include "pandorica.h"
+
 #include <string>
 #include "media/media.h"
 #include "settings.h"
@@ -40,12 +42,9 @@ class MediaScanner;
 class Pandorica;
 typedef std::shared_ptr<std::vector<Pandorica*>> PandoricaInstances;
 
-namespace PandoricaPrivate {
-  class PandoricaPrivate;
-  
-  class PandoricaPrivate {
-  public:
-    PandoricaPrivate(Pandorica* q);
+class Pandorica::Private {
+public:
+    Private(Pandorica* q);
     Player *player = 0;
     std::string extensionFor(boost::filesystem::path p);
     void parseFileParameter();
@@ -80,11 +79,10 @@ namespace PandoricaPrivate {
     std::shared_ptr<MediaScanner> mediaScanner;
     PandoricaInstances instances();
     void post(std::function<void(Pandorica *app)> f, bool includeMine = false);
-  private:
+private:
     void ratingFor(Media media, Wt::Dbo::Transaction t);
     Wt::WMenuItem* activeUsersMenuItem = 0;
     long sessionsCount = -1;
-  };
-}
+};
 
 #endif

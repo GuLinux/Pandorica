@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "pandorica.h"
 #include "private/pandorica_p.h"
+#include "utils/d_ptr_implementation.h"
 
 #include "player/player.h"
 #include <Wt/WContainerWidget>
@@ -83,7 +84,7 @@ using namespace WtCommons;
 typedef std::function<void(fs::path)> RunOnPath;
 
 
-P::PandoricaPrivate::PandoricaPrivate(Pandorica *q)
+Pandorica::Private::Private(Pandorica *q)
   : q(q), playSignal(q, "playSignal"), queueSignal(q, "queueSignal")
 {
   playSignal.connect([=](string uid, _n5){
@@ -100,7 +101,7 @@ Signal<Wt::WApplication*>& Pandorica::aboutToQuit() const
   return d->aboutToQuit;
 }
 
-Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(environment), d(new P::PandoricaPrivate(this)) {
+Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(environment), d(this) {
   useStyleSheet(Settings::staticPath("/Pandorica.css"));
   addMetaLink(Settings::staticPath("/icons/favicon.png"), "shortcut icon", {}, {}, {}, {}, false);
   requireJQuery(Settings::staticPath("/jquery.min.js"));
@@ -204,7 +205,7 @@ void Pandorica::authEvent()
   setupGui();
 }
 
-void P::PandoricaPrivate::registerSession()
+void Pandorica::Private::registerSession()
 {
   {
     auto sessions = instances();
@@ -212,7 +213,7 @@ void P::PandoricaPrivate::registerSession()
   }
   post([=](Pandorica *app){ app->d->updateUsersCount(); }, true);
 }
-void P::PandoricaPrivate::unregisterSession()
+void Pandorica::Private::unregisterSession()
 {
   {
     auto sessions = instances();
@@ -222,7 +223,7 @@ void P::PandoricaPrivate::unregisterSession()
 }
 
 
-PandoricaInstances P::PandoricaPrivate::instances()
+PandoricaInstances Pandorica::Private::instances()
 {
   static vector<Pandorica*> _instances {};
   static mutex instancesMutex;
@@ -232,16 +233,19 @@ PandoricaInstances P::PandoricaPrivate::instances()
   return PandoricaInstances(&_instances, [instancesMutexLock](void *) { instancesMutexLock.get(); });
 }
 
-void P::PandoricaPrivate::post( function<void(Pandorica *app)> f, bool includeMine )
+void Pandorica::Private::post( function<void(Pandorica *app)> f, bool includeMine )
 {
   auto pandoricaInstances = instances();
-  for(auto i: *pandoricaInstances) {
+  for(Pandorica *i: *pandoricaInstances) {
     if( i != q || includeMine)
-      WServer::instance()->post(i->sessionId(), bind(f, i));
+      WServer::instance()->post(i->sessionId(), [=]{
+	f(i);
+	i->triggerUpdate();
+      });
   }
 }
 
-void P::PandoricaPrivate::updateUsersCount()
+void Pandorica::Private::updateUsersCount()
 {
   wApp->log("notice") << "refreshing users count";
   navigationBar->updateUsersCount(instances()->size());
@@ -286,13 +290,12 @@ Pandorica::~Pandorica() {
     WServer::instance()->ioService().post(boost::bind(endSessionOnDatabase, sessionId(), d->userId));
   }
   d->unregisterSession();
-  delete d;
   WServer::instance()->log("notice") << "Deleted-pointer";
 }
 
 
 
-void P::PandoricaPrivate::adminActions()
+void Pandorica::Private::adminActions()
 {
   navigationBar->viewLoggedUsers().connect([=](_n6) {   (new LoggedUsersDialog{session, &settings})->show(); });
   navigationBar->viewUsersHistory().connect([=](_n6) { (new LoggedUsersDialog{session, &settings, true})->show(); });
@@ -379,7 +382,7 @@ void Pandorica::setupGui()
   d->userSettingsPage->setPadding(20);
 
   
-  d->playlist->play().connect(d, &P::PandoricaPrivate::play);
+  d->playlist->play().connect([=](PlaylistItem *item, _n5){ d->play(item);});
   string sessionId = wApp->sessionId();
   WServer::instance()->ioService().post([=]{
     Session threadSession;
@@ -395,9 +398,9 @@ void Pandorica::setupGui()
 }
 
 
-void P::PandoricaPrivate::parseFileParameter() {
+void Pandorica::Private::parseFileParameter() {
   if(wApp->environment().getParameter("media")) {
-    log("notice") << "Got parameter file: " << *wApp->environment().getParameter("media");
+    wApp->log("notice") << "Got parameter file: " << *wApp->environment().getParameter("media");
     string fileHash = * wApp->environment().getParameter("media");
     queue(mediaCollection->media(fileHash).path());
   }
@@ -414,7 +417,7 @@ void Pandorica::refresh() {
 }
 
 
-string P::PandoricaPrivate::extensionFor ( fs::path p ) {
+string Pandorica::Private::extensionFor ( fs::path p ) {
   string extension = p.extension().string();
   boost::algorithm::to_lower(extension);
   return extension;
@@ -422,7 +425,7 @@ string P::PandoricaPrivate::extensionFor ( fs::path p ) {
 
 
 
-void P::PandoricaPrivate::queue(Media media, bool autoplay)
+void Pandorica::Private::queue(Media media, bool autoplay)
 {
   if(!media.valid()) return;
   PlaylistItem *item = playlist->queue(media);
@@ -433,7 +436,7 @@ void P::PandoricaPrivate::queue(Media media, bool autoplay)
   }
 }
 
-void P::PandoricaPrivate::queueAndPlay(Media media)
+void Pandorica::Private::queueAndPlay(Media media)
 {
   if(!media.valid()) return;
   if(player && player->playing()) {
@@ -460,10 +463,10 @@ std::string defaultLabelFor(string language) {
 }
 
 
-void P::PandoricaPrivate::play(PlaylistItem *playlistItem) {
+void Pandorica::Private::play(PlaylistItem *playlistItem) {
   Media media = playlistItem->media();
   navigationBar->switchToPlayer();
-  log("notice") << "Playing file " << media.path();
+  q->log("notice") << "Playing file " << media.path();
   if(player) {
     player->stop();
     delete player;
@@ -472,7 +475,7 @@ void P::PandoricaPrivate::play(PlaylistItem *playlistItem) {
   Dbo::Transaction t(*session);
   wApp->setLoadingIndicator(0); // TODO: improve
   WLink mediaLink = settings.linkFor( media.path() , session);
-  log("notice") << "found mediaLink: " << mediaLink.url();
+  q->log("notice") << "found mediaLink: " << mediaLink.url();
   player->addSource( {mediaLink.url(), media.mimetype()} );
   player->setAutoplay(settings.autoplay(media));
   auto preview = media.preview(t, Media::PreviewPlayer);
@@ -553,7 +556,7 @@ void P::PandoricaPrivate::play(PlaylistItem *playlistItem) {
   downloadLink->doJavaScript((boost::format("$('#%s').tooltip();") % downloadLink->id()).str() );
   infoBox->addWidget(downloadLink);
   wApp->setTitle( wtr("site-title") + " - " + media.title(t) );
-  log("notice") << "using url " << mediaLink.url();
+  q->log("notice") << "using url " << mediaLink.url();
   SessionInfoPtr sessionInfo = session->find<SessionInfo>().where("session_id = ?").bind(q->sessionId());
   for(auto detail : sessionInfo.modify()->sessionDetails())
     detail.modify()->ended();

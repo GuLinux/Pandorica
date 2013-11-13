@@ -25,16 +25,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <Wt/WApplication>
 #include <boost/filesystem.hpp>
+#include "utils/d_ptr.h"
 
 namespace Wt
 {
 
   class WStandardItem;
   class WStandardItemModel;
-}
-namespace PandoricaPrivate
-{
-  class PandoricaPrivate;
 }
 class Pandorica : public Wt::WApplication
 {
@@ -51,9 +48,7 @@ class Pandorica : public Wt::WApplication
   protected:
     virtual void notify( const Wt::WEvent &e );
   private:
-    friend class PandoricaPrivate::PandoricaPrivate;
-    PandoricaPrivate::PandoricaPrivate *const d;
-  private:
+    D_PTR;
 };
 
 #define pApp dynamic_cast<Pandorica*>(wApp)
