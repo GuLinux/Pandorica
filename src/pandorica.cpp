@@ -217,7 +217,7 @@ void Pandorica::Private::unregisterSession()
 {
   {
     auto sessions = instances();
-    sessions->erase(remove_if(begin(*sessions), end(*sessions), [this]( Pandorica *i) { return i == q;}));
+    sessions->erase(remove(begin(*sessions), end(*sessions), q));
   }
   post([=](Pandorica *app){ app->d->updateUsersCount(); }, false);
 }
@@ -284,13 +284,12 @@ void endSessionOnDatabase(string sessionId, long userId) {
 }
 
 Pandorica::~Pandorica() {
+  d->unregisterSession();
   d->aboutToQuit.emit(this);
   WServer::instance()->log("notice") << "Destroying app";
   if(d->session->login().loggedIn()) {
     WServer::instance()->ioService().post(boost::bind(endSessionOnDatabase, sessionId(), d->userId));
   }
-  d->unregisterSession();
-  WServer::instance()->log("notice") << "Deleted-pointer";
 }
 
 
