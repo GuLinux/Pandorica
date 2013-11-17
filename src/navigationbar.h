@@ -39,7 +39,7 @@ class WStackedWidget;
 class NavigationBar : public Wt::WContainerWidget
 {
 public:
-    enum Page { Player, MediaCollectionBrowser, UserSettings };
+    enum Page { Player, MediaCollectionBrowser, UserSettings, MediaScanner };
 
     ~NavigationBar();
     NavigationBar(Session* session, MediaCollection* mediaCollection, Settings* settings, Wt::WContainerWidget* parent = 0);

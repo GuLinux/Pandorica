@@ -199,7 +199,9 @@ void Pandorica::authEvent()
     {NavigationBar::Player, d->playerPage = new WContainerWidget},
     {NavigationBar::MediaCollectionBrowser, d->collectionPage = new WContainerWidget},
     {NavigationBar::UserSettings, d->userSettingsPage = new WContainerWidget},
+    {NavigationBar::MediaScanner, d->mediaScannerPage = new WContainerWidget},
   });
+  d->widgetsStack->addWidget(d->mediaScannerPage);
   t.commit();
   d->registerSession();
   setupGui();
@@ -292,6 +294,7 @@ Pandorica::~Pandorica() {
   }
 }
 
+// #define MEDIASCANNER_AS_DIALOG
 
 
 void Pandorica::Private::adminActions()
@@ -303,7 +306,11 @@ void Pandorica::Private::adminActions()
   navigationBar->configureApp().connect([=](_n6) { ServerSettingsPage::dialog(&settings, session, mediaCollection); });
   navigationBar->usersManagement().connect([=](_n6) { UsersManagementPage::dialog(session); });
   navigationBar->mediaScanner().connect([=](bool onlyCurrentDirectory, _n5) {
+#ifdef MEDIASCANNER_AS_DIALOG
     mediaScanner->dialog();
+#else
+    widgetsStack->setCurrentWidget(mediaScannerPage); // TODO: fix
+#endif
     if(onlyCurrentDirectory)
       mediaScanner->scan([=](Media& m) {
         return mediaCollectionBrowser->currentDirectoryHas(m);
@@ -396,9 +403,18 @@ void Pandorica::setupGui()
   d->mainWidget->animateShow({WAnimation::Fade});
   d->mediaScanner = make_shared<MediaScanner>(d->session, &d->settings, d->mediaCollection);
   d->mediaScanner->scanFinished().connect([=](_n6) {
+    d->widgetsStack->setCurrentIndex(0);
     d->mediaCollectionBrowser->reload();
     d->pathChanged(internalPath());
   });
+  
+  WContainerWidget *mediaScannerContent = new WContainerWidget;
+  WContainerWidget *mediaScannerFooter = WW<WContainerWidget>().padding(5);
+  d->mediaScannerPage->addWidget(mediaScannerFooter);
+  d->mediaScannerPage->addWidget(mediaScannerContent);
+#ifndef MEDIASCANNER_AS_DIALOG
+  d->mediaScanner->setup(mediaScannerContent, mediaScannerFooter);
+#endif
 }
 void Pandorica::Private::pathChanged( const std::string &path ) const
 {

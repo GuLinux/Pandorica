@@ -73,6 +73,7 @@ public:
     Wt::WContainerWidget * playerPage;
     Wt::WContainerWidget * collectionPage;
     Wt::WContainerWidget * userSettingsPage;
+    Wt::WContainerWidget * mediaScannerPage;
     Wt::Signal<PlaylistItem*> nowPlaying;
     Wt::Signal<Wt::WApplication*> aboutToQuit;
     Wt::WContainerWidget *notifications;

@@ -36,6 +36,7 @@ public:
   MediaScanner(Session* session, Settings* settings, MediaCollection* mediaCollection);
     virtual ~MediaScanner();
   void dialog();
+  void setup(Wt::WContainerWidget *content, Wt::WContainerWidget *footer);
   void scan(std::function<bool(Media&)> scanFilter = [](Media&){ return true; });
   Wt::Signal<> &scanFinished();
 private:

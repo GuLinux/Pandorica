@@ -36,11 +36,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/Dbo/backend/Postgres>
 #include <Wt/WGroupBox>
 #include <Wt/WIOService>
+#include <Wt/WToolBar>
 #include <boost/thread.hpp>
 #include <boost/chrono.hpp>
+#include <mutex>
 
 #include "utils/d_ptr_implementation.h"
 #include <utils/utils.h>
+#include <condition_variable>
+
 
 using namespace Wt;
 using namespace std;
@@ -73,24 +77,25 @@ void MediaScanner::Private::setupGui(Wt::WContainerWidget *mainContainer, Wt::WC
 {
   mainContainer->clear();
   buttonsContainer->clear();
-  progressBar = new WProgressBar;
-  progressBar->addStyleClass("pull-left");
+  progressBar = WW<WProgressBar>().css("pull-left").setMargin(5, Side::Left | Side::Right);
   buttonsContainer->addWidget(progressBar);
-  buttonsContainer->addWidget(buttonCancel = WW<WPushButton>(wtr("button.cancel")).css("btn btn-danger").onClick([=](WMouseEvent) {
+  WToolBar *buttonsToolbar = new WToolBar;
+  buttonsContainer->addWidget(buttonsToolbar);
+  buttonsToolbar->addButton(buttonCancel = WW<WPushButton>(wtr("button.cancel")).css("btn btn-danger").onClick([=](WMouseEvent) {
     canceled = true;
     buttonCancel->disable();
     semaphore->needsSaving(false);
     reject.emit();
   }));
-  buttonsContainer->addWidget(buttonSkip = WW<WPushButton>(wtr("button.skip")).css("btn btn-warning").onClick([=](WMouseEvent) {
+  buttonsToolbar->addButton(buttonSkip = WW<WPushButton>(wtr("button.skip")).css("btn btn-warning").onClick([=](WMouseEvent) {
     buttonSkip->disable();
     semaphore->needsSaving(false);
   }));
-  buttonsContainer->addWidget(buttonNext = WW<WPushButton>(wtr("button.next")).css("btn btn-primary").setEnabled(false).onClick([=](WMouseEvent) {
+  buttonsToolbar->addButton(buttonNext = WW<WPushButton>(wtr("button.next")).css("btn btn-primary").setEnabled(false).onClick([=](WMouseEvent) {
     buttonNext->disable();
     canContinue = true;
   }));
-  buttonsContainer->addWidget(buttonClose = WW<WPushButton>(wtr("button.close")).css("btn btn-success").onClick([=](WMouseEvent) {
+  buttonsToolbar->addButton(buttonClose = WW<WPushButton>(wtr("button.close")).css("btn btn-success").onClick([=](WMouseEvent) {
     buttonClose->disable();
     accept.emit();
   }).setEnabled(false));
@@ -133,6 +138,11 @@ MediaScanner::~MediaScanner()
 Signal<>& MediaScanner::scanFinished()
 {
   return d->scanFinished;
+}
+
+void MediaScanner::setup( WContainerWidget *content, WContainerWidget *footer )
+{
+  d->setupGui(content, footer);
 }
 
 
@@ -223,17 +233,23 @@ void MediaScanner::Private::runStepsFor(Media media, Dbo::Transaction& transacti
   canContinue = false;
 
   FFMPEGMedia ffmpegMedia{media, [=](const string &level) { return app->log(level); } };
-  guiRun(app, [=]{
+  mutex guiMutex;
+  unique_lock<mutex> lock(guiMutex);
+  condition_variable waitForGui;
+  auto setupStepsGUIs = [=, &waitForGui]{
     for(auto step: steps) {
       stepsContents[step].content->clear();
       step->setupGui(stepsContents[step].content);
       stepsContents[step].groupBox->show();
     }
     app->triggerUpdate();
-  });
+    waitForGui.notify_all();
+  };
+  guiRun(app, setupStepsGUIs);
   Scope hideStepContents([=]{
     guiRun(app, [=] { for(auto stepContent: stepsContents) stepContent.second.groupBox->hide(); app->triggerUpdate(); });
   });
+  waitForGui.wait(lock);
   list<boost::thread> threads;
   for(auto step: steps) {
     threads.push_back(boost::thread([=,&transaction,&media,&ffmpegMedia]{
