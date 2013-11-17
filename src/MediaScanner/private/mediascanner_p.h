@@ -26,6 +26,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "media/media.h"
 #include "MediaScanner/mediascanner.h"
 
+namespace std
+{
+  class condition_variable;
+}
+
 class MediaScannerSemaphore;
 class User;
 class Session;
@@ -64,7 +69,7 @@ public:
     Wt::WText* progressBarTitle;
     Settings* settings;
     std::map<std::shared_ptr<MediaScannerStep>, StepContent> stepsContents;
-    void scanMedias(std::function<void()> updateGuiProgress, std::function<void()> onScanFinish, std::function<bool(Media&)> scanFilter);
+    void scanMedias(std::function<void(std::condition_variable &)> updateGuiProgress, std::function<void(std::condition_variable &)> onScanFinish, std::function<bool(Media&)> scanFilter);
     bool canContinue;
     bool canceled;
     Wt::WPushButton* buttonCancel;

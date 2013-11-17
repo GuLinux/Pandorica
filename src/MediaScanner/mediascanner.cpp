@@ -163,14 +163,15 @@ void MediaScanner::dialog()
 
 void MediaScanner::scan(function<bool(Media&)> scanFilter)
 {
-  auto updateGuiProgress = [=] {
+  auto updateGuiProgress = [=] (condition_variable &c) {
     d->progressBar->setValue(d->scanningProgress.progress);
     d->progressBarTitle->setText(d->scanningProgress.currentFile);
     for(auto stepContainers : d->stepsContents)
       stepContainers.second.content->clear();
     d->app->triggerUpdate();
+    c.notify_all();
   };
-  auto onScanFinished = [=] {
+  auto onScanFinished = [=] (condition_variable &c) {
     d->buttonClose->enable();
     d->buttonNext->disable();
     d->buttonCancel->disable();
@@ -181,21 +182,33 @@ void MediaScanner::scan(function<bool(Media&)> scanFilter)
     for(auto stepContainers : d->stepsContents)
       stepContainers.second.content->clear();
     d->app->triggerUpdate();
+    c.notify_all();
   };
+  d->scanningProgress = {0, {}};
+  condition_variable cv;
+  updateGuiProgress(cv);
   boost::thread(boost::bind(&MediaScanner::Private::scanMedias, d.get(), updateGuiProgress, onScanFinished, scanFilter ));
 }
 
-void MediaScanner::Private::scanMedias(function<void()> updateGuiProgress, function<void()> onScanFinish, function<bool(Media &)> scanFilter)
+void MediaScanner::Private::scanMedias(function<void(condition_variable &)> updateGuiProgress, function<void(condition_variable &)> onScanFinish, function<bool(Media &)> scanFilter)
 {
   canceled = false;
+  mutex m;
+  condition_variable cv;
   semaphore->needsSaving(false);
-  scanningProgress = {0, {}};
   Session session;
   Dbo::Transaction transaction(session);
-  Scope onFinish([=,&transaction]{
+  Scope onFinish([=,&transaction,&cv,&m]{
     boost::this_thread::sleep_for(boost::chrono::milliseconds{500});
     transaction.commit();
-    guiRun(app, [=] { updateGuiProgress(); onScanFinish(); });
+    unique_lock<mutex> lock(m);
+    guiRun(app, [=,&cv] { 
+      condition_variable c;
+      updateGuiProgress(c);
+      onScanFinish(cv);
+      cv.notify_all();
+    });
+    cv.wait(lock);
   });
   mediaCollection->rescan(transaction);
   guiRun(app, [=]{
@@ -213,16 +226,20 @@ void MediaScanner::Private::scanMedias(function<void()> updateGuiProgress, funct
     scanningProgress.currentFile = media.filename();
     log("notice") << "Scanning file " << scanningProgress.progress << " of " << mediaCollection->collection().size() << ": " << scanningProgress.currentFile;
     if(!scanFilter(media)) {
-      guiRun(app, updateGuiProgress);
+      unique_lock<mutex> lock(m);
+      guiRun(app, [=,&cv]{ updateGuiProgress(cv); });
+      cv.wait(lock);
       continue;
     }
-    guiRun(app, [=] {
+    unique_lock<mutex> lock(m);
+    guiRun(app, [=,&cv] {
       buttonNext->disable();
       buttonSkip->disable();
       for(auto stepContent: stepsContents)
         stepContent.second.groupBox->hide();
-      updateGuiProgress();
+      updateGuiProgress(cv);
     });
+    cv.wait(lock);
     runStepsFor(media, transaction);
   }
 }

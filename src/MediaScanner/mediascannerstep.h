@@ -35,7 +35,7 @@ class WContainerWidget;
 class WApplication;
 }
 
-#define guiRun(app, f) WServer::instance()->post(app->sessionId(), f)
+#define guiRun(app, ...) WServer::instance()->post(app->sessionId(), __VA_ARGS__)
 
 class MediaScannerSemaphore : public std::enable_shared_from_this<MediaScannerSemaphore> {
 public:
