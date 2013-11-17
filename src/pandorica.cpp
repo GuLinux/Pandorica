@@ -210,7 +210,7 @@ void Pandorica::authEvent()
 void Pandorica::Private::registerSession()
 {
   {
-    auto sessions = instances();
+    PandoricaInstances sessions = instances();
     sessions->push_back(q);
   }
   post([=](Pandorica *app){ app->d->updateUsersCount(); }, true);
@@ -218,7 +218,7 @@ void Pandorica::Private::registerSession()
 void Pandorica::Private::unregisterSession()
 {
   {
-    auto sessions = instances();
+    PandoricaInstances sessions = instances();
     sessions->erase(remove(begin(*sessions), end(*sessions), q));
   }
   post([=](Pandorica *app){ app->d->updateUsersCount(); }, false);
@@ -227,7 +227,7 @@ void Pandorica::Private::unregisterSession()
 
 PandoricaInstances Pandorica::Private::instances()
 {
-  static vector<Pandorica*> _instances {};
+  static list<Pandorica*> _instances {};
   static mutex instancesMutex;
 
   auto instancesMutexLock = make_shared<unique_lock<mutex>>(instancesMutex);

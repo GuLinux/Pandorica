@@ -40,7 +40,7 @@ class MediaCollectionBrowser;
 class Player;
 class MediaScanner;
 class Pandorica;
-typedef std::shared_ptr<std::vector<Pandorica*>> PandoricaInstances;
+typedef std::shared_ptr<std::list<Pandorica*>> PandoricaInstances;
 
 class Pandorica::Private {
 public:
