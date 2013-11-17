@@ -133,7 +133,7 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
   setTitle(wtr("site-title"));
 
   addMetaHeader("viewport", "width=device-width, initial-scale=1, maximum-scale=1");
-  
+  internalPathChanged().connect([=](const string &p, _n5) { d->pathChanged(p); });
 
   
   root()->addWidget(d->authPage = new AuthPage(d->session));
@@ -384,25 +384,43 @@ void Pandorica::setupGui()
   
   d->playlist->play().connect([=](PlaylistItem *item, _n5){ d->play(item);});
   string sessionId = wApp->sessionId();
+  string initialInternalPath = internalPath();
   WServer::instance()->ioService().post([=]{
     Session threadSession;
     Dbo::Transaction t(threadSession);
     d->mediaCollection->rescan(t);
-    WServer::instance()->post(sessionId, [=] { d->parseFileParameter(); });
+    WServer::instance()->post(sessionId, [=] {
+      d->pathChanged(initialInternalPath);
+      d->parseInitParameter();
+    });
   });
   d->mainWidget->animateShow({WAnimation::Fade});
   d->mediaScanner = make_shared<MediaScanner>(d->session, &d->settings, d->mediaCollection);
   d->mediaScanner->scanFinished().connect([=](_n6) {
     d->mediaCollectionBrowser->reload();
+    d->pathChanged(internalPath());
   });
+}
+void Pandorica::Private::pathChanged( const std::string &path ) const
+{
+  q->log("notice") << __PRETTY_FUNCTION__ << ", path=" << path;
+  if(!session->login().loggedIn())
+    return;
+  mediaCollectionBrowser->browse(mediaCollection->find(path));
 }
 
 
-void Pandorica::Private::parseFileParameter() {
+void Pandorica::Private::parseInitParameter() {
   if(wApp->environment().getParameter("media")) {
     wApp->log("notice") << "Got parameter file: " << *wApp->environment().getParameter("media");
     string fileHash = * wApp->environment().getParameter("media");
     queue(mediaCollection->media(fileHash).path());
+  }
+  if(wApp->environment().getParameter("dir")) {
+    wApp->log("notice") << "Got parameter dir: " << *wApp->environment().getParameter("dir");
+    string dirHash = * wApp->environment().getParameter("dir");
+    auto dir = mediaCollection->find(dirHash);
+    mediaCollectionBrowser->browse(mediaCollection->find(dirHash));
   }
 }
 
@@ -411,7 +429,7 @@ void Pandorica::refresh() {
   Wt::WApplication::refresh();
   if(!d->session->login().loggedIn())
     return;
-  d->parseFileParameter();
+  d->parseInitParameter();
   if(d->player)
     d->player->refresh();
 }

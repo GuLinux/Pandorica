@@ -41,6 +41,7 @@ class MediaDirectory : public std::enable_shared_from_this<MediaDirectory>
     std::shared_ptr<MediaDirectory> ptr();
     bool contains(const Media &media) const;
     bool recursiveContains(const Media &media) const;
+    std::string relativePath();
   private:
     D_PTR;
 };

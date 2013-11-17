@@ -326,8 +326,18 @@ void MediaCollectionBrowser::Private::setup(MediaInfoPanel *infoPanel)
   resetPanel.connect([=](_n6) { infoPanel->reset(); });
 }
 
+void MediaCollectionBrowser::browse( const shared_ptr< MediaDirectory > &mediaDirectory )
+{
+  WServer::instance()->log("notice") << __PRETTY_FUNCTION__ << ", mediaDirectory=" << (mediaDirectory ? mediaDirectory->path() : "<null>");
+  if(mediaDirectory)
+    d->browse(mediaDirectory);
+}
+
+
 void MediaCollectionBrowser::Private::browse( const shared_ptr< MediaDirectory > &mediaDirectory )
 {
+  auto dirRelPath = mediaDirectory->relativePath();
+  wApp->setInternalPath(dirRelPath, false);
   currentPath = mediaDirectory;
   resetPanel.emit();
   browser->clear();
@@ -573,7 +583,7 @@ WContainerWidget *MediaCollectionBrowser::Private::addIcon( WString filename, Ge
 {
   WContainerWidget *item = WW<WContainerWidget>().css( "span3 media-icon-container" );
   item->setContentAlignment( AlignmentFlag::AlignCenter );
-  WAnchor *link = WW<WAnchor>( "#" ).css( "thumbnail filesystem-item link-hand" );
+  WAnchor *link = WW<WAnchor>().css( "thumbnail filesystem-item link-hand" );
   link->setImage( new WImage( icon( item ) ) );
   link->addWidget( WW<WText>( filename ).css( "filesystem-item-label" ) );
   item->addWidget( link );

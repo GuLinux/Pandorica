@@ -46,6 +46,8 @@ public:
   std::list<std::string> allowedPaths;
   Wt::WApplication *app;
   long long userId;
-  std::vector<std::shared_ptr<MediaDirectory>> mediaDirectories;
+  typedef std::shared_ptr<MediaDirectory> MediaDirectoryPtr;
+  std::vector<MediaDirectoryPtr> mediaDirectories;
+  MediaDirectoryPtr findInSubDirectories(const std::shared_ptr<MediaDirectory> &directory, const std::string &hash);
 };
 #endif

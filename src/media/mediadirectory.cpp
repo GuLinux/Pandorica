@@ -20,10 +20,14 @@
 #include "mediadirectory.h"
 #include "private/mediadirectory_p.h"
 #include "utils/d_ptr_implementation.h"
+#include <Wt/Utils>
 
 using namespace std;
+using namespace Wt;
+using namespace Wt::Utils;
 
-MediaDirectory::Private::Private( MediaDirectory *q, const boost::filesystem::path &path, const shared_ptr< MediaDirectory > &parent ) : q( q ), path( path ), parent(parent)
+MediaDirectory::Private::Private( MediaDirectory *q, const boost::filesystem::path &path, const shared_ptr< MediaDirectory > &parent ) 
+  : q( q ), path( path ), parent(parent)
 {
 }
 
@@ -41,6 +45,16 @@ shared_ptr< MediaDirectory > MediaDirectory::parent()
   return d->parent;
 }
 
+string MediaDirectory::relativePath()
+{
+  string relPath;
+  shared_ptr<MediaDirectory> dir = ptr();
+  while(dir) {
+    relPath = "/" + dir->label() + relPath;
+    dir = dir->parent();
+  }
+  return relPath;
+}
 
 
 

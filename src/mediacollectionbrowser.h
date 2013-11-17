@@ -38,6 +38,7 @@ public:
   Wt::Signal<Media> &queue();
   Wt::Signal<Media> &play();
   bool currentDirectoryHas( const Media &media ) const;
+  void browse(const std::shared_ptr<MediaDirectory> &mediaDirectory);
   void reload();
 private:
   D_PTR;

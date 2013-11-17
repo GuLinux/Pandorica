@@ -64,8 +64,7 @@ void MediaCollection::rescan( Dbo::Transaction &transaction )
   }
   size_t size = d->collection.size();
   log("notice") << __PRETTY_FUNCTION__ << ": found " << d->collection.size() << " media files.";
-    WServer::instance()->post( d->app->sessionId(), [ = ]
-  {
+    WServer::instance()->post( d->app->sessionId(), [=] {
     d->scanned.emit();
     d->loadingIndicator->widget()->hide();
     d->app->triggerUpdate();
@@ -77,6 +76,29 @@ vector< shared_ptr< MediaDirectory > > MediaCollection::rootDirectories() const
 {
   return d->mediaDirectories;
 }
+
+shared_ptr< MediaDirectory > MediaCollection::find( const string &directoryPath )
+{
+  for(auto rootDir: d->mediaDirectories) {
+    auto findSubDirectory = d->findInSubDirectories(rootDir, directoryPath );
+    if(findSubDirectory)
+      return findSubDirectory;
+  }
+  return shared_ptr<MediaDirectory>();
+}
+
+MediaCollection::Private::MediaDirectoryPtr MediaCollection::Private::findInSubDirectories( const shared_ptr< MediaDirectory > &directory, const string &path )
+{
+  if(directory->relativePath() == path )
+    return directory;
+  for(auto dir: directory->subDirectories()) {
+    auto found = findInSubDirectories(dir, path );
+    if(found)
+      return found;
+  }
+  return MediaDirectoryPtr();
+}
+
 
 
 bool MediaCollection::Private::isAllowed( fs::path path )

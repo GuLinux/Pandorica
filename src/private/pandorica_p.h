@@ -47,7 +47,7 @@ public:
     Private(Pandorica* q);
     Player *player = 0;
     std::string extensionFor(boost::filesystem::path p);
-    void parseFileParameter();
+    void parseInitParameter();
     Playlist *playlist;
     Wt::WContainerWidget* playerContainerWidget;
     void adminActions();
@@ -79,10 +79,10 @@ public:
     std::shared_ptr<MediaScanner> mediaScanner;
     PandoricaInstances instances();
     void post(std::function<void(Pandorica *app)> f, bool includeMine = false);
+    void pathChanged(const std::string &path) const;
 private:
     void ratingFor(Media media, Wt::Dbo::Transaction t);
     Wt::WMenuItem* activeUsersMenuItem = 0;
     long sessionsCount = -1;
 };
-
 #endif
