@@ -200,14 +200,16 @@ void MediaScanner::Private::scanMedias(function<void(ip::interprocess_semaphore 
   Session session;
   Dbo::Transaction transaction(session);
   Scope onFinish([=,&transaction]{
-    ip::interprocess_semaphore s(-1);
+    ip::interprocess_semaphore s0(0);
+    ip::interprocess_semaphore s1(0);
     boost::this_thread::sleep_for(boost::chrono::milliseconds{500});
     transaction.commit();
-    guiRun(app, [=,&s] { 
-      updateGuiProgress(s);
-      onScanFinish(s);
+    guiRun(app, [=,&s0,&s1] { 
+      updateGuiProgress(s0);
+      onScanFinish(s1);
     });
-    s.wait();
+    s0.wait();
+    s1.wait();
   });
   mediaCollection->rescan(transaction);
   guiRun(app, [=]{
