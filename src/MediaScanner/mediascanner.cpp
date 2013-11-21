@@ -250,33 +250,33 @@ void MediaScanner::Private::runStepsFor(Media media, Dbo::Transaction& transacti
   canContinue = false;
 
   FFMPEGMedia ffmpegMedia{media, [=](const string &level) { return app->log(level); } };
-  {
-    ip::interprocess_semaphore s(0);
-    guiRun(app, [=, &s]{
-      for(auto step: steps) {
-	stepsContents[step].content->clear();
-	step->setupGui(stepsContents[step].content);
-	stepsContents[step].groupBox->show();
-      }
-      app->triggerUpdate();
-      s.post();
-    });
-    s.wait();
-  }
+  ip::interprocess_semaphore s(0);
+  guiRun(app, [=, &s]{
+    for(auto step: steps) {
+      stepsContents[step].content->clear();
+      step->setupGui(stepsContents[step].content);
+      stepsContents[step].groupBox->show();
+    }
+    app->triggerUpdate();
+    s.post();
+  });
+  s.wait();
   Scope hideStepContents([=]{
     ip::interprocess_semaphore s(0);
     guiRun(app, [=,&s] { for(auto stepContent: stepsContents) stepContent.second.groupBox->hide(); app->triggerUpdate(); s.post(); });
     s.wait();
   });
   list<boost::thread> threads;
-  ip::interprocess_semaphore s(1-steps.size());
+  
   for(auto step: steps) {
-    threads.push_back(boost::thread([=,&transaction,&media,&ffmpegMedia,&s]{
+    threads.push_back(boost::thread([=,&transaction,&media,&ffmpegMedia]{
       step->run(&ffmpegMedia, media, transaction);
-      if(! step->needsSaving())
+      if(! step->needsSaving()) {
+	ip::interprocess_semaphore s(0);
         guiRun(app, [=,&s] { stepsContents[step].groupBox->hide(); app->triggerUpdate(); s.post(); });
+	s.wait();
+      }
     }));
-    s.wait();
     for(auto &stepThread: threads)
       stepThread.join();
 //     step->run(&ffmpegMedia, media, transaction);
