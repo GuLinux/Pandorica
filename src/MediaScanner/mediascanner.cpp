@@ -226,6 +226,7 @@ void MediaScanner::Private::scanMedias(function<void(condition_variable &)> upda
     scanningProgress.currentFile = media.filename();
     log("notice") << "Scanning file " << scanningProgress.progress << " of " << mediaCollection->collection().size() << ": " << scanningProgress.currentFile;
     if(!scanFilter(media)) {
+      log("notice") << "Skipping media: " << media.fullPath();
       unique_lock<mutex> lock(m);
       guiRun(app, [=,&cv]{ updateGuiProgress(cv); });
       cv.wait(lock);
