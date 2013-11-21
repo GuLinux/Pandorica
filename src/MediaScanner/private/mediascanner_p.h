@@ -26,6 +26,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "media/media.h"
 #include "MediaScanner/mediascanner.h"
 
+namespace boost {
+namespace interprocess {
+class interprocess_semaphore;
+}
+}
+
 namespace std
 {
   class condition_variable;
@@ -69,7 +75,7 @@ public:
     Wt::WText* progressBarTitle;
     Settings* settings;
     std::map<std::shared_ptr<MediaScannerStep>, StepContent> stepsContents;
-    void scanMedias(std::function<void(std::condition_variable &)> updateGuiProgress, std::function<void(std::condition_variable &)> onScanFinish, std::function<bool(Media&)> scanFilter);
+    void scanMedias(std::function<void(boost::interprocess::interprocess_semaphore &)> updateGuiProgress, std::function<void(boost::interprocess::interprocess_semaphore &)> onScanFinish, std::function<bool(Media&)> scanFilter);
     bool canContinue;
     bool canceled;
     Wt::WPushButton* buttonCancel;
