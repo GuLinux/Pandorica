@@ -44,11 +44,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "utils/d_ptr_implementation.h"
 #include <utils/utils.h>
 #include <condition_variable>
-
+#include <boost/interprocess/sync/interprocess_semaphore.hpp>
 
 using namespace Wt;
 using namespace std;
 using namespace WtCommons;
+namespace ip = boost::interprocess;
 
 MediaScanner::Private::Private(MediaScanner* q, MediaCollection *mediaCollection, Session *session, Settings* settings)
   : q(q), mediaCollection(mediaCollection), session(session), settings(settings), app(wApp)
@@ -161,17 +162,18 @@ void MediaScanner::dialog()
   dialog->show();
 }
 
+
 void MediaScanner::scan(function<bool(Media&)> scanFilter)
 {
-  auto updateGuiProgress = [=] (condition_variable &c) {
+  auto updateGuiProgress = [=] (ip::interprocess_semaphore &s) {
     d->progressBar->setValue(d->scanningProgress.progress);
     d->progressBarTitle->setText(d->scanningProgress.currentFile);
     for(auto stepContainers : d->stepsContents)
       stepContainers.second.content->clear();
     d->app->triggerUpdate();
-    c.notify_all();
+    s.post();
   };
-  auto onScanFinished = [=] (condition_variable &c) {
+  auto onScanFinished = [=] (ip::interprocess_semaphore &s) {
     d->buttonClose->enable();
     d->buttonNext->disable();
     d->buttonCancel->disable();
@@ -182,33 +184,32 @@ void MediaScanner::scan(function<bool(Media&)> scanFilter)
     for(auto stepContainers : d->stepsContents)
       stepContainers.second.content->clear();
     d->app->triggerUpdate();
-    c.notify_all();
+    s.post();
   };
   d->scanningProgress = {0, {}};
-  condition_variable cv;
-  updateGuiProgress(cv);
+  ip::interprocess_semaphore s(0);
+  updateGuiProgress(s);
+  s.wait();
   boost::thread(boost::bind(&MediaScanner::Private::scanMedias, d.get(), updateGuiProgress, onScanFinished, scanFilter ));
 }
 
-void MediaScanner::Private::scanMedias(function<void(condition_variable &)> updateGuiProgress, function<void(condition_variable &)> onScanFinish, function<bool(Media &)> scanFilter)
+void MediaScanner::Private::scanMedias(function<void(ip::interprocess_semaphore &)> updateGuiProgress, function<void(ip::interprocess_semaphore &)> onScanFinish, function<bool(Media &)> scanFilter)
 {
   canceled = false;
-  mutex m;
-  condition_variable cv;
   semaphore->needsSaving(false);
   Session session;
   Dbo::Transaction transaction(session);
-  Scope onFinish([=,&transaction,&cv,&m]{
+  Scope onFinish([=,&transaction]{
+    ip::interprocess_semaphore s0(0);
+    ip::interprocess_semaphore s1(0);
     boost::this_thread::sleep_for(boost::chrono::milliseconds{500});
     transaction.commit();
-    unique_lock<mutex> lock(m);
-    guiRun(app, [=,&cv] { 
-      condition_variable c;
-      updateGuiProgress(c);
-      onScanFinish(cv);
-      cv.notify_all();
+    guiRun(app, [=,&s0,&s1] { 
+      updateGuiProgress(s0);
+      onScanFinish(s1);
     });
-    cv.wait(lock);
+    s0.wait();
+    s1.wait();
   });
   mediaCollection->rescan(transaction);
   guiRun(app, [=]{
@@ -226,20 +227,21 @@ void MediaScanner::Private::scanMedias(function<void(condition_variable &)> upda
     scanningProgress.currentFile = media.filename();
     log("notice") << "Scanning file " << scanningProgress.progress << " of " << mediaCollection->collection().size() << ": " << scanningProgress.currentFile;
     if(!scanFilter(media)) {
-      unique_lock<mutex> lock(m);
-      guiRun(app, [=,&cv]{ updateGuiProgress(cv); });
-      cv.wait(lock);
+      ip::interprocess_semaphore s(0);
+      log("notice") << "Skipping media: " << media.fullPath();
+      guiRun(app, [=,&s]{ updateGuiProgress(s); });
+      s.wait();
       continue;
     }
-    unique_lock<mutex> lock(m);
-    guiRun(app, [=,&cv] {
+    ip::interprocess_semaphore s(0);
+    guiRun(app, [=,&s] {
       buttonNext->disable();
       buttonSkip->disable();
       for(auto stepContent: stepsContents)
         stepContent.second.groupBox->hide();
-      updateGuiProgress(cv);
+      updateGuiProgress(s);
     });
-    cv.wait(lock);
+    s.wait();
     runStepsFor(media, transaction);
   }
 }
@@ -250,29 +252,32 @@ void MediaScanner::Private::runStepsFor(Media media, Dbo::Transaction& transacti
   canContinue = false;
 
   FFMPEGMedia ffmpegMedia{media, [=](const string &level) { return app->log(level); } };
-  mutex guiMutex;
-  unique_lock<mutex> lock(guiMutex);
-  condition_variable waitForGui;
-  auto setupStepsGUIs = [=, &waitForGui]{
+  ip::interprocess_semaphore s(0);
+  guiRun(app, [=, &s]{
     for(auto step: steps) {
       stepsContents[step].content->clear();
       step->setupGui(stepsContents[step].content);
       stepsContents[step].groupBox->show();
     }
     app->triggerUpdate();
-    waitForGui.notify_all();
-  };
-  guiRun(app, setupStepsGUIs);
-  Scope hideStepContents([=]{
-    guiRun(app, [=] { for(auto stepContent: stepsContents) stepContent.second.groupBox->hide(); app->triggerUpdate(); });
+    s.post();
   });
-  waitForGui.wait(lock);
+  s.wait();
+  Scope hideStepContents([=]{
+    ip::interprocess_semaphore s(0);
+    guiRun(app, [=,&s] { for(auto stepContent: stepsContents) stepContent.second.groupBox->hide(); app->triggerUpdate(); s.post(); });
+    s.wait();
+  });
   list<boost::thread> threads;
+  
   for(auto step: steps) {
     threads.push_back(boost::thread([=,&transaction,&media,&ffmpegMedia]{
       step->run(&ffmpegMedia, media, transaction);
-      if(! step->needsSaving())
-        guiRun(app, [=] { stepsContents[step].groupBox->hide(); app->triggerUpdate(); });
+      if(! step->needsSaving()) {
+	ip::interprocess_semaphore s(0);
+        guiRun(app, [=,&s] { stepsContents[step].groupBox->hide(); app->triggerUpdate(); s.post(); });
+	s.wait();
+      }
     }));
     for(auto &stepThread: threads)
       stepThread.join();
