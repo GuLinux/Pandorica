@@ -78,7 +78,7 @@ public:
     Wt::Signal<Wt::WApplication*> aboutToQuit;
     Wt::WContainerWidget *notifications;
     std::shared_ptr<MediaScanner> mediaScanner;
-    PandoricaInstances instances();
+    static PandoricaInstances instances();
     void post(std::function<void(Pandorica *app)> f, bool includeMine = false);
     void pathChanged(const std::string &path) const;
 private:
