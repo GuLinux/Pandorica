@@ -50,7 +50,7 @@ public:
     std::vector<Media> sortedMediasList() const;
     bool isAllowed(const boost::filesystem::path &path) const;
     std::vector<std::shared_ptr<MediaDirectory>> rootDirectories() const;
-    std::shared_ptr<MediaDirectory> find(const std::string &directoryPath);
+    std::shared_ptr<MediaDirectory> find(const std::string &directoryPath) const;
 private:
   D_PTR;
 };

@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <string>
 #include "media/media.h"
+#include <media/mediacollection.h>
 #include "settings.h"
 #include <session.h>
 #include <boost/filesystem.hpp>
@@ -35,7 +36,6 @@ class AuthPage;
 class Playlist;
 
 
-class MediaCollection;
 class MediaCollectionBrowser;
 class Player;
 class MediaScanner;
@@ -64,7 +64,7 @@ public:
     Wt::JSignal<std::string> queueSignal;
     Settings settings;
     MediaCollectionBrowser* mediaCollectionBrowser;
-    MediaCollection* mediaCollection;
+    MediaCollection mediaCollection;
     long userId = -1;
     void updateUsersCount();
     void registerSession();

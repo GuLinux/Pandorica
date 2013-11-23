@@ -86,13 +86,13 @@ typedef std::function<void(fs::path)> RunOnPath;
 
 
 Pandorica::Private::Private(Pandorica *q)
-  : q(q), playSignal(q, "playSignal"), queueSignal(q, "queueSignal")
+  : q(q), playSignal(q, "playSignal"), queueSignal(q, "queueSignal"), mediaCollection(&settings, session, q)
 {
   playSignal.connect([=](string uid, _n5){
-    queueAndPlay(mediaCollection->media(uid));
+    queueAndPlay(mediaCollection.media(uid));
   });
   queueSignal.connect([=](string uid, _n5){
-    queue(mediaCollection->media(uid));
+    queue(mediaCollection.media(uid));
   });
 }
 
@@ -191,8 +191,8 @@ void Pandorica::authEvent()
   SessionInfo::endStale(t);
   auto sessionInfoPtr = d->session->add(sessionInfo);
   wApp->log("notice") << "created sessionInfo with sessionId=" << sessionInfoPtr->sessionId();
-  d->mediaCollection = new MediaCollection(&d->settings, d->session, this);
-  d->mainWidget->addWidget(d->navigationBar = new NavigationBar(d->session, d->mediaCollection, &d->settings));
+  d->mediaCollection.setUserId(myUser.id());
+  d->mainWidget->addWidget(d->navigationBar = new NavigationBar(d->session, &d->mediaCollection, &d->settings));
   d->mainWidget->addWidget(d->notifications = WW<WContainerWidget>());
   d->widgetsStack = new WStackedWidget();
   d->widgetsStack->setTransitionAnimation({WAnimation::Fade});
@@ -311,9 +311,9 @@ void Pandorica::Private::adminActions()
 {
   navigationBar->viewLoggedUsers().connect([=](_n6) {   (new LoggedUsersDialog{session, &settings})->show(); });
   navigationBar->viewUsersHistory().connect([=](_n6) { (new LoggedUsersDialog{session, &settings, true})->show(); });
-  navigationBar->findOrphans().connect([=](_n6) { (new FindOrphansDialog(mediaCollection, session, &settings))->run(); });
+  navigationBar->findOrphans().connect([=](_n6) { (new FindOrphansDialog(&mediaCollection, session, &settings))->run(); });
   navigationBar->manageGroups().connect([=](_n6) {  (new GroupsDialog(session, &settings))->show(); });
-  navigationBar->configureApp().connect([=](_n6) { ServerSettingsPage::dialog(&settings, session, mediaCollection); });
+  navigationBar->configureApp().connect([=](_n6) { ServerSettingsPage::dialog(&settings, session, &mediaCollection); });
   navigationBar->usersManagement().connect([=](_n6) { UsersManagementPage::dialog(session); });
   navigationBar->mediaScanner().connect([=](bool onlyCurrentDirectory, _n5) {
 #ifdef MEDIASCANNER_AS_DIALOG
@@ -341,7 +341,7 @@ void Pandorica::Private::adminActions()
     for(Dbo::ptr<AuthInfo> userEntry: usersList) {
       model->addString(userEntry->identity("loginname") + " (" + userEntry->email() + ")");
       model->setData(model->rowCount() -1, 0, userEntry->user().id(), UserRole);
-      if(mediaCollection->viewingAs() == userEntry->user().id())
+      if(mediaCollection.viewingAs() == userEntry->user().id())
         combo->setCurrentIndex(model->rowCount());
     }
     dialog->show();
@@ -353,11 +353,11 @@ void Pandorica::Private::adminActions()
       if(code == WDialog::Accepted) {
         userId = boost::any_cast<long long>(model->data(model->index(combo->currentIndex(), 0), UserRole));
       }
-      mediaCollection->setUserId(userId);
+      mediaCollection.setUserId(userId);
       WServer::instance()->ioService().post([=] {
         Session threadSession;
         Dbo::Transaction t(threadSession);
-        mediaCollection->rescan(t);
+        mediaCollection.rescan(t);
       });
     });
   });
@@ -374,7 +374,7 @@ void Pandorica::setupGui()
   d->playerPage->addWidget(WW<WContainerWidget>().add(d->playlist).setContentAlignment(AlignCenter));
   d->playerPage->addWidget(d->playerContainerWidget);
   
-  d->mediaCollectionBrowser = new MediaCollectionBrowser{d->mediaCollection, &d->settings, d->session};
+  d->mediaCollectionBrowser = new MediaCollectionBrowser{&d->mediaCollection, &d->settings, d->session};
   d->mediaCollectionBrowser->play().connect([=](Media media, _n5){
     d->queueAndPlay(media.path());
   });
@@ -404,16 +404,14 @@ void Pandorica::setupGui()
   boost::thread([=]{
     Session threadSession;
     Dbo::Transaction t(threadSession);
-    Private *_private = d.get();
-    MediaCollection *_mediaCollection = d->mediaCollection;
-    d->mediaCollection->rescan(t);
+    d->mediaCollection.rescan(t);
     WServer::instance()->post(sessionId, [=] {
       d->pathChanged(initialInternalPath);
       d->parseInitParameter();
     });
   });
   d->mainWidget->animateShow({WAnimation::Fade});
-  d->mediaScanner = make_shared<MediaScanner>(d->session, &d->settings, d->mediaCollection);
+  d->mediaScanner = make_shared<MediaScanner>(d->session, &d->settings, &d->mediaCollection);
   d->mediaScanner->scanFinished().connect([=](_n6) {
     d->widgetsStack->setCurrentIndex(0);
     d->mediaCollectionBrowser->reload();
@@ -433,7 +431,7 @@ void Pandorica::Private::pathChanged( const std::string &path ) const
   q->log("notice") << __PRETTY_FUNCTION__ << ", path=" << path;
   if(!session->login().loggedIn())
     return;
-  mediaCollectionBrowser->browse(mediaCollection->find(path));
+  mediaCollectionBrowser->browse(mediaCollection.find(path));
 }
 
 
@@ -441,13 +439,13 @@ void Pandorica::Private::parseInitParameter() {
   if(wApp->environment().getParameter("media")) {
     wApp->log("notice") << "Got parameter file: " << *wApp->environment().getParameter("media");
     string fileHash = * wApp->environment().getParameter("media");
-    queue(mediaCollection->media(fileHash).path());
+    queue(mediaCollection.media(fileHash).path());
   }
   if(wApp->environment().getParameter("dir")) {
     wApp->log("notice") << "Got parameter dir: " << *wApp->environment().getParameter("dir");
     string dirHash = * wApp->environment().getParameter("dir");
-    auto dir = mediaCollection->find(dirHash);
-    mediaCollectionBrowser->browse(mediaCollection->find(dirHash));
+    auto dir = mediaCollection.find(dirHash);
+    mediaCollectionBrowser->browse(mediaCollection.find(dirHash));
   }
 }
 

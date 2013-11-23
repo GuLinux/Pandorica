@@ -39,7 +39,8 @@ namespace fs = boost::filesystem;
 MediaCollection::MediaCollection( Settings *settings, Session *session, WApplication *parent )
   : WObject( parent ), d(settings, session, parent )
 {
-  setUserId( session->user().id() );
+  if(session->user())
+    setUserId( session->user().id() );
 }
 
 void MediaCollection::rescan( Dbo::Transaction &transaction )
@@ -78,7 +79,7 @@ vector< shared_ptr< MediaDirectory > > MediaCollection::rootDirectories() const
   return d->mediaDirectories;
 }
 
-shared_ptr< MediaDirectory > MediaCollection::find( const string &directoryPath )
+shared_ptr< MediaDirectory > MediaCollection::find( const string &directoryPath ) const
 {
   for(auto rootDir: d->mediaDirectories) {
     auto findSubDirectory = d->findInSubDirectories(rootDir, directoryPath );
