@@ -220,6 +220,10 @@ void Pandorica::Private::unregisterSession()
 {
   {
     PandoricaInstances sessions = Private::instances();
+    WServer::instance()->log("notice") << "**** * instances size: " << sessions->size() << ", q: " << q;
+    for(auto instance: *sessions)
+      WServer::instance()->log("notice") << "**** * instance: " << instance;
+      
     sessions->erase(remove(begin(*sessions), end(*sessions), q));
   }
   post([=](Pandorica *app){ app->d->updateUsersCount(); }, false);
@@ -233,7 +237,11 @@ PandoricaInstances Pandorica::Private::instances()
 
   shared_ptr<unique_lock<mutex>> instancesMutexLock = make_shared<unique_lock<mutex>>(instancesMutex);
 
-  return PandoricaInstances(&_instances, [instancesMutexLock](void *) { (void)instancesMutexLock; });
+  WServer::instance()->log("notice") << "**** * creating instances mutex";
+  return PandoricaInstances(&_instances, [instancesMutexLock](void *) {
+    (void)instancesMutexLock;
+    WServer::instance()->log("notice") << "**** * unlocking instances mutex";
+  });
 }
 
 void Pandorica::Private::post( function<void(Pandorica *app)> f, bool includeMine )
