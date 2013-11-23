@@ -219,12 +219,13 @@ void Pandorica::Private::registerSession()
 void Pandorica::Private::unregisterSession()
 {
   {
-    PandoricaInstances sessions = Private::instances();
-    WServer::instance()->log("notice") << "**** * instances size: " << sessions->size() << ", q: " << q;
-    for(auto instance: *sessions)
+    PandoricaInstances sessionsP = Private::instances();
+    list<Pandorica*> &sessions  = *sessionsP;
+    WServer::instance()->log("notice") << "**** * instances size: " << sessions.size() << ", q: " << q;
+    for(auto instance: sessions)
       WServer::instance()->log("notice") << "**** * instance: " << instance;
       
-    sessions->erase(remove(begin(*sessions), end(*sessions), q));
+    sessions.erase(remove(begin(sessions), end(sessions), q));
   }
   post([=](Pandorica *app){ app->d->updateUsersCount(); }, false);
 }
