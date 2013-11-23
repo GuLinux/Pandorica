@@ -39,8 +39,6 @@ namespace fs = boost::filesystem;
 MediaCollection::MediaCollection( Settings *settings, Session *session, WApplication *parent )
   : WObject( parent ), d(settings, session, parent )
 {
-  if(session->user())
-    setUserId( session->user().id() );
 }
 
 void MediaCollection::rescan( Dbo::Transaction &transaction )
