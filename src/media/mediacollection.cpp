@@ -45,7 +45,8 @@ MediaCollection::MediaCollection( Settings *settings, Session *session, WApplica
 void MediaCollection::rescan( Dbo::Transaction &transaction )
 {
   log("notice") << __PRETTY_FUNCTION__ ;
-    WServer::instance()->post( d->app->sessionId(), [ = ]
+  unique_lock<mutex> lock(d->rescanMutex);
+  WServer::instance()->post( d->app->sessionId(), [ = ]
   {
     d->loadingIndicator = new WOverlayLoadingIndicator();
     d->app->root()->addWidget( d->loadingIndicator->widget() );

@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MEDIACOLLECTIONPRIVATE_H
 #include <boost/filesystem.hpp>
 #include <Wt/WSignal>
+#include <mutex>
 #include "media/media.h"
 #include "media/mediacollection.h"
 #include "media/mediadirectory.h"
@@ -37,7 +38,6 @@ public:
   Private(Settings *settings, Session *session, Wt::WApplication *app) : settings(settings), session(session), app(app) {}
   void listDirectory(boost::filesystem::path path, std::shared_ptr<MediaDirectory> rootDirectory);
   bool isAllowed(boost::filesystem::path path);
-public:
   Wt::WLoadingIndicator *loadingIndicator;
   Settings *settings;
   std::map<std::string,Media> collection;
@@ -49,5 +49,6 @@ public:
   typedef std::shared_ptr<MediaDirectory> MediaDirectoryPtr;
   std::vector<MediaDirectoryPtr> mediaDirectories;
   MediaDirectoryPtr findInSubDirectories(const std::shared_ptr<MediaDirectory> &directory, const std::string &hash);
+  std::mutex rescanMutex;
 };
 #endif

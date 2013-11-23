@@ -73,6 +73,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WPushButton>
 #include <Wt/WDefaultLoadingIndicator>
 #include <mutex>
+#include <boost/thread.hpp>
 
 
 using namespace Wt;
@@ -391,7 +392,7 @@ void Pandorica::setupGui()
   d->playlist->play().connect([=](PlaylistItem *item, _n5){ d->play(item);});
   string sessionId = wApp->sessionId();
   string initialInternalPath = internalPath();
-  WServer::instance()->ioService().post([=]{
+  boost::thread([=]{
     Session threadSession;
     Dbo::Transaction t(threadSession);
     d->mediaCollection->rescan(t);
