@@ -403,6 +403,8 @@ void Pandorica::setupGui()
   boost::thread([=]{
     Session threadSession;
     Dbo::Transaction t(threadSession);
+    Private *_private = d.get();
+    MediaCollection *_mediaCollection = d->mediaCollection;
     d->mediaCollection->rescan(t);
     WServer::instance()->post(sessionId, [=] {
       d->pathChanged(initialInternalPath);
