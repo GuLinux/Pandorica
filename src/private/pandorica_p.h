@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "pandorica.h"
 
 #include <string>
+#include <mutex>
 #include "media/media.h"
 #include <media/mediacollection.h>
 #include "settings.h"
@@ -81,6 +82,8 @@ public:
     static PandoricaInstances instances();
     void post(std::function<void(Pandorica *app)> f, bool includeMine = false);
     void pathChanged(const std::string &path) const;
+    bool isRegistered = false;
+    std::mutex sessionRegistrationMutex;
 private:
     void ratingFor(Media media, Wt::Dbo::Transaction t);
     Wt::WMenuItem* activeUsersMenuItem = 0;
