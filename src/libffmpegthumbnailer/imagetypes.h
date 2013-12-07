@@ -16,12 +16,12 @@
 
 #ifndef IMAGE_TYPES_H
 #define IMAGE_TYPES_H
-
+namespace ffmpegthumbnailer {
 typedef enum ThumbnailerImageTypeEnum
 {
     Png,
     Jpeg,
     Unknown
 } ThumbnailerImageType;
-
+}
 #endif
