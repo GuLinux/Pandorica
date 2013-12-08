@@ -33,11 +33,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/thread.hpp>
 #include <boost/thread.hpp>
 #include <boost/chrono.hpp>
-#include <Magick++.h>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/program_options.hpp>
 #include <iostream>
+
+#ifdef IMAGE_USE_GRAPHICSMAGICK
+#include <Magick++.h>
+#endif
+
 #include <fstream>
 #include <csignal>
 #include "migrations/migrations.h"
@@ -289,7 +293,10 @@ int main( int argc, char **argv, char **envp )
     avcodec_register_all();
     av_register_all();
     avformat_network_init();
+
+#ifdef IMAGE_USE_GRAPHICSMAGICK
     Magick::InitializeMagick( *argv );
+#endif
     WServer server( argv[0] );
     po::variables_map vm;
 
