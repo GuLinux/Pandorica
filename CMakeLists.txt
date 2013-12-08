@@ -27,7 +27,7 @@ add_definitions(-DBOOST_SIGNALS_NO_DEPRECATION_WARNING)
 if(NOT QT4_FOUND AND NOT Qt5Widgets_FOUND)
   find_package(GraphicsMagick REQUIRED)
   if(GraphicsMagick_FOUND)
-    add_definitions(IMAGE_USE_GRAPHICSMAGICK)
+    add_definitions(-DIMAGE_USE_GRAPHICSMAGICK)
   endif(GraphicsMagick_FOUND)
 endif(NOT QT4_FOUND AND NOT Qt5Widgets_FOUND)
 
