@@ -20,13 +20,22 @@
 #ifndef IMAGE_P_H
 #define IMAGE_P_H
 #include "utils/image.h"
+#ifdef IMAGE_USE_GRAPHICSMAGICK
 #include <Magick++/Blob.h>
+#else
+#include <QImage>
+#endif
 
 class Image::Private
 {
 public:
     Private(Image* q);
+#ifdef IMAGE_USE_GRAPHICSMAGICK
     Magick::Blob blob;
+#else
+    QImage image;
+    int quality = 100;
+#endif
 
 private:
     class Image* const q;

@@ -20,13 +20,10 @@
 #include "image.h"
 #include "private/image_p.h"
 #include "utils/d_ptr_implementation.h"
+
+#ifdef IMAGE_USE_GRAPHICSMAGICK
 #include <Magick++/Image.h>
 #include <Magick++/Geometry.h>
-
-
-Image::Private::Private(Image* q) : q(q)
-{
-}
 
 Image::Image(const std::string& filename)
     : d(this)
@@ -35,7 +32,6 @@ Image::Image(const std::string& filename)
     fullImage.quality( 100 );
     fullImage.write( &d->blob );
 }
-
 Image::Image(const ImageBlob& imageBlob)
     : d(this)
 {
@@ -51,13 +47,51 @@ Image& Image::resize(uint32_t size, uint32_t quality)
   return *this;
 }
 
-
-Image::~Image()
-{
-}
-
 Image::operator ImageBlob() const
 {
   const uint8_t *outData = static_cast<const uint8_t*>(d->blob.data());
   return {outData, outData + d->blob.length()};
+}
+
+#else
+#include <QBuffer>
+
+Image::Image(const std::string& filename)
+    : d(this)
+{
+  d->image.load(QString::fromStdString(filename));
+}
+Image::Image(const ImageBlob& imageBlob)
+    : d(this)
+{
+  d->image.loadFromData(imageBlob.data(), imageBlob.size());
+}
+
+Image& Image::resize(uint32_t size, uint32_t quality)
+{
+  d->image.scaled(size, size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  d->quality = quality;
+  return *this;
+}
+
+Image::operator ImageBlob() const
+{
+  QByteArray ba;
+  QBuffer buffer(&ba);
+  buffer.open(QIODevice::WriteOnly);
+  d->image.save(&buffer, "PNG", d->quality);
+  buffer.close();
+  return {ba.begin(), ba.end()};
+}
+#endif
+
+
+
+Image::Private::Private(Image* q) : q(q)
+{
+}
+
+
+Image::~Image()
+{
 }
