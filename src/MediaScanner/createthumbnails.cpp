@@ -49,24 +49,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include "Models/models.h"
 
-#include <Magick++/Image.h>
-#include <Magick++/Geometry.h>
 #include "utils/d_ptr_implementation.h"
 #include <utils/utils.h>
+#include <utils/image.h>
 #include <boost/thread.hpp>
 #include <mutex>
 
 using namespace Wt;
 using namespace std;
 using namespace std::chrono;
-using namespace Magick;
 using namespace WtCommons;
 
 
-vector<uint8_t> vectorFrom( Blob blob )
-{
-  return { ( char * ) blob.data(), ( char * ) blob.data() + blob.length()};
-}
 
 time_point<high_resolution_clock> serverStartTimeForRandomSeeding {high_resolution_clock::now()};
 mt19937_64 randomEngine {( uint64_t ) serverStartTimeForRandomSeeding.time_since_epoch().count()};
@@ -132,17 +126,14 @@ void ImageUploader::uploaded()
   try
   {
     log( "notice" ) << "uploaded file to " << upload->spoolFileName();
-    Magick::Image fullImage( upload->spoolFileName() );
-    Blob blob;
-    fullImage.quality( 100 );
-    fullImage.write( &blob );
-    _previewImage.emit( blob );
+    Image image(upload->spoolFileName());
+    _previewImage.emit( image );
     reset();
   }
   catch
     ( std::exception &e )
   {
-    log( "error" ) << "Error decoding image with imagemagick: " << e.what();
+    log( "error" ) << "Error decoding image: " << e.what();
     reset();
     linkContainer->addWidget( WW<WContainerWidget>().add( new WText {wtr( "mediascannerdialog.thumbnail.upload.error" )} ).css( "alert alert-error" ) );
   }
@@ -192,12 +183,12 @@ void CreateThumbnails::setupGui( WContainerWidget *container )
   imageContainer->setContentAlignment( AlignCenter );
   imageContainer->addWidget( d->previewImage = WW< WImage >().setHidden( true ) );
   container->addWidget( imageContainer );
-  imageUploader->previewImage().connect( [ = ]( Blob blob, _n5 )
+  imageUploader->previewImage().connect( [ = ]( ImageBlob blob, _n5 )
   {
     unique_lock<MediaScannerSemaphore> lock(semaphore);
     delete d->thumbnail;
     d->fullImage = blob;
-    d->thumbnail = new WMemoryResource {"image/png", vectorFrom( d->resize( blob, IMAGE_SIZE_PREVIEW ) ), container};
+    d->thumbnail = new WMemoryResource {"image/png", d->resize( blob, IMAGE_SIZE_PREVIEW ), container};
     d->previewImage->setImageLink( d->thumbnail );
     d->previewImage->show();
     semaphore.needsSaving(true);
@@ -224,15 +215,15 @@ void CreateThumbnails::Private::createThumbnailFromMedia(const unique_lock< Medi
     app->log("notice") << "Error creating thumbnail: " << e.what();
     guiRun(app, [=]{ previewImage->hide(); app->triggerUpdate(); });
     
-    fullImage = Blob();
-    cerr << "fullImage length: " << fullImage.length() << endl;
-    while(fullImage.length() == 0 && q->semaphore.needsSaving()) {
+    fullImage = ImageBlob();
+    cerr << "fullImage length: " << fullImage.size() << endl;
+    while(fullImage.size() == 0 && q->semaphore.needsSaving()) {
       boost::this_thread::sleep_for(boost::chrono::milliseconds(200));
     }
     return;
   }
 
-  thumbnail = new WMemoryResource {"image/png", vectorFrom( resize( fullImage, IMAGE_SIZE_PREVIEW ) ), previewImage};
+  thumbnail = new WMemoryResource {"image/png", resize( fullImage, IMAGE_SIZE_PREVIEW ), previewImage};
   guiRun( app, [ = ]
   {
     previewImage->addStyleClass( "link-hand" );
@@ -252,16 +243,12 @@ void CreateThumbnails::Private::createThumbnailFromMedia(const unique_lock< Medi
   } );
 }
 
-Magick::Blob CreateThumbnails::Private::resize( Blob blob, uint32_t size, uint32_t quality )
-{
-  Magick::Image image {blob};
-  Blob output;
-  image.sample( {size, size} );
-  image.quality( quality );
-  image.write( &output );
-  return output;
-}
 
+ImageBlob CreateThumbnails::Private::resize( const ImageBlob &data, uint32_t size, uint32_t quality)
+{
+  Image image(data);
+  return image.resize(size, quality);
+}
 
 void CreateThumbnails::Private::findRandomPosition()
 {
@@ -308,12 +295,12 @@ ThumbnailPosition ThumbnailPosition::from( int timeInSeconds )
 
 void CreateThumbnails::save( Dbo::Transaction& transaction )
 {
-  if(d->fullImage.length() == 0) return;
+  if(d->fullImage.size() == 0) return;
   log( "notice" ) << "Deleting old data from media_attachment for media_id " << d->currentMedia.uid();
   transaction.session().execute( "DELETE FROM media_attachment WHERE media_id = ? AND type = 'preview'" ).bind( d->currentMedia.uid() );
-  MediaAttachment *fullAttachment = new MediaAttachment {"preview", "full", "", d->currentMedia.uid(), "image/png", vectorFrom( d->fullImage ) };
-  MediaAttachment *thumbnailAttachment = new MediaAttachment {"preview", "thumbnail", "", d->currentMedia.uid(), "image/png", vectorFrom( d->resize( d->fullImage, IMAGE_SIZE_THUMB, 60 ) ) };
-  MediaAttachment *playerAttachment = new MediaAttachment {"preview", "player", "", d->currentMedia.uid(), "image/png", vectorFrom( d->resize( d->fullImage, IMAGE_SIZE_PLAYER ) ) };
+  MediaAttachment *fullAttachment = new MediaAttachment {"preview", "full", "", d->currentMedia.uid(), "image/png", d->fullImage };
+  MediaAttachment *thumbnailAttachment = new MediaAttachment {"preview", "thumbnail", "", d->currentMedia.uid(), "image/png", d->resize( d->fullImage, IMAGE_SIZE_THUMB, 60 ) };
+  MediaAttachment *playerAttachment = new MediaAttachment {"preview", "player", "", d->currentMedia.uid(), "image/png", d->resize( d->fullImage, IMAGE_SIZE_PLAYER ) };
   transaction.session().add( fullAttachment );
   transaction.session().add( thumbnailAttachment );
   transaction.session().add( playerAttachment );
@@ -327,7 +314,6 @@ void CreateThumbnails::save( Dbo::Transaction& transaction )
 using namespace ffmpegthumbnailer;
 void CreateThumbnails::Private::thumbnailFor( int size, int quality )
 {
-  vector<uint8_t> data;
   VideoThumbnailer videoThumbnailer( size, false, true, quality, true );
   FilmStripFilter filmStripFilter;
   if( currentMedia.mimetype().find( "video" ) != string::npos )
@@ -337,7 +323,6 @@ void CreateThumbnails::Private::thumbnailFor( int size, int quality )
   else
     videoThumbnailer.setSeekTime( currentPosition.timing );
 
-  videoThumbnailer.generateThumbnail( currentMedia.fullPath(), ThumbnailerImageType::Png, data );
-  fullImage = { data.data(), data.size() };
+  videoThumbnailer.generateThumbnail( currentMedia.fullPath(), ThumbnailerImageType::Png, fullImage );
 }
 

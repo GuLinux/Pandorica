@@ -26,15 +26,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdint.h>
 #include <Wt/WSignal>
 #include <Wt/WContainerWidget>
-#include <Magick++/Blob.h>
 #include "media/media.h"
 #include "MediaScanner/createthumbnails.h"
 #include <mutex>
-
-namespace Magick
-{
-  class Blob;
-}
 
 class FFMPEGMedia;
 class Settings;
@@ -52,7 +46,7 @@ namespace Wt
 #define IMAGE_SIZE_PLAYER 640
 
 typedef std::function<void( int, std::string )> UpdateGuiProgress;
-
+typedef std::vector<uint8_t> ImageBlob;
 struct ThumbnailPosition
 {
   int percent;
@@ -65,7 +59,7 @@ class ImageUploader : public Wt::WContainerWidget
 {
   public:
     ImageUploader( WContainerWidget *parent = 0 );
-    Wt::Signal<Magick::Blob> &previewImage()
+    Wt::Signal<ImageBlob> &previewImage()
     {
       return _previewImage;
     }
@@ -73,7 +67,7 @@ class ImageUploader : public Wt::WContainerWidget
     void uploaded();
     void reset();
     Wt::WFileUpload *upload;
-    Wt::Signal<Magick::Blob> _previewImage;
+    Wt::Signal<ImageBlob> _previewImage;
     WContainerWidget *linkContainer;
 };
 
@@ -85,8 +79,8 @@ class CreateThumbnails::Private
     Settings *settings;
     Wt::WApplication *app;
     void thumbnailFor( int size, int quality = 8 );
-    Magick::Blob resize( Magick::Blob blob, uint32_t size, uint32_t quality = 75 );
-    Magick::Blob fullImage;
+    ImageBlob resize( const ImageBlob &data, uint32_t size, uint32_t quality = 75 );
+    ImageBlob fullImage;
 
     void createThumbnailFromMedia(const std::unique_lock< MediaScannerSemaphore >& semaphoreLock);
     void findRandomPosition();

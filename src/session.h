@@ -30,7 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/Dbo/backend/Sqlite3>
 #include <Wt/Auth/PasswordService>
 #include <Wt/Auth/AuthService>
-#include <Models/user.h>
+#include "Models/models.h"
 
 #include "utils/d_ptr.h"
 
