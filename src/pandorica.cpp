@@ -144,11 +144,6 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
     d->playlist->animateHide({WAnimation::Fade});
     d->mediaCollectionBrowser->animateHide({WAnimation::Fade});
     d->mainWidget->animateHide({WAnimation::Fade});
-    if(string{"3.3.0"} == WT_VERSION_STR) {
-      wApp->quit();
-      wApp->redirect(wApp->bookmarkUrl("/"));
-      return;
-    }
     d->unregisterSession();
     WTimer::singleShot(500, [=](WMouseEvent) {
       delete d->mainWidget;
@@ -362,11 +357,7 @@ void Pandorica::Private::adminActions()
         userId = boost::any_cast<long long>(model->data(model->index(combo->currentIndex(), 0), UserRole));
       }
       mediaCollection.setUserId(userId);
-      WServer::instance()->ioService().post([=] {
-        Session threadSession;
-        Dbo::Transaction t(threadSession);
-        mediaCollection.rescan(t);
-      });
+      mediaCollection.rescan([]{});
     });
   });
 }
@@ -409,15 +400,12 @@ void Pandorica::setupGui()
   d->playlist->play().connect([=](PlaylistItem *item, _n5){ d->play(item);});
   string sessionId = wApp->sessionId();
   string initialInternalPath = internalPath();
-  boost::thread([=]{
-    Session threadSession;
-    Dbo::Transaction t(threadSession);
-    d->mediaCollection.rescan(t);
-    WServer::instance()->post(sessionId, [=] {
-      d->pathChanged(initialInternalPath);
-      d->parseInitParameter();
-    });
+  
+  d->mediaCollection.rescan([=]{
+    d->pathChanged(initialInternalPath);
+    d->parseInitParameter();
   });
+
   d->mainWidget->animateShow({WAnimation::Fade});
   d->mediaScanner = make_shared<MediaScanner>(d->session, &d->settings, &d->mediaCollection);
   d->mediaScanner->scanFinished().connect([=](_n6) {

@@ -211,7 +211,13 @@ void MediaScanner::Private::scanMedias(function<void(ip::interprocess_semaphore 
     s0.wait();
     s1.wait();
   });
-  mediaCollection->rescan(transaction);
+  {
+    ip::interprocess_semaphore s(0);
+    guiRun(app, [=,&s] {
+      mediaCollection->rescan([=,&s]{ s.post(); });
+    });
+    s.wait();
+  }
   guiRun(app, [=]{
       progressBar->setMaximum(mediaCollection->collection().size());
       app->triggerUpdate();

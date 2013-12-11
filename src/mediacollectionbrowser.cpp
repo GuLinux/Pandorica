@@ -107,9 +107,9 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
   WContainerWidget *breadcrumb = WW<WContainerWidget>().css("breadcrumb visible-desktop");
   WPushButton *reloadButton = WW<WPushButton>( wtr( "mediacollection.reload" ) ).css( "btn btn-small" ).onClick([=](WMouseEvent)
   {
-    Dbo::Transaction t( *session );
-    collection->rescan( t );
-    d->browse( d->currentPath == d->flatPath ? d->flatPath : d->rootPath );
+    collection->rescan( [=] {
+      d->browse( d->currentPath == d->flatPath ? d->flatPath : d->rootPath );
+    });
   } );
   WPushButton *sortByButton = WW<WPushButton>(wtr("mediacollectionbrowser_sort_by")).css("btn btn-small").setMenu(new WPopupMenu);
   shared_ptr<vector<WMenuItem*>> sortMenuGroup(new vector<WMenuItem*>);

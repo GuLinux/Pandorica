@@ -85,11 +85,7 @@ ServerSettingsPage::ServerSettingsPage(Settings* settings, Session* session, Med
   }));
   footer()->addWidget(d->buttonOk = WW<WPushButton>(wtr("button.ok")).disable().css("btn btn-primary").onClick([=](WMouseEvent) { accept(); }));
   finished().connect([=](WDialog::DialogCode, _n5) {
-    WServer::instance()->ioService().post([=]{
-      Session privateSession;
-      Dbo::Transaction t(privateSession);
-      mediaCollection->rescan(t);
-    });
+    mediaCollection->rescan([]{} );
   });
 }
 

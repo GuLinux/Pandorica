@@ -41,16 +41,16 @@ class MediaCollection : public Wt::WObject
 public:
   MediaCollection(Settings* settings, Session* session, Wt::WApplication* parent = 0);
     virtual ~MediaCollection();
-    void rescan(Wt::Dbo::Transaction& transaction);
+    void rescan(const std::function<void()> &onFinish);
     std::map<std::string,Media> collection() const;
     Media media(std::string uid) const;
-    Wt::Signal<> &scanned();
     void setUserId(long long userId);
     long long viewingAs() const;
     std::vector<Media> sortedMediasList() const;
     bool isAllowed(const boost::filesystem::path &path) const;
     std::vector<std::shared_ptr<MediaDirectory>> rootDirectories() const;
     std::shared_ptr<MediaDirectory> find(const std::string &directoryPath) const;
+    Wt::Signal<> &scanned() const;
 private:
   D_PTR;
 };

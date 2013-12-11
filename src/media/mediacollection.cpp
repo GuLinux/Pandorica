@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "settings.h"
 #include <boost/algorithm/string.hpp>
 #include "utils/d_ptr_implementation.h"
+#include <boost/thread.hpp>
 using namespace Wt;
 using namespace std;
 using namespace Wt::Utils;
@@ -41,36 +42,43 @@ MediaCollection::MediaCollection( Settings *settings, Session *session, WApplica
 {
 }
 
-void MediaCollection::rescan( Dbo::Transaction &transaction )
+void MediaCollection::rescan( const function< void() >& onFinish )
 {
   log("notice") << __PRETTY_FUNCTION__ ;
-  unique_lock<mutex> lock(d->rescanMutex);
-  WServer::instance()->post( d->app->sessionId(), [ = ]
-  {
-    d->loadingIndicator = new WOverlayLoadingIndicator();
-    d->app->root()->addWidget( d->loadingIndicator->widget() );
-    d->loadingIndicator->widget()->show();
-    d->app->triggerUpdate();
-  } );
-  UserPtr user = transaction.session().find<User>().where( "id = ?" ).bind( d->userId );
-  d->allowedPaths = user->allowedPaths();
-  d->collection.clear();
-  d->mediaDirectories.clear();
-  
-  for( fs::path p : d->settings->mediasDirectories( &transaction.session() ) ) {
-    shared_ptr<MediaDirectory> rootDirectory(new MediaDirectory(p));
-    d->mediaDirectories.push_back(rootDirectory);
-    d->listDirectory( p, rootDirectory );
-  }
-  size_t size = d->collection.size();
-  log("notice") << __PRETTY_FUNCTION__ << ": found " << d->collection.size() << " media files.";
-    WServer::instance()->post( d->app->sessionId(), [=] {
-    d->scanned.emit();
-    d->loadingIndicator->widget()->hide();
-    d->app->triggerUpdate();
-    delete d->loadingIndicator;
-  } );
+  d->loadingIndicator = new WOverlayLoadingIndicator();
+  d->app->root()->addWidget( d->loadingIndicator->widget() );
+  d->loadingIndicator->widget()->show();
+  boost::thread([=] {
+    unique_lock<mutex> lock(d->rescanMutex);
+    Session threadSession;
+    Dbo::Transaction transaction(threadSession);
+    UserPtr user = transaction.session().find<User>().where( "id = ?" ).bind( d->userId );
+    d->allowedPaths = user->allowedPaths();
+    d->collection.clear();
+    d->mediaDirectories.clear();
+    
+    for( fs::path p : d->settings->mediasDirectories( &transaction.session() ) ) {
+      shared_ptr<MediaDirectory> rootDirectory(new MediaDirectory(p));
+      d->mediaDirectories.push_back(rootDirectory);
+      d->listDirectory( p, rootDirectory );
+    }
+    size_t size = d->collection.size();
+    log("notice") << __PRETTY_FUNCTION__ << ": found " << d->collection.size() << " media files.";
+      WServer::instance()->post( d->app->sessionId(), [=] {
+      d->loadingIndicator->widget()->hide();
+      delete d->loadingIndicator;
+      scanned().emit();
+      onFinish();
+      d->app->triggerUpdate();
+    } );
+  });
 }
+
+Signal<>& MediaCollection::scanned() const
+{
+  return d->scanned;
+}
+
 
 vector< shared_ptr< MediaDirectory > > MediaCollection::rootDirectories() const
 {
@@ -180,11 +188,6 @@ Media MediaCollection::media( string uid ) const
     return d->collection[uid];
 
   return {};
-}
-
-Signal<> &MediaCollection::scanned()
-{
-  return d->scanned;
 }
 
 vector< Media > MediaCollection::sortedMediasList() const

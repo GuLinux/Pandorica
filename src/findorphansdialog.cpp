@@ -50,6 +50,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/algorithm/string/regex.hpp>
 #include <boost/thread.hpp>
 #include <boost/chrono.hpp>
+#include <boost/interprocess/sync/interprocess_semaphore.hpp>
 #include "Models/models.h"
 #include "settings.h"
 
@@ -167,7 +168,9 @@ FindOrphansDialog::FindOrphansDialog( MediaCollection *mediaCollection, Session 
 void FindOrphansDialog::run()
 {
   show();
-  WServer::instance()->ioService().post( boost::bind( &Private::populateMovedFiles, d.get(), wApp ) );
+  d->mediaCollection->rescan([=]{
+    WServer::instance()->ioService().post( boost::bind( &Private::populateMovedFiles, d.get(), wApp ) );
+  });
 }
 
 void FindOrphansDialog::Private::applyMigrations( WApplication *app )
@@ -253,7 +256,6 @@ FileSuggestion::FileSuggestion( string filePath, string mediaId, vector<string> 
 void FindOrphansDialog::Private::populateMovedFiles( WApplication *app )
 {
   Dbo::Transaction t( *threadsSession );
-  mediaCollection->rescan( t );
   int migrationsFound = 0;
   Dbo::collection<MediaPropertiesPtr> allMedias = threadsSession->find<MediaProperties>().resultList();
 
@@ -397,27 +399,30 @@ void FindOrphansDialog::Private::migrate( Dbo::Transaction &transaction, string 
 void FindOrphansDialog::Private::fixFilePaths()
 {
   log( "notice" ) << __PRETTY_FUNCTION__;
-  Dbo::Transaction t( *threadsSession );
-  mediaCollection->rescan( t );
-  log( "notice" ) << "Fixing file paths in MediaProperties table";
-  Dbo::collection<MediaPropertiesPtr> mediaProperties = threadsSession->find<MediaProperties>();
+  mediaCollection->rescan([=] {
+    Dbo::Transaction t( *threadsSession );
+    log( "notice" ) << "Fixing file paths in MediaProperties table";
+    Dbo::collection<MediaPropertiesPtr> mediaProperties = threadsSession->find<MediaProperties>();
 
-  for( auto media : mediaProperties )
-  {
-    Media collectionMedia = mediaCollection->media( media->mediaId() );
-
-    if( collectionMedia.valid() && media->filename() != collectionMedia.fullPath() )
+    for( auto media : mediaProperties )
     {
-      media.modify()->setFileName( collectionMedia.fullPath() );
+	Media collectionMedia = mediaCollection->media( media->mediaId() );
+
+	if( collectionMedia.valid() && media->filename() != collectionMedia.fullPath() )
+	{
+	    media.modify()->setFileName( collectionMedia.fullPath() );
+	}
     }
-  }
+  });
 }
 
 void FindOrphansDialog::Private::populateRemoveOrphansModel( Wt::WApplication *app )
 {
   log( "notice" ) << __PRETTY_FUNCTION__;
+  boost::interprocess::interprocess_semaphore s(0);
+  mediaCollection->rescan( [&s] {s.post(); } );
+  s.wait();
   Dbo::Transaction t( *threadsSession );
-  mediaCollection->rescan( t );
   vector<string> mediaIds = orphans( t );
 
   for( string mediaId : mediaIds )

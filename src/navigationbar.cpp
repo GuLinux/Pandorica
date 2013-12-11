@@ -224,7 +224,10 @@ void NavigationBar::Private::setupAdminBar(Dbo::Transaction& transaction)
   adminMenuItem->setMenu(adminMenu);
   adminMenuItem->addStyleClass("hidden-phone menu-admin");
 
-  pApp->notify(wtr("empty_media_collection_message"), Pandorica::NotificationType::Information);
+  mediaCollection->scanned().connect([=](_n6){
+    if(mediaCollection->collection().empty())
+      pApp->notify(wtr("empty_media_collection_message"), Pandorica::NotificationType::Information);
+  });
 
   activeUsersMenuItem = createItem(adminMenu, wtr("menu.users"), 0, [=](WMenuItem*, _n5) { viewLoggedUsers.emit();}, "menu-loggedusers");
   createItem(adminMenu, wtr("users.history.title"), 0, [=](WMenuItem*, _n5) { viewUsersHistory.emit();}, "menu-users-log");
