@@ -75,6 +75,51 @@ extern "C" {
 #include <libavcodec/avcodec.h>    // required headers
 #include <libavformat/avformat.h>
 }
+
+
+#ifdef WIN32_GUI_APP
+stringstream pErrStream;
+stringstream pOutStream;
+QApplication *msgBoxApp = 0;
+std::ostream &pErr() {
+  return pErrStream;
+}
+std::ostream &pOut() {
+  return pOutStream;
+}
+#include <QMessageBox>
+class MessagesPrinter {
+  public:
+    ~MessagesPrinter();
+};
+
+MessagesPrinter::~MessagesPrinter() {
+  char *argv[1] {"dummy"};
+  int argc = 1;
+  bool appWasEmpty = false;
+  if(!msgBoxApp) {
+    msgBoxApp = new QApplication(argc, argv);
+    appWasEmpty = true;
+  }
+  if(!pErrStream.str().empty()) {
+    QMessageBox::critical(0, "Pandorica: Error", QString::fromStdString(pErrStream.str()));
+  }
+  if(!pOutStream.str().empty()) {
+    QMessageBox::information(0, "Pandorica", QString::fromStdString(pOutStream.str()));
+  }
+  if(appWasEmpty)
+    delete msgBoxApp;
+}
+
+#else
+std::ostream &pErr() {
+  return cerr;
+}
+std::ostream &pOut() {
+  return cout;
+}
+#endif
+
 void expireStaleSessions()
 {
   try
@@ -91,7 +136,7 @@ void expireStaleSessions()
   catch
     ( std::exception &e )
   {
-    cerr << "Database error: " << e.what() << endl;
+    pErr() << "Database error: " << e.what() << endl;
   }
 }
 
@@ -138,7 +183,7 @@ template<class T> T optionValue( po::variables_map &options, string optionName )
 bool checkForWrongOptions( bool errorCondition, string errorMessage )
 {
   if( errorCondition )
-    cerr << "Error!\t" << errorMessage << "\n\n";
+    pErr() << "Error!\t" << errorMessage << "\n\n";
 
   return errorCondition;
 }
@@ -154,7 +199,7 @@ bool initServer( int argc, char **argv, WServer &server, po::variables_map &vm )
 ;
   char *homeDirectory = getenv(homeVariablename.c_str());
   if(!homeDirectory) {
-    cerr << homeVariablename << " variable not found; exiting" << endl;
+    pErr() << homeVariablename << " variable not found; exiting" << endl;
     throw runtime_error("Home not found");
   }
   string configDirectory = string{homeDirectory} + "/.config/Pandorica";
@@ -215,13 +260,13 @@ bool initServer( int argc, char **argv, WServer &server, po::variables_map &vm )
 
   if( vm.count( "help" ) || optionsAreWrong )
   {
-    std::cout << pandorica_visible_options;
+    pOut() << pandorica_visible_options;
     return false;
   }
 
   if( vm.count( "help-full" ) )
   {
-    std::cout << pandorica_visible_options << "\n\t\t***** Wt Options *****\n";
+    pOut() << pandorica_visible_options << "\n\t\t***** Wt Options *****\n";
     wt_options.push_back( "--help" );
   }
 
@@ -237,12 +282,12 @@ bool initServer( int argc, char **argv, WServer &server, po::variables_map &vm )
 
   wt_options.push_back( "--http-port" );
   wt_options.push_back( boost::lexical_cast<string>( optionValue<int>( vm, "http-port" ) ) );
-  std::cerr << "wt options: ";
+  pErr() << "wt options: ";
 
   for( string option : wt_options )
-    std::cerr << " " << option;
+    pErr() << " " << option;
 
-  std::cerr << '\n';
+  pErr() << '\n';
 
   CmdOptions options = CmdOptions::from( wt_options );
 
@@ -256,7 +301,7 @@ bool addStaticResources( WServer &server )
   string staticDirectory = Settings::sharedFilesDir("/static");
   if( !fs::is_directory( staticDirectory ) )
   {
-    std::cerr << "Error! Shared files directory " << staticDirectory << " doesn't exist. Perhaps you didn't install Pandorica correctly?\n";
+    pErr() << "Error! Shared files directory " << staticDirectory << " doesn't exist. Perhaps you didn't install Pandorica correctly?\n";
     return false;
   }
 
@@ -287,6 +332,9 @@ bool addStaticResources( WServer &server )
 
 int main( int argc, char **argv, char **envp )
 {
+#ifdef WIN32_GUI_APP
+  MessagesPrinter messagesPrinter;
+#endif
   try
   {
     av_register_all();
@@ -316,13 +364,13 @@ int main( int argc, char **argv, char **envp )
       {
         string schemaPath {boost::any_cast<string>( vm["dump-schema"].value() )};
 	if(schemaPath == "-") {
-	  cout << session.tableCreationSql();
+	  pOut() << session.tableCreationSql();
 	} else {
 	  ofstream schema;
 	  schema.open( schemaPath );
 	  schema << session.tableCreationSql();
 	  schema.close();
-	  std::cout << "Schema correctly wrote to " << schemaPath << '\n';
+	  pOut() << "Schema correctly wrote to " << schemaPath << '\n';
 	}
         return 0;
       }
@@ -364,13 +412,14 @@ int main( int argc, char **argv, char **envp )
                      string {};
     bool haveDisplay = !display.empty();
     if( !haveDisplay )
-      cerr << "Found no X11 display available, running without Qt Tray Icon\n";
+      pErr() << "Found no X11 display available, running without Qt Tray Icon\n";
 #else
     bool haveDisplay = true;
 #endif
     if( ! vm.count( "disable-tray" ) && haveDisplay )
     {
       QApplication app( argc, argv );
+      msgBoxApp = &app;
       QtTrayIcon icon( server );
       app.exec();
       return 0;
@@ -386,12 +435,12 @@ int main( int argc, char **argv, char **envp )
   catch
     ( WServer::Exception &e )
   {
-    cerr << e.what() << endl;
+    pErr() << e.what() << endl;
   }
   catch
     ( std::exception &e )
   {
-    cerr << "exception: " << e.what() << endl;
+    pErr() << "exception: " << e.what() << endl;
   }
 }
 

@@ -69,9 +69,11 @@ set(pandorica_SOURCES ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs} ${p
 add_subdirectory(media)
 add_subdirectory(utils)
 
+#add_definitions(-DWIN32_GUI_APP=1)
 if(WIN32)
   set(DISABLE_WIN32 False CACHE bool "Disable win32 app mode (enabling console output)")
   if( (QT4_FOUND OR Qt5Widgets_FOUND) AND NOT DISABLE_WIN32)
+    add_definitions(-DWIN32_GUI_APP=1)
     add_executable(${app_name} WIN32 ${pandorica_SOURCES}  pandorica.rc )
   else((QT4_FOUND OR Qt5Widgets_FOUND) AND NOT DISABLE_WIN32)
     add_executable(${app_name} ${pandorica_SOURCES}  pandorica.rc )
@@ -94,16 +96,7 @@ else("${build_type}" STREQUAL "xdebug")
   set(WT_LINK_LIBS ${Wt_LIBRARY} ${Wt_DBO_LIBRARY} ${Wt_DBOPOSTGRES_LIBRARY} ${Wt_DBOMYSQL_LIBRARY} ${Wt_DBOSQLITE3_LIBRARY} ${Wt_CONNECTOR_LIBRARY})
 endif("${build_type}" STREQUAL "xdebug")
 if(WIN32)
-  # TODO: there has to be a better way to do all this, even on this infernal operating system...
-  pkg_check_modules(SQLITE3 sqlite3)
-  pkg_check_modules(PNG libpng)
-  pkg_check_modules(TIFF libtiff-4)
-  pkg_check_modules(ZLIB zlib)
-  pkg_check_modules(XML libxml-2.0)
-  pkg_check_modules(QTGUI QtGui)
-  message("QtGui libs: ${QTGUI_LIBRARIES}, LDFLAGS: ${QTDGUI_LDFLAGS_OTHER}")
   set(WIN32_LIBS "-Wl,--enable-auto-import" -lws2_32 -lwsock32)
-#   set(WIN32_LIBS -lwsock32 -lws2_32 -lssp -lwinpthread -lgomp -lfreetype ${ZLIB_LIBRARIES} ${XML_LIBRARIES} -ljpeg -llcms2 ${SQLITE3_LIBRARIES} ${PNG_LIBRARIES} ${TIFF_LIBRARIES})
   if(${DBO_POSTGRES_FOUND} AND NOT (${DISABLE_POSTGRESQL}) )
     set(WIN32_LIBS ${WIN32_LIBS} -lpq)
   endif(${DBO_POSTGRES_FOUND} AND NOT (${DISABLE_POSTGRESQL}) ) 
@@ -111,7 +104,7 @@ if(WIN32)
 endif(WIN32)
 
 target_link_libraries(${app_name} ${GRAPHICSMAGICK_LDFLAGS} ${Qt5Widgets_LIBRARIES} ${QT_QTCORE_LIBRARY} ${QT_QTNETWORK_LIBRARY} ${QT_QTGUI_LIBRARY} 
-  ${AVFORMAT_LDFLAGS} ${AVCODEC_LDFLAGS} ${AVUTIL_LDFLAGS} ${SWSCALE_LDFLAGS} ${LIBPNG_LIBRARIES}
+  ${AVFORMAT_LDFLAGS} ${AVCODEC_LDFLAGS} ${AVUTIL_LDFLAGS} ${SWSCALE_LDFLAGS} ${LIBPNG_LIBRARIES} 
   ${WT_LINK_LIBS} ${Boost_LIBRARIES} ${WIN32_LIBS} )
 install(TARGETS ${app_name} RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 
