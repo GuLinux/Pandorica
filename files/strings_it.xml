@@ -331,7 +331,7 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
 <message id="config.help.wt_internal_deploy.content">Crea una nuova <a target="_blank" href="http://www.webtoolkit.eu/wt/doc/reference/html/classWt_1_1WFileResource.html">Wt::WResource</a> per fornire lo streaming dei dati.<br />Funziona su ogni configurazione, ma è più lento.</message>
 <message id="cache-deploy-path-title">Cartella di deploy della cache</message>
 <message id="cache-deploy-path-message">La cartella selezionata deve essere deployata sul tuo webserver. Configuralo, e specifica qui in che posizione.<br />Se lasci vuoto questo campo, verrà invece usata una <a target="_blank" href="http://www.webtoolkit.eu/wt/doc/reference/html/classWt_1_1WFileResource.html">Wt::WResource</a> (più lento, ma comunque più veloce che senza cache).</message>
-<message id="empty_media_collection_message">Sembra che la tua collezione di media sia vuota.<br />Puoi configurarla cliccando questo menù, quindi scegliendo "<b>Configura Sito</b>".</message>
+<message id="empty_media_collection_message">Sembra che la tua collezione di media sia vuota.<br />Puoi configurarla cliccando il menù "Gestione", quindi scegliendo "<b>Configura Sito</b>".</message>
 <message id="empty_media_collection_title">Collezione Media Vuota</message>
 <message id="create_thumbnails_no_image_checkbox">Nessuna Immagine</message>
 <message id="player_resize_small">Piccolo</message>

@@ -419,7 +419,9 @@ int main( int argc, char **argv, char **envp )
     if( ! vm.count( "disable-tray" ) && haveDisplay )
     {
       QApplication app( argc, argv );
+#ifdef WIN32_GUI_APP
       msgBoxApp = &app;
+#endif
       QtTrayIcon icon( server );
       app.exec();
       return 0;

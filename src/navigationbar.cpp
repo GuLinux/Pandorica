@@ -18,6 +18,7 @@
  *
  */
 
+#include "pandorica.h"
 #include "navigationbar.h"
 #include "private/navigationbar_p.h"
 #include "session.h"
@@ -223,25 +224,7 @@ void NavigationBar::Private::setupAdminBar(Dbo::Transaction& transaction)
   adminMenuItem->setMenu(adminMenu);
   adminMenuItem->addStyleClass("hidden-phone menu-admin");
 
-  // Popover if Media Collection is empty
-  adminMenuItem->setAttributeValue("data-toggle", "popover");
-  mediaCollection->scanned().connect([=](_n6) {
-    log("notice") << "Media collection scanned: size=" << mediaCollection->collection().size();
-    if(!mediaCollection->collection().empty()) return;
-    adminMenuItem->doJavaScript((boost::format(JS(
-      $('#%s').popover({placement: 'bottom', trigger: 'manual', html: true, title: %s, content: %s});
-      $('#%s').popover('show');
-    ))
-      % adminMenuItem->id()
-      % wtr("empty_media_collection_title").jsStringLiteral()
-      % wtr("empty_media_collection_message").jsStringLiteral()
-      % adminMenuItem->id()
-    ).str());
-    adminMenuItem->clicked().connect([=](WMouseEvent) { adminMenuItem->doJavaScript(
-      (boost::format("$('#%s').popover('hide');") % adminMenuItem->id() ).str() );
-    });
-  });
-  // Popover if Media Collection is empty END
+  pApp->notify(wtr("empty_media_collection_message"), Pandorica::NotificationType::Information);
 
   activeUsersMenuItem = createItem(adminMenu, wtr("menu.users"), 0, [=](WMenuItem*, _n5) { viewLoggedUsers.emit();}, "menu-loggedusers");
   createItem(adminMenu, wtr("users.history.title"), 0, [=](WMenuItem*, _n5) { viewUsersHistory.emit();}, "menu-users-log");
