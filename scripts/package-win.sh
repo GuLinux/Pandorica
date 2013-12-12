@@ -55,3 +55,9 @@ cp $1 "$WORKDIR"
 ${HOST_PREFIX}-strip -x $WORKDIR/*.dll
 ${HOST_PREFIX}-strip -x $WORKDIR/*.exe
 
+cd /tmp
+zipname="/tmp/Pandorica-$HOST_PREFIX-$( date +%Y-%m-%d ).zip"
+zip -9r "$zipname" Pandorica-$HOST_PREFIX
+cd -
+mv "$zipname" .
+rm -rf "$WORKDIR"
