@@ -198,12 +198,10 @@ void MediaScanner::Private::scanMedias(function<void(ip::interprocess_semaphore 
   canceled = false;
   semaphore->needsSaving(false);
   Session session;
-  Dbo::Transaction transaction(session);
-  Scope onFinish([=,&transaction]{
+  Scope onFinish([=]{
     ip::interprocess_semaphore s0(0);
     ip::interprocess_semaphore s1(0);
     boost::this_thread::sleep_for(boost::chrono::milliseconds{500});
-    transaction.commit();
     guiRun(app, [=,&s0,&s1] { 
       updateGuiProgress(s0);
       onScanFinish(s1);
@@ -229,6 +227,7 @@ void MediaScanner::Private::scanMedias(function<void(ip::interprocess_semaphore 
     if(canceled) {
       return;
     }
+    Dbo::Transaction transaction(session);
     scanningProgress.progress++;
     scanningProgress.currentFile = media.filename();
     log("notice") << "Scanning file " << scanningProgress.progress << " of " << mediaCollection->collection().size() << ": " << scanningProgress.currentFile;

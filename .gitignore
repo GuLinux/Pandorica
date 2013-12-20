@@ -1,4 +1,5 @@
 build*
+.kateproject*
 *.swp
 webroot/uploads
 *-swp

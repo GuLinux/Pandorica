@@ -23,7 +23,7 @@
 #include "utils/d_ptr.h"
 
 class Session;
-class UsersManagementPage :  Wt::WContainerWidget
+class UsersManagementPage :  public Wt::WContainerWidget
 {
   public:
     ~UsersManagementPage();
