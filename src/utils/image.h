@@ -22,6 +22,8 @@
 
 #include "utils/d_ptr.h"
 #include <vector>
+#include <stdint.h>
+
 typedef std::vector<uint8_t> ImageBlob;
 
 class Image
