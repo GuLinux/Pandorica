@@ -584,6 +584,7 @@ WContainerWidget *MediaCollectionBrowser::Private::addIcon( WString filename, Ge
   WContainerWidget *item = WW<WContainerWidget>().css( "span3 media-icon-container" );
   item->setContentAlignment( AlignmentFlag::AlignCenter );
   WAnchor *link = WW<WAnchor>().css( "thumbnail filesystem-item link-hand" );
+  link->setToolTip(filename);
   link->setImage( new WImage( icon( item ) ) );
   link->addWidget( WW<WText>( filename ).css( "filesystem-item-label" ) );
   item->addWidget( link );
