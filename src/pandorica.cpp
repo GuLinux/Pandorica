@@ -126,8 +126,8 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
   enableUpdates(true);
   WMessageResourceBundle *xmlResourcesBundle = new WMessageResourceBundle;
   xmlResourcesBundle->use(Settings::sharedFilesDir("/strings"));
-  log("notice") << "Setting locale to " << d->settings.locale();
-  setLocale(d->settings.locale());
+  if(!d->settings.locale().empty())
+    setLocale(d->settings.locale());
   WCombinedLocalizedStrings* combinedLocalizedStrings = new WCombinedLocalizedStrings();
   combinedLocalizedStrings->add(xmlResourcesBundle);
   combinedLocalizedStrings->add(new WHTMLTemplatesLocalizedStrings(Settings::sharedFilesDir(PATH_SEP() + "html_templates")));
