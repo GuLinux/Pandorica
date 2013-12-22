@@ -26,12 +26,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "media/media.h"
 #include "MediaScanner/mediascanner.h"
 
-namespace boost {
-namespace interprocess {
-class interprocess_semaphore;
-}
-}
-
 namespace std
 {
   class condition_variable;
@@ -53,14 +47,14 @@ class WGroupBox;
 }
 
 class MediaCollection;
-
+class Semaphore;
 struct StepContent {
   Wt::WGroupBox *groupBox;
   Wt::WContainerWidget *content;
 };
 struct ScanningProgress {
   uint16_t progress;
-  std::string currentFile;
+  ::std::string currentFile;
 };
 
 class MediaScanner::Private
@@ -75,7 +69,7 @@ public:
     Wt::WText* progressBarTitle;
     Settings* settings;
     std::map<std::shared_ptr<MediaScannerStep>, StepContent> stepsContents;
-    void scanMedias(std::function<void(boost::interprocess::interprocess_semaphore &)> updateGuiProgress, std::function<void(boost::interprocess::interprocess_semaphore &)> onScanFinish, std::function<bool(Media&)> scanFilter);
+    void scanMedias(std::function<void(Semaphore &)> updateGuiProgress, std::function<void(Semaphore &)> onScanFinish, std::function<bool(Media&)> scanFilter);
     bool canContinue;
     bool canceled;
     Wt::WPushButton* buttonCancel;
