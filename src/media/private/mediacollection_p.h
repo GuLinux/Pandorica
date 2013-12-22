@@ -38,9 +38,9 @@ public:
   Private(Settings *settings, Session *session, Wt::WApplication *app) : settings(settings), session(session), app(app) {}
   void listDirectory(boost::filesystem::path path, std::shared_ptr<MediaDirectory> rootDirectory);
   bool isAllowed(boost::filesystem::path path);
-  Wt::WLoadingIndicator *loadingIndicator;
   Settings *settings;
   std::map<std::string,Media> collection;
+  Wt::Signal<> scanning;
   Wt::Signal<> scanned;
   Session *session;
   std::list<std::string> allowedPaths;

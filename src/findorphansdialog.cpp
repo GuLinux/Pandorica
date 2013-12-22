@@ -420,7 +420,10 @@ void FindOrphansDialog::Private::populateRemoveOrphansModel( Wt::WApplication *a
 {
   log( "notice" ) << __PRETTY_FUNCTION__;
   Semaphore s(1);
-  mediaCollection->rescan( [&s] {s.release(); } );
+  WServer::instance()->post(app->sessionId(), [this, app, &s]{
+    mediaCollection->rescan( [&s] {s.release(); } );
+    app->triggerUpdate();
+  });
   s.wait();
   Dbo::Transaction t( *threadsSession );
   vector<string> mediaIds = orphans( t );
@@ -448,21 +451,27 @@ void FindOrphansDialog::Private::populateRemoveOrphansModel( Wt::WApplication *a
       title->appendRow( {new WStandardItem, type, name, value, size, link} );
     }
 
-    WServer::instance()->post( app->sessionId(), [ = ]
+    s.occupy();
+    WServer::instance()->post( app->sessionId(), [ =, &s]
     {
       model->appendRow( title );
       summary->setText( WString::trn( "findorphans.summary", dataSummary.mediasCount ).arg( dataSummary.mediasCount ).arg( dataSummary.attachmentsCount ).arg( Utils::formatFileSize( dataSummary.bytes ) ) );
       app->triggerUpdate();
+      s.release();
     } );
+    s.wait();
   }
 
-  WServer::instance()->post( app->sessionId(), [ = ]
+  s.occupy();
+  WServer::instance()->post( app->sessionId(), [ = , &s]
   {
-    closeButton->enable();
+    closeButton->setEnabled(true);
     saveButton->setEnabled( dataSummary.mediasCount > 0 );
     summary->setText( WString::trn( "findorphans.summary", dataSummary.mediasCount ).arg( dataSummary.mediasCount ).arg( dataSummary.attachmentsCount ).arg( Utils::formatFileSize( dataSummary.bytes ) ) );
     app->triggerUpdate();
+    s.release();
   } );
+  s.wait();
 }
 
 

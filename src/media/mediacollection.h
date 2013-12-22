@@ -50,6 +50,7 @@ public:
     bool isAllowed(const boost::filesystem::path &path) const;
     std::vector<std::shared_ptr<MediaDirectory>> rootDirectories() const;
     std::shared_ptr<MediaDirectory> find(const std::string &directoryPath) const;
+    Wt::Signal<> &scanning() const;
     Wt::Signal<> &scanned() const;
 private:
   D_PTR;

@@ -94,6 +94,20 @@ Pandorica::Private::Private(Pandorica *q)
   queueSignal.connect([=](string uid, _n5){
     queue(mediaCollection.media(uid));
   });
+  mediaCollection.scanning().connect([=](_n6) {
+    rescanIndicator = new WDialog(wtr("mediacollection_rescanning_title"));
+    rescanIndicator->setClosable(false);
+    rescanIndicator->setModal(true);
+    rescanIndicator->contents()->addWidget(new WText{wtr("mediacollection_rescanning_message")});
+    rescanIndicator->show();
+  });
+  mediaCollection.scanned().connect([=](_n6) {
+    if(!rescanIndicator)
+      return;
+    rescanIndicator->hide();
+    delete rescanIndicator;
+    rescanIndicator = 0;
+  });
 }
 
 

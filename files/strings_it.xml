@@ -395,4 +395,6 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
 <message id="mediacollectionbrowser_filters_name_case_sensitive">Controllo maiuscole/minuscole</message>
 <message id="usersmanagement_invite_use_a_custom_message">Usa un messaggio personalizzato</message>
 <message id="usersmanagement_invite_email_dialog_label">Una email verrà inviata a {1} per notificare l'invito.</message>
+<message id="mediacollection_rescanning_title">Scansione Collezione Multimediale</message>
+<message id="mediacollection_rescanning_message">Attendere durante la scansione dei files della collezione multimediale...</message>
 </messages>

@@ -45,9 +45,7 @@ MediaCollection::MediaCollection( Settings *settings, Session *session, WApplica
 void MediaCollection::rescan( const function< void() >& onFinish )
 {
   log("notice") << __PRETTY_FUNCTION__ ;
-  d->loadingIndicator = new WOverlayLoadingIndicator();
-  d->app->root()->addWidget( d->loadingIndicator->widget() );
-  d->loadingIndicator->widget()->show();
+  d->scanning.emit();
   boost::thread([=] {
     unique_lock<mutex> lock(d->rescanMutex);
     Session threadSession;
@@ -65,14 +63,18 @@ void MediaCollection::rescan( const function< void() >& onFinish )
     size_t size = d->collection.size();
     log("notice") << __PRETTY_FUNCTION__ << ": found " << d->collection.size() << " media files.";
       WServer::instance()->post( d->app->sessionId(), [=] {
-      d->loadingIndicator->widget()->hide();
-      delete d->loadingIndicator;
       scanned().emit();
       onFinish();
       d->app->triggerUpdate();
     } );
   });
 }
+
+Signal< NoClass >& MediaCollection::scanning() const
+{
+  return d->scanning;
+}
+
 
 Signal<>& MediaCollection::scanned() const
 {

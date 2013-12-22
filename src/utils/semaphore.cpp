@@ -20,6 +20,7 @@
 #include "semaphore.h"
 #include "private/semaphore_p.h"
 #include "utils/d_ptr_implementation.h"
+#include <iostream>
 
 using namespace std;
 Semaphore::Private::Private(Semaphore* q) : q(q)
@@ -42,8 +43,8 @@ void Semaphore::release(uint32_t howmany)
 {
   unique_lock<mutex> l(d->m);
   d->locks -= howmany;
-  d->cv.notify_one();
-//   d->cv.notify_all();
+//   d->cv.notify_one();
+  d->cv.notify_all();
 }
 
 void Semaphore::wait()

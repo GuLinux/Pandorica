@@ -28,7 +28,7 @@ class Semaphore
 public:
   Semaphore(int32_t occupied = 0);
   ~Semaphore();
-  void occupy(int32_t number);
+  void occupy(int32_t number = 1);
   void release(uint32_t howmany = 1);
   void wait();
 private:

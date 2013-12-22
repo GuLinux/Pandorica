@@ -84,6 +84,7 @@ public:
     void pathChanged(const std::string &path) const;
     bool isRegistered = false;
     std::mutex sessionRegistrationMutex;
+    Wt::WDialog *rescanIndicator = 0;
 private:
     void ratingFor(Media media, Wt::Dbo::Transaction t);
     Wt::WMenuItem* activeUsersMenuItem = 0;

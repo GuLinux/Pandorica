@@ -355,4 +355,6 @@ An email message notifying the invitation was sent to {1}.</message>
 <message id="mediacollectionbrowser_sorting_reset">Reset</message>
 <message id="usersmanagement_invite_use_a_custom_message">Use a custom message</message>
 <message id="usersmanagement_invite_email_dialog_label">An email will be sent to {1} to notify the invitation.</message>
+<message id="mediacollection_rescanning_title">MediaCollection Rescanning</message>
+<message id="mediacollection_rescanning_message">Please wait while media collection is rescanning files...</message>
 </messages>
