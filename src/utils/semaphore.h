@@ -21,14 +21,15 @@
 #define SEMAPHORE_H
 
 #include "utils/d_ptr.h"
+#include <stdint.h>
 
 class Semaphore
 {
 public:
-  Semaphore(int occupied = 0);
+  Semaphore(int32_t occupied = 0);
   ~Semaphore();
-  void occupy(int number);
-  void release(uint howmany = 1);
+  void occupy(int32_t number);
+  void release(uint32_t howmany = 1);
   void wait();
 private:
     D_PTR;

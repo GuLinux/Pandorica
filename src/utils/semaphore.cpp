@@ -26,19 +26,19 @@ Semaphore::Private::Private(Semaphore* q) : q(q)
 {
 }
 
-Semaphore::Semaphore(int occupied)
+Semaphore::Semaphore(int32_t occupied)
   : d(this)
 {
   occupy(occupied);
 }
 
-void Semaphore::occupy(int number)
+void Semaphore::occupy(int32_t number)
 {
   unique_lock<mutex> l(d->m);
   d->locks = number;
 }
 
-void Semaphore::release(uint howmany)
+void Semaphore::release(uint32_t howmany)
 {
   unique_lock<mutex> l(d->m);
   d->locks -= howmany;

@@ -29,7 +29,7 @@ public:
     std::mutex m;
     std::mutex m_i;
     std::condition_variable cv;
-    int locks;
+    int32_t locks;
 private:
     class Semaphore* const q;
 };
