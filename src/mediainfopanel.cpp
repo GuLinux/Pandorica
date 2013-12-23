@@ -157,7 +157,7 @@ void MediaInfoPanel::info( Media &media )
   actions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.share" ) ).css( "btn btn-block btn-small" ).onClick( [ = ]( WMouseEvent )
   {
     Wt::Dbo::Transaction t( *d->session );
-    auto shareMessageBox = new WMessageBox( wtr( "mediabrowser.share" ), wtr( "mediabrowser.share.dialog" ).arg( media.title( t ) ).arg( d->settings->shareLink( media.uid() ).url() ), NoIcon, Ok );
+    auto shareMessageBox = new WMessageBox( wtr( "mediabrowser.share" ), wtr( "mediabrowser.share.dialog" ).arg( media.title( t ) ).arg( d->settings->shareLink( media.uid() ).url() ), Information, Ok );
     shareMessageBox->button( Ok )->clicked().connect( [ = ]( WMouseEvent )
     {
       shareMessageBox->accept();

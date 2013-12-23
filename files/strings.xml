@@ -86,7 +86,11 @@
   <!-- player -->
   <message id="player.sharelink">Share link</message>
   <message id="player.downloadlink">Download</message>
-  <message id="player.downloadlink.tooltip">To correctly download the file, right click this link and choose "Save As"</message>
+  <message id="player.downloadlink.message">
+  <p>To correctly download the file, <a href="{1}">right click this link</a> and choose "Save As".</p>
+  <p>After the download is started, click <b>Ok</b> to close the player and cancel the streaming, <br />
+    or <b>Close</b> to keep playing the file in Pandorica Player.</p>
+  </message>
   <message id="player.resizeSmall">Small</message>
   <message id="player.resizeMedium">Medium</message>
   <message id="player.resizeLarge">Large</message>
@@ -99,7 +103,7 @@
   <message id="player.do.rate">Rate: </message>
 
   <!-- settings -->
-  <message id="settings.header"><h3>Settings</h3></message>
+  <message id="settings.header">Settings</message>
   <message id="settings.footer">* Settings are stored in cookies, so be aware that they might reset if you delete them, or change your browser or computer.</message>
 
   <message id="autoplay_never.combo">Never</message>
@@ -184,7 +188,7 @@
 
   <message id="cleanup.orphans">Manage Orphan Data</message>
   <message id="cleanup.orphans.findmoved.title">
-    <h4>Recovery Moved Media Information</h4>
+    Recovery Moved Media Information
   </message>
   <message id="cleanup.orphans.findmoved.message">
     <p>Below you can find a list of media that seem to be moved. In the combo box you can find some suggested media to remap the information in the database</p>
@@ -306,6 +310,7 @@ For other webservers (Apache, Lighttpd, Ngnix) read the proper documentation.
 <message id="playlist.hide">Hide Playlist</message>
 <message id="playlist.clear">Clear Playlist</message>
 <message id="mediacollectionbrowser_file_name">File Name</message>
+<message id="mediacollectionbrowser_size">Size</message>
 <message id="mediacollectionbrowser_date_added">Date Added</message>
 <message id="mediacollectionbrowser_ascending">Ascending</message>
 <message id="mediacollectionbrowser_descending">Descending</message>

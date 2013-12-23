@@ -130,6 +130,7 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
   sortByFileAscItem->setChecked(d->sortBy == Private::Alpha);
   addCheckableItem(sortByButton->menu(), wtr("mediacollectionbrowser_date_added"), [=]{d->sortBy = Private::Date; reload(); }, sortMenuGroup)->setChecked(d->sortBy == Private::Date);
   addCheckableItem(sortByButton->menu(), wtr("mediacollectionbrowser_rating"), [=]{d->sortBy = Private::Rating; reload(); }, sortMenuGroup)->setChecked(d->sortBy == Private::Rating);
+  addCheckableItem(sortByButton->menu(), wtr("mediacollectionbrowser_size"), [=]{d->sortBy = Private::Size; reload(); }, sortMenuGroup)->setChecked(d->sortBy == Private::Size);
   sortByButton->menu()->addSeparator();
   addCheckableItem(sortByButton->menu(), wtr("mediacollectionbrowser_ascending"), [=]{d->sortDirection = Private::Asc; reload(); }, sortOrderMenuGroup)->setChecked(d->sortDirection == Private::Asc);
   addCheckableItem(sortByButton->menu(), wtr("mediacollectionbrowser_descending"), [=]{d->sortDirection = Private::Desc; reload(); }, sortOrderMenuGroup)->setChecked(d->sortDirection == Private::Desc);
@@ -349,6 +350,7 @@ void MediaCollectionBrowser::Private::browse( const shared_ptr< MediaDirectory >
   map<Sort, MediaSorter> sorters {
     {Sort::Alpha, [](const Media &_1, const Media &_2) { return _1.filename() < _2.filename();}},
     {Sort::Date, [&t](const Media &_1, const Media &_2) { return _1.posixCreationTime(t) < _2.posixCreationTime(t); }},
+    {Sort::Size, [&t](const Media &_1, const Media &_2) { return boost::filesystem::file_size(_1.path()) < boost::filesystem::file_size(_2.path()); }},
     {Sort::Rating, [&t](const Media &_1, const Media &_2) {
       return MediaRating::ratingFor(_1, t).score() < MediaRating::ratingFor(_2, t).score(); }},
   };
