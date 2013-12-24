@@ -604,12 +604,12 @@ void Pandorica::Private::play(PlaylistItem *playlistItem) {
   
   infoBox->addWidget(WW<WPushButton>(wtr("player.sharelink")).css("btn btn-info btn-mini").onClick([=](WMouseEvent){
     Wt::Dbo::Transaction t( *session );
-    auto shareMessageBox = new WMessageBox( wtr( "mediabrowser.share" ), wtr( "mediabrowser.share.dialog" ).arg( media.title( t ) ).arg( settings.shareLink( media.uid() ).url() ), Wt::Information, Ok );
-    shareMessageBox->button( Ok )->clicked().connect( [ = ]( WMouseEvent )
-    {
-      shareMessageBox->accept();
-    } );
-    shareMessageBox->show();
+    WW<WMessageBox>(wtr( "mediabrowser.share" ),
+		    wtr( "mediabrowser.share.dialog" )
+		      .arg( media.title( t ) )
+		      .arg( settings.shareLink( media.uid() ).url() ),
+		    Wt::Information, Ok)
+    .button(Ok, [=](WMessageBox *msgBox){ msgBox->accept(); }).get()->show();
   }));
   infoBox->addWidget(new WText{" "});
   
