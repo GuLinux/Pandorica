@@ -75,6 +75,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <mutex>
 #include <boost/thread.hpp>
 
+#include <features.h>
+#ifdef __GLIBC__
+#include <execinfo.h>
+#endif
 
 using namespace Wt;
 using namespace std;
@@ -272,7 +276,18 @@ void Pandorica::notify( const WEvent &e )
   try {
     Wt::WApplication::notify( e );
   } catch(std::exception &exception) {
-    log("notice") << "Exception caught: " << exception.what() << " on event: " << e.eventType();
+    log("warning") << "Exception caught: " << exception.what() << " on event: " << e.eventType();
+#ifdef __GLIBC__
+#define BT_MAX_SIZE 256
+    void *backtraceBuffer[BT_MAX_SIZE];
+    int backtraceSize = backtrace(backtraceBuffer, BT_MAX_SIZE);
+    if(backtraceSize>0) {
+      char **backtraceStrings = backtrace_symbols(backtraceBuffer, backtraceSize);
+      for(int i=0; i<backtraceSize; i++)
+        log("warning") << "backtrace: " << backtraceStrings[i];
+      delete [] backtraceStrings;
+    }
+#endif
     throw exception;
   }
 }
