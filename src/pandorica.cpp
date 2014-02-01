@@ -79,6 +79,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <features.h>
 #ifdef __GLIBC__
 #include <execinfo.h>
+#include <cxxabi.h>
 #endif
 
 using namespace Wt;
@@ -299,8 +300,13 @@ void Pandorica::notify( const WEvent &e )
     int backtraceSize = backtrace(backtraceBuffer, BT_MAX_SIZE);
     if(backtraceSize>0) {
       char **backtraceStrings = backtrace_symbols(backtraceBuffer, backtraceSize);
-      for(int i=0; i<backtraceSize; i++)
-        log("warning") << "backtrace: " << backtraceStrings[i];
+      for(int i=0; i<backtraceSize; i++) {
+        int status;
+        char *demangledName = abi::__cxa_demangle(backtraceStrings[i], nullptr, 0, &status);
+        log("warning") << "backtrace: " << backtraceStrings[i] << demangledName << " (demangled: " << status << ")";
+        if(status==0)
+          delete [] demangledName;
+      }
       delete [] backtraceStrings;
     }
 #endif
