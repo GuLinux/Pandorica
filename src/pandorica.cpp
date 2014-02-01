@@ -298,6 +298,7 @@ void Pandorica::notify( const WEvent &e )
 #define BT_MAX_SIZE 256
     void *backtraceBuffer[BT_MAX_SIZE];
     int backtraceSize = backtrace(backtraceBuffer, BT_MAX_SIZE);
+    log("warning") << "got backtrace: " << backtraceSize;
     if(backtraceSize>0) {
       char **backtraceStrings = backtrace_symbols(backtraceBuffer, backtraceSize);
       for(int i=0; i<backtraceSize; i++) {
