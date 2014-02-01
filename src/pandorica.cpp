@@ -72,6 +72,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WComboBox>
 #include <Wt/WPushButton>
 #include <Wt/WDefaultLoadingIndicator>
+#include <Wt/WMessageBox>
 #include <mutex>
 #include <boost/thread.hpp>
 
@@ -97,6 +98,20 @@ Pandorica::Private::Private(Pandorica *q)
   });
   queueSignal.connect([=](string uid, _n5){
     queue(mediaCollection.media(uid));
+  });
+  mediaCollection.scanning().connect([=](_n6) {
+    rescanIndicator = new WDialog(wtr("mediacollection_rescanning_title"));
+    rescanIndicator->setClosable(false);
+    rescanIndicator->setModal(true);
+    rescanIndicator->contents()->addWidget(new WText{wtr("mediacollection_rescanning_message")});
+    rescanIndicator->show();
+  });
+  mediaCollection.scanned().connect([=](_n6) {
+    if(!rescanIndicator)
+      return;
+    rescanIndicator->hide();
+    delete rescanIndicator;
+    rescanIndicator = 0;
   });
 }
 
@@ -130,7 +145,8 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
   enableUpdates(true);
   WMessageResourceBundle *xmlResourcesBundle = new WMessageResourceBundle;
   xmlResourcesBundle->use(Settings::sharedFilesDir("/strings"));
-  setLocale(d->settings.locale());
+  if(!d->settings.locale().empty())
+    setLocale(d->settings.locale());
   WCombinedLocalizedStrings* combinedLocalizedStrings = new WCombinedLocalizedStrings();
   combinedLocalizedStrings->add(xmlResourcesBundle);
   combinedLocalizedStrings->add(new WHTMLTemplatesLocalizedStrings(Settings::sharedFilesDir(PATH_SEP() + "html_templates")));
@@ -601,13 +617,30 @@ void Pandorica::Private::play(PlaylistItem *playlistItem) {
     wApp->setTitle(wtr("site-title"));
   });
   
-  infoBox->addWidget(WW<WAnchor>(settings.shareLink(media.uid()), wtr("player.sharelink")).css("btn btn-success btn-mini"));
+  infoBox->addWidget(WW<WPushButton>(wtr("player.sharelink")).css("btn btn-info btn-mini").onClick([=](WMouseEvent){
+    Wt::Dbo::Transaction t( *session );
+    WW<WMessageBox>(wtr( "mediabrowser.share" ),
+		    wtr( "mediabrowser.share.dialog" )
+		      .arg( media.title( t ) )
+		      .arg( settings.shareLink( media.uid() ).url() ),
+		    Wt::Information, Ok)
+    .button(Ok, [=](WMessageBox *msgBox){ msgBox->accept(); }).get()->show();
+  }));
   infoBox->addWidget(new WText{" "});
-  WAnchor *downloadLink = WW<WAnchor>(mediaLink, wtr("player.downloadlink")).css("btn btn-success btn-mini");
-  downloadLink->setTarget(Wt::TargetNewWindow);
-  downloadLink->setAttributeValue("data-toggle","tooltip");
-  downloadLink->setAttributeValue("title", wtr("player.downloadlink.tooltip"));
-  downloadLink->doJavaScript((boost::format("$('#%s').tooltip();") % downloadLink->id()).str() );
+  
+  WPushButton *downloadLink = WW<WPushButton>(wtr("player.downloadlink")).css("btn btn-info btn-mini").onClick([=](WMouseEvent){
+    WDialog *downloadDialog = new WDialog(wtr("player.downloadlink"));
+    downloadDialog->contents()->addWidget(new WText{wtr("player.downloadlink.message").arg(mediaLink.url()), XHTMLUnsafeText});
+    downloadDialog->footer()->addWidget(WW<WPushButton>(wtr("button.close")).css("btn btn-danger").onClick([=](WMouseEvent){
+      downloadDialog->reject();
+    }));
+    downloadDialog->footer()->addWidget(WW<WPushButton>(wtr("button.ok")).css("btn btn-primary").onClick([=](WMouseEvent){
+      downloadDialog->accept();
+      playerContainerWidget->clear();
+      player = 0;
+    }));
+    downloadDialog->show();
+  });
   infoBox->addWidget(downloadLink);
   wApp->setTitle( wtr("site-title") + " - " + media.title(t) );
   q->log("notice") << "using url " << mediaLink.url();

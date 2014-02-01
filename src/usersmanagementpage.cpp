@@ -58,7 +58,7 @@ UsersManagementPage::~UsersManagementPage( )
 }
 
 UsersManagementPage::UsersManagementPage( Session *session, Wt::WContainerWidget *parent )
-  : d( this, session )
+  : WContainerWidget(parent), d( this, session )
 {
   WLineEdit *inviteEmailAddress = WW<WLineEdit>().setMargin(5);
   inviteEmailAddress->setValidator(new WRegExpValidator("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}"));
@@ -244,6 +244,7 @@ void UsersManagementPage::dialog( Session *session )
   WDialog *dialog = new WDialog;
   dialog->setCaption(wtr("menu.usersmanagement"));
   dialog->contents()->addWidget( new UsersManagementPage( session ) );
+  dialog->contents()->setMaximumSize(WLength::Auto, 550);
   dialog->setClosable( true );
   dialog->show();
 }

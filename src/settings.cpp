@@ -130,8 +130,7 @@ string Settings::value(string cookieName)
 string Settings::locale()
 {
   string storedValue = value(guiLanguage);
-  if(storedValue == "<browserdefault>") storedValue = wApp->environment().locale();
-  return storedValue;
+  return storedValue != defaultValues[guiLanguage] ? storedValue : string();
 }
 
 

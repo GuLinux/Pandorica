@@ -1,6 +1,6 @@
 /*
  * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2013  Marco Gulino <email>
+ * Copyright (C) 2013  <copyright holder> <email>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,21 +17,45 @@
  *
  */
 
-#ifndef USERSMANAGEMENTPAGE_H
-#define USERSMANAGEMENTPAGE_H
-#include <Wt/WContainerWidget>
-#include "utils/d_ptr.h"
+#include "semaphore.h"
+#include "private/semaphore_p.h"
+#include "utils/d_ptr_implementation.h"
+#include <iostream>
 
-class Session;
-class UsersManagementPage :  public Wt::WContainerWidget
+using namespace std;
+Semaphore::Private::Private(Semaphore* q) : q(q)
 {
-  public:
-    ~UsersManagementPage();
-    UsersManagementPage( Session *session, Wt::WContainerWidget *parent = 0 );
+}
 
-    static void dialog(Session *session);
-  private:
-    D_PTR;
-};
+Semaphore::Semaphore(int32_t occupied)
+  : d(this)
+{
+  occupy(occupied);
+}
 
-#endif // USERSMANAGEMENTPAGE_H
+void Semaphore::occupy(int32_t number)
+{
+  unique_lock<mutex> l(d->m);
+  d->locks = number;
+}
+
+void Semaphore::release(uint32_t howmany)
+{
+  unique_lock<mutex> l(d->m);
+  d->locks -= howmany;
+//   d->cv.notify_one();
+  d->cv.notify_all();
+}
+
+void Semaphore::wait()
+{
+  unique_lock<mutex> l(d->m);
+  d->cv.wait(l, [this]{
+    return d->locks <= 0;
+  });
+}
+
+Semaphore::~Semaphore()
+{
+}
+

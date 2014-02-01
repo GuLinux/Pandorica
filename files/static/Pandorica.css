@@ -178,7 +178,8 @@ iframe[src='http://cdn.adsbarscipt.com/links/flash/?updnew'] {
 }
 
 .modal-body {
-  max-height: initial!important;
+  max-height: initial;
+/*  max-height: initial!important; */
 }
 
 .media-title {

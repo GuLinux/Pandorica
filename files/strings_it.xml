@@ -163,7 +163,11 @@
 
   <!-- player -->
   <message id="player.sharelink">Link per la condivisione</message>
-  <message id="player.downloadlink.tooltip">Per scaricare correttamente il file, clicca col tasto destro sul link e scegli "Salva con nome"</message>
+  <message id="player.downloadlink.message">
+    <p>Per scaricare correttamente il file, <a href="{1}">clicca col tasto destro questo link</a> e scegli "Salva con nome".</p>
+    <p>Quando il download è iniziato, premi <b>Ok</b> per chiudere il player e cancellare la riproduzione, <br />
+      oppure <b>Chiudi</b> per continuare a visualizzare il media in streaming.</p>
+    </message>
   <message id="player.avg.ratings">
     <plural case="1">Voto di un utente: </plural>
     <plural case="0">Voto di {1} utenti: </plural>
@@ -175,7 +179,7 @@
   <message id="player.resizeMedium">Medio</message>
   <message id="player.resizeLarge">Largo</message>
   <!-- settings -->
-  <message id="settings.header"><h3>Impostazioni</h3></message>
+  <message id="settings.header">Impostazioni</message>
   <message id="settings.footer">* Le impostazioni vengono memorizzate nei cookies, quindi ricorda che potrebbero resettarsi cancellandoli, o cambiando browser o computer.</message>
 
   <message id="autoplay_never.combo">Mai</message>
@@ -255,7 +259,7 @@
 
   <message id="cleanup.orphans">Gestione Dati Orfani</message>
   <message id="cleanup.orphans.findmoved.title">
-    <h4>Recupero Dati Media Spostati</h4>
+    Recupero Dati Media Spostati
   </message>
   <message id="cleanup.orphans.findmoved.message">
     <p>Qui puoi trovare un elenco di media che sembrano essere stati spostati. Nella relativa combo box puoi trovare dei suggerimenti per riassegare i dati sul database</p>
@@ -347,6 +351,7 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
 <message id="playlist.hide">Nascondi Playlist</message>
 <message id="playlist.clear">Cancella Playlist</message>
 <message id="mediacollectionbrowser_file_name">Nome File</message>
+<message id="mediacollectionbrowser_size">Dimensione</message>
 <message id="mediacollectionbrowser_date_added">Data Aggiunta</message>
 <message id="mediacollectionbrowser_ascending">Ascendente</message>
 <message id="mediacollectionbrowser_descending">Discendente</message>
@@ -395,4 +400,6 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
 <message id="mediacollectionbrowser_filters_name_case_sensitive">Controllo maiuscole/minuscole</message>
 <message id="usersmanagement_invite_use_a_custom_message">Usa un messaggio personalizzato</message>
 <message id="usersmanagement_invite_email_dialog_label">Una email verrà inviata a {1} per notificare l'invito.</message>
+<message id="mediacollection_rescanning_title">Scansione Collezione Multimediale</message>
+<message id="mediacollection_rescanning_message">Attendere durante la scansione dei files della collezione multimediale...</message>
 </messages>

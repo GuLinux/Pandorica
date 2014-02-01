@@ -43,13 +43,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "utils/d_ptr_implementation.h"
 #include <utils/utils.h>
+#include <utils/semaphore.h>
 #include <condition_variable>
-#include <boost/interprocess/sync/interprocess_semaphore.hpp>
 
 using namespace Wt;
 using namespace std;
 using namespace WtCommons;
-namespace ip = boost::interprocess;
 
 MediaScanner::Private::Private(MediaScanner* q, MediaCollection *mediaCollection, Session *session, Settings* settings)
   : q(q), mediaCollection(mediaCollection), session(session), settings(settings), app(wApp)
@@ -165,15 +164,15 @@ void MediaScanner::dialog()
 
 void MediaScanner::scan(function<bool(Media&)> scanFilter)
 {
-  auto updateGuiProgress = [=] (ip::interprocess_semaphore &s) {
+  auto updateGuiProgress = [=] (Semaphore &s) {
     d->progressBar->setValue(d->scanningProgress.progress);
     d->progressBarTitle->setText(d->scanningProgress.currentFile);
     for(auto stepContainers : d->stepsContents)
       stepContainers.second.content->clear();
     d->app->triggerUpdate();
-    s.post();
+    s.release();
   };
-  auto onScanFinished = [=] (ip::interprocess_semaphore &s) {
+  auto onScanFinished = [=] (Semaphore &s) {
     d->buttonClose->enable();
     d->buttonNext->disable();
     d->buttonCancel->disable();
@@ -184,37 +183,33 @@ void MediaScanner::scan(function<bool(Media&)> scanFilter)
     for(auto stepContainers : d->stepsContents)
       stepContainers.second.content->clear();
     d->app->triggerUpdate();
-    s.post();
+    s.release();
   };
   d->scanningProgress = {0, {}};
-  ip::interprocess_semaphore s(0);
+  Semaphore s(1);
   updateGuiProgress(s);
   s.wait();
   boost::thread(boost::bind(&MediaScanner::Private::scanMedias, d.get(), updateGuiProgress, onScanFinished, scanFilter ));
 }
 
-void MediaScanner::Private::scanMedias(function<void(ip::interprocess_semaphore &)> updateGuiProgress, function<void(ip::interprocess_semaphore &)> onScanFinish, function<bool(Media &)> scanFilter)
+void MediaScanner::Private::scanMedias(function<void(Semaphore &)> updateGuiProgress, function<void(Semaphore &)> onScanFinish, function<bool(Media &)> scanFilter)
 {
   canceled = false;
   semaphore->needsSaving(false);
   Session session;
-  Dbo::Transaction transaction(session);
-  Scope onFinish([=,&transaction]{
-    ip::interprocess_semaphore s0(0);
-    ip::interprocess_semaphore s1(0);
+  Scope onFinish([=]{
+    Semaphore s(2);
     boost::this_thread::sleep_for(boost::chrono::milliseconds{500});
-    transaction.commit();
-    guiRun(app, [=,&s0,&s1] { 
-      updateGuiProgress(s0);
-      onScanFinish(s1);
+    guiRun(app, [=,&s] { 
+      updateGuiProgress(s);
+      onScanFinish(s);
     });
-    s0.wait();
-    s1.wait();
+    s.wait();
   });
   {
-    ip::interprocess_semaphore s(0);
+    Semaphore s(1);
     guiRun(app, [=,&s] {
-      mediaCollection->rescan([=,&s]{ s.post(); });
+      mediaCollection->rescan([=,&s]{ s.release(); });
     });
     s.wait();
   }
@@ -229,17 +224,18 @@ void MediaScanner::Private::scanMedias(function<void(ip::interprocess_semaphore 
     if(canceled) {
       return;
     }
+    Dbo::Transaction transaction(session);
     scanningProgress.progress++;
     scanningProgress.currentFile = media.filename();
     log("notice") << "Scanning file " << scanningProgress.progress << " of " << mediaCollection->collection().size() << ": " << scanningProgress.currentFile;
     if(!scanFilter(media)) {
-      ip::interprocess_semaphore s(0);
+      Semaphore s(1);
       log("notice") << "Skipping media: " << media.fullPath();
       guiRun(app, [=,&s]{ updateGuiProgress(s); });
       s.wait();
       continue;
     }
-    ip::interprocess_semaphore s(0);
+    Semaphore s(1);
     guiRun(app, [=,&s] {
       buttonNext->disable();
       buttonSkip->disable();
@@ -258,7 +254,7 @@ void MediaScanner::Private::runStepsFor(Media media, Dbo::Transaction& transacti
   canContinue = false;
 
   FFMPEGMedia ffmpegMedia{media, [=](const string &level) { return app->log(level); } };
-  ip::interprocess_semaphore s(0);
+  Semaphore s(1);
   guiRun(app, [=, &s]{
     for(auto step: steps) {
       stepsContents[step].content->clear();
@@ -266,12 +262,12 @@ void MediaScanner::Private::runStepsFor(Media media, Dbo::Transaction& transacti
       stepsContents[step].groupBox->show();
     }
     app->triggerUpdate();
-    s.post();
+    s.release();
   });
   s.wait();
   Scope hideStepContents([=]{
-    ip::interprocess_semaphore s(0);
-    guiRun(app, [=,&s] { for(auto stepContent: stepsContents) stepContent.second.groupBox->hide(); app->triggerUpdate(); s.post(); });
+    Semaphore s(1);
+    guiRun(app, [=,&s] { for(auto stepContent: stepsContents) stepContent.second.groupBox->hide(); app->triggerUpdate(); s.release(); });
     s.wait();
   });
   list<boost::thread> threads;
@@ -280,8 +276,8 @@ void MediaScanner::Private::runStepsFor(Media media, Dbo::Transaction& transacti
     threads.push_back(boost::thread([=,&transaction,&media,&ffmpegMedia]{
       step->run(&ffmpegMedia, media, transaction);
       if(! step->needsSaving()) {
-	ip::interprocess_semaphore s(0);
-        guiRun(app, [=,&s] { stepsContents[step].groupBox->hide(); app->triggerUpdate(); s.post(); });
+	Semaphore s(1);
+        guiRun(app, [=,&s] { stepsContents[step].groupBox->hide(); app->triggerUpdate(); s.release(); });
 	s.wait();
       }
     }));

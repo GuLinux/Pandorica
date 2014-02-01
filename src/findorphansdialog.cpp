@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/Dbo/StdSqlTraits>
 #include <Wt/Dbo/Types>
 #include <Wt/Dbo/Impl>
+#include "utils/semaphore.h"
 
 
 #include <Wt/Dbo/Query>
@@ -50,7 +51,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/algorithm/string/regex.hpp>
 #include <boost/thread.hpp>
 #include <boost/chrono.hpp>
-#include <boost/interprocess/sync/interprocess_semaphore.hpp>
 #include "Models/models.h"
 #include "settings.h"
 
@@ -419,8 +419,11 @@ void FindOrphansDialog::Private::fixFilePaths()
 void FindOrphansDialog::Private::populateRemoveOrphansModel( Wt::WApplication *app )
 {
   log( "notice" ) << __PRETTY_FUNCTION__;
-  boost::interprocess::interprocess_semaphore s(0);
-  mediaCollection->rescan( [&s] {s.post(); } );
+  Semaphore s(1);
+  WServer::instance()->post(app->sessionId(), [this, app, &s]{
+    mediaCollection->rescan( [&s] {s.release(); } );
+    app->triggerUpdate();
+  });
   s.wait();
   Dbo::Transaction t( *threadsSession );
   vector<string> mediaIds = orphans( t );
@@ -448,21 +451,27 @@ void FindOrphansDialog::Private::populateRemoveOrphansModel( Wt::WApplication *a
       title->appendRow( {new WStandardItem, type, name, value, size, link} );
     }
 
-    WServer::instance()->post( app->sessionId(), [ = ]
+    s.occupy();
+    WServer::instance()->post( app->sessionId(), [ =, &s]
     {
       model->appendRow( title );
       summary->setText( WString::trn( "findorphans.summary", dataSummary.mediasCount ).arg( dataSummary.mediasCount ).arg( dataSummary.attachmentsCount ).arg( Utils::formatFileSize( dataSummary.bytes ) ) );
       app->triggerUpdate();
+      s.release();
     } );
+    s.wait();
   }
 
-  WServer::instance()->post( app->sessionId(), [ = ]
+  s.occupy();
+  WServer::instance()->post( app->sessionId(), [ = , &s]
   {
-    closeButton->enable();
+    closeButton->setEnabled(true);
     saveButton->setEnabled( dataSummary.mediasCount > 0 );
     summary->setText( WString::trn( "findorphans.summary", dataSummary.mediasCount ).arg( dataSummary.mediasCount ).arg( dataSummary.attachmentsCount ).arg( Utils::formatFileSize( dataSummary.bytes ) ) );
     app->triggerUpdate();
+    s.release();
   } );
+  s.wait();
 }
 
 

@@ -1,6 +1,6 @@
 /*
  * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2013  Marco Gulino <email>
+ * Copyright (C) 2013  <copyright holder> <email>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,21 +17,20 @@
  *
  */
 
-#ifndef USERSMANAGEMENTPAGE_H
-#define USERSMANAGEMENTPAGE_H
-#include <Wt/WContainerWidget>
-#include "utils/d_ptr.h"
+#ifndef SEMAPHORE_P_H
+#define SEMAPHORE_P_H
+#include "semaphore.h"
+#include <condition_variable>
 
-class Session;
-class UsersManagementPage :  public Wt::WContainerWidget
+class Semaphore::Private
 {
-  public:
-    ~UsersManagementPage();
-    UsersManagementPage( Session *session, Wt::WContainerWidget *parent = 0 );
-
-    static void dialog(Session *session);
-  private:
-    D_PTR;
+public:
+    Private(Semaphore* q);
+    std::mutex m;
+    std::mutex m_i;
+    std::condition_variable cv;
+    int32_t locks;
+private:
+    class Semaphore* const q;
 };
-
-#endif // USERSMANAGEMENTPAGE_H
+#endif // SEMAPHORE_P_H
