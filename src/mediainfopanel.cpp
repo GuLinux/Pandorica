@@ -169,7 +169,7 @@ void MediaInfoPanel::info( Media &media )
   {
     wasResetted().emit();
   } ) );
-  actions.second->addWidget( WW<WPushButton>( wtr( "player.downloadlink" ) ).css( "btn btn-block btn-small" ).onClick( [ = ]( WMouseEvent )
+  actions.second->addWidget( WW<WPushButton>( wtr( "player.downloadlink" ) ).css( "btn btn-block btn-small btn-success" ).onClick( [ = ]( WMouseEvent )
   {
     WDialog *downloadDialog = new WDialog(wtr("player.downloadlink"));
     downloadDialog->contents()->addWidget(new WText{wtr("player.downloadlink.message").arg(d->settings->linkFor( media.path() , d->session).url()), XHTMLUnsafeText});

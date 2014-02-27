@@ -203,8 +203,9 @@ WLink Settings::linkFor(fs::path p, Dbo::Session* session)
       }
     }
   }
-  
-   WLink link{new WFileResource(p.string(), wApp)};
+   WFileResource *resource = new WFileResource(p.string(), wApp);
+   resource->suggestFileName(p.filename().string());
+   WLink link{resource};
    wApp->log("notice") << "Generated url: " << link.url();
    return link;
 }
