@@ -165,9 +165,11 @@
   <message id="player.sharelink">Link per la condivisione</message>
   <message id="player.downloadlink.message">
     <p>Per scaricare correttamente il file, <a href="{1}">clicca col tasto destro questo link</a> e scegli "Salva con nome".</p>
+  </message>
+  <message id="player.downloadlink.message.closeplayer">
     <p>Quando il download è iniziato, premi <b>Ok</b> per chiudere il player e cancellare la riproduzione, <br />
       oppure <b>Chiudi</b> per continuare a visualizzare il media in streaming.</p>
-    </message>
+  </message>
   <message id="player.avg.ratings">
     <plural case="1">Voto di un utente: </plural>
     <plural case="0">Voto di {1} utenti: </plural>

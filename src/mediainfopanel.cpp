@@ -158,11 +158,23 @@ void MediaInfoPanel::info( Media &media )
   {
     Wt::Dbo::Transaction t( *d->session );
     WW<WMessageBox>(wtr( "mediabrowser.share" ),
-		    wtr( "mediabrowser.share.dialog" )
-		      .arg( media.title( t ) )
-		      .arg( d->settings->shareLink( media.uid() ).url() ),
-		    Wt::Information, Ok)
+                    wtr( "mediabrowser.share.dialog" )
+                      .arg( media.title( t ) )
+                      .arg( d->settings->shareLink( media.uid() ).url() ),
+                    Wt::Information, Ok)
     .button(Ok, [=](WMessageBox *msgBox){ msgBox->accept(); }).get()->show();
+  } ) );
+  addWidget( WW<WPushButton>( wtr( "button.close.info" ) ).css( "btn btn-primary btn-block hidden-desktop" )
+             .onClick( [ = ]( WMouseEvent )
+  {
+    wasResetted().emit();
+  } ) );
+  actions.second->addWidget( WW<WPushButton>( wtr( "player.downloadlink" ) ).css( "btn btn-block btn-small" ).onClick( [ = ]( WMouseEvent )
+  {
+    WDialog *downloadDialog = new WDialog(wtr("player.downloadlink"));
+    downloadDialog->contents()->addWidget(new WText{wtr("player.downloadlink.message").arg(d->settings->linkFor( media.path() , d->session).url()), XHTMLUnsafeText});
+    downloadDialog->footer()->addWidget(WW<WPushButton>(wtr("button.ok")).css("btn btn-primary").onClick([=](WMouseEvent){ downloadDialog->accept(); }));
+    downloadDialog->show();
   } ) );
   addWidget( WW<WPushButton>( wtr( "button.close.info" ) ).css( "btn btn-primary btn-block hidden-desktop" )
              .onClick( [ = ]( WMouseEvent )

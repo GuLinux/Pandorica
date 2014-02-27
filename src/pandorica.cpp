@@ -639,6 +639,7 @@ void Pandorica::Private::play(PlaylistItem *playlistItem) {
   WPushButton *downloadLink = WW<WPushButton>(wtr("player.downloadlink")).css("btn btn-info btn-mini").onClick([=](WMouseEvent){
     WDialog *downloadDialog = new WDialog(wtr("player.downloadlink"));
     downloadDialog->contents()->addWidget(new WText{wtr("player.downloadlink.message").arg(mediaLink.url()), XHTMLUnsafeText});
+    downloadDialog->contents()->addWidget(new WText{wtr("player.downloadlink.message.closeplayer"), XHTMLUnsafeText});
     downloadDialog->footer()->addWidget(WW<WPushButton>(wtr("button.close")).css("btn btn-danger").onClick([=](WMouseEvent){
       downloadDialog->reject();
     }));

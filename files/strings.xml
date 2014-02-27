@@ -88,6 +88,8 @@
   <message id="player.downloadlink">Download</message>
   <message id="player.downloadlink.message">
   <p>To correctly download the file, <a href="{1}">right click this link</a> and choose "Save As".</p>
+  </message>
+  <message id="player.downloadlink.message.closeplayer">
   <p>After the download is started, click <b>Ok</b> to close the player and cancel the streaming, <br />
     or <b>Close</b> to keep playing the file in Pandorica Player.</p>
   </message>
