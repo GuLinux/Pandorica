@@ -188,7 +188,7 @@ Signal<>& AuthPage::loggedOut() const
 
 
 AuthPage::AuthPage(Session* session, WContainerWidget* parent)
-    : d(session, this)
+    : WContainerWidget(parent), d(session, this)
 {
   session->login().changed().connect([=](_n6){ d->authEvent(); });
   
