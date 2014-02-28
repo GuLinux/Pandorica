@@ -158,8 +158,7 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
   internalPathChanged().connect([=](const string &p, _n5) { d->pathChanged(p); });
 
   
-  d->authPage = new AuthPage(d->session, root());
-//  root()->addWidget(d->authPage = new AuthPage(d->session));
+  root()->addWidget(d->authPage = new AuthPage(d->session));
   d->authPage->loggedIn().connect(this, &Pandorica::authEvent);
   d->authPage->loggedOut().connect([=](_n6) {
     d->navigationBar->animateHide({WAnimation::Fade});
