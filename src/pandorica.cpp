@@ -157,8 +157,9 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
   addMetaHeader("viewport", "width=device-width, initial-scale=1, maximum-scale=1");
   internalPathChanged().connect([=](const string &p, _n5) { d->pathChanged(p); });
 
-  
-  root()->addWidget(d->authPage = new AuthPage(d->session));
+  d->authPage = new AuthPage(d->session);
+  root()->addWidget(d->authPage); 
+//  root()->addWidget(d->authPage = new AuthPage(d->session));
   d->authPage->loggedIn().connect(this, &Pandorica::authEvent);
   d->authPage->loggedOut().connect([=](_n6) {
     d->navigationBar->animateHide({WAnimation::Fade});
