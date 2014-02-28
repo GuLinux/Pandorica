@@ -196,24 +196,24 @@ void NavigationBar::Private::setupNavigationBar(Dbo::Transaction& transaction,  
     dialog->animateShow({WAnimation::Fade|WAnimation::SlideInFromTop});
     dialog->mediaClicked().connect([=](Media media, _n5) { play.emit(media); });
     resetSelection(mainMenu);
-  }, "menu-comments visible-desktop");
+  }, "menu-comments visible-lg visible-md");
   
   WMenuItem *userMenuItem = mainMenu->addItem(session->login().user().identity("loginname"));
-  userMenuItem->addStyleClass("menu-user visible-desktop");
+  userMenuItem->addStyleClass("menu-user visible-lg visible-md");
   userMenuItem->setSubMenu(new WPopupMenu);
   
   createItem(userMenuItem->menu(), wtr("menu.settings"), 0, [=](WMenuItem *item, _n5) {
       SettingsPage::dialog(settings);
       resetSelection(mainMenu);    
-  }, "menu-settings visible-desktop");
+  }, "menu-settings visible-lg visible-md");
   
   auto logout = [=](WMenuItem*, _n5) {
     this->logout.emit();
   };
   
-  createItem(mainMenu, wtr("menu.settings"), pagesMap[NavigationBar::UserSettings], [=](WMenuItem*, _n5) { showUserSettings.emit(); }, "hidden-desktop menu-settings");
+  createItem(mainMenu, wtr("menu.settings"), pagesMap[NavigationBar::UserSettings], [=](WMenuItem*, _n5) { showUserSettings.emit(); }, "hidden-lg hidden-md menu-settings");
   createItem(userMenuItem->menu(), wtr("menu.logout"), 0, logout, "menu-logout");
-  createItem(mainMenu, wtr("menu.logout"), 0, logout, "menu-logout hidden-desktop");
+  createItem(mainMenu, wtr("menu.logout"), 0, logout, "menu-logout hidden-lg hidden-md");
 }
 
 
@@ -222,7 +222,7 @@ void NavigationBar::Private::setupAdminBar(Dbo::Transaction& transaction)
   WMenuItem *adminMenuItem = mainMenu->addItem(wtr("menu.admin"));
   WPopupMenu *adminMenu = new WPopupMenu();
   adminMenuItem->setMenu(adminMenu);
-  adminMenuItem->addStyleClass("hidden-phone menu-admin");
+  adminMenuItem->addStyleClass("hidden-xs menu-admin");
 
   mediaCollection->scanned().connect([=](_n6){
     if(mediaCollection->collection().empty())

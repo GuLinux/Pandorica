@@ -39,7 +39,7 @@ MediaElementJs::MediaElementJs(HTML5PlayerSetup html5PlayerSetup, WObject* paren
   : PlayerJavascript(html5PlayerSetup, parent), pureHTML5Js(new PureHTML5Js(html5PlayerSetup, this))
 {
   html5PlayerSetup.bindEmpty("media.footer");
-  html5PlayerSetup.bindWidget("media.header", WW<WPushButton>("Fullscreen").css("btn btn-block hidden-desktop").onClick([=](WMouseEvent){
+  html5PlayerSetup.bindWidget("media.header", WW<WPushButton>("Fullscreen").css("btn btn-block hidden-lg hidden-md").onClick([=](WMouseEvent){
     runJavascript("(new MediaElementPlayer('video')).enterFullScreen();");
   }));
 }
@@ -53,7 +53,7 @@ string MediaElementJs::resizeJs()
 void MediaElementJs::onPlayerReady()
 {
   if(html5PlayerSetup.mediaType() == HTML5Player::Audio)
-    html5PlayerSetup.resolveWidget("media.header")->addStyleClass("hidden-phone hidden-tablet");
+    html5PlayerSetup.resolveWidget("media.header")->addStyleClass("hidden-xs hidden-sm");
   map<string,string> mediaElementOptions = {
     {"AndroidUseNativeControls", "false"},
     {"defaultSeekBackwardInterval", "function(media) { return 5; }"},

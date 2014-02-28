@@ -79,7 +79,7 @@ MediaCollectionBrowser::Private::Private(MediaCollection *collection, Settings *
 MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Settings *settings, Session *session, WContainerWidget *parent )
   : WContainerWidget( parent ), d(collection, settings, session, this )
 {
-  d->breadcrumb = WW<WContainerWidget>().css( "breadcrumb visible-desktop inline-breadcrumb" );
+  d->breadcrumb = WW<WContainerWidget>().css( "breadcrumb visible-lg visible-md inline-breadcrumb" );
   d->breadcrumb->setList( true );
   d->browser = WW<WContainerWidget>().css( "thumbnails" ).setMargin( WLength::Auto, Left ).setMargin( WLength::Auto, Right );
   WContainerWidget *mainContainer = new WContainerWidget;
@@ -97,14 +97,14 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
   WContainerWidget *container = WW<WContainerWidget>( mainContainer ).css( "container-fluid" );
 
 
-  WContainerWidget *row = WW<WContainerWidget>( container ).css( "row-fluid" );
-  MediaInfoPanel *desktopMediaInfoPanel = WW<MediaInfoPanel>( session, settings ).addCss( "visible-desktop span4" );
+  WContainerWidget *row = WW<WContainerWidget>( container ).css( "row" );
+  MediaInfoPanel *desktopMediaInfoPanel = WW<MediaInfoPanel>( session, settings ).addCss( "visible-lg visible-md col-md-4" );
   row->addWidget( desktopMediaInfoPanel );
-  row->addWidget( WW<WContainerWidget>().css( "mediabrowser span8" ).add( d->browser ) );
+  row->addWidget( WW<WContainerWidget>().css( "mediabrowser col-md-8" ).add( d->browser ) );
 
 
   d->browser->setList( true );
-  WContainerWidget *breadcrumb = WW<WContainerWidget>().css("breadcrumb visible-desktop");
+  WContainerWidget *breadcrumb = WW<WContainerWidget>().css("breadcrumb visible-lg visible-md");
   WPushButton *reloadButton = WW<WPushButton>( wtr( "mediacollection.reload" ) ).css( "btn btn-small" ).onClick([=](WMouseEvent)
   {
     collection->rescan( [=] {
@@ -163,11 +163,11 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
   breadcrumb->addWidget(WW<WToolBar>().addButton(reloadButton).addButton(viewModeButton).addButton(sortByButton).addButton(filtersButton));
   breadcrumb->addWidget(d->breadcrumb);
   addWidget( breadcrumb );
-  addWidget( d->goToParent = WW<WPushButton>( wtr( "button.parent.directory" ) ).css( "btn btn-block hidden-desktop" ).onClick( [ = ]( WMouseEvent )
+  addWidget( d->goToParent = WW<WPushButton>( wtr( "button.parent.directory" ) ).css( "btn btn-block hidden-lg hidden-md" ).onClick( [ = ]( WMouseEvent )
   {
     d->browse( d->rootPath );
   } ) );
-  addWidget( WW<WContainerWidget>().css( "hidden-desktop" ).add( mobileMediaInfoPanelWidget ) );
+  addWidget( WW<WContainerWidget>().css( "hidden-lg hidden-md" ).add( mobileMediaInfoPanelWidget ) );
   addWidget( mainContainer );
   collection->scanned().connect( this, &MediaCollectionBrowser::reload );
   d->setup(desktopMediaInfoPanel);
@@ -583,7 +583,7 @@ void MediaCollectionBrowser::Private::setTitleFor( Media media )
 
 WContainerWidget *MediaCollectionBrowser::Private::addIcon( WString filename, GetIconF icon, OnClick onClick )
 {
-  WContainerWidget *item = WW<WContainerWidget>().css( "span3 media-icon-container" );
+  WContainerWidget *item = WW<WContainerWidget>().css( "col-md-3 media-icon-container" );
   item->setContentAlignment( AlignmentFlag::AlignCenter );
   WAnchor *link = WW<WAnchor>().css( "thumbnail filesystem-item link-hand" );
   link->setToolTip(filename);
@@ -619,9 +619,6 @@ void MediaCollectionBrowser::Private::rebuildBreadcrumb()
   for( shared_ptr<MediaDirectory> path : paths )
   {
     WContainerWidget *item = new WContainerWidget;
-
-    if( breadcrumb->count() )
-      item->addWidget( WW<WText>( "/" ).css( "divider" ) );
 
     item->addWidget( WW<WAnchor>( "", path->label() ).css( "link-hand" ).onClick( [ = ]( WMouseEvent )
     {

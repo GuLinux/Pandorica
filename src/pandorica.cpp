@@ -135,7 +135,9 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
   // Video.js
   useStyleSheet(Settings::staticPath("/video-js/video-js.css"));
   require(Settings::staticPath("/video-js/video.js"));
-  setTheme(new WBootstrapTheme(this));
+  auto theme = new WBootstrapTheme(this);
+  theme->setVersion(WBootstrapTheme::Version3);
+  setTheme(theme);
   try {
     d->session = new Session{true};
   } catch(std::exception &e) {
@@ -376,7 +378,7 @@ void Pandorica::Private::adminActions()
     Dbo::Transaction t(*session);
     dialog->setTitleBarEnabled(true);
     dialog->setWindowTitle(wtr("menu.viewas"));
-    WComboBox *combo = WW<WComboBox>(dialog->contents()).css("span5");
+    WComboBox *combo = WW<WComboBox>(dialog->contents()).css("col-md-5");
     WStringListModel *model = new WStringListModel(combo);
     combo->setModel(model);
     

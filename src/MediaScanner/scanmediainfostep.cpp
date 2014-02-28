@@ -96,7 +96,7 @@ void ScanMediaInfoStep::save( Dbo::Transaction& transaction )
 void ScanMediaInfoStep::setupGui(WContainerWidget* container)
 {
     WLabel *label = new WLabel( wtr( "mediascanner.media.title" ) );
-    d->editTitle = WW<WLineEdit>().css( "span5" );
+    d->editTitle = WW<WLineEdit>().css( "col-md-5" );
     d->editTitle->changed().connect( [ = ]( _n1 ) { d->newTitle = d->editTitle->text().toUTF8(); });
     label->setBuddy( d->editTitle );
     container->addWidget( WW<WContainerWidget>().css( "form-inline" ).add( label ).add( d->editTitle ) );

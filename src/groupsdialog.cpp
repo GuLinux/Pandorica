@@ -132,7 +132,7 @@ GroupsDialog::GroupsDialog(Session* session, Settings* settings): WDialog()
         t.commit();
         dataChanged.emit();
       }));
-      for(int i=1; i<4; i++) currentGroups->elementAt(row, i)->setStyleClass("span1");
+      for(int i=1; i<4; i++) currentGroups->elementAt(row, i)->setStyleClass("col-md-1");
       row++;
     }
   };
@@ -160,7 +160,7 @@ UsersInGroupDialog::UsersInGroupDialog(GroupPtr group, Session* session): WDialo
   WTable *usersTable = WW<WTable>().css("table table-striped table-bordered table-hover");
   
   WPushButton *addButton = WW<WPushButton>(wtr("button.add")).css("btn btn-small btn-primary").setMargin(10, Side::Left);
-  WComboBox *usersSelect = WW<WComboBox>().css("span4");
+  WComboBox *usersSelect = WW<WComboBox>().css("col-md-4");
   auto enableAddbutton = [=] {
     addButton->setEnabled(usersSelect->count());
   };
@@ -212,7 +212,7 @@ UsersInGroupDialog::UsersInGroupDialog(GroupPtr group, Session* session): WDialo
         messageBox->button(StandardButton::No)->clicked().connect(messageBox, &WMessageBox::reject);
         messageBox->show();
       }));
-      usersTable->elementAt(row, 2)->addStyleClass("span1");
+      usersTable->elementAt(row, 2)->addStyleClass("col-md-1");
       row++;
     }
   };

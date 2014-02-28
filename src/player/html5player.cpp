@@ -137,7 +137,7 @@ HTML5Player::HTML5Player(HTML5Player::SubType subType, WContainerWidget* parent)
       button->clicked().connect(d->resizeSlot);
   }
   templateContainer->setMargin(WLength::Auto, Side::Left | Side::Right);
-  addWidget(WW<WContainerWidget>().css("visible-desktop btn-toolbar").add(d->resizeLinks));
+  addWidget(WW<WContainerWidget>().css("visible-lg visible-md btn-toolbar").add(d->resizeLinks));
   addWidget(templateContainer);
 
   d->playerJavascript->runJavascript(d->playerReady.createCall());

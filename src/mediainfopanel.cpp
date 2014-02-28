@@ -164,7 +164,7 @@ void MediaInfoPanel::info( Media &media )
                     Wt::Information, Ok)
     .button(Ok, [=](WMessageBox *msgBox){ msgBox->accept(); }).get()->show();
   } ) );
-  addWidget( WW<WPushButton>( wtr( "button.close.info" ) ).css( "btn btn-primary btn-block hidden-desktop" )
+  addWidget( WW<WPushButton>( wtr( "button.close.info" ) ).css( "btn btn-primary btn-block hidden-lg hidden-md" )
              .onClick( [ = ]( WMouseEvent )
   {
     wasResetted().emit();
@@ -176,7 +176,7 @@ void MediaInfoPanel::info( Media &media )
     downloadDialog->footer()->addWidget(WW<WPushButton>(wtr("button.ok")).css("btn btn-primary").onClick([=](WMouseEvent){ downloadDialog->accept(); }));
     downloadDialog->show();
   } ) );
-  addWidget( WW<WPushButton>( wtr( "button.close.info" ) ).css( "btn btn-primary btn-block hidden-desktop" )
+  addWidget( WW<WPushButton>( wtr( "button.close.info" ) ).css( "btn btn-primary btn-block hidden-lg hidden-md" )
              .onClick( [ = ]( WMouseEvent )
   {
     wasResetted().emit();
@@ -188,7 +188,7 @@ void MediaInfoPanel::info( Media &media )
   if( d->isAdmin )
   {
     auto adminActions = d->createPanel( "mediabrowser.admin.actions" );
-    adminActions.first->addStyleClass( "visible-desktop" );
+    adminActions.first->addStyleClass( "visible-lg visible-md" );
     adminActions.first->collapse();
     adminActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.admin.settitle" ) ).css( "btn btn-block btn-small btn-primary" ).onClick( [ = ]( WMouseEvent )
     {

@@ -73,17 +73,17 @@ public:
 
 CommentView::CommentView(CommentTuple data, WContainerWidget* parent): WContainerWidget(parent)
 {
-  setStyleClass("row-fluid comment-box");
+  setStyleClass("row comment-box");
   string username = data.get<3>();
   string email = data.get<2>();
   WDateTime commentTime = WDateTime::fromTime_t(data.get<1>());
   string commentText = data.get<0>();
   setContentAlignment(AlignLeft);
-  addWidget(WW<WContainerWidget>().css("span3 label label-success comment-header")
+  addWidget(WW<WContainerWidget>().css("col-md-3 label label-success comment-header")
     .add(WW<WText>(username).setInline(false))
 //     .add(WW(WText, email).setInline(false))
     .add(WW<WText>(commentTime.toString()).setInline(false)));
-  addWidget(WW<WText>(WString::fromUTF8(commentText)).css("span8 well comment-text") );
+  addWidget(WW<WText>(WString::fromUTF8(commentText)).css("col-md-8 well comment-text") );
 }
 
 
@@ -123,9 +123,9 @@ CommentsContainerWidget::CommentsContainerWidget(string videoId, Session* sessio
   insertComment->setEnabled(false);
   
 //     newCommentContent->setWidth(500);
-  newCommentContent->addStyleClass("span8");
+  newCommentContent->addStyleClass("col-md-8");
 
-  addWidget(WW<WContainerWidget>().css("add-comment-box row-fluid").add(newCommentContent).add(insertComment).setContentAlignment(AlignCenter));
+  addWidget(WW<WContainerWidget>().css("add-comment-box row").add(newCommentContent).add(insertComment).setContentAlignment(AlignCenter));
   
   addWidget(d->commentsContainer = WW<WContainerWidget>().css("container") );
 
