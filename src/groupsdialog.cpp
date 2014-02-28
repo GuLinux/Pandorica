@@ -115,13 +115,13 @@ GroupsDialog::GroupsDialog(Session* session, Settings* settings): WDialog()
     for(GroupPtr group: groups) {
       currentGroups->elementAt(row, 0)->addWidget(WW<WText>(group->groupName()));
       currentGroups->elementAt(row, 0)->setContentAlignment(AlignMiddle);
-      currentGroups->elementAt(row, 1)->addWidget(WW<WPushButton>(wtr("groups.users")).css("btn btn-small btn-primary").onClick([=](WMouseEvent) {
+      currentGroups->elementAt(row, 1)->addWidget(WW<WPushButton>(wtr("groups.users")).css("btn btn-sm btn-primary").onClick([=](WMouseEvent) {
         (new UsersInGroupDialog{group, session})->show(); 
       }));
-      currentGroups->elementAt(row, 2)->addWidget(WW<WPushButton>(wtr("groups.paths")).setEnabled(!group->isAdmin()).css("btn btn-small btn-info").onClick([=](WMouseEvent) {
+      currentGroups->elementAt(row, 2)->addWidget(WW<WPushButton>(wtr("groups.paths")).setEnabled(!group->isAdmin()).css("btn btn-sm btn-info").onClick([=](WMouseEvent) {
         (new GroupDirectoriesDialog{group, session, settings})->show();
       }));
-      currentGroups->elementAt(row, 3)->addWidget(WW<WPushButton>(wtr("button.remove")).css("btn btn-small btn-danger").onClick([=](WMouseEvent) {
+      currentGroups->elementAt(row, 3)->addWidget(WW<WPushButton>(wtr("button.remove")).css("btn btn-sm btn-danger").onClick([=](WMouseEvent) {
         if(WMessageBox::show(wtr("delete.group.title"), wtr("delete.group.text").arg(group->groupName()), Yes | No) != Yes) return;
         Dbo::Transaction t(*session);
         GroupPtr groupToDelete = session->find<Group>().where("id = ?").bind(group.id());
@@ -159,7 +159,7 @@ UsersInGroupDialog::UsersInGroupDialog(GroupPtr group, Session* session): WDialo
   setWindowTitle(wtr("users.in.group.title").arg(group->groupName()));
   WTable *usersTable = WW<WTable>().css("table table-striped table-bordered table-hover");
   
-  WPushButton *addButton = WW<WPushButton>(wtr("button.add")).css("btn btn-small btn-primary").setMargin(10, Side::Left);
+  WPushButton *addButton = WW<WPushButton>(wtr("button.add")).css("btn btn-sm btn-primary").setMargin(10, Side::Left);
   WComboBox *usersSelect = WW<WComboBox>().css("col-md-4");
   auto enableAddbutton = [=] {
     addButton->setEnabled(usersSelect->count());

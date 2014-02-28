@@ -131,7 +131,7 @@ HTML5Player::HTML5Player(HTML5Player::SubType subType, WContainerWidget* parent)
   ).str());
 
   for(auto link: vector<pair<string,string>>{ {"small", "30"}, {"medium", "60"}, {"large", "75"}, {"full", "100"} } ) {
-    WInteractWidget *button = WW<WPushButton>(wtr(string{"player_resize_"} + link.first), d->resizeLinks).css("btn btn-small")
+    WInteractWidget *button = WW<WPushButton>(wtr(string{"player_resize_"} + link.first), d->resizeLinks).css("btn btn-sm")
       .setAttribute("resizeTo", link.second);
       button->setWidth(120);
       button->clicked().connect(d->resizeSlot);

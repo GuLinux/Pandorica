@@ -183,7 +183,7 @@ void Pandorica::notify( const WString &text, Pandorica::NotificationType notific
 {
   static map<NotificationType,string> notificationTypes {
     { Alert, "" },
-    { Error, "alert-error" },
+    { Error, "alert-danger" },
     { Success, "alert-success" },
     { Information, "alert-information" },
   };
@@ -628,7 +628,7 @@ void Pandorica::Private::play(PlaylistItem *playlistItem) {
     wApp->setTitle(wtr("site-title"));
   });
   
-  infoBox->addWidget(WW<WPushButton>(wtr("player.sharelink")).css("btn btn-info btn-mini").onClick([=](WMouseEvent){
+  infoBox->addWidget(WW<WPushButton>(wtr("player.sharelink")).css("btn btn-info btn-xs").onClick([=](WMouseEvent){
     Wt::Dbo::Transaction t( *session );
     WW<WMessageBox>(wtr( "mediabrowser.share" ),
 		    wtr( "mediabrowser.share.dialog" )
@@ -639,7 +639,7 @@ void Pandorica::Private::play(PlaylistItem *playlistItem) {
   }));
   infoBox->addWidget(new WText{" "});
   
-  WPushButton *downloadLink = WW<WPushButton>(wtr("player.downloadlink")).css("btn btn-info btn-mini").onClick([=](WMouseEvent){
+  WPushButton *downloadLink = WW<WPushButton>(wtr("player.downloadlink")).css("btn btn-info btn-xs").onClick([=](WMouseEvent){
     WDialog *downloadDialog = new WDialog(wtr("player.downloadlink"));
     downloadDialog->contents()->addWidget(new WText{wtr("player.downloadlink.message").arg(mediaLink.url()), XHTMLUnsafeText});
     downloadDialog->contents()->addWidget(new WText{wtr("player.downloadlink.message.closeplayer"), XHTMLUnsafeText});

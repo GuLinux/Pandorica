@@ -103,15 +103,15 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
   row->addWidget( WW<WContainerWidget>().css( "mediabrowser col-md-8" ).add( d->browser ) );
 
 
-  d->browser->setList( true );
+//  d->browser->setList( true );
   WContainerWidget *breadcrumb = WW<WContainerWidget>().css("breadcrumb visible-lg visible-md");
-  WPushButton *reloadButton = WW<WPushButton>( wtr( "mediacollection.reload" ) ).css( "btn btn-small" ).onClick([=](WMouseEvent)
+  WPushButton *reloadButton = WW<WPushButton>( wtr( "mediacollection.reload" ) ).css( "btn btn-sm" ).onClick([=](WMouseEvent)
   {
     collection->rescan( [=] {
       d->browse( d->currentPath == d->flatPath ? d->flatPath : d->rootPath );
     });
   } );
-  WPushButton *sortByButton = WW<WPushButton>(wtr("mediacollectionbrowser_sort_by")).css("btn btn-small").setMenu(new WPopupMenu);
+  WPushButton *sortByButton = WW<WPushButton>(wtr("mediacollectionbrowser_sort_by")).css("btn btn-sm").setMenu(new WPopupMenu);
   shared_ptr<vector<WMenuItem*>> sortMenuGroup(new vector<WMenuItem*>);
   shared_ptr<vector<WMenuItem*>> sortOrderMenuGroup(new vector<WMenuItem*>);
   auto addCheckableItem = [=](WMenu *menu, const WString &label, function<void()> onClick, const shared_ptr<vector<WMenuItem*>> &group) {
@@ -145,13 +145,13 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
   });
 
   shared_ptr<vector<WMenuItem*>> viewModeItems(new vector<WMenuItem*>);
-  WPushButton *viewModeButton = WW<WPushButton>(wtr("mediacollectionbrowser_view_mode")).css("btn btn-small").setMenu(new WPopupMenu);
+  WPushButton *viewModeButton = WW<WPushButton>(wtr("mediacollectionbrowser_view_mode")).css("btn btn-sm").setMenu(new WPopupMenu);
   
   
   addCheckableItem(viewModeButton->menu(), wtr("mediacollectionbrowser_filesystem_view"), [=]{ d->browse(d->rootPath); }, viewModeItems)->setChecked(true);
   addCheckableItem(viewModeButton->menu(), wtr("mediacollectionbrowser_all_medias"), [=]{ d->browse(d->flatPath); }, viewModeItems);
 
-  WPushButton *filtersButton = WW<WPushButton>(wtr("mediacollectionbrowser_filters")).css("btn btn-small").setMenu(new WPopupMenu);
+  WPushButton *filtersButton = WW<WPushButton>(wtr("mediacollectionbrowser_filters")).css("btn btn-sm").setMenu(new WPopupMenu);
   filtersButton->menu()->itemClosed().connect([=](WMenuItem *item, _n5) { d->mediaFilters.erase(item); reload(); });
   auto addFilterMenuItem = filtersButton->menu()->addSectionHeader(wtr("mediacollectionbrowser_filters_add_filter"));
   filtersButton->menu()->addItem(wtr("mediacollectionbrowser_filters_name"))->triggered().connect([=](WMenuItem*, _n5){ d->titleFilterDialog(filtersButton->menu()); });
@@ -583,7 +583,7 @@ void MediaCollectionBrowser::Private::setTitleFor( Media media )
 
 WContainerWidget *MediaCollectionBrowser::Private::addIcon( WString filename, GetIconF icon, OnClick onClick )
 {
-  WContainerWidget *item = WW<WContainerWidget>().css( "col-md-3 media-icon-container" );
+  WContainerWidget *item = WW<WContainerWidget>().css( "col-md-2 col-lg-3 media-icon-container" );
   item->setContentAlignment( AlignmentFlag::AlignCenter );
   WAnchor *link = WW<WAnchor>().css( "thumbnail filesystem-item link-hand" );
   link->setToolTip(filename);

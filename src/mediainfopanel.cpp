@@ -71,11 +71,11 @@ void MediaInfoPanel::reset()
   addWidget( new WBreak );
   addWidget( WW<WText>( wtr( "infopanel.empty.message" ) ) );
   auto folderActions = d->createPanel( "mediabrowser.folderActions" );
-  folderActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.folderActions.playFolder" ) ).css( "btn btn-block btn-small btn-primary" ).onClick( [ = ]( WMouseEvent )
+  folderActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.folderActions.playFolder" ) ).css( "btn btn-block btn-sm btn-primary" ).onClick( [ = ]( WMouseEvent )
   {
     d->playFolder.emit();
   } ) );
-  folderActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.folderActions.playFolderRecursive" ) ).css( "btn btn-block btn-small" ).onClick( [ = ]( WMouseEvent )
+  folderActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.folderActions.playFolderRecursive" ) ).css( "btn btn-block btn-sm" ).onClick( [ = ]( WMouseEvent )
   {
     d->playFolderRecursive.emit();
   } ) );
@@ -146,15 +146,15 @@ void MediaInfoPanel::info( Media &media )
   }
 
   auto actions = d->createPanel( "mediabrowser.actions" );
-  actions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.play" ) ).css( "btn btn-block btn-small btn-primary" ).onClick( [ = ]( WMouseEvent )
+  actions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.play" ) ).css( "btn btn-block btn-sm btn-primary" ).onClick( [ = ]( WMouseEvent )
   {
     d->play.emit( media );
   } ) );
-  actions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.queue" ) ).css( "btn btn-block btn-small" ).onClick( [ = ]( WMouseEvent )
+  actions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.queue" ) ).css( "btn btn-block btn-sm" ).onClick( [ = ]( WMouseEvent )
   {
     d->queue.emit( media );
   } ) );
-  actions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.share" ) ).css( "btn btn-block btn-small" ).onClick( [ = ]( WMouseEvent )
+  actions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.share" ) ).css( "btn btn-block btn-sm" ).onClick( [ = ]( WMouseEvent )
   {
     Wt::Dbo::Transaction t( *d->session );
     WW<WMessageBox>(wtr( "mediabrowser.share" ),
@@ -169,7 +169,7 @@ void MediaInfoPanel::info( Media &media )
   {
     wasResetted().emit();
   } ) );
-  actions.second->addWidget( WW<WPushButton>( wtr( "player.downloadlink" ) ).css( "btn btn-block btn-small btn-success" ).onClick( [ = ]( WMouseEvent )
+  actions.second->addWidget( WW<WPushButton>( wtr( "player.downloadlink" ) ).css( "btn btn-block btn-sm btn-success" ).onClick( [ = ]( WMouseEvent )
   {
     WDialog *downloadDialog = new WDialog(wtr("player.downloadlink"));
     downloadDialog->contents()->addWidget(new WText{wtr("player.downloadlink.message").arg(d->settings->linkFor( media.path() , d->session).url()), XHTMLUnsafeText});
@@ -190,19 +190,19 @@ void MediaInfoPanel::info( Media &media )
     auto adminActions = d->createPanel( "mediabrowser.admin.actions" );
     adminActions.first->addStyleClass( "visible-lg visible-md" );
     adminActions.first->collapse();
-    adminActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.admin.settitle" ) ).css( "btn btn-block btn-small btn-primary" ).onClick( [ = ]( WMouseEvent )
+    adminActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.admin.settitle" ) ).css( "btn btn-block btn-sm btn-primary" ).onClick( [ = ]( WMouseEvent )
     {
       setTitle().emit( media );
     } ) );
-    adminActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.admin.setposter" ) ).css( "btn btn-block btn-small btn-primary" ).onClick( [ = ]( WMouseEvent )
+    adminActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.admin.setposter" ) ).css( "btn btn-block btn-sm btn-primary" ).onClick( [ = ]( WMouseEvent )
     {
       setPoster().emit( media );
     } ) );
-    adminActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.admin.deletepreview" ) ).css( "btn btn-block btn-small btn-danger" ).onClick( [ = ]( WMouseEvent )
+    adminActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.admin.deletepreview" ) ).css( "btn btn-block btn-sm btn-danger" ).onClick( [ = ]( WMouseEvent )
     {
       deletePoster().emit( media );
     } ) );
-    adminActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.admin.deleteattachments" ) ).css( "btn btn-block btn-small btn-danger" ).onClick( [ = ]( WMouseEvent )
+    adminActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.admin.deleteattachments" ) ).css( "btn btn-block btn-sm btn-danger" ).onClick( [ = ]( WMouseEvent )
     {
       deleteAttachments().emit( media );
     } ) );

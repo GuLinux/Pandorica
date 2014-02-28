@@ -135,7 +135,7 @@ void ImageUploader::uploaded()
   {
     log( "error" ) << "Error decoding image: " << e.what();
     reset();
-    linkContainer->addWidget( WW<WContainerWidget>().add( new WText {wtr( "mediascannerdialog.thumbnail.upload.error" )} ).css( "alert alert-error" ) );
+    linkContainer->addWidget( WW<WContainerWidget>().add( new WText {wtr( "mediascannerdialog.thumbnail.upload.error" )} ).css( "alert alert-danger" ) );
   }
 }
 

@@ -75,7 +75,7 @@ UsersManagementPage::UsersManagementPage( Session *session, Wt::WContainerWidget
   groupsButton->setMargin(5);
   WCheckBox *sendEmailCheckbox = WW<WCheckBox>(wtr("usersmanagement_invite_send_email")).setMargin(5);
   sendEmailCheckbox->setCheckState(Wt::Checked);    
-  WPushButton *inviteButton = WW<WPushButton>(wtr("usersmanagement_invite_invite")).setMargin(5).css("btn btn-primary btn-small").onClick([=](WMouseEvent){
+  WPushButton *inviteButton = WW<WPushButton>(wtr("usersmanagement_invite_invite")).setMargin(5).css("btn btn-primary btn-sm").onClick([=](WMouseEvent){
     if(inviteEmailAddress->validate() != WValidator::Valid) {
       WMessageBox::show(wtr("error"), wtr("validation_email_invalid"), StandardButton::Ok);
       return;
@@ -191,7 +191,7 @@ void UsersManagementPage::Private::addUserRow( Dbo::ptr< AuthInfo > &authInfo, D
                                 [=](const Dbo::ptr<Group> &group, Dbo::Transaction &t){ 
     user.modify()->groups.erase( group ); }
                                 ));
-  row->elementAt( 3 )->addWidget( WW<WPushButton>(wtr("button.remove")).css("btn btn-danger btn-small").onClick([=](WMouseEvent) {
+  row->elementAt( 3 )->addWidget( WW<WPushButton>(wtr("button.remove")).css("btn btn-danger btn-sm").onClick([=](WMouseEvent) {
     auto confirmation = WMessageBox::show(wtr("usersmanagement_remove_user"),
                                           wtr("usersmanagement_remove_user_confirm_text")
                                           .arg(username).arg(userEmail), StandardButton::Ok | StandardButton::Cancel );
@@ -218,7 +218,7 @@ void UsersManagementPage::Private::addUserRow( Dbo::ptr< AuthInfo > &authInfo, D
 
 WPushButton *UsersManagementPage::Private::groupsButton( Dbo::Transaction &transaction, GroupSelection groupSelection, GroupModTrigger onGroupChecked, UsersManagementPage::Private::GroupModTrigger onGroupUnchecked )
 {
-  WPushButton *groupsButton = WW<WPushButton>(wtr("menu.groups")).css("btn btn-small");
+  WPushButton *groupsButton = WW<WPushButton>(wtr("menu.groups")).css("btn btn-sm");
   groupsButton->setMenu( new WPopupMenu );
   for( auto group: transaction.session().find<Group>().resultList())
   {
