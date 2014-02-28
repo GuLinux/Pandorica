@@ -583,7 +583,7 @@ void MediaCollectionBrowser::Private::setTitleFor( Media media )
 
 WContainerWidget *MediaCollectionBrowser::Private::addIcon( WString filename, GetIconF icon, OnClick onClick )
 {
-  WContainerWidget *item = WW<WContainerWidget>().css( "col-md-2 col-lg-3 media-icon-container" );
+  WContainerWidget *item = WW<WContainerWidget>().css( "col-md-2 col-lg-2 media-icon-container" );
   item->setContentAlignment( AlignmentFlag::AlignCenter );
   WAnchor *link = WW<WAnchor>().css( "thumbnail filesystem-item link-hand" );
   link->setToolTip(filename);
