@@ -35,6 +35,7 @@ iframe[src='http://cdn.adsbarscipt.com/links/flash/?updnew'] {
 }
 
 .filesystem-item {
+  background-color: inherit;
   font-size: smaller;
 /*  word-wrap: break-word; 
   min-height: 160px; */
