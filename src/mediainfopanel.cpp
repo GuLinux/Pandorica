@@ -103,7 +103,7 @@ void MediaInfoPanel::info( Media &media )
     if( fullImageAttachment )
       fullImage = fullImageAttachment->link( fullImageAttachment, t, header );
 
-    WAnchor *fullImageLink = new WAnchor {fullImage, new WImage{previewLink, title}};
+    WAnchor *fullImageLink = new WAnchor {fullImage, WW<WImage>(previewLink, title).css("infopanel-cover")};
     fullImageLink->setTarget( Wt::AnchorTarget::TargetNewWindow );
     header->addWidget( fullImageLink );
   }

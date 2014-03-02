@@ -34,6 +34,11 @@ iframe[src='http://cdn.adsbarscipt.com/links/flash/?updnew'] {
 	z-index: 4;
 }
 
+
+.infopanel-cover {
+  width: 100%;
+}
+
 .filesystem-item {
   background-color: inherit;
   font-size: smaller;
