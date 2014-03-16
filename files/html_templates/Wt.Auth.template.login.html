@@ -1,9 +1,9 @@
     <!--<div class="Wt-form Wt-auth-login">-->
-    <div>
+    <div class="container">
       <!--<h2>${tr:Wt.Auth.login-form-title}</h2>
       <p>${tr:Wt.Auth.login-form-info}</p>-->
       ${<if:oauth>}
-    <div style="text-align: center">
+    <div >
     <h5>
     ${tr:oauth_login_with}
     </h5>
@@ -20,32 +20,32 @@
       <div id="login-form-collapsible" class="collapse">
       ${</if:oauth>}
     ${<if:passwords>}
-      <div class="row-fluid">
-        <div class="span5">
+      <div class="row">
+        <div class="col-md-5">
           <label for="${id:user-name}" class="help-block" style="font-size: small;">
             <b>${user-name-label class="help-block label"}</b>
             ${user-name-info class="help-block small-text"}
           </label>
         </div>
-        <div class="span7">
+        <div class="col-md-7">
           ${user-name  class="input-block-level"}
         </div>
       </div>
-      <div class="row-fluid">
-        <div class="span5">
+      <div class="row">
+        <div class="col-md-5">
           <label for="${id:password}" class="help-block" style="font-size: small;">
             <b>${tr:Wt.Auth.password class="help-block label"}</b>
             ${password-info  class="help-block small-text"}
           </label>
         </div>
-        <div class="span7">
+        <div class="col-md-7">
           ${password  class="input-block-level"}
         </div>
       </div>
 
       ${<if:remember-me>}
-      <div class="row-fluid">
-        <label for="${id:remember-me}" class="checkbox help-block span12" style="font-size: small;"><b>
+      <div class="row">
+        <label for="${id:remember-me}" class="checkbox help-block col-md-12" style="font-size: small;"><b>
         ${tr:Wt.Auth.remember-me}
         ${remember-me}
         </b></label>
@@ -55,16 +55,16 @@
 
      ${</if:passwords>}
 
-      <div class="row-fluid">
-        <div class="offset4 span4">
+      <div class="row">
+        <div class="col-md-offset-4 col-md-4">
           ${login class="btn btn-primary input-block-level"}
         </div>
       </div>
-      <div class="row-fluid visible-desktop" style="margin-top: 10px;">
-        <div class="span6">
+      <div class="row visible-md visible-lg" style="margin-top: 10px;">
+        <div class="col-md-6">
           ${lost-password class="btn btn-warning input-block-level"}
         </div>
-        <div class="span6">
+        <div class="col-md-6">
           ${register class="btn btn-success input-block-level"}
         </div>
       </div>

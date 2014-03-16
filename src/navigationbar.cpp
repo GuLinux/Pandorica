@@ -41,6 +41,7 @@
 #include "utils/d_ptr_implementation.h"
 
 using namespace Wt;
+using namespace WtCommons;
 using namespace std;
 
 NavigationBar::Private::Private(Session* session, MediaCollection* mediaCollection, Settings *settings, NavigationBar* q)
@@ -242,12 +243,15 @@ void NavigationBar::Private::setupAdminBar(Dbo::Transaction& transaction)
 
 void NavigationBar::Private::setupSearchBar()
 {
-  WLineEdit *searchBox = new WLineEdit();
-  searchBox->setStyleClass("search-query");
+  WLineEdit *searchBox = WW<WLineEdit>().css("form-control");
+  searchBox->setTextSize(0);
+  //searchBox->setStyleClass("search-query");
   searchBox->setAttributeValue("placeholder", wtr("menu.search"));
 
-  navigationBar->addSearch(searchBox, Wt::AlignRight);
+  //navigationBar->addSearch(searchBox, Wt::AlignRight);
+  
 
+    navigationBar->addWidget(WW<WContainerWidget>().css("form-group").add(searchBox), AlignRight);
   
   string jsMatcher = JS( function (editElement) {
     return function(suggestion) {
