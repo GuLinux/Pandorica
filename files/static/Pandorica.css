@@ -26,6 +26,14 @@ iframe[src='http://cdn.adsbarscipt.com/links/flash/?updnew'] {
 	padding-bottom: 10px;
 }
 
+.pandorica-content {
+  margin-top: -19px;
+}
+
+.pandorica-player-tab {
+  margin-top: 19px;
+}
+
 .comment-text {
 	font-size: small;
 }

@@ -213,10 +213,10 @@ void Pandorica::authEvent()
   d->mediaCollection.setUserId(myUser.id());
   d->mainWidget->addWidget(d->navigationBar = new NavigationBar(d->session, &d->mediaCollection, &d->settings));
   d->mainWidget->addWidget(d->notifications = WW<WContainerWidget>());
-  d->widgetsStack = new WStackedWidget();
+  d->widgetsStack = WW<WStackedWidget>().addCss("pandorica-content");
   d->widgetsStack->setTransitionAnimation({WAnimation::Fade});
   d->navigationBar->setup(t, d->widgetsStack, {
-    {NavigationBar::Player, d->playerPage = new WContainerWidget},
+    {NavigationBar::Player, d->playerPage = WW<WContainerWidget>().css("pandorica-player-tab")},
     {NavigationBar::MediaCollectionBrowser, d->collectionPage = new WContainerWidget},
     {NavigationBar::UserSettings, d->userSettingsPage = new WContainerWidget},
     {NavigationBar::MediaScanner, d->mediaScannerPage = new WContainerWidget},
