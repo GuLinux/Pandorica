@@ -181,7 +181,7 @@ void CreateThumbnails::setupGui( WContainerWidget *container )
   } );
   WContainerWidget *imageContainer = new WContainerWidget;
   imageContainer->setContentAlignment( AlignCenter );
-  imageContainer->addWidget( d->previewImage = WW< WImage >().setHidden( true ) );
+  imageContainer->addWidget( d->previewImage = WW< WImage >().css("img-rounded img-responsive").setHidden( true ) );
   container->addWidget( imageContainer );
   imageUploader->previewImage().connect( [ = ]( ImageBlob blob, _n5 )
   {
