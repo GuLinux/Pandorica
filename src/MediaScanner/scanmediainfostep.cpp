@@ -31,6 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WLabel>
 #include <Wt/WTime>
 #include "Wt-Commons/wt_helpers.h"
+#include <Wt-Commons/wform.h>
 #include <session.h>
 #include "media/mediacollection.h"
 #include <thread>
@@ -95,11 +96,12 @@ void ScanMediaInfoStep::save( Dbo::Transaction& transaction )
 
 void ScanMediaInfoStep::setupGui(WContainerWidget* container)
 {
-    WLabel *label = new WLabel( wtr( "mediascanner.media.title" ) );
+    //WLabel *label = new WLabel( wtr( "mediascanner.media.title" ) );
     d->editTitle = WW<WLineEdit>().css( "col-md-5" );
     d->editTitle->changed().connect( [ = ]( _n1 ) { d->newTitle = d->editTitle->text().toUTF8(); });
-    label->setBuddy( d->editTitle );
-    container->addWidget( WW<WContainerWidget>().css( "form-inline" ).add( label ).add( d->editTitle ) );
+    //label->setBuddy( d->editTitle );
+    container->addWidget((new WForm(WForm::Inline))->addControl(d->editTitle, "mediascanner.media.title"));
+    // container->addWidget( WW<WContainerWidget>().css( "form-inline" ).add( label ).add( d->editTitle ) );
 }
 
 
