@@ -60,7 +60,7 @@ endif(${DBO_SQLITE3_FOUND})
 set(Wt_CONNECTOR_LIBRARY "${Wt_HTTP_LIBRARY}")
 set(Wt_CONNECTOR_DEBUG_LIBRARY ${Wt_HTTP_DEBUG_LIBRARY})
 
-SET(SHARED_FILES_DIR ${CMAKE_INSTALL_PREFIX}/share/${app_name})
+SET(SHARED_FILES_DIR ${CMAKE_INSTALL_PREFIX}/share/${app_name} CACHE string "Shared files installation directory")
 add_definitions(-DSHARED_FILES_DIR="${SHARED_FILES_DIR}" )
 
 set(TRANSLATION_FILES files/strings.xml files/strings_it.xml )
