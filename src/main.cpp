@@ -358,7 +358,7 @@ int main( int argc, char **argv, char **envp )
     
     {
       Session session( false );
-      WtCommons::MigrateDbo migrateDbo( session, session.connection(), ::Migrations::migrations() );
+ //     WtCommons::MigrateDbo migrateDbo( session, session.connection(), ::Migrations::migrations() );
 
       if( vm.count( "dump-schema" ) )
       {
