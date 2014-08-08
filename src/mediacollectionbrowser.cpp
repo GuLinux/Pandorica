@@ -411,7 +411,7 @@ void MediaCollectionBrowser::Private::addDirectory( const shared_ptr<MediaDirect
   {
     browse( directory );
   };
-  addIcon( directory->label(), []( WObject * )
+  addIcon( WString::fromUTF8(directory->label()), []( WObject * )
   {
     return Settings::icon( Settings::FolderBig );
   }, onClick );
@@ -620,7 +620,7 @@ void MediaCollectionBrowser::Private::rebuildBreadcrumb()
   {
     WContainerWidget *item = new WContainerWidget;
 
-    item->addWidget( WW<WAnchor>( "", path->label() ).css( "link-hand" ).onClick( [ = ]( WMouseEvent )
+    item->addWidget( WW<WAnchor>( "", WString::fromUTF8(path->label()) ).css( "link-hand" ).onClick( [ = ]( WMouseEvent )
     {
       browse( path );
     } ) );

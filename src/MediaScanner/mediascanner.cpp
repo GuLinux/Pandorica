@@ -166,7 +166,7 @@ void MediaScanner::scan(function<bool(Media&)> scanFilter)
 {
   auto updateGuiProgress = [=] (Semaphore &s) {
     d->progressBar->setValue(d->scanningProgress.progress);
-    d->progressBarTitle->setText(d->scanningProgress.currentFile);
+    d->progressBarTitle->setText(WString::fromUTF8(d->scanningProgress.currentFile));
     for(auto stepContainers : d->stepsContents)
       stepContainers.second.content->clear();
     d->app->triggerUpdate();

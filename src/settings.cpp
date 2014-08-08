@@ -196,9 +196,12 @@ WLink Settings::linkFor(fs::path p, Dbo::Session* session)
           case NginxSecureLink:
             return d->nginxSecLinkFor(deployDir.second, deployDir.first, secureDownloadPassword, p);
           default:
-            string relpath = p.string();
-            boost::replace_all(relpath, deployDir.first + '/', deployDir.second); // TODO: consistency check
-            return relpath;
+              stringstream s;
+            for(auto relPathComponent: p)
+              if(relPathComponent.string() != "/") {
+                s << "/" << Utils::urlEncode(relPathComponent.string() ) ;
+              }
+            return boost::replace_all_copy(s.str(), deployDir.first + '/', deployDir.second); // TODO: consistency check
         }
       }
     }

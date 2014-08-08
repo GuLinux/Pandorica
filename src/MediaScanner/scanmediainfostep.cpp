@@ -81,7 +81,7 @@ void ScanMediaInfoStep::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transac
   d->newTitle = titleSuggestion;
   d->ffmpegMedia = ffmpegMedia;
   d->media = media;
-  guiRun( d->app, [=]{ d->editTitle->setText(titleSuggestion); d->app->triggerUpdate(); } );
+  guiRun( d->app, [=]{ d->editTitle->setText(WString::fromUTF8(titleSuggestion)); d->app->triggerUpdate(); } );
 }
 
 

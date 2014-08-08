@@ -117,7 +117,7 @@ void MediaInfoPanel::info( Media &media )
   auto mediaMediaInfoPanel = d->createPanel( "mediabrowser.information" );
   WTable *table = new WTable( mediaMediaInfoPanel.second );
   table->setWidth( WLength( 100, WLength::Percentage ) );
-  d->labelValueBox( "mediabrowser.filename", media.filename(), table );
+  d->labelValueBox( "mediabrowser.filename", WString::fromUTF8(media.filename()), table );
   d->labelValueBox( "mediabrowser.filesize", Utils::formatFileSize( fs::file_size( media.path() ) ), table );
 
   MediaPropertiesPtr mediaProperties = media.properties( t );
