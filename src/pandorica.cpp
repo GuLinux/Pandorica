@@ -219,7 +219,7 @@ void Pandorica::authEvent()
     {NavigationBar::Player, d->playerPage = WW<WContainerWidget>().css("pandorica-player-tab")},
     {NavigationBar::MediaCollectionBrowser, d->collectionPage = new WContainerWidget},
     {NavigationBar::UserSettings, d->userSettingsPage = new WContainerWidget},
-    {NavigationBar::MediaScanner, d->mediaScannerPage = new WContainerWidget},
+    {NavigationBar::MediaScanner, d->mediaScannerPage = WW<WContainerWidget>().css("container") },
   });
   d->widgetsStack->addWidget(d->mediaScannerPage);
   t.commit();
