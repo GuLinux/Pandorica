@@ -189,7 +189,7 @@ void MediaScanner::scan(function<bool(Media&)> scanFilter)
   Semaphore s(1);
   updateGuiProgress(s);
   s.wait();
-  boost::thread(boost::bind(&MediaScanner::Private::scanMedias, d.get(), updateGuiProgress, onScanFinished, scanFilter ));
+  WServer::instance()->ioService().post(boost::bind(&MediaScanner::Private::scanMedias, d.get(), updateGuiProgress, onScanFinished, scanFilter ));
 }
 
 void MediaScanner::Private::scanMedias(function<void(Semaphore &)> updateGuiProgress, function<void(Semaphore &)> onScanFinish, function<bool(Media &)> scanFilter)
@@ -253,7 +253,7 @@ void MediaScanner::Private::runStepsFor(Media media, Dbo::Transaction& transacti
 {
   canContinue = false;
 
-  FFMPEGMedia ffmpegMedia{media, [=](const string &level) { return app->log(level); } };
+  FFMPEGMedia ffmpegMedia{media, [=](const string &level) { return WServer::instance()->log(level); } };
   Semaphore s(1);
   guiRun(app, [=, &s]{
     for(auto step: steps) {
