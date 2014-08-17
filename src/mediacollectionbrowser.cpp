@@ -98,9 +98,9 @@ MediaCollectionBrowser::MediaCollectionBrowser( MediaCollection *collection, Set
 
 
   WContainerWidget *row = WW<WContainerWidget>( container ).css( "row" );
-  MediaInfoPanel *desktopMediaInfoPanel = WW<MediaInfoPanel>( session, settings ).addCss( "visible-lg visible-md col-md-4" );
+  MediaInfoPanel *desktopMediaInfoPanel = WW<MediaInfoPanel>( session, settings ).addCss( "visible-lg visible-md col-md-4 browser-info-panel-sidebar" );
   row->addWidget( desktopMediaInfoPanel );
-  row->addWidget( WW<WContainerWidget>().css( "mediabrowser col-md-8" ).add( d->browser ) );
+  row->addWidget( WW<WContainerWidget>().css( "mediabrowser col-md-offset-4 col-md-8" ).add( d->browser ) );
 
 
 //  d->browser->setList( true );

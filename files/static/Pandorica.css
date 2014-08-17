@@ -51,6 +51,14 @@ iframe[src='http://cdn.adsbarscipt.com/links/flash/?updnew'] {
   width: 100%;
 }
 
+.browser-info-panel-sidebar {
+  position: fixed;
+  top: 120px;
+  left: 10px;
+  bottom: 10px;
+  overflow: auto;
+}
+
 .filesystem-item {
   background-color: inherit;
   font-size: smaller;

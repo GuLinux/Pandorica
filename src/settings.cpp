@@ -201,7 +201,7 @@ WLink Settings::linkFor(fs::path p, Dbo::Session* session)
               if(relPathComponent.string() != "/") {
                 s << "/" << Utils::urlEncode(relPathComponent.string() ) ;
               }
-            return boost::replace_all_copy(s.str(), deployDir.first + '/', deployDir.second); // TODO: consistency check
+            return boost::replace_all_copy( Utils::urlEncode(p.string()), Utils::urlEncode(deployDir.first) + '/', deployDir.second); // TODO: consistency check
         }
       }
     }
