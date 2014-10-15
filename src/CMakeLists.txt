@@ -1,5 +1,4 @@
 SET( models_srcs Models/group.cpp Models/user.cpp Models/mediarating.cpp Models/mediaattachment.cpp Models/sessioninfo.cpp)
-SET( Wt_Commons_srcs ../Wt-Commons/whtmltemplateslocalizedstrings.cpp ../Wt-Commons/wform.cpp ../Wt-Commons/compositeresource.cpp ../Wt-Commons/quitresource.cpp ../Wt-Commons/migratedbo.cpp )
 SET( mediascanner_srcs
     MediaScanner/savesubtitlestodatabase.cpp
     MediaScanner/createthumbnails.cpp
@@ -42,7 +41,7 @@ if(Qt5Widgets_FOUND)
   set(qt_only_classes qttrayicon.cpp ${Pandorica_HEADERS_MOC})
 endif(Qt5Widgets_FOUND)
 
-set(pandorica_SOURCES ${Wt_Commons_srcs} ${models_srcs} ${mediascanner_srcs} ${player_srcs} 
+set(pandorica_SOURCES ${models_srcs} ${mediascanner_srcs} ${player_srcs} 
   ${qt_only_classes}
     authpage.cpp
     ffmpegmedia.cpp
@@ -107,7 +106,7 @@ if(WIN32)
 
 endif(WIN32)
 
-target_link_libraries(${app_name} ${GRAPHICSMAGICK_LDFLAGS} ${Qt5Widgets_LIBRARIES} ${QT_QTCORE_LIBRARY} ${QT_QTNETWORK_LIBRARY} ${QT_QTGUI_LIBRARY} 
+target_link_libraries(${app_name} Wt_Commons_Library ${GRAPHICSMAGICK_LDFLAGS} ${Qt5Widgets_LIBRARIES} ${QT_QTCORE_LIBRARY} ${QT_QTNETWORK_LIBRARY} ${QT_QTGUI_LIBRARY} 
   ${AVFORMAT_LDFLAGS} ${AVCODEC_LDFLAGS} ${AVUTIL_LDFLAGS} ${SWSCALE_LDFLAGS} ${LIBPNG_LIBRARIES} 
   ${WT_LINK_LIBS} ${Boost_LIBRARIES} ${WIN32_LIBS} )
 install(TARGETS ${app_name} RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)

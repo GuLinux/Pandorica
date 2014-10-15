@@ -74,5 +74,6 @@ if(QT_FOUND OR Qt5Widgets_FOUND)
   INSTALL(DIRECTORY files/desktop-files/hicolor DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons )
 endif(QT_FOUND OR Qt5Widgets_FOUND)
 
+add_subdirectory(Wt-Commons)
 add_subdirectory(src)
 add_subdirectory(tests)
