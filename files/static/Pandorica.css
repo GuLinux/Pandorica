@@ -303,3 +303,7 @@ body {
 .menuitem-closeable .close {
   min-width: 25px;
 }
+
+.server-settings-page-body {
+  overflow-y: scroll;
+}

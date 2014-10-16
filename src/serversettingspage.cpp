@@ -67,6 +67,7 @@ ServerSettingsPage::ServerSettingsPage(Settings* settings, Session* session, Med
 {
   setWindowTitle(wtr("menu.configure.app"));
   WStackedWidget *stack = new WStackedWidget(contents());
+  contents()->addStyleClass("server-settings-page-body");
   setClosable(false);
   setHeight(650);
   setWidth(600);
