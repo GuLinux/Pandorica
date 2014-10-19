@@ -5,7 +5,6 @@ set(app_name Pandorica)
 project(${app_name})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -fstack-protector-all")
 add_definitions(-DWT_NO_SLOT_MACROS)
-set( ENV{PKG_CONFIG_PATH} ${FFMPEG_PATH} )
 find_package(Wt 3.3.1 REQUIRED)
 find_package(FFMPEG REQUIRED)
 
