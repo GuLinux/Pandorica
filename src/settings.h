@@ -58,7 +58,7 @@ class Settings
     void setValue( std::string settingName, std::string value );
     Wt::WLink linkFor( boost::filesystem::path p, Wt::Dbo::Session *session );
     Wt::WLink shareLink( std::string mediaId );
-    Player *newPlayer();
+    Player *newPlayer(const std::string &mimetype);
     bool autoplay( const Media &media );
     static const std::string guiLanguage;
     static const std::string mediaAutoplay;

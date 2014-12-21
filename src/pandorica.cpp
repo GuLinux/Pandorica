@@ -552,7 +552,7 @@ void Pandorica::Private::play(PlaylistItem *playlistItem) {
     player->stop();
     delete player;
   }
-  player = settings.newPlayer();
+  player = settings.newPlayer(media.mimetype());
   Dbo::Transaction t(*session);
   wApp->setLoadingIndicator(0); // TODO: improve
   WLink mediaLink = settings.linkFor( media.path() , session);

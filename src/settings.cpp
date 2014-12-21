@@ -144,9 +144,12 @@ void Settings::setValue(string settingName, string value)
 }
 
 
-Player* Settings::newPlayer()
+Player* Settings::newPlayer(const string &mimetype)
 {
   string playerSetting = value(Settings::preferredPlayer);
+  if(playerSetting == "videojs" && mimetype.find("audio") == 0) {
+    playerSetting = "purehtml5";
+  }
   if(playerSetting == "jplayer")
     return new WMediaPlayerWrapper();
   if(playerSetting == "purehtml5")
