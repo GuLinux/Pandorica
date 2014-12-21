@@ -15,6 +15,12 @@ include(FindPackageHandleStandardArgs)
 find_package(Boost REQUIRED COMPONENTS signals system filesystem chrono thread regex program_options random date_time serialization OPTIONAL_COMPONENTS unit_test_framework )
 set(Disable_Qt5 False CACHE bool "Disable Qt5 detection")
 set(Disable_Qt False CACHE bool "Disable Qt detection")
+
+set(Boost_Optional_Linker_Fix False CACHE bool "Enable fix to boost optional ostream linker error (default: false)")
+if(Boost_Optional_Linker_Fix)
+  add_definitions(-DBOOST_OSTREAM_OPERATOR_OPTIONAL_FIX)
+endif(Boost_Optional_Linker_Fix)
+
 if( NOT Disable_Qt )
   if( NOT Disable_Qt5 )
     FIND_PACKAGE(Qt5Widgets)

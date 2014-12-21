@@ -78,12 +78,14 @@ extern "C" {
 }
 
 
+#ifdef BOOST_OSTREAM_OPERATOR_OPTIONAL_FIX
 // compilation fix on archlinux... why?
 namespace boost {
   template<>
 std::basic_ostream<char, std::char_traits<char> >& operator<< <char, std::char_traits<char>, std::string>(std::basic_ostream<char, std::char_traits<char> >&, boost::optional<std::string> const&) {
 }
 }
+#endif
 
 
 
