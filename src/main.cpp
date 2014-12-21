@@ -51,6 +51,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QApplication>
 #include "qttrayicon.h"
 #endif
+#include <boost/optional.hpp>
 
 using namespace Wt;
 using namespace std;
@@ -75,6 +76,15 @@ extern "C" {
 #include <libavcodec/avcodec.h>    // required headers
 #include <libavformat/avformat.h>
 }
+
+
+// compilation fix on archlinux... why?
+namespace boost {
+  template<>
+std::basic_ostream<char, std::char_traits<char> >& operator<< <char, std::char_traits<char>, std::string>(std::basic_ostream<char, std::char_traits<char> >&, boost::optional<std::string> const&) {
+}
+}
+
 
 
 #ifdef WIN32_GUI_APP
@@ -329,6 +339,7 @@ bool addStaticResources( WServer &server )
   server.addResource( staticResources, Settings::staticDeployPath() );
   return true;
 }
+
 
 int main( int argc, char **argv, char **envp )
 {

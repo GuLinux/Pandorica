@@ -4,6 +4,7 @@ build*
 webroot/uploads
 *-swp
 *.kdev*
+*.kdev4
 *~
 *.db
 .directory

@@ -100,7 +100,6 @@ void UsersManagementPage::Private::invite(std::string email, const std::vector<W
   Dbo::Transaction t(*session);
   long existingUsers = session->query<long>("SELECT COUNT(*) FROM auth_info WHERE email = ? OR unverified_email = ?").bind(email).bind(email);
   if(existingUsers > 0) {
-    cerr << "User already existing: " << email << endl;
     WMessageBox::show(wtr("error"), wtr("usersmanagement_invite_user_already_existing").arg(email), StandardButton::Ok);
     return;
   }
@@ -112,7 +111,7 @@ void UsersManagementPage::Private::invite(std::string email, const std::vector<W
   auto newUser = session->add(new User);
   for(auto group: groups)
     newUser.modify()->groups.insert(group);
-  newUser.modify()->invitedEmailAddress = email;
+  newUser.modify()->invitedEmailAddress.reset(email);
   if(sendEmail) {
     WDialog *sendEmailDialog = new WDialog;
     sendEmailDialog->setCaption("Invite User");
