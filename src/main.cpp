@@ -210,21 +210,10 @@ bool initServer( int argc, char **argv, WServer &server, po::variables_map &vm )
 #endif
 ;
   char *homeDirectory = getenv(homeVariablename.c_str());
+  bool have_home=homeDirectory;
   if(!homeDirectory) {
-    pErr() << homeVariablename << " variable not found; exiting" << endl;
-    throw runtime_error("Home not found");
+    pErr() << homeVariablename << " variable not found" << endl;
   }
-  string configDirectory = string{homeDirectory} + "/.config/Pandorica";
-
-  try
-  {
-    fs::create_directories( configDirectory );
-  }
-  catch
-    ( std::exception &e )
-  {
-  }
-
   po::options_description pandorica_visible_options( "Pandorica Options" );
   po::options_description pandorica_general_options( "General" );
   pandorica_general_options.add_options()
@@ -241,8 +230,23 @@ bool initServer( int argc, char **argv, WServer &server, po::variables_map &vm )
   ;
 
   po::options_description pandorica_db_options( "Database Options" );
+
+  if(have_home) {
+    string configDirectory = string{homeDirectory} + "/.config/Pandorica";
+    if(have_home) {
+      try {
+        fs::create_directories( configDirectory );
+      }
+      catch( std::exception &e ) {
+      }
+  }
+
+
+    pandorica_db_options.add_options()
+    ( "sqlite3-database-path", po::value<string>()->default_value( configDirectory + "/Pandorica.sqlite" ), "sqlite3 database path." );
+  }
+
   pandorica_db_options.add_options()
-  ( "sqlite3-database-path", po::value<string>()->default_value( configDirectory + "/Pandorica.sqlite" ), "sqlite3 database path." )
   ( "dump-schema", po::value<string>(), "dumps the schema to a file (argument) and exits, useful to manually execute migrations (use '-' to write to stdout)." )
   ;
   po::options_description pandorica_managed_options( "Managed Mode Options" );

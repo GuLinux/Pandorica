@@ -341,12 +341,12 @@ void endSessionOnDatabase(string sessionId, long userId) {
 }
 
 Pandorica::~Pandorica() {
-  d->unregisterSession();
-  d->aboutToQuit.emit(this);
-  WServer::instance()->log("notice") << "Destroying app";
   if(d->session->login().loggedIn()) {
     WServer::instance()->ioService().post(boost::bind(endSessionOnDatabase, sessionId(), d->userId));
   }
+  d->unregisterSession();
+  d->aboutToQuit.emit(this);
+  WServer::instance()->log("notice") << "Destroying app";
 }
 
 // #define MEDIASCANNER_AS_DIALOG
