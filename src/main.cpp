@@ -229,24 +229,21 @@ bool initServer( int argc, char **argv, WServer &server, po::variables_map &vm )
   ( "help-full", "shows full options list, including Wt." )
   ;
 
-  po::options_description pandorica_db_options( "Database Options" );
 
+
+  string configDirectory ="/etc/Pandorica";
   if(have_home) {
-    string configDirectory = string{homeDirectory} + "/.config/Pandorica";
-    if(have_home) {
-      try {
-        fs::create_directories( configDirectory );
-      }
-      catch( std::exception &e ) {
-      }
+    configDirectory = string{homeDirectory} + "/.config/Pandorica";
+  }
+  try {
+    fs::create_directories( configDirectory );
+  }
+    catch( std::exception &e ) {
   }
 
-
-    pandorica_db_options.add_options()
-    ( "sqlite3-database-path", po::value<string>()->default_value( configDirectory + "/Pandorica.sqlite" ), "sqlite3 database path." );
-  }
-
+  po::options_description pandorica_db_options( "Database Options" );
   pandorica_db_options.add_options()
+  ( "sqlite3-database-path", po::value<string>()->default_value( configDirectory + "/Pandorica.sqlite" ), "sqlite3 database path." )
   ( "dump-schema", po::value<string>(), "dumps the schema to a file (argument) and exits, useful to manually execute migrations (use '-' to write to stdout)." )
   ;
   po::options_description pandorica_managed_options( "Managed Mode Options" );
