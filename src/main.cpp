@@ -210,21 +210,10 @@ bool initServer( int argc, char **argv, WServer &server, po::variables_map &vm )
 #endif
 ;
   char *homeDirectory = getenv(homeVariablename.c_str());
+  bool have_home=homeDirectory;
   if(!homeDirectory) {
-    pErr() << homeVariablename << " variable not found; exiting" << endl;
-    throw runtime_error("Home not found");
+    pErr() << homeVariablename << " variable not found" << endl;
   }
-  string configDirectory = string{homeDirectory} + "/.config/Pandorica";
-
-  try
-  {
-    fs::create_directories( configDirectory );
-  }
-  catch
-    ( std::exception &e )
-  {
-  }
-
   po::options_description pandorica_visible_options( "Pandorica Options" );
   po::options_description pandorica_general_options( "General" );
   pandorica_general_options.add_options()
@@ -239,6 +228,18 @@ bool initServer( int argc, char **argv, WServer &server, po::variables_map &vm )
   ( "help", "shows Pandorica options" )
   ( "help-full", "shows full options list, including Wt." )
   ;
+
+
+
+  string configDirectory ="/etc/Pandorica";
+  if(have_home) {
+    configDirectory = string{homeDirectory} + "/.config/Pandorica";
+  }
+  try {
+    fs::create_directories( configDirectory );
+  }
+    catch( std::exception &e ) {
+  }
 
   po::options_description pandorica_db_options( "Database Options" );
   pandorica_db_options.add_options()
