@@ -175,7 +175,7 @@ bool Settings::autoplay(const Media& media)
 
 
 
-WLink Settings::linkFor(fs::path p, Dbo::Session* session)
+WLink Settings::linkFor(boost::filesystem::path p, const string& mimetype, Dbo::Session* session)
 {
   Dbo::Transaction t(*session);
   map<string,string> mediaDirectoriesDeployPaths;
@@ -211,6 +211,7 @@ WLink Settings::linkFor(fs::path p, Dbo::Session* session)
   }
    WFileResource *resource = new WFileResource(p.string(), wApp);
    resource->suggestFileName(p.filename().string());
+   resource->setMimeType(mimetype);
    WLink link{resource};
    wApp->log("notice") << "Generated url: " << link.url();
    return link;
