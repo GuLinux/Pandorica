@@ -35,6 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Models/setting.h"
 #include "session.h"
 #include "utils/d_ptr_implementation.h"
+#include "fileresource.h"
 
 using namespace std;
 using namespace Wt;
@@ -175,7 +176,7 @@ bool Settings::autoplay(const Media& media)
 
 
 
-WLink Settings::linkFor(boost::filesystem::path p, const string& mimetype, Dbo::Session* session)
+WLink Settings::linkFor(boost::filesystem::path p, const string& mimetype, Dbo::Session* session, WObject *parent)
 {
   Dbo::Transaction t(*session);
   map<string,string> mediaDirectoriesDeployPaths;
@@ -209,9 +210,8 @@ WLink Settings::linkFor(boost::filesystem::path p, const string& mimetype, Dbo::
       }
     }
   }
-   WFileResource *resource = new WFileResource(p.string(), wApp);
+   FileResource *resource = new FileResource(mimetype, p.string(), parent);
    resource->suggestFileName(p.filename().string());
-   resource->setMimeType(mimetype);
    WLink link{resource};
    wApp->log("notice") << "Generated url: " << link.url();
    return link;

@@ -56,7 +56,7 @@ class Settings
     std::string value( std::string cookieName );
     std::string locale();
     void setValue( std::string settingName, std::string value );
-    Wt::WLink linkFor( boost::filesystem::path p, const std::string &mimetype, Wt::Dbo::Session *session );
+    Wt::WLink linkFor( boost::filesystem::path p, const std::string &mimetype, Wt::Dbo::Session *session, Wt::WObject *parent = 0 );
     Wt::WLink shareLink( std::string mediaId );
     Player *newPlayer(const std::string &mimetype);
     bool autoplay( const Media &media );
