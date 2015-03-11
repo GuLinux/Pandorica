@@ -210,7 +210,7 @@ WLink Settings::linkFor(boost::filesystem::path p, const string& mimetype, Dbo::
       }
     }
   }
-   FileResource *resource = new FileResource(mimetype, p.string(), parent);
+   WFileResource *resource = new WFileResource(mimetype, p.string(), parent);
    resource->suggestFileName(p.filename().string());
    WLink link{resource};
    wApp->log("notice") << "Generated url: " << link.url();
