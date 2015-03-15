@@ -125,7 +125,7 @@ Session::Session(bool full)
 
 Wt::Dbo::SqlConnection *Session::connection() const
 {
-  return d->connection;
+  return d->connection.get();
 }
 
 
@@ -173,7 +173,7 @@ void Session::Private::createConnection()
 #ifdef HAVE_POSTGRES
   if(havePostgresConfiguration && !psqlConnParameters.empty()) {
     WServer::instance()->log("notice") << "Using postgresql connection";
-    connection = new dbo::backend::Postgres(psqlConnParameters);
+    connection.reset(new dbo::backend::Postgres(psqlConnParameters));
     return;
   }
 #endif
@@ -181,14 +181,14 @@ void Session::Private::createConnection()
   MySqlParams mySqlParams = MySqlParams::readFromConfiguration();
   if(mySqlParams.isValid) {
     WServer::instance()->log("notice") << "Using mysql connection";
-    connection = new dbo::backend::MySQL(mySqlParams.db, mySqlParams.dbUser, mySqlParams.dbPasswd, mySqlParams.dbHost, mySqlParams.dbPort);
+    connection.reset(new dbo::backend::MySQL(mySqlParams.db, mySqlParams.dbUser, mySqlParams.dbPasswd, mySqlParams.dbHost, mySqlParams.dbPort));
     return;
   }
 #endif
   string sqlite3DatabasePath = Settings::sqlite3DatabasePath();
   WServer::instance()->log("notice") << "Using sqlite connection: " << sqlite3DatabasePath;
   
-  connection = new dbo::backend::Sqlite3(Settings::sqlite3DatabasePath());
+  connection.reset(new dbo::backend::Sqlite3(Settings::sqlite3DatabasePath()));
 }
 
 

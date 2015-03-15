@@ -32,7 +32,7 @@ namespace Wt {
 class Session::Private {
 public:
     void createConnection();
-    Wt::Dbo::SqlConnection *connection;
+    std::unique_ptr<Wt::Dbo::SqlConnection> connection;
     UserDatabase *users = 0;
     Wt::Auth::Login login;
 };
