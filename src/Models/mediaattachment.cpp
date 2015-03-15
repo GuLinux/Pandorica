@@ -35,44 +35,76 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using namespace Wt;
 using namespace std;
 namespace fs = boost::filesystem;
+typedef Wt::Dbo::dbo_default_traits::IdType MediaAttachmentId;
 
-class MediaAttachmentResource : public Wt::WStreamResource {
+class Cache {
 public:
-    MediaAttachmentResource(Wt::Dbo::dbo_default_traits::IdType id, WObject* parent = 0);
-    virtual void handleRequest(const Http::Request& request, Http::Response& response);
+  struct File {
+    string name;
+    string mimetype;
+    fs::path path;
+    uint64_t data_size;
+    operator bool() const { return !path.empty(); }
+    void stream(std::ostream &out) const;
+  };
+  Cache();
+  ~Cache();
+  void clean();
+  File create(const MediaAttachmentPtr &mediaAttachment) const;
 private:
-  Wt::Dbo::dbo_default_traits::IdType id;
-  std::mutex _mutex;
+  fs::path cache_directory;
 };
 
-void MediaAttachmentResource::handleRequest(const Http::Request& request, Http::Response& response)
+Cache::Cache() : cache_directory(fs::temp_directory_path() / (boost::format("pandorica-%s.cache") % std::getenv("USER")).str() )
 {
-  std::unique_lock<std::mutex> lock(_mutex);
-  Session session;
-  Dbo::Transaction t(session);
-  MediaAttachmentPtr attachment = session.find<MediaAttachment>().where("id = ?").bind(id).resultValue();
-  if(! attachment) {
-    response.out() << "Not Found";
-    response.setStatus(404);
-    return;
-  }
-  setMimeType(attachment->mimetype());
-  std::ostream_iterator<uint8_t> out(response.out());
-  auto data = attachment->data();
-  std::copy(data.begin(), data.end(), out);
+  clean();
+  fs::create_directories(cache_directory);
 }
 
-MediaAttachmentResource::MediaAttachmentResource(Dbo::dbo_default_traits::IdType id, WObject* parent): WStreamResource(parent), id(id)
+Cache::~Cache()
 {
+  clean();
 }
 
+void Cache::clean()
+{
+  fs::remove_all(cache_directory);
+}
+
+Cache::File Cache::create(const MediaAttachmentPtr &mediaAttachment) const
+{
+  auto file_path = cache_directory / boost::lexical_cast<string>(mediaAttachment.id());
+  auto data = mediaAttachment->data();
+  ofstream file_out(file_path.string());
+  copy(data.begin(), data.end(), ostream_iterator<uint8_t>(file_out));
+
+  return {mediaAttachment->name(), mediaAttachment->mimetype(), file_path, data.size() };
+}
+
+void Cache::File::stream(ostream &out) const
+{
+  ifstream file(path.string());
+  copy(istream_iterator<uint8_t>(file), istream_iterator<uint8_t>(), ostream_iterator<uint8_t>(out));
+}
+
+
+class MediaAttachmentResource : public Wt::WFileResource {
+public:
+    MediaAttachmentResource(const Cache::File &cache_file, WObject* parent = 0);
+};
+
+MediaAttachmentResource::MediaAttachmentResource(const Cache::File &cache_file, WObject* parent): WFileResource(cache_file.mimetype, cache_file.path.string(), parent)
+{
+  suggestFileName(WString::fromUTF8(cache_file.name), Inline);
+}
 
 Wt::WLink MediaAttachment::link(Dbo::ptr< MediaAttachment > myPtr, Dbo::Transaction &transaction, WObject* parent, bool useCacheIfAvailable) const
 {
-  static std::map<Wt::Dbo::dbo_default_traits::IdType, WResource*> resources_map;
+  static std::map<MediaAttachmentId, WResource*> resources_map;
+  static Cache cache;
   string attachment_path = (boost::format("/media_attachments/%d") % myPtr.id()).str();
   if(resources_map.count(myPtr.id()) == 0) {
-    resources_map[myPtr.id()] = new MediaAttachmentResource{myPtr.id()};
+    resources_map[myPtr.id()] = new MediaAttachmentResource{cache.create(myPtr)};
     WServer::instance()->addResource(resources_map[myPtr.id()], attachment_path );
   }
   return {attachment_path};
