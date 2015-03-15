@@ -32,33 +32,3 @@ Setting::~Setting()
 {
 
 }
-
-string Setting::deployType()
-{
-  return "deploy_type";
-}
-
-string Setting::deployPath(const string& path)
-{
-  return string{"deploy_path_"} + path;
-}
-
-string Setting::secureDownloadPassword()
-{
-  return "securedownload_password";
-}
-
-string Setting::useCache()
-{
-  return "use_cache";
-}
-
-string Setting::cacheDeployPath()
-{
-  return "cache_deploy_path";
-}
-
-string Setting::cacheDirectory()
-{
-  return "cache_directory";
-}

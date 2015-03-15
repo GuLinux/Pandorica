@@ -46,46 +46,5 @@ map<string, function<string(string)>> extensions {
 
 Wt::WLink MediaAttachment::link(Dbo::ptr< MediaAttachment > myPtr, Dbo::Transaction &transaction, WObject* parent, bool useCacheIfAvailable) const
 {
-  auto fallback = [=] { return new WMemoryResource{mimetype(), _data, parent}; };
-  if(!useCacheIfAvailable || ! Setting::value(Setting::useCache(), transaction, false) )
-    return fallback();
-  string cacheDir = Setting::value<string>(Setting::cacheDirectory(), transaction);
-  string thumbnailsCacheServerMap = Setting::value<string>(Setting::cacheDeployPath(), transaction);
-  
-  if(cacheDir.empty() || !fs::is_directory(cacheDir))
-    return {fallback()};
-  auto createPath = [=](string prefix) {
-    string extension = "bin";
-    if(extensions.count(mimetype())>0) {
-      extension = extensions[mimetype()](type()); 
-    }
-    return (boost::format("%s%s/%s_%d_%s_%s.%s")
-      % prefix
-      % type()
-      % mediaId()
-      % myPtr.id()
-      % name()
-      % value()
-      % extension
-    ).str();
-  };
-  
-  fs::path cacheFile{createPath(cacheDir + '/')};
-  try {
-    if(!fs::is_directory(cacheFile.parent_path()) && ! fs::create_directory(cacheFile.parent_path()))
-      return {fallback()};
-    if(! fs::exists(cacheFile)) {
-      ofstream myfile (cacheFile.string());
-      for(auto c: _data)
-        myfile << c;
-      myfile.close();
-    }
-  } catch(std::exception &e) {
-    log("notice") << "Error creating cache file: " << e.what();
-    return fallback();
-  }
-  if(thumbnailsCacheServerMap.empty()) {
-    return {new WFileResource(mimetype(), cacheFile.string(), parent)};
-  }
-  return {createPath(thumbnailsCacheServerMap)};
+  return new WMemoryResource{mimetype(), _data, parent};
 }

@@ -179,37 +179,6 @@ bool Settings::autoplay(const Media& media)
 WLink Settings::linkFor(boost::filesystem::path p, const string& mimetype, Dbo::Session* session, WObject *parent)
 {
   Dbo::Transaction t(*session);
-  map<string,string> mediaDirectoriesDeployPaths;
-  DeployType deployType = (DeployType) Setting::value<int>(Setting::deployType(), t, Internal);
-  for(string directory: mediasDirectories(session)) {
-    mediaDirectoriesDeployPaths[directory] = Setting::value(Setting::deployPath(directory), t, string{});
-  }
-  string secureDownloadPassword = Setting::value(Setting::secureDownloadPassword(), t, string{});
-  bool missingSecureLinkPassword = (deployType == NginxSecureLink || deployType == LighttpdSecureDownload) && secureDownloadPassword.empty();
-  
-  if(missingSecureLinkPassword ) {
-    log("notice") << "Deploy type is set to secureLink/secureDownload but no password is present, fallback to Internal";
-    deployType = Internal;
-  }
-  if(deployType != Internal) {
-    for(auto deployDir: mediaDirectoriesDeployPaths) {
-      if(p.string().find(deployDir.first) != string::npos) {
-        switch(deployType) {
-          case LighttpdSecureDownload:
-            return d->lightySecDownloadLinkFor(deployDir.second, deployDir.first, secureDownloadPassword, p);
-          case NginxSecureLink:
-            return d->nginxSecLinkFor(deployDir.second, deployDir.first, secureDownloadPassword, p);
-          default:
-              stringstream s;
-            for(auto relPathComponent: p)
-              if(relPathComponent.string() != "/") {
-                s << "/" << Utils::urlEncode(relPathComponent.string() ) ;
-              }
-            return boost::replace_all_copy( Utils::urlEncode(p.string()), Utils::urlEncode(deployDir.first) + '/', deployDir.second); // TODO: consistency check
-        }
-      }
-    }
-  }
    WFileResource *resource = new WFileResource(mimetype, p.string(), parent);
    resource->suggestFileName(p.filename().string());
    WLink link{resource};
@@ -222,39 +191,6 @@ WLink Settings::shareLink(string mediaId)
   return {wApp->makeAbsoluteUrl(wApp->bookmarkUrl("/") + string("?media=") + mediaId)};
 }
 
-
-Wt::WLink Settings::Private::lightySecDownloadLinkFor(string secDownloadPrefix, string secDownloadRoot, string secureDownloadPassword, fs::path p)
-{
-    string filePath = p.string();
-    boost::replace_all(filePath, secDownloadRoot, "");
-    string hexTime = (boost::format("%1$x") %WDateTime::currentDateTime().toTime_t()) .str();
-    string token = Utils::hexEncode(Utils::md5(secureDownloadPassword + filePath + hexTime));
-    string secDownloadUrl = secDownloadPrefix + token + "/" + hexTime + filePath;
-    wApp->log("notice") << "****** secDownload: filename= " << filePath;
-    wApp->log("notice") << "****** secDownload: url= " << secDownloadUrl;
-    return secDownloadUrl;
-}
-
-#include <Wt/Http/Client>
-
-Wt::WLink Settings::Private::nginxSecLinkFor(string secDownloadPrefix, string secLinkRoot, string secureDownloadPassword, fs::path p)
-{
-    Http::Client::URL url;
-    string relativeDownloadPrefix = Http::Client::parseUrl(secDownloadPrefix, url) ? url.path : secDownloadPrefix;
-    string file = p.string();
-    boost::replace_all(file, secLinkRoot + '/', ""); // TODO: consistency check
-    long expireTime = WDateTime::currentDateTime().addSecs(20000).toTime_t();
-    string secLink = (boost::format("%s%s%s%d") % secureDownloadPassword % relativeDownloadPrefix % file % expireTime).str();
-    string token = Utils::base64Encode(Utils::md5( secLink ), false);
-    token = boost::replace_all_copy(token, "=", "");
-    token = boost::replace_all_copy(token, "+", "-");
-    token = boost::replace_all_copy(token, "/", "_");
-    string secDownloadUrl = (boost::format("%s%s?st=%s&e=%d") % secDownloadPrefix % file % token % expireTime).str();
-    wApp->log("notice") << "****** secDownload: prefix=" << secDownloadPrefix << " (for calculation: '" << relativeDownloadPrefix << "')";
-    wApp->log("notice") << "****** secDownload: filename=" << file;
-    wApp->log("notice") << "****** secDownload: url= " << secDownloadUrl;
-    return secDownloadUrl;
-}
 
 map<Settings::Icons,string> iconsMap {
   {Settings::FolderBig, "%s/icons/filesystem/directory-big.png"},

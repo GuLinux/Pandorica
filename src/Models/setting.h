@@ -35,12 +35,7 @@ class Setting
 public:
     Setting();
     ~Setting();
-  static std::string deployType();
-  static std::string deployPath(const std::string &path);
-  static std::string secureDownloadPassword();
-  static std::string useCache();
-  static std::string cacheDirectory();
-  static std::string cacheDeployPath();
+
 
     template<class Action>
     void persist(Action& a) {
