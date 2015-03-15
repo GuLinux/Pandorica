@@ -45,7 +45,7 @@ private:
 
 void MediaAttachmentResource::handleRequest(const Http::Request& request, Http::Response& response)
 {
-  Session session;
+  static Session session;
   Dbo::Transaction t(session);
   MediaAttachmentPtr attachment = session.find<MediaAttachment>().where("id = ?").bind(id);
   if(! attachment) {
