@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/format.hpp>
 #include <fstream>
 #include <functional>
+#include <mutex>
 
 using namespace Wt;
 using namespace std;
@@ -41,13 +42,15 @@ public:
     virtual void handleRequest(const Http::Request& request, Http::Response& response);
 private:
   Wt::Dbo::dbo_default_traits::IdType id;
+  std::mutex _mutex;
 };
 
 void MediaAttachmentResource::handleRequest(const Http::Request& request, Http::Response& response)
 {
-  static Session session;
+  std::unique_lock<std::mutex> lock(_mutex);
+  Session session;
   Dbo::Transaction t(session);
-  MediaAttachmentPtr attachment = session.find<MediaAttachment>().where("id = ?").bind(id);
+  MediaAttachmentPtr attachment = session.find<MediaAttachment>().where("id = ?").bind(id).resultValue();
   if(! attachment) {
     response.out() << "Not Found";
     response.setStatus(404);
