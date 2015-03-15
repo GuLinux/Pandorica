@@ -69,7 +69,7 @@ Image::Image(const ImageBlob& imageBlob)
 
 Image& Image::resize(uint32_t size, uint32_t quality)
 {
-  d->image.scaled(size, size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  d->image = d->image.scaled(size, size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
   d->quality = quality;
   return *this;
 }

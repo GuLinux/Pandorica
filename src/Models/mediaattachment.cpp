@@ -73,6 +73,7 @@ void Cache::clean()
 
 Cache::File Cache::create(const MediaAttachmentPtr &mediaAttachment) const
 {
+  std::cerr << "creating cache file entry: id=" << mediaAttachment.id() << ", name=" << mediaAttachment->name() << ", content type: " << mediaAttachment->mimetype() << std::endl;
   auto file_path = cache_directory / boost::lexical_cast<string>(mediaAttachment.id());
   auto data = mediaAttachment->data();
   ofstream file_out(file_path.string());
