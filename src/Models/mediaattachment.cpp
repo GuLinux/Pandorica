@@ -19,11 +19,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "Models/models.h"
+#include <session.h>
 
 #include <Wt/WApplication>
 #include <Wt/WMemoryResource>
 #include <Wt/WFileResource>
 #include <Wt/WServer>
+#include <Wt/Http/Response>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <fstream>
@@ -33,18 +35,42 @@ using namespace Wt;
 using namespace std;
 namespace fs = boost::filesystem;
 
-map<string, function<string(string)>> extensions {
-  {"image/png", [](string){ return "png"; }},
-  {"image/jpeg", [](string) { return "jpg"; }},
-  {"text/vtt", [](string) {return "vtt"; }},
-  {"text/plain", [](string type) {
-    if(type ==  "subtitles")
-      return "srt";
-    return "txt";
-  }},
+class MediaAttachmentResource : public Wt::WStreamResource {
+public:
+    MediaAttachmentResource(Wt::Dbo::dbo_default_traits::IdType id, WObject* parent = 0);
+    virtual void handleRequest(const Http::Request& request, Http::Response& response);
+private:
+  Wt::Dbo::dbo_default_traits::IdType id;
 };
+
+void MediaAttachmentResource::handleRequest(const Http::Request& request, Http::Response& response)
+{
+  Session session;
+  Dbo::Transaction t(session);
+  MediaAttachmentPtr attachment = session.find<MediaAttachment>().where("id = ?").bind(id);
+  if(! attachment) {
+    response.out() << "Not Found";
+    response.setStatus(404);
+    return;
+  }
+  setMimeType(attachment->mimetype());
+  std::ostream_iterator<uint8_t> out(response.out());
+  auto data = attachment->data();
+  std::copy(data.begin(), data.end(), out);
+}
+
+MediaAttachmentResource::MediaAttachmentResource(Dbo::dbo_default_traits::IdType id, WObject* parent): WStreamResource(parent), id(id)
+{
+}
+
 
 Wt::WLink MediaAttachment::link(Dbo::ptr< MediaAttachment > myPtr, Dbo::Transaction &transaction, WObject* parent, bool useCacheIfAvailable) const
 {
-  return new WMemoryResource{mimetype(), _data, parent};
+  static std::map<Wt::Dbo::dbo_default_traits::IdType, WResource*> resources_map;
+  string attachment_path = (boost::format("/media_attachments/%d") % myPtr.id()).str();
+  if(resources_map.count(myPtr.id()) == 0) {
+    resources_map[myPtr.id()] = new MediaAttachmentResource{myPtr.id()};
+    WServer::instance()->addResource(resources_map[myPtr.id()], attachment_path );
+  }
+  return {attachment_path};
 }
