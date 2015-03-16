@@ -9,6 +9,7 @@ SET( mediascanner_srcs
     MediaScanner/scanmediainfostep.cpp
     MediaScanner/mediascanner.cpp
     MediaScanner/mediascannerstep.cpp
+    MediaScanner/googlepicker.cpp
 )
 SET( player_srcs serversettingspage.cpp Models/setting.cpp selectdirectories.cpp  findorphansdialog.cpp
     player/videojs.cpp

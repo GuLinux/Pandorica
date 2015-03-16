@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "createthumbnails.h"
 #include "private/createthumbnails_p.h"
+#include "googlepicker.h"
 
 #include "ffmpegmedia.h"
 #include "session.h"
@@ -42,6 +43,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WFileUpload>
 #include <Wt/WCheckBox>
 #include <Wt/WOverlayLoadingIndicator>
+#include <Wt/Http/Client>
 #include <algorithm>
 #include <iostream>
 #include <fstream>
@@ -143,6 +145,8 @@ void ImageUploader::uploaded()
 void CreateThumbnails::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transaction& transaction, MediaScannerStep::ExistingFlags onExisting )
 {
   d->app->log("notice") << __PRETTY_FUNCTION__;
+  if(d->googlePicker)
+    d->googlePicker->searchString(media.title(transaction));
   unique_lock<MediaScannerSemaphore> lock(semaphore);
 
   if( onExisting == SkipIfExisting && transaction.session().query<int>( "SELECT COUNT(id) FROM media_attachment WHERE media_id = ? AND type = 'preview'" ).bind( media.uid() ) > 0 )
@@ -164,8 +168,36 @@ void CreateThumbnails::run( FFMPEGMedia* ffmpegMedia, Media media, Dbo::Transact
 
 void CreateThumbnails::setupGui( WContainerWidget *container )
 {
+  
+  auto image_loaded = [ = ]( ImageBlob blob )
+  {
+    unique_lock<MediaScannerSemaphore> lock(semaphore);
+    delete d->thumbnail;
+    d->fullImage = blob;
+    d->thumbnail = new WMemoryResource {"image/png", d->resize( blob, IMAGE_SIZE_PREVIEW ), container};
+    d->previewImage->setImageLink( d->thumbnail );
+    d->previewImage->show();
+    semaphore.needsSaving(true);
+  };
   container->addWidget(WW<WText>( wtr( "mediascannerdialog.thumbnaillabel" ) ).css( "small-text" ).setInline( false ));
   ImageUploader *imageUploader = new ImageUploader;
+  container->addWidget(d->googlePicker = new GooglePicker("Search on Google"));
+  auto httpClient = new Http::Client(d->googlePicker);
+  httpClient->setMaximumResponseSize(1024*1024*15);
+  httpClient->done().connect([=](const boost::system::error_code &err, const Http::Message &message, _n4){
+      if(err.value() != boost::system::errc::success) {
+	wApp->log("warning") << "unable to download: " << message.status() << ", " << err.message();
+	return;
+      }
+      ImageBlob blob;
+      auto body = message.body();
+      std::copy(body.begin(), body.end(), back_inserter(blob));
+      image_loaded(blob);
+  });
+  d->googlePicker->imageChosen().connect([=](const Wt::WString &url, _n5) {
+    wApp->log("notice") << "picked url: " << url;
+    httpClient->get(url.toUTF8());
+  });
   container->addWidget( imageUploader );
   d->thumbnail = nullptr;
   d->redoSignalWasConnected = false;
@@ -183,16 +215,7 @@ void CreateThumbnails::setupGui( WContainerWidget *container )
   imageContainer->setContentAlignment( AlignCenter );
   imageContainer->addWidget( d->previewImage = WW< WImage >().css("img-rounded img-responsive").setHidden( true ) );
   container->addWidget( imageContainer );
-  imageUploader->previewImage().connect( [ = ]( ImageBlob blob, _n5 )
-  {
-    unique_lock<MediaScannerSemaphore> lock(semaphore);
-    delete d->thumbnail;
-    d->fullImage = blob;
-    d->thumbnail = new WMemoryResource {"image/png", d->resize( blob, IMAGE_SIZE_PREVIEW ), container};
-    d->previewImage->setImageLink( d->thumbnail );
-    d->previewImage->show();
-    semaphore.needsSaving(true);
-  } );
+  imageUploader->previewImage().connect( [=](const ImageBlob &b, _n5){image_loaded(b); });
 }
 
 

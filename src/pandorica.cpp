@@ -49,6 +49,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "groupsdialog.h"
 #include "latestcommentsdialog.h"
 #include "MediaScanner/mediascanner.h"
+#include "MediaScanner/googlepicker.h"
 #include "utils/utils.h"
 
 #include "Models/models.h"
@@ -434,6 +435,7 @@ void Pandorica::setupGui()
   d->adminActions();
   
   d->collectionPage->addWidget(d->mediaCollectionBrowser);
+
   d->mainWidget->addWidget(d->widgetsStack);
   
   d->userSettingsPage->setPadding(20);

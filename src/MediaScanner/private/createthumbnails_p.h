@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WContainerWidget>
 #include "media/media.h"
 #include "MediaScanner/createthumbnails.h"
+#include <MediaScanner/googlepicker.h>
 #include <mutex>
 
 class FFMPEGMedia;
@@ -93,6 +94,7 @@ class CreateThumbnails::Private
     double duration;
     Wt::WMemoryResource *thumbnail = 0;
     bool redoSignalWasConnected = false;
+    GooglePicker* googlePicker = nullptr;
   private:
     class CreateThumbnails *const q;
 };
