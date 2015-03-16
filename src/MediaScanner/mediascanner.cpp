@@ -220,6 +220,7 @@ void MediaScanner::Private::scanMedias(function<void(Semaphore &)> updateGuiProg
   vector<Media> collection;
   Utils::transform(mediaCollection->collection(), collection, [](pair<string,Media> m){ return m.second; });
   sort(begin(collection), end(collection), [](const Media &_1, const Media &_2) { return _1.fullPath() < _2.fullPath(); } );
+  collection.erase(std::remove_if(collection.begin(), collection.end(), std::not1(scanFilter)), collection.end());
   for(auto &media: collection) {
     if(canceled) {
       return;
