@@ -74,6 +74,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WPushButton>
 #include <Wt/WDefaultLoadingIndicator>
 #include <Wt/WMessageBox>
+#include <Wt/WButtonGroup>
+#include <Wt/WRadioButton>
 #include <mutex>
 #include <boost/thread.hpp>
 
@@ -361,18 +363,30 @@ void Pandorica::Private::adminActions()
   navigationBar->manageGroups().connect([=](_n6) {  (new GroupsDialog(session, &settings))->show(); });
   navigationBar->configureApp().connect([=](_n6) { ServerSettingsPage::dialog(&settings, session, &mediaCollection); });
   navigationBar->usersManagement().connect([=](_n6) { UsersManagementPage::dialog(session); });
-  navigationBar->mediaScanner().connect([=](bool onlyCurrentDirectory, _n5) {
+  navigationBar->mediaScanner().connect([=](_n6) {
 #ifdef MEDIASCANNER_AS_DIALOG
     mediaScanner->dialog();
 #else
-    widgetsStack->setCurrentWidget(mediaScannerPage); // TODO: fix
+     // TODO: fix
 #endif
-    if(onlyCurrentDirectory)
-      mediaScanner->scan([=](Media& m) {
-        return mediaCollectionBrowser->currentDirectoryHas(m);
-      });
-    else
-      mediaScanner->scan();
+    WDialog *chooseType = new WDialog();
+    WButtonGroup *buttonGroup = new WButtonGroup;
+    buttonGroup->addButton(WW<WRadioButton>("Current Directory", chooseType->contents()).setInline(false));
+    buttonGroup->addButton(WW<WRadioButton>("Current Directory (Recursive)", chooseType->contents()).setInline(false));
+    buttonGroup->addButton(WW<WRadioButton>("All Directories", chooseType->contents()).setInline(false));
+    vector<function<bool(Media&)>> filters {
+      [=](const Media &m) { return mediaCollectionBrowser->currentDirectoryHas(m); },
+      [=](const Media &m) { return mediaCollectionBrowser->currentDirectoryHasRecursively(m); },
+      [=](const Media &m) { return true; },
+    };
+    chooseType->footer()->addWidget(WW<WPushButton>("Cancel").css("btn-danger").onClick([=](WMouseEvent){ chooseType->reject(); }));
+    chooseType->footer()->addWidget(WW<WPushButton>("Scan").css("btn-primary").onClick([=](WMouseEvent){ 
+      widgetsStack->setCurrentWidget(mediaScannerPage);
+      auto index=buttonGroup->selectedButtonIndex();
+      chooseType->accept();
+      mediaScanner->scan(filters[index]);
+    }));
+    chooseType->show();
   });
   navigationBar->viewAs().connect([=](_n6) {
     WDialog *dialog = new WDialog;

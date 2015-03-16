@@ -63,7 +63,7 @@ class NavigationBar::Private
     Wt::Signal<> viewLoggedUsers;
     Wt::Signal<> viewUsersHistory;
     Wt::Signal<> manageGroups;
-    Wt::Signal<bool> mediaScanner;
+    Wt::Signal<> mediaScanner;
     Wt::Signal<> findOrphans;
     Wt::Signal<> viewAs;
     Wt::Signal<> configureApp;

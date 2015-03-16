@@ -401,6 +401,10 @@ bool MediaCollectionBrowser::currentDirectoryHas( const Media &media ) const
   return d->currentPath->contains(media);
 }
 
+bool MediaCollectionBrowser::currentDirectoryHasRecursively(const Media& media) const
+{
+  return d->currentPath->recursiveContains(media);
+}
 
 
 void MediaCollectionBrowser::Private::addDirectory( const shared_ptr<MediaDirectory> &directory )
