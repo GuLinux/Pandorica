@@ -61,6 +61,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WComboBox>
 #include "utils/d_ptr_implementation.h"
 #include "mediainfopanel.h"
+#include "savemediainformation.h"
 #include <boost/thread.hpp>
 #include <boost/chrono.hpp>
 
@@ -422,8 +423,9 @@ void MediaCollectionBrowser::Private::addDirectory( const shared_ptr<MediaDirect
 }
 
 
-void MediaCollectionBrowser::Private::addMedia( const Media &media )
+void MediaCollectionBrowser::Private::addMedia( const Media &media, WContainerWidget *widget )
 {
+
   wApp->log( "notice" ) << "adding media " << media.path();
   Dbo::Transaction t( *session );
 
@@ -454,8 +456,12 @@ void MediaCollectionBrowser::Private::addMedia( const Media &media )
     Dbo::Transaction t( *session );
     return preview->link( preview, t, parent ).url();
   };
-
-  addIcon( media.title( t ), icon, onClick );
+  
+  auto item = replaceIcon( media.title( t ), icon, onClick, widget == nullptr ? new WContainerWidget : widget );
+  SaveMediaInformation saveMediaInformation(*session);
+  saveMediaInformation.save(media, [=](const Media &media) {
+    addMedia(media, item);
+  });
 }
 
 void MediaCollectionBrowser::Private::clearThumbnailsFor( Media media )
@@ -585,19 +591,24 @@ void MediaCollectionBrowser::Private::setTitleFor( Media media )
 }
 
 
-WContainerWidget *MediaCollectionBrowser::Private::addIcon( WString filename, GetIconF icon, OnClick onClick )
+WContainerWidget *MediaCollectionBrowser::Private::addIcon( WString filename, GetIconF icon, OnClick onClick ) {
+  return replaceIcon(filename, icon, onClick, new WContainerWidget);
+}
+
+WContainerWidget *MediaCollectionBrowser::Private::replaceIcon( WString filename, GetIconF icon, OnClick onClick, Wt::WContainerWidget *existing )
 {
-  WContainerWidget *item = WW<WContainerWidget>().css( "col-md-2 col-lg-2 media-icon-container" );
-  item->setContentAlignment( AlignmentFlag::AlignCenter );
+  existing->clear();
+  existing->setStyleClass("col-md-2 col-lg-2 media-icon-container");
+  existing->setContentAlignment( AlignmentFlag::AlignCenter );
   WAnchor *link = WW<WAnchor>().css( "thumbnail filesystem-item link-hand" );
   link->setToolTip(filename);
-  link->setImage( new WImage( icon( item ) ) );
+  link->setImage( new WImage( icon( existing ) ) );
   link->addWidget( WW<WText>( filename ).css( "filesystem-item-label" ) );
-  item->addWidget( link );
+  existing->addWidget( link );
   link->clicked().connect( onClick );
 
-  browser->addWidget( item );
-  return item;
+  browser->addWidget( existing );
+  return existing;
 }
 
 

@@ -64,6 +64,7 @@ set(pandorica_SOURCES ${models_srcs} ${mediascanner_srcs} ${player_srcs}
     main.cpp
     utils/image.cpp
     fileresource.cpp
+    savemediainformation.cpp
     ${Pandorica_RCC_SRCS}
 )
 

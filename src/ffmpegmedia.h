@@ -66,6 +66,7 @@ class FFMPEGMedia
     typedef std::function<LOGGER_ENTRY(const std::string&)> Logger;
   public:
     FFMPEGMedia( const Media &media, Logger logger );
+    FFMPEGMedia( const Media &media );
     ~FFMPEGMedia();
     bool isVideo();
     std::pair<int, int> resolution();

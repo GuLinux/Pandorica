@@ -34,6 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // keep it large, just in case, why not?
 #define AV_ERROR_MAX_STRING_SIZE 256
 #endif
+#include <Wt/WServer>
 
 using namespace std;
 using namespace FFMPEG;
@@ -251,6 +252,10 @@ string FFMPEGException::buildErrorMessage( const string &context, int errorCode 
 }
 
 
+
+FFMPEGMedia::FFMPEGMedia( const Media &media ) : FFMPEGMedia(media, [=](const string &level) { return Wt::WServer::instance()->log(level); })
+{
+}
 
 FFMPEGMedia::FFMPEGMedia( const Media &media, Logger logger )
   : d( media, this )

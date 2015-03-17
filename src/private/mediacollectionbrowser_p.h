@@ -106,8 +106,9 @@ public:
     void addFilterDialog( const Wt::WString &title, Wt::WWidget *content, std::function<FilterDialogResult()> onOkClicked, std::function<void(Wt::WPushButton*)> okButtonEnabler, Wt::WMenu *menu );
 private:
     void addDirectory( const std::shared_ptr< MediaDirectory > &directory );
-    void addMedia(const Media& media);
+    void addMedia(const Media& media, Wt::WContainerWidget *widget = 0);
     Wt::WContainerWidget* addIcon(Wt::WString filename, GetIconF icon, OnClick onClick);
+    Wt::WContainerWidget* replaceIcon(Wt::WString filename, GetIconF icon, OnClick onClick, Wt::WContainerWidget *existing);
     MediaCollectionBrowser* q;
 };
 
