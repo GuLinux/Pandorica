@@ -45,6 +45,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "settings.h"
 
 #include "utils/d_ptr_implementation.h"
+#define DATABASE_VERSION 1
+#define DATABASE_VERSION_SETTING "db_version"
 
 namespace {
   class MyOAuth : public std::vector<const Wt::Auth::OAuthService *>
@@ -108,18 +110,22 @@ Session::Session(bool full)
   mapClass<MediaAttachment>("media_attachment");
   mapClass<MediaRating>("media_rating");
   mapClass<Setting>("settings");
+  try {
+    Dbo::Transaction t(*this);
+    int db_version=Setting::value(DATABASE_VERSION_SETTING, t, 0);
+    WServer::instance()->log("notice") << "Found database version " << db_version;
+  } catch(std::exception &e) {
+    WServer::instance()->log("warning") << "error fetching database version: " << e.what();
+    try {
+      createTables();
+    } catch(std::exception &e) {
+      WServer::instance()->log("warning") << "error creating new database: " << e.what();
+    }
+    Dbo::Transaction t(*this);
+    Setting::write(DATABASE_VERSION_SETTING, DATABASE_VERSION, t);
+  }
   if(!full)
     return;
-   
-/*
-  try {
-    createTables();
-    std::cerr << "Created database." << std::endl;
-  } catch (std::exception& e) {
-    std::cerr << e.what() << std::endl;
-    std::cerr << "Using existing database";
-  }
-*/
   d->users = new UserDatabase(*this);
 }
 

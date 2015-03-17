@@ -44,7 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <fstream>
 #include <csignal>
-#include "migrations/migrations.h"
+// #include "migrations/migrations.h"
 
 #include <Wt-Commons/wt_helpers.h>
 #ifdef HAVE_QT
@@ -372,7 +372,6 @@ int main( int argc, char **argv, char **envp )
     
     {
       Session session( false );
- //     WtCommons::MigrateDbo migrateDbo( session, session.connection(), ::Migrations::migrations() );
 
       if( vm.count( "dump-schema" ) )
       {
