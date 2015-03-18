@@ -1,6 +1,6 @@
 /*
  * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2013  <copyright holder> <email>
+ * Copyright (C) 2015  <copyright holder> <email>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,29 +17,21 @@
  *
  */
 
-#ifndef IMAGE_H
-#define IMAGE_H
+#ifndef SAVEMEDIATHUMBNAIL_H
+#define SAVEMEDIATHUMBNAIL_H
+#include <functional>
 
-#include "utils/d_ptr.h"
-#include <vector>
-#include <stdint.h>
+class Media;
+class Session;
 
-typedef std::vector<uint8_t> ImageBlob;
-
-class Image
+class SaveMediaThumbnail
 {
 public:
-    Image(const std::string &filename);
-    Image(const ImageBlob &imageBlob);
-    Image(const Image &image);
-    ~Image();
-
-    operator ImageBlob() const;
-    Image &resize(uint32_t size, uint32_t quality = 75 );
-    Image scaled(uint32_t size, uint32_t quality = 75) const;
+    SaveMediaThumbnail(Session &session);
+    ~SaveMediaThumbnail();
+    void save(const Media &media, std::function<void(const Media &media)> onSave);
 private:
-    Image();
-    D_PTR;
+  Session &session;
 };
 
-#endif // IMAGE_H
+#endif // SAVEMEDIATHUMBNAIL_H

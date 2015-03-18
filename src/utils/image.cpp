@@ -22,6 +22,7 @@
 #include "utils/d_ptr_implementation.h"
 
 #ifdef IMAGE_USE_GRAPHICSMAGICK
+#warning Using GraphicsMagic
 #include <Magick++/Image.h>
 #include <Magick++/Geometry.h>
 
@@ -53,7 +54,24 @@ Image::operator ImageBlob() const
   return {outData, outData + d->blob.length()};
 }
 
+Image Image::scaled(uint32_t size, uint32_t quality) const
+{
+  Image image;
+  Magick::Image scaled_image {d->blob};
+  scaled_image.sample( {size, size} );
+  scaled_image.quality( quality );
+  scaled_image.write( &image.d->blob );
+  return image;
+}
+
+Image::Image(const Image& image) : d(this)
+{
+  d->blob = image.d->blob;
+}
+
+
 #else
+#warning Using Qt Image Backend
 #include <QBuffer>
 
 Image::Image(const std::string& filename)
@@ -83,8 +101,27 @@ Image::operator ImageBlob() const
   buffer.close();
   return {ba.begin(), ba.end()};
 }
+
+Image Image::scaled(uint32_t size, uint32_t quality) const
+{
+  Image image;
+  image.d->image = d->image.scaled(size, size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  image.d->quality = quality;
+  return image;
+}
+
+Image::Image(const Image& image) : d(this)
+{
+  d->image = image.d->image;
+  d->quality = image.d->quality;
+}
+
+
 #endif
 
+Image::Image() : d(this)
+{
+}
 
 
 Image::Private::Private(Image* q) : q(q)

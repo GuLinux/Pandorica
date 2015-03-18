@@ -65,6 +65,8 @@ set(pandorica_SOURCES ${models_srcs} ${mediascanner_srcs} ${player_srcs}
     utils/image.cpp
     fileresource.cpp
     savemediainformation.cpp
+    savemediathumbnail.cpp
+    mediathumbnailgenerator.cpp
     ${Pandorica_RCC_SRCS}
 )
 
@@ -113,7 +115,7 @@ target_link_libraries(${app_name}
   Wt_Commons_Library 
   ${WT_LINK_LIBS}
   ${Boost_LIBRARIES} 
-  ${GRAPHICSMAGICK_LDFLAGS} 
+  ${GraphicsMagick_LDFLAGS} 
   ${Qt5Widgets_LIBRARIES} 
   ${QT_QTCORE_LIBRARY} 
   ${QT_QTNETWORK_LIBRARY} 

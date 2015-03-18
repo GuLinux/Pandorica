@@ -28,6 +28,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "settings.h"
 #include <boost/filesystem.hpp>
 #include "Models/models.h"
+#include <utils/image.h>
+
+#define IMAGE_SIZE_PREVIEW 550
+#define IMAGE_SIZE_THUMB 260
+#define IMAGE_SIZE_PLAYER 640
 
 using namespace Wt;
 using namespace std;
@@ -115,6 +120,18 @@ Dbo::ptr< MediaAttachment > Media::preview(Dbo::Transaction& transaction, Media:
   return transaction.session().find<MediaAttachment>().where("media_id = ? AND type = 'preview' AND name = ?")
     .bind(uid()).bind(previewSize);
 }
+
+void Media::setImage(const Image& image, Dbo::Transaction& transaction) const
+{
+  transaction.session().execute( "DELETE FROM media_attachment WHERE media_id = ? AND type = 'preview'" ).bind( uid() );
+  MediaAttachment *fullAttachment = new MediaAttachment {"preview", "full", "",uid(), "image/png", image };
+  MediaAttachment *thumbnailAttachment = new MediaAttachment {"preview", "thumbnail", "", uid(), "image/png", image.scaled(IMAGE_SIZE_THUMB, 60) };
+  MediaAttachment *playerAttachment = new MediaAttachment {"preview", "player", "", uid(), "image/png", image.scaled(IMAGE_SIZE_PLAYER) };
+  transaction.session().add( fullAttachment );
+  transaction.session().add( thumbnailAttachment );
+  transaction.session().add( playerAttachment );
+}
+
 
 
 WDateTime Media::creationTime(Wt::Dbo::Transaction &transaction) const

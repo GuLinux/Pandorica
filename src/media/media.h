@@ -27,6 +27,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WString>
 #include <ostream>
 #include <boost/date_time.hpp>
+
+class Image;
 class MediaProperties;
 namespace Wt {
 namespace Dbo {
@@ -52,6 +54,7 @@ public:
   Wt::Dbo::ptr<MediaAttachment> preview(Wt::Dbo::Transaction &transaction, PreviewSize size = PreviewPlayer) const;
   Wt::Dbo::collection<Wt::Dbo::ptr<MediaAttachment>> subtitles(Wt::Dbo::Transaction& transaction) const;
   Wt::Dbo::ptr<MediaProperties> properties(Wt::Dbo::Transaction &transaction) const;
+  void setImage(const Image& image, Wt::Dbo::Transaction& transaction) const;
   boost::filesystem::path path() const;
   boost::filesystem::path parentDirectory() const;
   bool valid() const;

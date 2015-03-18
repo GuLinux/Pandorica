@@ -62,6 +62,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "utils/d_ptr_implementation.h"
 #include "mediainfopanel.h"
 #include "savemediainformation.h"
+#include "savemediathumbnail.h"
 #include <boost/thread.hpp>
 #include <boost/chrono.hpp>
 
@@ -458,10 +459,11 @@ void MediaCollectionBrowser::Private::addMedia( const Media &media, WContainerWi
   };
   
   auto item = replaceIcon( media.title( t ), icon, onClick, widget == nullptr ? new WContainerWidget : widget );
+  auto refreshIcon = [=](const Media &media) { addMedia(media, item); wApp->triggerUpdate(); };
   SaveMediaInformation saveMediaInformation(*session);
-  saveMediaInformation.save(media, [=](const Media &media) {
-    addMedia(media, item);
-  });
+  SaveMediaThumbnail saveMediaThumbnail(*session);
+  saveMediaInformation.save(media, refreshIcon);
+  saveMediaThumbnail.save(media, refreshIcon);
 }
 
 void MediaCollectionBrowser::Private::clearThumbnailsFor( Media media )
