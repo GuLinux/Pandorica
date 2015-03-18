@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SESSIONPRIVATE_H
 #include <Wt/Auth/Login>
 #include "session.h"
+#include <mutex>
 
 namespace Wt {
   namespace Dbo {
@@ -31,10 +32,13 @@ namespace Wt {
 
 class Session::Private {
 public:
+    Private(Session *q) : q(q) {}
     void createConnection();
     std::unique_ptr<Wt::Dbo::SqlConnection> connection;
     UserDatabase *users = 0;
     Wt::Auth::Login login;
+    std::shared_ptr<std::mutex> mutex;
+    Session *q;
 };
 
 #endif

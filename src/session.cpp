@@ -92,7 +92,7 @@ void Session::configureAuth()
 
 
 Session::Session(bool full)
-  : d()
+  : d(this)
 {
   d->createConnection();
   d->connection->setProperty("show-queries", "false");
@@ -172,6 +172,10 @@ struct MySqlParams {
 
 #endif
 
+namespace {
+  shared_ptr<mutex> sqlite3_write_lock_mutex = make_shared<mutex>();
+}
+
 void Session::Private::createConnection()
 {
   string psqlConnParameters, mysqlConnParameters;
@@ -191,11 +195,40 @@ void Session::Private::createConnection()
     return;
   }
 #endif
+  mutex = sqlite3_write_lock_mutex;
+  
   string sqlite3DatabasePath = Settings::sqlite3DatabasePath();
   WServer::instance()->log("notice") << "Using sqlite connection: " << sqlite3DatabasePath;
   
   connection.reset(new dbo::backend::Sqlite3(Settings::sqlite3DatabasePath()));
+  connection->executeSql("PRAGMA journal_mode=WAL;");
 }
+
+class Session::WriteLock {
+public:
+  WriteLock(const shared_ptr<mutex> &mutex);
+  ~WriteLock();
+private:
+  shared_ptr<unique_lock<mutex>> lock;
+};
+
+Session::WriteLock::WriteLock(const shared_ptr<std::mutex> &mutex)
+{
+  if(!mutex)
+    return;
+  lock = make_shared<unique_lock<std::mutex>>(*mutex);
+}
+
+Session::WriteLock::~WriteLock()
+{
+}
+
+
+shared_ptr< Session::WriteLock > Session::writeLock() const
+{
+  return make_shared<WriteLock>(d->mutex);
+}
+
 
 
 Session::~Session()

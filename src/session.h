@@ -40,6 +40,8 @@ typedef Wt::Auth::Dbo::UserDatabase<AuthInfo> UserDatabase;
 class Session : public dbo::Session
 {
   public:
+    class WriteLock;
+    std::shared_ptr<WriteLock> writeLock() const;
     static void configureAuth();
 
     Session( bool full = false );

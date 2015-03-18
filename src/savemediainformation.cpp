@@ -23,6 +23,7 @@
 #include "utils/utils.h"
 #include <Wt/WServer>
 #include <Wt/WIOService>
+#include <boost/thread.hpp>
 
 using namespace Wt;
 using namespace std;
@@ -36,9 +37,10 @@ void SaveMediaInformation::save(const Media& media, function<void(const Media &m
     wApp->log("notice") << "Media propeties already found for " << media.path();
     return;
   }
-  WServer::instance()->ioService().post([=]{
+  boost::thread([=]{
     WServer::instance()->log("notice") << "Fetching information for " << media.path();
     Session session;
+    auto lock = session.writeLock();
     Dbo::Transaction transaction(session);
     FFMPEGMedia ffmpegMedia(media);
     string titleSuggestion = ffmpegMedia.metadata( "title" ).empty() ? Utils::titleHintFromFilename( media.filename() ) : ffmpegMedia.metadata( "title" );

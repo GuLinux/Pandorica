@@ -24,6 +24,7 @@
 #include "mediathumbnailgenerator.h"
 #include <Wt/WServer>
 #include <Wt/WIOService>
+#include <boost/thread.hpp>
 
 
 using namespace Wt;
@@ -51,12 +52,14 @@ void SaveMediaThumbnail::save(const Media& media, std::function< void(const Medi
     wApp->log("notice") << "Media propeties already found for " << media.path();
     return;
   }
-  WServer::instance()->ioService().post([=]{
+  boost::thread([=]{
     WServer::instance()->log("notice") << "Creating thumbnail for " << media.path();
     MediaThumbnailGenerator thumbnailGenerator(media);
     try {
       Session session;
+      auto lock = session.writeLock();
       Dbo::Transaction transaction(session);
+      transaction.session().execute( "DELETE FROM media_attachment where type = 'preview' AND media_id = ?" ).bind( media.uid() );
       media.setImage(thumbnailGenerator.image(), transaction);
       transaction.commit();
       WServer::instance()->post(appSession, boost::bind(onSave, media));

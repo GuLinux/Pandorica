@@ -125,7 +125,10 @@ Signal<Wt::WApplication*>& Pandorica::aboutToQuit() const
   return d->aboutToQuit;
 }
 
+#include <boost/thread.hpp>
+
 Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(environment), d(this) {
+  WServer::instance()->ioService().start();
   useStyleSheet(Settings::staticPath("/Pandorica.css"));
   addMetaLink(Settings::staticPath("/icons/favicon.png"), "shortcut icon", {}, {}, {}, {}, false);
   requireJQuery(Settings::staticPath("/jquery.min.js"));
