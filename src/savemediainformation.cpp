@@ -37,7 +37,7 @@ void SaveMediaInformation::save(const Media& media, function<void(const Media &m
     wApp->log("notice") << "Media propeties already found for " << media.path();
     return;
   }
-  boost::thread([=]{
+  boost::async([=]{
     WServer::instance()->log("notice") << "Fetching information for " << media.path();
     Session session;
     auto lock = session.writeLock();

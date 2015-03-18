@@ -52,7 +52,7 @@ void SaveMediaThumbnail::save(const Media& media, std::function< void(const Medi
     wApp->log("notice") << "Media propeties already found for " << media.path();
     return;
   }
-  boost::thread([=]{
+  boost::async([=]{
     WServer::instance()->log("notice") << "Creating thumbnail for " << media.path();
     MediaThumbnailGenerator thumbnailGenerator(media);
     try {
