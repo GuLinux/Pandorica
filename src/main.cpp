@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <Wt/WServer>
 #include <Wt/WFileResource>
+#include <Wt/WIOService>
 #include <boost/thread.hpp>
 #include <boost/thread.hpp>
 #include <boost/chrono.hpp>
@@ -365,6 +366,10 @@ int main( int argc, char **argv, char **envp )
     if( !initServer( argc, argv, server, vm ) )
       return 1;
 
+    WIOService ioService;
+    ioService.setThreadCount(10);
+    server.setIOService(ioService);
+    ioService.start();
     Settings::init( vm );
     server.addEntryPoint( Application, createApplication );
     string quitPassword;

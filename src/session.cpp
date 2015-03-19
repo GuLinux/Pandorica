@@ -178,7 +178,6 @@ namespace {
 
 void Session::Private::createConnection()
 {
-  mutex = sqlite3_write_lock_mutex;
   string psqlConnParameters, mysqlConnParameters;
   bool havePostgresConfiguration = WServer::instance()->readConfigurationProperty("psql-connection", psqlConnParameters);
 #ifdef HAVE_POSTGRES
@@ -196,7 +195,7 @@ void Session::Private::createConnection()
     return;
   }
 #endif
-  
+  mutex = sqlite3_write_lock_mutex;
   string sqlite3DatabasePath = Settings::sqlite3DatabasePath();
   WServer::instance()->log("notice") << "Using sqlite connection: " << sqlite3DatabasePath;
   

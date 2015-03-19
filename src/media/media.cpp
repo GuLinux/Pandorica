@@ -46,8 +46,12 @@ map<string,string> supportedMimetypes{
   {".ogg", "audio/ogg"}, {".mp3", "audio/mpeg"}
 };
 
-Media::Media(const filesystem::path& path) : m_path{path}, m_uid{hexEncode(md5(path.string()))} {
+Media::Media(const filesystem::path& path) : lock_mutex(make_shared<mutex>() ), m_path{path}, m_uid{hexEncode(md5(path.string()))} {
 }
+
+Media::Media() : Media(filesystem::path{})  {
+}
+
 
 Media::~Media()
 {
@@ -93,7 +97,6 @@ string Media::uid() const
   return m_uid;
 }
 
-Media::Media() {}
 
 bool Media::valid() const
 {
@@ -172,3 +175,7 @@ ostream &operator<<( ostream &os, const Media &m )
   return os;
 }
 
+Media::Lock Media::lock() const
+{
+  return make_shared<unique_lock<mutex>>(*lock_mutex);
+}

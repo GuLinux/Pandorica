@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WString>
 #include <ostream>
 #include <boost/date_time.hpp>
+#include <mutex>
 
 class Image;
 class MediaProperties;
@@ -63,9 +64,12 @@ public:
   friend std::ostream & operator<<( std::ostream &os, const Media &m );
   Wt::WDateTime creationTime(Wt::Dbo::Transaction &transaction) const;
   boost::posix_time::ptime posixCreationTime(Wt::Dbo::Transaction &transaction) const;
+  typedef std::shared_ptr<std::unique_lock<std::mutex>> Lock;
+  Lock lock() const;
 private:
   boost::filesystem::path m_path;
   std::string m_uid;
+  std::shared_ptr<std::mutex> lock_mutex;
 };
 
 #endif // MEDIA_H

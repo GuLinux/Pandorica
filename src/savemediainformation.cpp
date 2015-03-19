@@ -37,8 +37,9 @@ void SaveMediaInformation::save(const Media& media, function<void(const Media &m
     wApp->log("notice") << "Media propeties already found for " << media.path();
     return;
   }
-  boost::async([=]{
+  boost::async([media,appSession,onSave] () mutable {
     WServer::instance()->log("notice") << "Fetching information for " << media.path();
+    auto mediaLock = media.lock();
     Session session;
     auto lock = session.writeLock();
     Dbo::Transaction transaction(session);

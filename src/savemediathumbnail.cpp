@@ -52,10 +52,12 @@ void SaveMediaThumbnail::save(const Media& media, std::function< void(const Medi
     wApp->log("notice") << "Media propeties already found for " << media.path();
     return;
   }
-  boost::async([=]{
+  auto path = media.path();
+  boost::async([media, onSave, appSession] () mutable {
     WServer::instance()->log("notice") << "Creating thumbnail for " << media.path();
     MediaThumbnailGenerator thumbnailGenerator(media);
     try {
+      auto mediaLock = media.lock();
       Session session;
       auto lock = session.writeLock();
       Dbo::Transaction transaction(session);
