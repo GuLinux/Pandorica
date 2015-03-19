@@ -21,6 +21,7 @@
 #include "session.h"
 #include "ffmpegmedia.h"
 #include "utils/utils.h"
+#include "threadpool.h"
 #include <Wt/WServer>
 #include <Wt/WIOService>
 #include <boost/thread.hpp>
@@ -37,7 +38,7 @@ void SaveMediaInformation::save(const Media& media, function<void(const Media &m
     wApp->log("notice") << "Media propeties already found for " << media.path();
     return;
   }
-  boost::async([media,appSession,onSave] () mutable {
+  ThreadPool::instance()->post([media,appSession,onSave] () mutable {
     WServer::instance()->log("notice") << "Fetching information for " << media.path();
     auto mediaLock = media.lock();
     Session session;

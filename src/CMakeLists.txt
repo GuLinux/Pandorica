@@ -67,6 +67,7 @@ set(pandorica_SOURCES ${models_srcs} ${mediascanner_srcs} ${player_srcs}
     savemediainformation.cpp
     savemediathumbnail.cpp
     mediathumbnailgenerator.cpp
+    threadpool.cpp
     ${Pandorica_RCC_SRCS}
 )
 

@@ -22,6 +22,7 @@
 #include "ffmpegmedia.h"
 #include "session.h"
 #include "mediathumbnailgenerator.h"
+#include "threadpool.h"
 #include <Wt/WServer>
 #include <Wt/WIOService>
 #include <boost/thread.hpp>
@@ -53,7 +54,7 @@ void SaveMediaThumbnail::save(const Media& media, std::function< void(const Medi
     return;
   }
   auto path = media.path();
-  boost::async([media, onSave, appSession] () mutable {
+  ThreadPool::instance()->post([media, onSave, appSession] () mutable {
     WServer::instance()->log("notice") << "Creating thumbnail for " << media.path();
     MediaThumbnailGenerator thumbnailGenerator(media);
     try {
