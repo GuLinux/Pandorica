@@ -50,7 +50,7 @@ public:
   
   static void rate(dbo::ptr<User> userPtr, const Media &media, int rating, Wt::Dbo::Transaction &transaction);
   
-  bool isAdmin() const;
+  bool isAdmin(Wt::Dbo::Transaction& transaction) const;
   std::list<std::string> allowedPaths() const;
   
   dbo::collection<dbo::ptr<Comment>> comments;

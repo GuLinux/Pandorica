@@ -43,7 +43,8 @@ using namespace WtCommons;
 
 MediaInfoPanel::Private::Private( MediaInfoPanel *q, Session *session, Settings *settings ) : q( q ), session(session), settings(settings)
 {
-  isAdmin = session->user()->isAdmin();
+  Dbo::Transaction t(*session);
+  isAdmin = session->user()->isAdmin(t);
 }
 MediaInfoPanel::Private::~Private()
 {

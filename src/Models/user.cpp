@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace std;
 
-bool User::isAdmin() const
+bool User::isAdmin(Wt::Dbo::Transaction &transaction) const
 {
   for(auto group: groups) {
     if(group->isAdmin()) return true;

@@ -245,35 +245,8 @@ clicking on the following link or copying the URL into your browser:
       Visit {3} to do it.</message>
   <message id="new_admin_subject">Pandorica: new admin added</message>
   <message id="new_admin_body">The user {1} ({2}) was just added to the administrators list.</message>
-  <message id="configure.app.deploytype">Deploy Type</message>
-<message id="configure.app.deploytype.internal">Internal</message>
-<message id="configure.app.deploytype.static">Static Folder</message>
-<message id="configure.app.deploytype.lighttpd_secdownload">Lighttpd Secure Download</message>
-<message id="configure.app.deploytype.nginx_seclink">Nginx Secure Link</message>
-<message id="configure.app.deploytype.secdl_password_label">Secure Link - Secure Download Password</message>
 <message id="button.save">Save</message>
-<message id="configure.app.deploy_dir">Deploy directory</message>
-<message id="configure.app.deploy.path.label">Deploy path for "{1}"</message>
-<message id="configure.app.cache.dir.empty">None. Click a directory to set it.</message>
-<message id="configure.app.cache_path.label">Cache Path:</message>
-<message id="configure.app.cache_deploy_path">Cache Deploy Path</message>
 <message id="configure.app.select_media_directories">Select Media Directories</message>
-<message id="configure.app.cache_settings">Cache Settings</message>
-<message id="configure.app.use_cache_check">Use cache for subtitles and media previews</message>
-<message id="config.help.wt_internal_deploy.title">Wt Internal Deploy</message>
-<message id="config.help.wt_internal_deploy.content">Creates a new <a target="_blank" href="http://www.webtoolkit.eu/wt/doc/reference/html/classWt_1_1WFileResource.html">Wt::WResource</a> to provide data streaming.<br />Works in every environment, but it's a bit slower.</message>
-<message id="config.help.static_deploy.title">Static Deploy</message>
-<message id="config.help.static_deploy.content">Use a static directories to serve files.<br />You have to configure this directories in your web server.<br />If you use Wt whttpd, read <a target="_blank" href="http://www.webtoolkit.eu/wt/doc/reference/html/overview.html#wthttpd">this configuration</a><br />
-For other webservers (Apache, Lighttpd, Ngnix) read the proper documentation.
-</message>
-<message id="config.help.lighttpd_secdownload.title">Lighttpd Secure Download</message>
-<message id="config.help.lighttpd_secdownload.content">Similar to "Static Deploy", performing the same, but also offers some protection against unsecure downloads.<br /><a target="_blank" href="http://redmine.lighttpd.net/projects/1/wiki/Docs_ModSecDownload">Read More</a>.</message>
-<message id="config.help.nginx_seclink.title">Nginx Secure Link</message>
-<message id="config.help.nginx_seclink.content">Exactly as "Lighttpd Secure Download".<br />
-<a target="_blank" href="http://wiki.nginx.org/HttpSecureLinkModule">Read more</a>.</message>
-
-<message id="cache-deploy-path-title">Cache Deploy Path</message>
-<message id="cache-deploy-path-message">The selected folder needs to be deployed in your webserver. Configure it, and specify here where.<br />If empty, a <a target="_blank" href="http://www.webtoolkit.eu/wt/doc/reference/html/classWt_1_1WFileResource.html">Wt::WResource</a> will be used instead (a bit slower, but still faster than without cache).</message>
 <message id="empty_media_collection_message">It looks like your Media Collection is empty.<br />You can configure it by clicking the "Admin" menu, then choosing "<b>Configure App</b>".</message>
 <message id="empty_media_collection_title">Empty Media Collection</message>
 <message id="create_thumbnails_no_image_checkbox">No Image</message>

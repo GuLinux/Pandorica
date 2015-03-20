@@ -63,6 +63,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "savemediainformation.h"
 #include "savemediathumbnail.h"
 #include "threadpool.h"
+#include "mediapreviewwidget.h"
 #include <boost/thread.hpp>
 #include <boost/chrono.hpp>
 #include "Wt-Commons/wobjectscope.h"
@@ -476,8 +477,25 @@ void MediaCollectionBrowser::Private::addMedia( const Media &media, WContainerWi
     if(e.button() != WMouseEvent::RightButton)
       return;
     WPopupMenu *menu = new WPopupMenu;
+    Dbo::Transaction t(*session);
     menu->addItem(WString::tr("mediabrowser.play"))->triggered().connect(std::bind([=]{ playSignal.emit(media);}));
     menu->addItem(WString::tr("mediabrowser.queue"))->triggered().connect(std::bind([=]{ queueSignal.emit(media);}));
+    if(session->user()->isAdmin(t)) {
+      menu->addSeparator();
+      menu->addItem(WString::tr("mediabrowser.admin.setposter"))->triggered().connect(bind([=]{
+        auto dialog = new WDialog(WString::tr("mediabrowser.admin.setposter"));
+        MediaPreviewWidget *mediaPreview = new MediaPreviewWidget(media);
+        new WObjectScope([=]{wApp->log("notice") << "deleted mediaPreviewWidget for media " << media.path(); }, mediaPreview);
+        
+        dialog->contents()->addWidget(mediaPreview);
+        dialog->footer()->addWidget(WW<WPushButton>(WString::tr("button.cancel")).css("btn-danger").onClick([=](WMouseEvent){ dialog->reject(); }));
+        dialog->footer()->addWidget(WW<WPushButton>(WString::tr("button.ok")).css("btn-primary").onClick([=](WMouseEvent){ dialog->accept(); }));
+        dialog->finished().connect([=](int ret, _n5){
+          if(ret != WDialog::Accepted) return;
+        });
+        dialog->show();
+      }));
+    }
     menu->aboutToHide().connect([=](_n6){delete menu;});
     menu->popup(e);
   });

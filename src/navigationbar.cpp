@@ -69,7 +69,7 @@ void NavigationBar::setup(Dbo::Transaction& transaction, WStackedWidget* stacked
   show();
   for(auto item: pagesMap) log("notice") << "Item " << item.first << ": " << item.second;
   d->setupNavigationBar(transaction, stackedWidget, pagesMap);
-  if(d->session->user()->isAdmin())
+  if(d->session->user()->isAdmin(transaction))
     d->setupAdminBar(transaction);
   d->setupSearchBar();
 }
