@@ -39,7 +39,7 @@ public:
   Wt::Signal<Media> &play();
   bool currentDirectoryHas( const Media &media ) const;
   bool currentDirectoryHasRecursively( const Media &media ) const;
-  void browse(const std::shared_ptr<MediaDirectory> &mediaDirectory);
+  void browse(const std::shared_ptr<MediaDirectory> &mediaDirectory, bool forceReload = false);
   void reload();
 private:
   D_PTR;

@@ -294,7 +294,7 @@ void MediaCollectionBrowser::Private::ratingFilterDialog( WMenu *menu )
 
 void MediaCollectionBrowser::reload()
 {
-  d->browse( d->currentPath );
+  d->browse( d->currentPath, true ); // TODO: verify if this is required
 }
 
 void MediaCollectionBrowser::Private::setup(MediaInfoPanel *infoPanel)
@@ -331,11 +331,11 @@ void MediaCollectionBrowser::Private::setup(MediaInfoPanel *infoPanel)
   resetPanel.connect([=](_n6) { infoPanel->reset(); });
 }
 
-void MediaCollectionBrowser::browse( const shared_ptr< MediaDirectory > &mediaDirectory )
+void MediaCollectionBrowser::browse( const shared_ptr< MediaDirectory >& mediaDirectory, bool forceReload )
 {
   WServer::instance()->log("notice") << __PRETTY_FUNCTION__ << ", mediaDirectory=" << (mediaDirectory ? mediaDirectory->path() : "<null>");
   if(mediaDirectory)
-    d->browse(mediaDirectory);
+    d->browse(mediaDirectory, forceReload);
 }
 
 void MediaCollectionBrowser::Private::clear() {
@@ -344,12 +344,12 @@ void MediaCollectionBrowser::Private::clear() {
 }
 
 
-void MediaCollectionBrowser::Private::browse( const shared_ptr< MediaDirectory > &mediaDirectory )
+void MediaCollectionBrowser::Private::browse( const shared_ptr< MediaDirectory > &mediaDirectory, bool forceReload )
 {
   auto dirRelPath = mediaDirectory->relativePath();
   wApp->setInternalPath(dirRelPath, false);
     wApp->log("notice") << "******* BROWSE: " << mediaDirectory->path();
-  if(currentPath == mediaDirectory && !empty) {
+  if( currentPath == mediaDirectory && ! forceReload && !empty) {
     wApp->log("notice") << "******* BROWSE: skipping reloading of " << mediaDirectory->path();
     return;
   }

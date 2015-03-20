@@ -71,7 +71,7 @@ class MediaCollectionBrowser::Private {
 public:
     Private(MediaCollection *collection, Settings *settings, Session *session, MediaCollectionBrowser *q);
     void rebuildBreadcrumb();
-    void browse(const std::shared_ptr<MediaDirectory> &mediaDirectory);
+    void browse(const std::shared_ptr<MediaDirectory> &mediaDirectory, bool forceReload = false);
     void setup(MediaInfoPanel *infoPanel);
     MediaCollection *const collection;
     Settings *settings;
