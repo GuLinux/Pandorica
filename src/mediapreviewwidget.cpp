@@ -24,7 +24,12 @@
 #include "media/media.h"
 #include "Wt-Commons/wt_helpers.h"
 #include <Wt/WFileUpload>
+#include <Wt/Dbo/Transaction>
+#include <Wt/WImage>
+#include <Wt/WMemoryResource>
+#include <Wt/Http/Client>
 #include "utils/image.h"
+#include "session.h"
 
 using namespace std;
 using namespace Wt;
@@ -35,11 +40,42 @@ MediaPreviewWidget::~MediaPreviewWidget()
 
 }
 
-MediaPreviewWidget::MediaPreviewWidget(const Media& media, WContainerWidget* parent)
+MediaPreviewWidget::MediaPreviewWidget(const Media& media, Session *session, WContainerWidget* parent)
 {
+  Dbo::Transaction t(*session);
   WContainerWidget *content = WW<WContainerWidget>();
   content->setLayout(new WVBoxLayout);
-  WFileUpload *uploadCover = new WFileUpload;
-  content->layout()->addWidget(uploadCover);
+  WFileUpload *uploadCover = WW<WFileUpload>().css("inline-block");
+  uploadCover->setInline(true);
+  GooglePicker *googlePicker = new GooglePicker{"Load from Google Images"};
+  googlePicker->searchString(media.title(t));
+  content->layout()->addWidget(WW<WContainerWidget>().add(uploadCover).add(googlePicker));
+  WImage *image = WW<WImage>().css("img-responsive");
+  auto image_from_db = media.preview(t, Media::PreviewFull);
+  if(image_from_db) {
+    image->setImageLink(image_from_db->link(image_from_db, t, image));
+  }
+  
+  Http::Client *client = new Http::Client(this);
+  googlePicker->imageChosen().connect([=](const WString &url, _n5){
+    wApp->log("notice") << "Got url: " << url;
+      client->setFollowRedirect(true);
+      client->setMaximumResponseSize(20 * 1024 * 1024);
+      client->done().connect([=](const boost::system::error_code &error_code, const Http::Message &message, _n4){
+        if(error_code.value() != boost::system::errc::success || message.status() < 200 || message.status() > 299) {
+          wApp->log("notice") << "error loading image: " << error_code.message() << ", status=" << message.status();
+          return;
+        }
+        string content_type = *message.getHeader("Content-Type");
+        wApp->log("notice") << "content type: " << content_type;
+        ImageBlob imageBlob;
+        auto body = message.body();
+        copy(body.begin(), body.end(), back_inserter(imageBlob));
+        image->setImageLink(new WMemoryResource(content_type, imageBlob));
+        wApp->triggerUpdate();
+      });
+      client->get(url.toUTF8());
+  });
+  content->layout()->addWidget(image);
   setImplementation(content);
 }

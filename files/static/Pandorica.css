@@ -296,7 +296,7 @@ body {
   margin-bottom: 0px;
 }
 
-.menuitem-closeable a {
+.menuitem-closeable a,.inline-block {
   display: inline-block!important;
 }
 

@@ -84,7 +84,7 @@ void GooglePicker::pick()
           var imageView = new google.picker.ImageSearchView();
 	  imageView.setQuery(%s);
 	  imageView.setLicense(google.picker.ImageSearchView.License.NONE);
-	  imageView.setSize(google.picker.ImageSearchView.Size.SIZE_XGA);
+	  imageView.setSize(google.picker.ImageSearchView.Size.SIZE_XGA); // TODO: parameters?
           var picker = new google.picker.PickerBuilder().
               addView(imageView).
               setDeveloperKey(%s).

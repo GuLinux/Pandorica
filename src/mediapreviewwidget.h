@@ -23,11 +23,12 @@
 #include <Wt/WCompositeWidget>
 #include "media/media.h"
 
+class Session;
 class MediaPreviewWidget : public Wt::WCompositeWidget
 {
 public:
     ~MediaPreviewWidget();
-    MediaPreviewWidget(const Media &media, Wt::WContainerWidget* parent = 0);
+    MediaPreviewWidget(const Media &media, Session *session, Wt::WContainerWidget* parent = 0);
 };
 
 #endif // MEDIAPREVIEWWIDGET_H
