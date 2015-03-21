@@ -25,8 +25,10 @@
 using namespace std;
 using namespace Wt;
 
-ThreadPool::Private::Private(int max, ThreadPool* q) : max(max), q(q)
+ThreadPool::Private::Private(int max, ThreadPool* q) : work(ioService), q(q)
 {
+  for(int i=0; i<max; i++)
+    threadGroup.create_thread(boost::bind(&boost::asio::io_service::run, &ioService));
 }
 ThreadPool::Private::~Private()
 {
@@ -42,36 +44,17 @@ std::shared_ptr<ThreadPool> ThreadPool::instance(int max)
 ThreadPool::ThreadPool(int max)
     : d(max, this)
 {
-  for(int i=0; i<max; i++) {
-    boost::async([=]{
-      Function function;
-      while(WServer::instance()->isRunning()) {
-        {
-          WServer::instance()->log("notice") << "[thread-" << i << "]: checking for queue";
-          unique_lock<mutex> lock(d->mutex);
-          if(d->threads_queue.empty()) {
-            WServer::instance()->log("notice") << "[thread-" << i << "]: queue empty, sleeping";
-            boost::this_thread::sleep_for(boost::chrono::seconds(1));
-            continue;
-          }
-          function = d->threads_queue.front();
-          d->threads_queue.pop();
-        }
-        WServer::instance()->log("notice") << "[thread-" << i << "]: job found, running...";
-        function();
-        WServer::instance()->log("notice") << "[thread-" << i << "]: job found, done";
-      }
-    });
-  }
+
 }
 
 ThreadPool::~ThreadPool()
 {
+  d->ioService.stop();
+  d->threadGroup.join_all();
 }
 
 void ThreadPool::post(ThreadPool::Function f)
 {
-  unique_lock<mutex> lock(d->mutex);
-  d->threads_queue.push(f);
+  d->ioService.post(f);
 }
 

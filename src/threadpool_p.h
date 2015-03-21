@@ -21,16 +21,18 @@
 #define THREADPOOLPRIVATE_H
 #include "threadpool.h"
 #include <boost/thread.hpp>
-#include <mutex>
-#include <queue>
+#include <boost/asio/io_service.hpp>
+#include <boost/bind.hpp>
+#include <boost/thread/thread.hpp>
+
 class ThreadPool::Private
 {
 public:
     Private(int max, ThreadPool* q);
     virtual ~Private();
-    const int max;
-    std::mutex mutex;
-    std::queue<Function> threads_queue;
+    boost::asio::io_service ioService;
+    boost::thread_group threadGroup;
+    boost::asio::io_service::work work;
 private:
     class ThreadPool* const q;
 };
