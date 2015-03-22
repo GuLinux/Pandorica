@@ -29,14 +29,11 @@ ThreadPool::Private::Private(int max, ThreadPool* q) : /* work(ioService), */ q(
 {
   std::cerr << "Created ioService with " << ioService.threadCount() << " threads\n";
   ioService.start();
-/*
-  for(int i=0; i<max; i++)
-    threadGroup.create_thread(boost::bind(&boost::asio::io_service::run, &ioService)); //->detach();
-  std::cerr << __PRETTY_FUNCTION__ << " done\n";
-*/
 }
+
 ThreadPool::Private::~Private()
 {
+  ioService.stop();
 }
 
 std::shared_ptr<ThreadPool> ThreadPool::instance(int max)
@@ -51,6 +48,7 @@ std::shared_ptr<std::unique_lock<std::mutex>> ThreadPool::lock(const std::string
   if(locks.count(name) == 0) {
     locks[name] = make_shared<mutex>();
   }
+  std::cerr << "Creating lock for " << name << std::endl;
   return make_shared<unique_lock<mutex>>(*locks[name]);
 }
 
@@ -58,13 +56,11 @@ std::shared_ptr<std::unique_lock<std::mutex>> ThreadPool::lock(const std::string
 ThreadPool::ThreadPool(int max)
     : d(max, this)
 {
-
 }
 
 ThreadPool::~ThreadPool()
 {
-//  d->ioService.stop();
-//  d->threadGroup.join_all();
+  d->ioService.stop();
 }
 
 void ThreadPool::post(ThreadPool::Function f)

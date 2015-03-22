@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/filesystem.hpp>
 #include "Models/models.h"
 #include <utils/image.h>
+#include <threadpool.h>
 
 #define IMAGE_SIZE_PREVIEW 550
 #define IMAGE_SIZE_THUMB 260
@@ -46,7 +47,7 @@ map<string,string> supportedMimetypes{
   {".ogg", "audio/ogg"}, {".mp3", "audio/mpeg"}
 };
 
-Media::Media(const filesystem::path& path) : lock_mutex(make_shared<mutex>() ), m_path{path}, m_uid{hexEncode(md5(path.string()))} {
+Media::Media(const filesystem::path& path) : m_path{path}, m_uid{hexEncode(md5(path.string()))} {
 }
 
 Media::Media() : Media(filesystem::path{})  {
@@ -177,5 +178,5 @@ ostream &operator<<( ostream &os, const Media &m )
 
 Media::Lock Media::lock() const
 {
-  return make_shared<unique_lock<mutex>>(*lock_mutex);
+  return ThreadPool::lock(uid());
 }

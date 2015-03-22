@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WLogger>
 #include <boost/filesystem.hpp>
 #include "utils/utils.h"
+#include "threadpool.h"
 #include <libavutil/error.h>
 #include <libavutil/mem.h>
 #include <boost/chrono/include.hpp>
@@ -191,7 +192,7 @@ FFMPegStreamConversion::FFMPegStreamConversion( AVFormatContext *inputFormatCont
 
   decoder = avCreateObject( avcodec_find_decoder( inputStream->codec->codec_id ), ConcatStrings( {"creating AV Decoder for", inputCodecDescription} ) );
   {
-    auto lock = FFMPEG::Lock();
+    auto lock = ThreadPool::lock("ffmpeg_avcodec_open");
     avLibExec( avcodec_open2( inputStream->codec, decoder, NULL ), ConcatStrings( {"Opening input", inputCodecDescription} ) );
   }
 
@@ -215,7 +216,7 @@ FFMPegStreamConversion::FFMPegStreamConversion( AVFormatContext *inputFormatCont
   outputStream->codec->subtitle_header_size = subtitleHeader.size();
 
   {
-    auto lock = FFMPEG::Lock();
+    auto lock = ThreadPool::lock("ffmpeg_avcodec_open");
     avLibExec( avcodec_open2( outputStream->codec, encoder, NULL ), "opening output stream" );
   }
 }
@@ -268,7 +269,7 @@ FFMPEGMedia::FFMPEGMedia( const Media &media ) : FFMPEGMedia(media, [=](const st
 FFMPEGMedia::FFMPEGMedia( const Media &media, Logger logger )
   : d( media, this )
 {
-  auto lock = FFMPEG::Lock();
+//   auto lock = ThreadPool::lock("ffmpeg_avcodec_open");
   d->logger = logger;
   d->openInputResult = avformat_open_input( &d->pFormatCtx, d->filename, NULL, NULL );
 

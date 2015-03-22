@@ -69,7 +69,6 @@ public:
 private:
   boost::filesystem::path m_path;
   std::string m_uid;
-  std::shared_ptr<std::mutex> lock_mutex;
 };
 
 #endif // MEDIA_H

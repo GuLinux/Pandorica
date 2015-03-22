@@ -31,6 +31,7 @@ extern "C" {
 }
 
 #include "ffmpegmedia.h"
+#include <threadpool.h>
 
 using namespace std;
 
@@ -93,9 +94,9 @@ void MovieDecoder::destroy()
 {
     if (m_pVideoCodecContext)
     {
-	auto lock = FFMPEG::Lock();
-        avcodec_close(m_pVideoCodecContext);
-        m_pVideoCodecContext = NULL;
+      auto lock = ThreadPool::lock("ffmpeg_avcodec_open");
+      avcodec_close(m_pVideoCodecContext);
+      m_pVideoCodecContext = NULL;
     }
 
     if ((!m_FormatContextWasGiven) && m_pFormatContext)
@@ -174,7 +175,7 @@ void MovieDecoder::initializeVideo()
     m_pVideoCodecContext->workaround_bugs = 1;
 
     {
-      auto lock = FFMPEG::Lock();
+    auto lock = ThreadPool::lock("ffmpeg_avcodec_open");
   #if LIBAVCODEC_VERSION_MAJOR < 53
       if (avcodec_open(m_pVideoCodecContext, m_pVideoCodec) < 0)
   #else

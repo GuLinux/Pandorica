@@ -60,10 +60,6 @@ namespace FFMPEG
     BinaryData data;
     std::string toString() const;
   };
-  static std::shared_ptr<std::unique_lock<std::mutex>> Lock() {
-    static std::mutex _mutex;
-    return std::make_shared<std::unique_lock<std::mutex>>(_mutex);
-  }
 }
 
 
