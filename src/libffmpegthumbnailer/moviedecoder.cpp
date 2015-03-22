@@ -30,6 +30,8 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
+#include "ffmpegmedia.h"
+
 using namespace std;
 
 namespace ffmpegthumbnailer
@@ -91,6 +93,7 @@ void MovieDecoder::destroy()
 {
     if (m_pVideoCodecContext)
     {
+	auto lock = FFMPEG::Lock();
         avcodec_close(m_pVideoCodecContext);
         m_pVideoCodecContext = NULL;
     }
@@ -170,13 +173,16 @@ void MovieDecoder::initializeVideo()
 
     m_pVideoCodecContext->workaround_bugs = 1;
 
-#if LIBAVCODEC_VERSION_MAJOR < 53
-    if (avcodec_open(m_pVideoCodecContext, m_pVideoCodec) < 0)
-#else
-	if (avcodec_open2(m_pVideoCodecContext, m_pVideoCodec, NULL) < 0)
-#endif
     {
-        throw logic_error("Could not open video codec");
+      auto lock = FFMPEG::Lock();
+  #if LIBAVCODEC_VERSION_MAJOR < 53
+      if (avcodec_open(m_pVideoCodecContext, m_pVideoCodec) < 0)
+  #else
+	  if (avcodec_open2(m_pVideoCodecContext, m_pVideoCodec, NULL) < 0)
+  #endif
+      {
+	  throw logic_error("Could not open video codec");
+      }
     }
 }
 

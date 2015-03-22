@@ -40,6 +40,8 @@ using namespace std;
 using namespace FFMPEG;
 namespace fs = boost::filesystem;
 
+
+
 FFMPEGMedia::Private::Private( const Media &media, FFMPEGMedia *q )
   : media( media ), q( q ), filename( media.fullPath().c_str() )
 {
@@ -188,7 +190,10 @@ FFMPegStreamConversion::FFMPegStreamConversion( AVFormatContext *inputFormatCont
   string inputCodecDescription = string( " codec " ) + ( inputStream->codec ? ( inputStream->codec->codec_name + string("-") + boost::lexical_cast<string>(inputStream->codec->codec_id) ): "UNKNOWN" );
 
   decoder = avCreateObject( avcodec_find_decoder( inputStream->codec->codec_id ), ConcatStrings( {"creating AV Decoder for", inputCodecDescription} ) );
-  avLibExec( avcodec_open2( inputStream->codec, decoder, NULL ), ConcatStrings( {"Opening input", inputCodecDescription} ) );
+  {
+    auto lock = FFMPEG::Lock();
+    avLibExec( avcodec_open2( inputStream->codec, decoder, NULL ), ConcatStrings( {"Opening input", inputCodecDescription} ) );
+  }
 
   avLibExec( avformat_alloc_output_context2( &outputFormatContext, NULL, encoderFormat.first.c_str(), NULL ), "allocating output context",
              [this]( const int & r )
@@ -209,7 +214,10 @@ FFMPegStreamConversion::FFMPegStreamConversion( AVFormatContext *inputFormatCont
   outputStream->codec->subtitle_header = subtitleHeader.data();
   outputStream->codec->subtitle_header_size = subtitleHeader.size();
 
-  avLibExec( avcodec_open2( outputStream->codec, encoder, NULL ), "opening output stream" );
+  {
+    auto lock = FFMPEG::Lock();
+    avLibExec( avcodec_open2( outputStream->codec, encoder, NULL ), "opening output stream" );
+  }
 }
 
 FFMPegStreamConversion::~FFMPegStreamConversion()
