@@ -24,15 +24,17 @@
 #include <boost/asio/io_service.hpp>
 #include <boost/bind.hpp>
 #include <boost/thread/thread.hpp>
+#include <Wt/WIOService>
 
 class ThreadPool::Private
 {
 public:
     Private(int max, ThreadPool* q);
     virtual ~Private();
-    boost::asio::io_service ioService;
-    boost::thread_group threadGroup;
-    boost::asio::io_service::work work;
+//    boost::asio::io_service ioService;
+//    boost::thread_group threadGroup;
+//    boost::asio::io_service::work work;
+    Wt::WIOService ioService;
 private:
     class ThreadPool* const q;
 };

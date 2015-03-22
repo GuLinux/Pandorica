@@ -55,6 +55,7 @@ void SaveMediaThumbnail::save(const Media& media, std::function< void(const Medi
   }
   auto path = media.path();
   ThreadPool::instance()->post([media, onSave, appSession] () mutable {
+    auto lock = ThreadPool::lock("media_lock");
     WServer::instance()->log("notice") << "Creating thumbnail for " << media.path();
     MediaThumbnailGenerator thumbnailGenerator(media);
     try {

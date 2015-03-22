@@ -21,6 +21,7 @@
 #define THREADPOOL_H
 #include <utils/d_ptr.h>
 #include <functional>
+#include <mutex>
 
 class ThreadPool
 {
@@ -29,6 +30,7 @@ public:
   static std::shared_ptr<ThreadPool> instance(int max = 10);
   typedef std::function<void()> Function;
   void post(Function f);
+  static std::shared_ptr<std::unique_lock<std::mutex>> lock(const std::string &name);
 private:
   ThreadPool(int max);
   D_PTR;
