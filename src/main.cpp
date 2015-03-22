@@ -366,10 +366,10 @@ int main( int argc, char **argv, char **envp )
     if( !initServer( argc, argv, server, vm ) )
       return 1;
 
-    WIOService ioService;
-    ioService.setThreadCount(10);
-    server.setIOService(ioService);
-    ioService.start();
+    // WIOService ioService;
+    //ioService.setThreadCount(10);
+    //server.setIOService(ioService);
+    //ioService.start();
     Settings::init( vm );
     server.addEntryPoint( Application, createApplication );
     string quitPassword;
