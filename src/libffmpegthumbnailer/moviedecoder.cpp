@@ -174,12 +174,12 @@ void MovieDecoder::initializeVideo()
     m_pVideoCodecContext->workaround_bugs = 1;
 
     {
-      auto lock = ThreadPool::lock("ffmpeg_avcodec_open");
-  #if LIBAVCODEC_VERSION_MAJOR < 53
+//       auto lock = ThreadPool::lock("ffmpeg_avcodec_open");
+#if LIBAVCODEC_VERSION_MAJOR < 53
       if (avcodec_open(m_pVideoCodecContext, m_pVideoCodec) < 0)
-  #else
+#else
 	  if (avcodec_open2(m_pVideoCodecContext, m_pVideoCodec, NULL) < 0)
-  #endif
+#endif
       {
 	  throw logic_error("Could not open video codec");
       }
