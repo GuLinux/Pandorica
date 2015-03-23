@@ -29,30 +29,29 @@
 using namespace Wt;
 using namespace std;
 
-void SaveMediaInformation::save(const Media& media, function<void(const Media &media)> onSave)
+void SaveMediaInformation::save(const shared_ptr<FFMPEGMedia> &media, function<void(const Media &)> onSave)
 {
   Dbo::Transaction t(session);
   string appSession = wApp->sessionId();
-  MediaPropertiesPtr mediaProperties = session.find<MediaProperties>().where("media_id = ?").bind(media.uid()).resultValue();
+  MediaPropertiesPtr mediaProperties = session.find<MediaProperties>().where("media_id = ?").bind(media->media().uid()).resultValue();
   if(mediaProperties) {
-    wApp->log("notice") << "Media propeties already found for " << media.path();
+    wApp->log("notice") << "Media propeties already found for " << media->media().path();
     return;
   }
   ThreadPool::instance()->post([media,appSession,onSave] () mutable {
-    WServer::instance()->log("notice") << "Fetching information for " << media.path();
-//     auto mediaLock = media.lock();
+    WServer::instance()->log("notice") << "Fetching information for " << media->media().path();
+//     auto mediaLock = media->media().lock();
     Session session;
     auto lock = session.writeLock();
     Dbo::Transaction transaction(session);
-    FFMPEGMedia ffmpegMedia(media);
-    string titleSuggestion = ffmpegMedia.metadata( "title" ).empty() ? Utils::titleHintFromFilename( media.filename() ) : ffmpegMedia.metadata( "title" );
-    transaction.session().execute( "DELETE FROM media_properties WHERE media_id = ?" ).bind( media.uid() );
-    pair<int, int> resolution = ffmpegMedia.resolution();
-    auto mediaProperties = new MediaProperties {media.uid(), titleSuggestion, media.fullPath(), ffmpegMedia.durationInSeconds(),
-	static_cast<int64_t>(boost::filesystem::file_size( media.path())), resolution.first, resolution.second};
+    string titleSuggestion = media->metadata( "title" ).empty() ? Utils::titleHintFromFilename( media->media().filename() ) : media->metadata( "title" );
+    transaction.session().execute( "DELETE FROM media_properties WHERE media_id = ?" ).bind( media->media().uid() );
+    pair<int, int> resolution = media->resolution();
+    auto mediaProperties = new MediaProperties {media->media().uid(), titleSuggestion, media->media().fullPath(), media->durationInSeconds(),
+	static_cast<int64_t>(boost::filesystem::file_size( media->media().path())), resolution.first, resolution.second};
     transaction.session().add( mediaProperties );
     transaction.commit();
-    WServer::instance()->post(appSession, boost::bind(onSave, media));
+    WServer::instance()->post(appSession, boost::bind(onSave, media->media()));
   });
 }
 

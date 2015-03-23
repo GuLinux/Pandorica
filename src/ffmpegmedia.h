@@ -79,6 +79,7 @@ class FFMPEGMedia
     void extractSubtitles(std::function<bool()> keepGoing, std::function<void(double)> percentCallback = [](double){});
     void lock();
     void unlock();
+    const Media &media() const;
   private:
     D_PTR;
 };

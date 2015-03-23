@@ -22,14 +22,15 @@
 #include <functional>
 
 class Media;
+class FFMPEGMedia;
 class Session;
-
+#include <memory>
 class SaveMediaThumbnail
 {
 public:
     SaveMediaThumbnail(Session &session);
     ~SaveMediaThumbnail();
-    void save(const Media &media, std::function<void(const Media &media)> onSave);
+    void save(const std::shared_ptr<FFMPEGMedia> &media, std::function<void(const Media &media)> onSave);
 private:
   Session &session;
 };

@@ -80,11 +80,10 @@ namespace {
   }
 }
 
-MediaThumbnailGenerator::MediaThumbnailGenerator(const Media &media) : media(media)
+MediaThumbnailGenerator::MediaThumbnailGenerator(const shared_ptr<FFMPEGMedia> &media) : media(media)
 {
-  FFMPEGMedia ffmpegMedia(media);
-  media_duration = ffmpegMedia.durationInSeconds();
-  resolution = ffmpegMedia.resolution();
+  media_duration = media->durationInSeconds();
+  resolution = media->resolution();
 }
 
 MediaThumbnailGenerator::~MediaThumbnailGenerator()
@@ -99,13 +98,13 @@ Image MediaThumbnailGenerator::image(int quality) const
   int fullSize = max( resolution.first, resolution.second );
   VideoThumbnailer videoThumbnailer( fullSize, false, true, quality, true );
   FilmStripFilter filmStripFilter;
-  if( media.mimetype().find( "video" ) != string::npos )
+  if( media->media().mimetype().find( "video" ) != string::npos )
     videoThumbnailer.addFilter( &filmStripFilter );
   if( currentPosition.percent > 0 )
     videoThumbnailer.setSeekPercentage( currentPosition.percent );
   else
     videoThumbnailer.setSeekTime( currentPosition.timing );
   ImageBlob fullImage;
-  videoThumbnailer.generateThumbnail( media.fullPath(), ThumbnailerImageType::Png, fullImage );
+  videoThumbnailer.generateThumbnail( media->media().fullPath(), ThumbnailerImageType::Png, fullImage );
   return Image{fullImage};
 }

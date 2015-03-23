@@ -403,3 +403,8 @@ std::pair<int, int> FFMPEGMedia::resolution()
     if( stream.type == Video )
       return stream.resolution;
 }
+
+const Media& FFMPEGMedia::media() const
+{
+  return d->media;
+}

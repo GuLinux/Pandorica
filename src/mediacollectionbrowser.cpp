@@ -462,8 +462,9 @@ void MediaCollectionBrowser::Private::addMedia( const Media &media, WContainerWi
   auto refreshIcon = [=](const Media &media) { addMedia(media, item); wApp->triggerUpdate(); };
   SaveMediaInformation saveMediaInformation(*session);
   SaveMediaThumbnail saveMediaThumbnail(*session);
-  saveMediaInformation.save(media, refreshIcon);
-  saveMediaThumbnail.save(media, refreshIcon);
+  auto ffmpegMedia = make_shared<FFMPEGMedia>(media);
+  saveMediaInformation.save(ffmpegMedia, refreshIcon);
+  saveMediaThumbnail.save(ffmpegMedia, refreshIcon);
 }
 
 void MediaCollectionBrowser::Private::clearThumbnailsFor( Media media )

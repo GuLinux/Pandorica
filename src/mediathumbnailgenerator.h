@@ -22,14 +22,15 @@
 #include "media/media.h"
 #include "utils/image.h"
 
+class FFMPEGMedia;
 class MediaThumbnailGenerator
 {
 public:
-    MediaThumbnailGenerator(const Media &media);
+    MediaThumbnailGenerator(const std::shared_ptr<FFMPEGMedia> &media);
     ~MediaThumbnailGenerator();
     Image image(int quality = 100) const;
 private:
-  const Media media;
+  const std::shared_ptr<FFMPEGMedia> media;
     long int media_duration;
     std::pair< int, int > resolution;
 };

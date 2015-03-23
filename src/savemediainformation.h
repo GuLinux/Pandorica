@@ -18,6 +18,8 @@
 #ifndef SAVEMEDIAINFORMATION_H
 #define SAVEMEDIAINFORMATION_H
 #include <functional>
+#include <memory>
+class FFMPEGMedia;
 class Media;
 class Session;
 class SaveMediaInformation
@@ -25,7 +27,7 @@ class SaveMediaInformation
 public:
     SaveMediaInformation(Session &session);
     ~SaveMediaInformation();
-    void save(const Media &media, std::function<void(const Media &media)> onSave);
+    void save(const std::shared_ptr<FFMPEGMedia> &media, std::function<void(const Media&)> onSave);
 private:
   Session &session;
 };
