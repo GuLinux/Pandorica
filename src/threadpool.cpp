@@ -31,7 +31,6 @@ ThreadPool::Private::Private(ThreadPool* q) : /* work(ioService), */ q(q)
   if(WServer::instance()->readConfigurationProperty("threadpool_threads_count", threads)) {
     ioService.setThreadCount(boost::lexical_cast<int>(threads));
   }
-  std::cerr << "Created ioService with " << ioService.threadCount() << " threads\n";
   ioService.start();
 }
 
@@ -52,7 +51,6 @@ std::shared_ptr<std::unique_lock<std::mutex>> ThreadPool::lock(const std::string
   if(locks.count(name) == 0) {
     locks[name] = make_shared<mutex>();
   }
-  std::cerr << "Creating lock for " << name << std::endl;
   return make_shared<unique_lock<mutex>>(*locks[name]);
 }
 
