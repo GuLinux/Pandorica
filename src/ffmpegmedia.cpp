@@ -269,9 +269,11 @@ FFMPEGMedia::FFMPEGMedia( const Media &media ) : FFMPEGMedia(media, [=](const st
 FFMPEGMedia::FFMPEGMedia( const Media &media, Logger logger )
   : d( media, this )
 {
-  auto lock = ThreadPool::lock("ffmpeg_avcodec_open");
   d->logger = logger;
-  d->openInputResult = avformat_open_input( &d->pFormatCtx, d->filename, NULL, NULL );
+  {
+    auto lock = ThreadPool::lock("ffmpeg_avcodec_open");
+    d->openInputResult = avformat_open_input( &d->pFormatCtx, d->filename, NULL, NULL );
+  }
 
   if( !d->openFileWasValid() )
   {
@@ -279,7 +281,10 @@ FFMPEGMedia::FFMPEGMedia( const Media &media, Logger logger )
     return;
   }
 
-  d->findInfoResult = avformat_find_stream_info( d->pFormatCtx, NULL );
+  {
+    auto lock = ThreadPool::lock("ffmpeg_avcodec_open");
+    d->findInfoResult = avformat_find_stream_info( d->pFormatCtx, NULL );
+  }
 
   if( !d->findInfoWasValid() )
   {
