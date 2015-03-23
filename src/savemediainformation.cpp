@@ -35,7 +35,7 @@ void SaveMediaInformation::save(const shared_ptr< FFMPEGMedia >& media, function
   
   MediaPropertiesPtr existingMediaProperties = session.find<MediaProperties>().where("media_id = ?").bind(media->media().uid()).resultValue();
   if(existingMediaProperties) {
-    wApp->log("notice") << "Media propeties already found for " << media->media().path();
+    WServer::instance()->log("notice") << "Media propeties already found for " << media->media().path();
     return;
   }
   WServer::instance()->log("notice") << "Fetching information for " << media->media().path();

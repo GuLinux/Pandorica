@@ -50,7 +50,7 @@ void SaveMediaThumbnail::save(const shared_ptr< FFMPEGMedia >& media, function< 
   Dbo::Transaction t(session);
   int images = session.query<int>("SELECT count(*) from media_attachment where type = 'preview' AND media_id = ?").bind(media->media().uid());
   if(images >= 3) {
-    wApp->log("notice") << "Media propeties already found for " << media->media().path();
+    WServer::instance()->log("notice") << "Media propeties already found for " << media->media().path();
     return;
   }
   auto path = media->media().path();
