@@ -40,7 +40,7 @@ void SaveMediaInformation::save(const Media& media, function<void(const Media &m
   }
   ThreadPool::instance()->post([media,appSession,onSave] () mutable {
     WServer::instance()->log("notice") << "Fetching information for " << media.path();
-    auto lock_task = ThreadPool::lock("media_lock");
+//     auto lock_task = ThreadPool::lock("media_lock");
     auto mediaLock = media.lock();
     Session session;
     auto lock = session.writeLock();
