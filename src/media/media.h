@@ -65,7 +65,6 @@ public:
   Wt::WDateTime creationTime(Wt::Dbo::Transaction &transaction) const;
   boost::posix_time::ptime posixCreationTime(Wt::Dbo::Transaction &transaction) const;
   typedef std::shared_ptr<std::unique_lock<std::mutex>> Lock;
-  Lock lock() const;
 private:
   boost::filesystem::path m_path;
   std::string m_uid;

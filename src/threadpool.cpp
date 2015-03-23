@@ -25,8 +25,12 @@
 using namespace std;
 using namespace Wt;
 
-ThreadPool::Private::Private(int max, ThreadPool* q) : /* work(ioService), */ q(q)
+ThreadPool::Private::Private(ThreadPool* q) : /* work(ioService), */ q(q)
 {
+  string threads = boost::lexical_cast<string>(ioService.threadCount());
+  if(WServer::instance()->readConfigurationProperty("threadpool_threads_count", threads)) {
+    ioService.setThreadCount(boost::lexical_cast<int>(threads));
+  }
   std::cerr << "Created ioService with " << ioService.threadCount() << " threads\n";
   ioService.start();
 }
@@ -36,9 +40,9 @@ ThreadPool::Private::~Private()
   ioService.stop();
 }
 
-std::shared_ptr<ThreadPool> ThreadPool::instance(int max)
+std::shared_ptr<ThreadPool> ThreadPool::instance()
 {
-  static shared_ptr<ThreadPool> threadpool(new ThreadPool(max));
+  static shared_ptr<ThreadPool> threadpool(new ThreadPool);
   return threadpool;
 }
 
@@ -53,8 +57,8 @@ std::shared_ptr<std::unique_lock<std::mutex>> ThreadPool::lock(const std::string
 }
 
 
-ThreadPool::ThreadPool(int max)
-    : d(max, this)
+ThreadPool::ThreadPool()
+    : d(this)
 {
 }
 

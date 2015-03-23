@@ -176,7 +176,3 @@ ostream &operator<<( ostream &os, const Media &m )
   return os;
 }
 
-Media::Lock Media::lock() const
-{
-  return ThreadPool::lock(uid());
-}

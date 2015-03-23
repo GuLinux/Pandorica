@@ -29,7 +29,7 @@
 class ThreadPool::Private
 {
 public:
-    Private(int max, ThreadPool* q);
+    Private(ThreadPool* q);
     virtual ~Private();
 //    boost::asio::io_service ioService;
 //    boost::thread_group threadGroup;

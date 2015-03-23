@@ -27,12 +27,12 @@ class ThreadPool
 {
 public:
   ~ThreadPool();
-  static std::shared_ptr<ThreadPool> instance(int max = 10);
+  static std::shared_ptr<ThreadPool> instance();
   typedef std::function<void()> Function;
   void post(Function f);
   static std::shared_ptr<std::unique_lock<std::mutex>> lock(const std::string &name);
 private:
-  ThreadPool(int max);
+  ThreadPool();
   D_PTR;
 };
 
