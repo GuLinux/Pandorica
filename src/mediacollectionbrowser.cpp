@@ -466,6 +466,7 @@ void MediaCollectionBrowser::Private::addMedia( const Media &media, WContainerWi
   ThreadPool::instance()->post([=]{
     Session session;
     auto lock = session.writeLock();
+    auto mediaLock = ThreadPool::lock(media.uid());
     auto ffmpegMedia = make_shared<FFMPEGMedia>(media);
     saveMediaInformation.save(ffmpegMedia, refreshIcon, session);
     saveMediaThumbnail.save(ffmpegMedia, refreshIcon, session);
