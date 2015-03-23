@@ -63,28 +63,34 @@ void MovieDecoder::initialize(const string& filename)
     av_register_all();
     avcodec_register_all();
 
-    auto lock = ThreadPool::lock("ffmpeg_avcodec_open");
     string inputFile = filename == "-" ? "pipe:" : filename;
     m_AllowSeek = (filename != "-") && (filename.find("rtsp://") != 0);
-#if LIBAVCODEC_VERSION_MAJOR < 53
-    if ((!m_FormatContextWasGiven) && av_open_input_file(&m_pFormatContext, inputFile.c_str(), NULL, 0, NULL) != 0)
-#else
-        if ((!m_FormatContextWasGiven) && avformat_open_input(&m_pFormatContext, inputFile.c_str(), NULL, NULL) != 0)
-#endif
     {
-                destroy();
+      auto lock = ThreadPool::lock("ffmpeg_avcodec_open");
+  #if LIBAVCODEC_VERSION_MAJOR < 53
+      if ((!m_FormatContextWasGiven) && av_open_input_file(&m_pFormatContext, inputFile.c_str(), NULL, 0, NULL) != 0)
+  #else
+      if ((!m_FormatContextWasGiven) && avformat_open_input(&m_pFormatContext, inputFile.c_str(), NULL, NULL) != 0)
+  #endif
+      {
+        lock.reset();
+        destroy();
         throw logic_error(string("Could not open input file: ") + filename);
+      }
     }
-#if LIBAVCODEC_VERSION_MAJOR < 53
-    if (av_find_stream_info(m_pFormatContext) < 0)
-#else
-	if (avformat_find_stream_info(m_pFormatContext, NULL) < 0)
-#endif
     {
-		destroy();
+      auto lock = ThreadPool::lock("ffmpeg_avcodec_open");
+  #if LIBAVCODEC_VERSION_MAJOR < 53
+      if (av_find_stream_info(m_pFormatContext) < 0)
+  #else
+          if (avformat_find_stream_info(m_pFormatContext, NULL) < 0)
+  #endif
+      {
+        lock.reset();
+        destroy();
         throw logic_error(string("Could not find stream information"));
+      }
     }
-
     initializeVideo();
     m_pFrame = avcodec_alloc_frame();
 }
@@ -174,7 +180,7 @@ void MovieDecoder::initializeVideo()
     m_pVideoCodecContext->workaround_bugs = 1;
 
     {
-//       auto lock = ThreadPool::lock("ffmpeg_avcodec_open");
+      auto lock = ThreadPool::lock("ffmpeg_avcodec_open");
 #if LIBAVCODEC_VERSION_MAJOR < 53
       if (avcodec_open(m_pVideoCodecContext, m_pVideoCodec) < 0)
 #else
