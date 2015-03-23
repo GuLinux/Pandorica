@@ -28,6 +28,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include "Wt-Commons/wt_helpers.h"
 #include "mediacollectionbrowser.h"
+#include <savemediainformation.h>
+#include <savemediathumbnail.h>
 #include <functional>
 class MediaInfoPanel;
 
@@ -104,6 +106,8 @@ public:
       MediaFilter mediaFilter;
     };
     void addFilterDialog( const Wt::WString &title, Wt::WWidget *content, std::function<FilterDialogResult()> onOkClicked, std::function<void(Wt::WPushButton*)> okButtonEnabler, Wt::WMenu *menu );
+    SaveMediaInformation saveMediaInformation;
+    SaveMediaThumbnail saveMediaThumbnail;
 private:
     void addDirectory( const std::shared_ptr< MediaDirectory > &directory );
     void addMedia(const Media& media, Wt::WContainerWidget *widget = 0);

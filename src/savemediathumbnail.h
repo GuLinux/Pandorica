@@ -28,11 +28,11 @@ class Session;
 class SaveMediaThumbnail
 {
 public:
-    SaveMediaThumbnail(Session &session);
+    SaveMediaThumbnail(const std::string &appSessionId);
     ~SaveMediaThumbnail();
-    void save(const std::shared_ptr<FFMPEGMedia> &media, std::function<void(const Media &media)> onSave);
+    void save(const std::shared_ptr<FFMPEGMedia> &media, std::function<void(const Media &media)> onSave, Session &session);
 private:
-  Session &session;
+  const std::string appSessionId;
 };
 
 #endif // SAVEMEDIATHUMBNAIL_H

@@ -35,7 +35,7 @@ using namespace std;
 
 
 
-SaveMediaThumbnail::SaveMediaThumbnail(Session& session) : session(session)
+SaveMediaThumbnail::SaveMediaThumbnail(const string& appSessionId) : appSessionId(appSessionId)
 {
 
 }
@@ -45,9 +45,8 @@ SaveMediaThumbnail::~SaveMediaThumbnail()
 
 }
 
-void SaveMediaThumbnail::save(const shared_ptr<FFMPEGMedia>& media, std::function< void(const Media &media) > onSave)
+void SaveMediaThumbnail::save(const shared_ptr< FFMPEGMedia >& media, function< void(const Media&)> onSave, Session& session)
 {
-  string appSession = wApp->sessionId();
   Dbo::Transaction t(session);
   int images = session.query<int>("SELECT count(*) from media_attachment where type = 'preview' AND media_id = ?").bind(media->media().uid());
   if(images >= 3) {
@@ -55,20 +54,15 @@ void SaveMediaThumbnail::save(const shared_ptr<FFMPEGMedia>& media, std::functio
     return;
   }
   auto path = media->media().path();
-  ThreadPool::instance()->post([media, onSave, appSession] () mutable {
-    WServer::instance()->log("notice") << "Creating thumbnail for " << media->media().path();
-    MediaThumbnailGenerator thumbnailGenerator(media);
-    try {
+  WServer::instance()->log("notice") << "Creating thumbnail for " << media->media().path();
+  MediaThumbnailGenerator thumbnailGenerator(media);
+  try {
 //       auto mediaLock = media->media().lock();
-      Session session;
-      auto lock = session.writeLock();
-      Dbo::Transaction transaction(session);
-      transaction.session().execute( "DELETE FROM media_attachment where type = 'preview' AND media_id = ?" ).bind( media->media().uid() );
-      media->media().setImage(thumbnailGenerator.image(), transaction);
-      transaction.commit();
-      WServer::instance()->post(appSession, boost::bind(onSave, media->media() ));
-    } catch(std::exception &e) {
-      WServer::instance()->log("notice") << "Unable to create thumbnail for media " << media->media().path();
-    }
-  });
+    session.execute( "DELETE FROM media_attachment where type = 'preview' AND media_id = ?" ).bind( media->media().uid() );
+    media->media().setImage(thumbnailGenerator.image(), t);
+    t.commit();
+    WServer::instance()->post(appSessionId, boost::bind(onSave, media->media() ));
+  } catch(std::exception &e) {
+    WServer::instance()->log("notice") << "Unable to create thumbnail for media " << media->media().path();
+  }
 }

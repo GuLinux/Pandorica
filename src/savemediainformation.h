@@ -25,11 +25,11 @@ class Session;
 class SaveMediaInformation
 {
 public:
-    SaveMediaInformation(Session &session);
+    SaveMediaInformation(const std::string &appSessionId);
     ~SaveMediaInformation();
-    void save(const std::shared_ptr<FFMPEGMedia> &media, std::function<void(const Media&)> onSave);
+    void save(const std::shared_ptr<FFMPEGMedia> &media, std::function<void(const Media&)> onSave, Session &session);
 private:
-  Session &session;
+  const std::string appSessionId;
 };
 
 #endif // SAVEMEDIAINFORMATION_H

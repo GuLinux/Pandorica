@@ -63,6 +63,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "mediainfopanel.h"
 #include "savemediainformation.h"
 #include "savemediathumbnail.h"
+#include "threadpool.h"
 #include <boost/thread.hpp>
 #include <boost/chrono.hpp>
 
@@ -73,7 +74,8 @@ namespace fs = boost::filesystem;
 using namespace WtCommons;
 
 MediaCollectionBrowser::Private::Private(MediaCollection *collection, Settings *settings, Session *session, MediaCollectionBrowser *q)
-  : collection(collection) , settings(settings), session(session), q(q), rootPath(new RootMediaDirectory(collection)), flatPath(new FlatMediaDirectory(collection)), currentPath(rootPath)
+  : collection(collection) , settings(settings), session(session), q(q), rootPath(new RootMediaDirectory(collection)),
+  flatPath(new FlatMediaDirectory(collection)), currentPath(rootPath), saveMediaInformation(wApp->sessionId()), saveMediaThumbnail(wApp->sessionId())
 {
   rootPath->setLabel(wtr( "mediacollection.root" ).toUTF8());
 }
@@ -460,11 +462,14 @@ void MediaCollectionBrowser::Private::addMedia( const Media &media, WContainerWi
   
   auto item = replaceIcon( media.title( t ), icon, onClick, widget == nullptr ? new WContainerWidget : widget );
   auto refreshIcon = [=](const Media &media) { addMedia(media, item); wApp->triggerUpdate(); };
-  SaveMediaInformation saveMediaInformation(*session);
-  SaveMediaThumbnail saveMediaThumbnail(*session);
-  auto ffmpegMedia = make_shared<FFMPEGMedia>(media);
-  saveMediaInformation.save(ffmpegMedia, refreshIcon);
-  saveMediaThumbnail.save(ffmpegMedia, refreshIcon);
+
+  ThreadPool::instance()->post([=]{
+    Session session;
+    auto lock = session.writeLock();
+    auto ffmpegMedia = make_shared<FFMPEGMedia>(media);
+    saveMediaInformation.save(ffmpegMedia, refreshIcon, session);
+    saveMediaThumbnail.save(ffmpegMedia, refreshIcon, session);
+  });
 }
 
 void MediaCollectionBrowser::Private::clearThumbnailsFor( Media media )
