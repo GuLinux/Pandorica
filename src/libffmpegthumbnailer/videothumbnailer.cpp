@@ -129,7 +129,7 @@ void VideoThumbnailer::generateThumbnail(const string& videoFile, ImageWriter& i
         }
         catch (exception& e)
         {
-            cerr << e.what() << ", will use first frame" << endl;
+            cerr << __PRETTY_FUNCTION__ << "(" << videoFile << "): " << e.what() << ", will use first frame" << endl;
             //seeking failed, try the first frame again
             movieDecoder.destroy();
             movieDecoder.initialize(videoFile);

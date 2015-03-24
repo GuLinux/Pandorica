@@ -271,7 +271,7 @@ FFMPEGMedia::FFMPEGMedia( const Media &media, Logger logger )
 {
   d->logger = logger;
   {
-    auto lock = ThreadPool::lock("ffmpeg_avcodec_open");
+//     auto lock = ThreadPool::lock("ffmpeg_avcodec_open"); // TODO: verify and remove, it seems it's not needed here
     d->openInputResult = avformat_open_input( &d->pFormatCtx, d->filename, NULL, NULL );
   }
 

@@ -224,7 +224,7 @@ int MovieDecoder::getDuration()
 
 void MovieDecoder::seek(int timeInSeconds)
 {
-    auto lock = ThreadPool::lock("ffmpeg_avcodec_open");
+//     auto lock = ThreadPool::lock("ffmpeg_avcodec_open"); // TODO: verify and remove, it seems it's not needed here
     if (!m_AllowSeek)
     {
         return;
