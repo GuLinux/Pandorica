@@ -293,31 +293,14 @@ void Pandorica::Private::updateUsersCount()
   navigationBar->updateUsersCount(Private::instances()->size());
 }
 
-
+#include "utils/stacktrace.h"
 void Pandorica::notify( const WEvent &e )
 {
   try {
     Wt::WApplication::notify( e );
   } catch(std::exception &exception) {
     log("warning") << "Exception caught: " << exception.what() << " on event: " << e.eventType();
-#ifdef __GLIBC__
-#define BT_MAX_SIZE 256
-    void *backtraceBuffer[BT_MAX_SIZE];
-    int backtraceSize = backtrace(backtraceBuffer, BT_MAX_SIZE);
-    log("warning") << "got backtrace: " << backtraceSize;
-    if(backtraceSize>0) {
-      char **backtraceStrings = backtrace_symbols(backtraceBuffer, backtraceSize);
-      log("warning") << "got backtrace symbols: " << boolalpha << (backtraceStrings != NULL);
-      for(int i=0; i<backtraceSize && backtraceStrings; i++) {
-//         int status;
-//         char *demangledName = abi::__cxa_demangle(backtraceStrings[i], nullptr, 0, &status);
-        log("warning") << "backtrace: " << backtraceStrings[i] ; //<< demangledName << " (demangled: " << status << ")";
-//         if(status==0)
-//           delete [] demangledName;
-      }
-      delete [] backtraceStrings;
-    }
-#endif
+    print_stacktrace();
     throw exception;
   }
 }

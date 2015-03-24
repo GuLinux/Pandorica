@@ -66,6 +66,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "threadpool.h"
 #include <boost/thread.hpp>
 #include <boost/chrono.hpp>
+#include "Wt-Commons/wobjectscope.h"
 
 
 using namespace Wt;
@@ -343,6 +344,9 @@ void MediaCollectionBrowser::Private::browse( const shared_ptr< MediaDirectory >
 {
   auto dirRelPath = mediaDirectory->relativePath();
   wApp->setInternalPath(dirRelPath, false);
+//   if(currentPath == mediaDirectory)
+//     return;
+// TODO: it should work in theory, but browser seems empty sometimes...
   currentPath = mediaDirectory;
   resetPanel.emit();
   browser->clear();
@@ -461,7 +465,14 @@ void MediaCollectionBrowser::Private::addMedia( const Media &media, WContainerWi
   };
   
   auto item = replaceIcon( media.title( t ), icon, onClick, widget == nullptr ? new WContainerWidget : widget );
-  auto refreshIcon = [=](const Media &media) { addMedia(media, item); wApp->triggerUpdate(); };
+  auto icon_valid = make_shared<bool>(true);
+  new WObjectScope([=]{ *icon_valid = false; }, item);
+  
+  auto refreshIcon = [=](const Media &media) {
+    if(! *icon_valid)
+      return;
+    addMedia(media, item); wApp->triggerUpdate();
+  };
 
   ThreadPool::instance()->post([=]{
     Session session;
