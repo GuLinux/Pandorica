@@ -90,6 +90,8 @@ class FFMPEGMedia::Private
     FFMPEG::Stream streamFromAV( AVStream *stream );
     Logger logger;
     boost::mutex mutex;
+    bool initialized = false;
+    void init();
   private:
     class FFMPEGMedia *const q;
 };

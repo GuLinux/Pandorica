@@ -65,6 +65,7 @@ bool FFMPEGMedia::Private::findInfoWasValid() const
 
 long FFMPEGMedia::durationInSeconds()
 {
+  d->init();
   if( !d->findInfoWasValid() )
     return -1;
 
@@ -95,6 +96,7 @@ std::string Stream::toString() const
 
 void FFMPEGMedia::extractSubtitles( std::function<bool()> keepGoing, function< void( double ) > percentCallback )
 {
+  d->init();
   boost::unique_lock<boost::mutex> lock( d->mutex );
   list<shared_ptr<FFMPegStreamConversion>> subtitles;
 
@@ -266,16 +268,12 @@ FFMPEGMedia::FFMPEGMedia( const Media &media ) : FFMPEGMedia(media, [=](const st
 {
 }
 
-FFMPEGMedia::FFMPEGMedia( const Media &media, Logger logger )
-  : d( media, this )
-{
-  d->logger = logger;
-  {
-//     auto lock = ThreadPool::lock("ffmpeg_avcodec_open"); // TODO: verify and remove, it seems it's not needed here
-    d->openInputResult = avformat_open_input( &d->pFormatCtx, d->filename, NULL, NULL );
-  }
+void FFMPEGMedia::Private::init() {
+  if(initialized)
+    return;
+  openInputResult = avformat_open_input( &pFormatCtx, filename, NULL, NULL );
 
-  if( !d->openFileWasValid() )
+  if( !openFileWasValid() )
   {
     logger( "warning" ) << "FFMPEGMedia: Unable to open input file '" << media.fullPath() << "'";
     return;
@@ -283,23 +281,31 @@ FFMPEGMedia::FFMPEGMedia( const Media &media, Logger logger )
 
   {
     auto lock = ThreadPool::lock("ffmpeg_avcodec_open");
-    d->findInfoResult = avformat_find_stream_info( d->pFormatCtx, NULL );
+    findInfoResult = avformat_find_stream_info( pFormatCtx, NULL );
   }
 
-  if( !d->findInfoWasValid() )
+  if( !findInfoWasValid() )
   {
     logger( "warning" ) << "FFMPEGMedia: unable to find info for '" << media.fullPath() << "'";
     return;
   }
 
-  for( int i = 0; i < d->pFormatCtx->nb_streams; i++ )
+  for( int i = 0; i < pFormatCtx->nb_streams; i++ )
   {
-    d->streams.push_back( d->streamFromAV( d->pFormatCtx->streams[i] ) );
+    streams.push_back( streamFromAV( pFormatCtx->streams[i] ) );
   }
 
-  logger( "notice" ) << "Found " << d->streams.size() << " streams in '" << media.fullPath() << "'";
+  logger( "notice" ) << "Found " << streams.size() << " streams in '" << media.fullPath() << "'";
 
-  d->metadata = d->readMetadata( d->pFormatCtx->metadata );
+  metadata = readMetadata( pFormatCtx->metadata );
+  
+  initialized = true;
+}
+
+FFMPEGMedia::FFMPEGMedia( const Media &media, Logger logger )
+  : d( media, this )
+{
+  d->logger = logger;
 }
 
 
@@ -358,6 +364,8 @@ void FFMPEGMedia::unlock()
 
 FFMPEGMedia::~FFMPEGMedia()
 {
+  if(! d->initialized)
+    return;
   boost::unique_lock<boost::mutex> lock( d->mutex );
 
   if( d->openFileWasValid() )
@@ -370,23 +378,27 @@ FFMPEGMedia::~FFMPEGMedia()
 
 bool FFMPEGMedia::valid()
 {
+  d->init();
   return d->openFileWasValid() && d->findInfoWasValid();
 }
 
 
 std::string FFMPEGMedia::metadata( std::string key ) const
 {
+  d->init();
   return d->metadata[key];
 }
 
 std::vector<Stream> FFMPEGMedia::streams() const
 {
+  d->init();
   return d->streams;
 }
 
 
 bool FFMPEGMedia::isVideo()
 {
+  d->init();
   for( auto stream : d->streams )
     if( stream.type == Video )
       return true;
@@ -396,6 +408,7 @@ bool FFMPEGMedia::isVideo()
 
 std::pair<int, int> FFMPEGMedia::resolution()
 {
+  d->init();
   if( !isVideo() )
     return { -1, -1};
 
