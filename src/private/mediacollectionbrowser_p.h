@@ -108,6 +108,8 @@ public:
     void addFilterDialog( const Wt::WString &title, Wt::WWidget *content, std::function<FilterDialogResult()> onOkClicked, std::function<void(Wt::WPushButton*)> okButtonEnabler, Wt::WMenu *menu );
     SaveMediaInformation saveMediaInformation;
     SaveMediaThumbnail saveMediaThumbnail;
+    void clear();
+    bool empty = true;
 private:
     void addDirectory( const std::shared_ptr< MediaDirectory > &directory );
     void addMedia(const Media& media, Wt::WContainerWidget *widget = 0);

@@ -339,17 +339,25 @@ void MediaCollectionBrowser::browse( const shared_ptr< MediaDirectory > &mediaDi
     d->browse(mediaDirectory);
 }
 
+void MediaCollectionBrowser::Private::clear() {
+  browser->clear();
+  empty = true;
+}
+
 
 void MediaCollectionBrowser::Private::browse( const shared_ptr< MediaDirectory > &mediaDirectory )
 {
   auto dirRelPath = mediaDirectory->relativePath();
   wApp->setInternalPath(dirRelPath, false);
-//   if(currentPath == mediaDirectory)
-//     return;
-// TODO: it should work in theory, but browser seems empty sometimes...
+    wApp->log("notice") << "******* BROWSE: " << mediaDirectory->path();
+  if(currentPath == mediaDirectory && !empty) {
+    wApp->log("notice") << "******* BROWSE: skipping reloading of " << mediaDirectory->path();
+    return;
+  }
+    wApp->log("notice") << "******* BROWSE: " << mediaDirectory->path() << ": keep going";
   currentPath = mediaDirectory;
   resetPanel.emit();
-  browser->clear();
+  clear();
   rebuildBreadcrumb();
   for(auto dir: currentPath->subDirectories()) {
     addDirectory(dir);
@@ -617,6 +625,7 @@ WContainerWidget *MediaCollectionBrowser::Private::addIcon( WString filename, Ge
 
 WContainerWidget *MediaCollectionBrowser::Private::replaceIcon( WString filename, GetIconF icon, OnClick onClick, Wt::WContainerWidget *existing )
 {
+  empty = false;
   existing->clear();
   existing->setStyleClass("col-md-2 col-lg-2 media-icon-container");
   existing->setContentAlignment( AlignmentFlag::AlignCenter );
