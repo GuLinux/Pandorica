@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "media/media.h"
 #include "session.h"
 #include "ffmpegmedia.h"
+#include <mediathumbnailgenerator.h>
 #include <boost/thread/mutex.hpp>
 
 
@@ -92,6 +93,7 @@ class FFMPEGMedia::Private
     boost::mutex mutex;
     bool initialized = false;
     void init();
+    std::unique_ptr<MediaThumbnailGenerator> media_thumbnail_generator;
   private:
     class FFMPEGMedia *const q;
 };

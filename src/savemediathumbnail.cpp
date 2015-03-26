@@ -21,7 +21,6 @@
 #include "media/media.h"
 #include "ffmpegmedia.h"
 #include "session.h"
-#include "mediathumbnailgenerator.h"
 #include "threadpool.h"
 #include "ffmpegmedia.h"
 #include <Wt/WServer>
@@ -55,11 +54,11 @@ void SaveMediaThumbnail::save(const shared_ptr< FFMPEGMedia >& media, function< 
   }
   auto path = media->media().path();
   WServer::instance()->log("notice") << "Creating thumbnail for " << media->media().path();
-  MediaThumbnailGenerator thumbnailGenerator(media.get());
+  
   try {
 //       auto mediaLock = media->media().lock();
     session.execute( "DELETE FROM media_attachment where type = 'preview' AND media_id = ?" ).bind( media->media().uid() );
-    media->media().setImage(thumbnailGenerator.image(), t);
+    media->media().setImage(media->randomThumbnail(), t);
     t.commit();
     WServer::instance()->post(appSessionId, boost::bind(onSave, media->media() ));
   } catch(std::exception &e) {

@@ -22,17 +22,21 @@
 #include "media/media.h"
 #include "utils/image.h"
 
+extern "C" {
+#include <libavcodec/avcodec.h>    // required headers
+#include <libavformat/avformat.h>
+#include <libavutil/avutil.h>
+}
+
 class FFMPEGMedia;
 class MediaThumbnailGenerator
 {
 public:
     MediaThumbnailGenerator(FFMPEGMedia* media);
     ~MediaThumbnailGenerator();
-    std::shared_ptr<Image> image(int quality = 100) const;
+    std::shared_ptr<Image> image(int quality, AVFormatContext* pAvContext) const;
 private:
   const FFMPEGMedia *media;
-  long int media_duration;
-  std::pair< int, int > resolution;
 };
 
 #endif // MEDIATHUMBNAILGENERATOR_H

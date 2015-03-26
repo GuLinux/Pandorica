@@ -44,7 +44,7 @@ namespace fs = boost::filesystem;
 
 
 FFMPEGMedia::Private::Private( const Media &media, FFMPEGMedia *q )
-  : media( media ), q( q ), filename( media.fullPath().c_str() )
+  : media( media ), q( q ), filename( media.fullPath().c_str() ), media_thumbnail_generator(new MediaThumbnailGenerator{q})
 {
 }
 
@@ -63,7 +63,7 @@ bool FFMPEGMedia::Private::findInfoWasValid() const
 
 
 
-long FFMPEGMedia::durationInSeconds()
+long FFMPEGMedia::durationInSeconds() const
 {
   d->init();
   if( !d->findInfoWasValid() )
@@ -376,7 +376,7 @@ FFMPEGMedia::~FFMPEGMedia()
   d->pFormatCtx = 0;
 }
 
-bool FFMPEGMedia::valid()
+bool FFMPEGMedia::valid() const
 {
   d->init();
   return d->openFileWasValid() && d->findInfoWasValid();
@@ -396,7 +396,7 @@ std::vector<Stream> FFMPEGMedia::streams() const
 }
 
 
-bool FFMPEGMedia::isVideo()
+bool FFMPEGMedia::isVideo() const
 {
   d->init();
   for( auto stream : d->streams )
@@ -406,7 +406,7 @@ bool FFMPEGMedia::isVideo()
   return false;
 }
 
-std::pair<int, int> FFMPEGMedia::resolution()
+std::pair<int, int> FFMPEGMedia::resolution() const
 {
   d->init();
   if( !isVideo() )
@@ -420,4 +420,10 @@ std::pair<int, int> FFMPEGMedia::resolution()
 const Media& FFMPEGMedia::media() const
 {
   return d->media;
+}
+
+shared_ptr< Image > FFMPEGMedia::randomThumbnail(int quality) const
+{
+  d->init();
+  return d->media_thumbnail_generator->image(quality, /* TODO d->pFormatCtx*/ 0);
 }

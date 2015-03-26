@@ -70,16 +70,17 @@ class FFMPEGMedia
     FFMPEGMedia( const Media &media, Logger logger );
     FFMPEGMedia( const Media &media );
     ~FFMPEGMedia();
-    bool isVideo();
-    std::pair<int, int> resolution();
-    long durationInSeconds();
-    bool valid();
+    bool isVideo() const;
+    std::pair<int, int> resolution() const;
+    long durationInSeconds() const;
+    bool valid() const;
     std::string metadata( std::string key ) const;
     std::vector<FFMPEG::Stream> streams() const;
     void extractSubtitles(std::function<bool()> keepGoing, std::function<void(double)> percentCallback = [](double){});
     void lock();
     void unlock();
     const Media &media() const;
+    std::shared_ptr<Image> randomThumbnail(int quality = 100) const;
   private:
     D_PTR;
 };
