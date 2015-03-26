@@ -56,11 +56,11 @@ Image::operator ImageBlob() const
 
 Image Image::scaled(uint32_t size, uint32_t quality) const
 {
-  Image image;
+  auto image = std::shared_ptr<Image>(new Image);
   Magick::Image scaled_image {d->blob};
   scaled_image.sample( {size, size} );
   scaled_image.quality( quality );
-  scaled_image.write( &image.d->blob );
+  scaled_image.write( &image->d->blob );
   return image;
 }
 
@@ -102,11 +102,11 @@ Image::operator ImageBlob() const
   return {ba.begin(), ba.end()};
 }
 
-Image Image::scaled(uint32_t size, uint32_t quality) const
+std::shared_ptr<Image> Image::scaled(uint32_t size, uint32_t quality) const
 {
-  Image image;
-  image.d->image = d->image.scaled(size, size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-  image.d->quality = quality;
+  auto image = std::shared_ptr<Image>(new Image);
+  image->d->image = d->image.scaled(size, size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  image->d->quality = quality;
   return image;
 }
 

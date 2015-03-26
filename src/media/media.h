@@ -55,7 +55,7 @@ public:
   Wt::Dbo::ptr<MediaAttachment> preview(Wt::Dbo::Transaction &transaction, PreviewSize size = PreviewPlayer) const;
   Wt::Dbo::collection<Wt::Dbo::ptr<MediaAttachment>> subtitles(Wt::Dbo::Transaction& transaction) const;
   Wt::Dbo::ptr<MediaProperties> properties(Wt::Dbo::Transaction &transaction) const;
-  void setImage(const Image& image, Wt::Dbo::Transaction& transaction) const;
+  void setImage(const std::shared_ptr<Image>& image, Wt::Dbo::Transaction& transaction) const;
   boost::filesystem::path path() const;
   boost::filesystem::path parentDirectory() const;
   bool valid() const;

@@ -55,7 +55,7 @@ void SaveMediaThumbnail::save(const shared_ptr< FFMPEGMedia >& media, function< 
   }
   auto path = media->media().path();
   WServer::instance()->log("notice") << "Creating thumbnail for " << media->media().path();
-  MediaThumbnailGenerator thumbnailGenerator(media);
+  MediaThumbnailGenerator thumbnailGenerator(media.get());
   try {
 //       auto mediaLock = media->media().lock();
     session.execute( "DELETE FROM media_attachment where type = 'preview' AND media_id = ?" ).bind( media->media().uid() );

@@ -80,7 +80,7 @@ namespace {
   }
 }
 
-MediaThumbnailGenerator::MediaThumbnailGenerator(const shared_ptr<FFMPEGMedia> &media) : media(media)
+MediaThumbnailGenerator::MediaThumbnailGenerator(FFMPEGMedia *media) : media(media)
 {
   media_duration = media->durationInSeconds();
   resolution = media->resolution();
@@ -91,7 +91,7 @@ MediaThumbnailGenerator::~MediaThumbnailGenerator()
 
 }
 
-Image MediaThumbnailGenerator::image(int quality) const
+std::shared_ptr<Image> MediaThumbnailGenerator::image(int quality) const
 {
   quality /= 10;
   auto currentPosition = randomPosition(media_duration);
@@ -106,5 +106,5 @@ Image MediaThumbnailGenerator::image(int quality) const
     videoThumbnailer.setSeekTime( currentPosition.timing );
   ImageBlob fullImage;
   videoThumbnailer.generateThumbnail( media->media().fullPath(), ThumbnailerImageType::Png, fullImage );
-  return Image{fullImage};
+  return std::make_shared<Image>(fullImage);
 }

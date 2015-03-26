@@ -125,12 +125,12 @@ Dbo::ptr< MediaAttachment > Media::preview(Dbo::Transaction& transaction, Media:
     .bind(uid()).bind(previewSize);
 }
 
-void Media::setImage(const Image& image, Dbo::Transaction& transaction) const
+void Media::setImage(const std::shared_ptr<Image>& image, Dbo::Transaction& transaction) const
 {
   transaction.session().execute( "DELETE FROM media_attachment WHERE media_id = ? AND type = 'preview'" ).bind( uid() );
-  MediaAttachment *fullAttachment = new MediaAttachment {"preview", "full", "",uid(), "image/png", image };
-  MediaAttachment *thumbnailAttachment = new MediaAttachment {"preview", "thumbnail", "", uid(), "image/png", image.scaled(IMAGE_SIZE_THUMB, 60) };
-  MediaAttachment *playerAttachment = new MediaAttachment {"preview", "player", "", uid(), "image/png", image.scaled(IMAGE_SIZE_PLAYER) };
+  MediaAttachment *fullAttachment = new MediaAttachment {"preview", "full", "",uid(), "image/png", *image };
+  MediaAttachment *thumbnailAttachment = new MediaAttachment {"preview", "thumbnail", "", uid(), "image/png", *image->scaled(IMAGE_SIZE_THUMB, 60) };
+  MediaAttachment *playerAttachment = new MediaAttachment {"preview", "player", "", uid(), "image/png", *image->scaled(IMAGE_SIZE_PLAYER) };
   transaction.session().add( fullAttachment );
   transaction.session().add( thumbnailAttachment );
   transaction.session().add( playerAttachment );
