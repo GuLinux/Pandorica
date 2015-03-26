@@ -559,11 +559,14 @@ void Pandorica::Private::play(PlaylistItem *playlistItem) {
   {
     auto lock = ThreadPool::lock(media.uid());
     if(media.subtitles_count(t) < ffmpegMedia->streams(FFMPEG::Subtitles).size()) {
-      wApp->setLoadingIndicator(new WOverlayLoadingIndicator);
+      auto writeLock = session->writeLock();
+      auto messageBox = new WMessageBox("Subtitles Extraction", "Please wait while extracting media subtitles", Wt::Information, Wt::NoButton);
+      messageBox->show();
       ffmpegMedia->extractSubtitles([]{return true;}, [](double){} );
       for(auto subtitle: ffmpegMedia->streams(FFMPEG::Subtitles)) {
         session->add(new MediaAttachment( "subtitles", subtitle.metadata["title"], subtitle.metadata["language"], media.uid(), "text/plain", subtitle.data ));
       }
+      messageBox->hide();
     }
   }
   wApp->setLoadingIndicator(0); // TODO: improve
