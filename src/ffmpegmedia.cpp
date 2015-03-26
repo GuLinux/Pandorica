@@ -389,10 +389,12 @@ std::string FFMPEGMedia::metadata( std::string key ) const
   return d->metadata[key];
 }
 
-std::vector<Stream> FFMPEGMedia::streams() const
+std::vector<Stream> FFMPEGMedia::streams(FFMPEG::StreamType type) const
 {
   d->init();
-  return d->streams;
+  std::vector<Stream> _streams;
+  std::copy_if(d->streams.begin(), d->streams.end(), back_inserter(_streams), [=](const Stream &s){ return type == FFMPEG::All || s.type == type; });
+  return _streams;
 }
 
 

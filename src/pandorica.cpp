@@ -294,6 +294,7 @@ void Pandorica::Private::updateUsersCount()
 }
 
 #include "utils/stacktrace.h"
+#include "ffmpegmedia.h"
 void Pandorica::notify( const WEvent &e )
 {
   try {
@@ -567,6 +568,8 @@ void Pandorica::Private::play(PlaylistItem *playlistItem) {
       container->addWidget(WW<WImage>(preview->link(preview, t, container)).css("album-cover"));
     }
   }
+  auto ffmpegMedia = make_shared<FFMPEGMedia>(media);
+  wApp->log("notice") << "Media has " << media.subtitles_count(t) << " subtitles. ffmpeg found " << ffmpegMedia->streams(FFMPEG::Subtitles).size();
   for(MediaAttachmentPtr subtitle : media.subtitles(t)) {
     string lang = threeLangCodeToTwo[subtitle->value()];
     wApp->log("notice") << "Found subtitle " << subtitle.id() << ", " << lang;

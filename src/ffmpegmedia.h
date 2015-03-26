@@ -49,7 +49,7 @@ typedef std::vector<uint8_t> BinaryData;
     
 namespace FFMPEG
 {
-  enum StreamType { Video, Audio, Subtitles, Other };
+  enum StreamType { Video, Audio, Subtitles, Other, All };
   struct Stream
   {
     StreamType type;
@@ -75,7 +75,7 @@ class FFMPEGMedia
     long durationInSeconds() const;
     bool valid() const;
     std::string metadata( std::string key ) const;
-    std::vector<FFMPEG::Stream> streams() const;
+    std::vector<FFMPEG::Stream> streams(FFMPEG::StreamType type = FFMPEG::All) const;
     void extractSubtitles(std::function<bool()> keepGoing, std::function<void(double)> percentCallback = [](double){});
     void lock();
     void unlock();

@@ -159,6 +159,12 @@ Dbo::collection<MediaAttachmentPtr> Media::subtitles(Dbo::Transaction& transacti
   return transaction.session().find<MediaAttachment>().where("media_id = ? AND type = 'subtitles'").bind(uid()).resultList();
 }
 
+long Media::subtitles_count(Dbo::Transaction& transaction) const
+{
+  return transaction.session().query<long>("select count(*) from media_attachment").where("media_id = ? AND type = 'subtitles'").bind(uid()).resultValue();
+}
+
+
 MediaPropertiesPtr Media::properties(Dbo::Transaction& transaction) const
 {
   return transaction.session().find<MediaProperties>().where("media_id = ?").bind(uid()).resultValue();
