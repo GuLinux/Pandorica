@@ -295,6 +295,7 @@ void Pandorica::Private::updateUsersCount()
 
 #include "utils/stacktrace.h"
 #include "ffmpegmedia.h"
+#include "threadpool.h"
 void Pandorica::notify( const WEvent &e )
 {
   try {
@@ -546,14 +547,25 @@ std::string defaultLabelFor(string language) {
 
 void Pandorica::Private::play(PlaylistItem *playlistItem) {
   Media media = playlistItem->media();
+  auto ffmpegMedia = make_shared<FFMPEGMedia>(media);
   navigationBar->switchToPlayer();
   q->log("notice") << "Playing file " << media.path();
   if(player) {
     player->stop();
     delete player;
   }
-  player = settings.newPlayer(media.mimetype());
   Dbo::Transaction t(*session);
+  player = settings.newPlayer(media.mimetype());
+  {
+    auto lock = ThreadPool::lock(media.uid());
+    if(media.subtitles_count(t) < ffmpegMedia->streams(FFMPEG::Subtitles).size()) {
+      wApp->setLoadingIndicator(new WOverlayLoadingIndicator);
+      ffmpegMedia->extractSubtitles([]{return true;}, [](double){} );
+      for(auto subtitle: ffmpegMedia->streams(FFMPEG::Subtitles)) {
+        session->add(new MediaAttachment( "subtitles", subtitle.metadata["title"], subtitle.metadata["language"], media.uid(), "text/plain", subtitle.data ));
+      }
+    }
+  }
   wApp->setLoadingIndicator(0); // TODO: improve
   WLink mediaLink = settings.linkFor( media.path(), media.mimetype() , session, player->widget());
   q->log("notice") << "found mediaLink: " << mediaLink.url();
@@ -568,7 +580,6 @@ void Pandorica::Private::play(PlaylistItem *playlistItem) {
       container->addWidget(WW<WImage>(preview->link(preview, t, container)).css("album-cover"));
     }
   }
-  auto ffmpegMedia = make_shared<FFMPEGMedia>(media);
   wApp->log("notice") << "Media has " << media.subtitles_count(t) << " subtitles. ffmpeg found " << ffmpegMedia->streams(FFMPEG::Subtitles).size();
   for(MediaAttachmentPtr subtitle : media.subtitles(t)) {
     string lang = threeLangCodeToTwo[subtitle->value()];
