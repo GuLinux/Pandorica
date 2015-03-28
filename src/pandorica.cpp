@@ -559,11 +559,24 @@ void Pandorica::Private::play(PlaylistItem *playlistItem) {
   {
     auto lock = ThreadPool::lock(media.uid());
     if(media.subtitles_count(t) < ffmpegMedia->streams(FFMPEG::Subtitles).size()) {
-      wApp->setLoadingIndicator(new WOverlayLoadingIndicator);
-      ffmpegMedia->extractSubtitles([]{return true;}, [](double){} );
-      for(auto subtitle: ffmpegMedia->streams(FFMPEG::Subtitles)) {
-        session->add(new MediaAttachment( "subtitles", subtitle.metadata["title"], subtitle.metadata["language"], media.uid(), "text/plain", subtitle.data ));
-      }
+      auto writeLock = session->writeLock();
+      auto messageBox = new WMessageBox("Subtitles Extraction", "Please wait while extracting media subtitles", Wt::Information, Wt::NoButton);
+      messageBox->show();
+      auto app = wApp;
+      ThreadPool::instance()->post([=]{
+        Session session;
+        Dbo::Transaction t(session);
+        ffmpegMedia->extractSubtitles([]{return true;}, [](double){} );
+        for(auto subtitle: ffmpegMedia->streams(FFMPEG::Subtitles)) {
+          session.add(new MediaAttachment( "subtitles", subtitle.metadata["title"], subtitle.metadata["language"], media.uid(), "text/plain", subtitle.data ));
+        }
+        WServer::instance()->post(app->sessionId(), [=]{
+          messageBox->hide();
+          play(playlistItem);
+          app->triggerUpdate();
+        });
+      });
+      return;
     }
   }
   wApp->setLoadingIndicator(0); // TODO: improve
@@ -580,7 +593,6 @@ void Pandorica::Private::play(PlaylistItem *playlistItem) {
       container->addWidget(WW<WImage>(preview->link(preview, t, container)).css("album-cover"));
     }
   }
-  wApp->log("notice") << "Media has " << media.subtitles_count(t) << " subtitles. ffmpeg found " << ffmpegMedia->streams(FFMPEG::Subtitles).size();
   for(MediaAttachmentPtr subtitle : media.subtitles(t)) {
     string lang = threeLangCodeToTwo[subtitle->value()];
     wApp->log("notice") << "Found subtitle " << subtitle.id() << ", " << lang;
