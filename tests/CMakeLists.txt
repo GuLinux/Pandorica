@@ -46,9 +46,6 @@ if(Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
   register_unit_test(mediadirectory mediadirectorytest.cpp ${CMAKE_SOURCE_DIR}/src/media/mediadirectory.cpp ${CMAKE_SOURCE_DIR}/src/media/media.cpp )
   link_unit_test(mediadirectory ${Wt_DBO_LIBRARY} ${Wt_LIBRARIES} ${WIN32_LIBS})
   
-  register_unit_test(mediascannersemaphore mediascannersemaphoretest.cpp ${CMAKE_SOURCE_DIR}/src/MediaScanner/mediascannerstep.cpp ${CMAKE_SOURCE_DIR}/src/utils/scope.cpp )
-  link_unit_test(mediascannersemaphore ${WIN32_LIBS})
-  
   add_definitions(-DTHREADPOOL_TEST=1)
   register_unit_test(threadpool threadpool_test.cpp ${CMAKE_SOURCE_DIR}/src/threadpool.cpp)
   link_unit_test(threadpool)

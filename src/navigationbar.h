@@ -39,7 +39,7 @@ class WStackedWidget;
 class NavigationBar : public Wt::WContainerWidget
 {
 public:
-    enum Page { Player, MediaCollectionBrowser, UserSettings, MediaScanner };
+    enum Page { Player, MediaCollectionBrowser, UserSettings };
 
     ~NavigationBar();
     NavigationBar(Session* session, MediaCollection* mediaCollection, Settings* settings, Wt::WContainerWidget* parent = 0);
@@ -53,7 +53,6 @@ public:
     Wt::Signal<> &viewLoggedUsers();
     Wt::Signal<> &viewUsersHistory();
     Wt::Signal<> &manageGroups();
-    Wt::Signal<> &mediaScanner();
     Wt::Signal<> &findOrphans();
     Wt::Signal<> &viewAs();
     Wt::Signal<> &configureApp();

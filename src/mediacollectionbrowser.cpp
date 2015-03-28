@@ -45,7 +45,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WHBoxLayout>
 #include "private/mediacollectionbrowser_p.h"
 #include "Models/models.h"
-#include "MediaScanner/createthumbnails.h"
 #include "ffmpegmedia.h"
 #include "media/mediadirectory.h"
 #include <iostream>
@@ -511,51 +510,7 @@ void MediaCollectionBrowser::Private::clearAttachmentsFor( Media media )
 
 void MediaCollectionBrowser::Private::setPosterFor( Media media )
 {
-  WPushButton *okButton, *cancelButton;
-  shared_ptr<bool> dialogClosed = make_shared<bool>(false);
-  cerr << "dialogClosed is " << *dialogClosed << endl;
-  WDialog *dialog = new WDialog( wtr( "mediabrowser.admin.setposter" ) );
-  dialog->footer()->addWidget( cancelButton = WW<WPushButton>( wtr("button.cancel")).setEnabled(false).css( "btn btn-danger" ).onClick([=](WMouseEvent){ dialog->reject(); }));
-  dialog->footer()->addWidget( okButton = WW<WPushButton>(wtr("button.ok")).setEnabled(false).css( "btn btn-success" ).onClick([=](WMouseEvent){ dialog->accept(); }));
-  dialog->show();
-  dialog->resize( 500, 500 );
-  WApplication *app = wApp;
-  auto semaphore = make_shared<MediaScannerSemaphore>([=]{
-    guiRun(app, [=]{
-      okButton->enable();
-      cancelButton->enable();
-      app->triggerUpdate();
-    });
-  }, [=]{
-    guiRun(app, [=]{
-      okButton->disable();
-      cancelButton->disable();
-      app->triggerUpdate();
-    });
-  });
-  
-  dialog->finished().connect([=](WDialog::DialogCode result, _n5){
-    if(result != WDialog::Accepted) {
-      semaphore->needsSaving(false);
-      app->log("notice") << "needs saving: " << semaphore->needsSaving();
-    }
-    *dialogClosed = true; 
-  });
-
-  auto createThumbs = make_shared<CreateThumbnails>(semaphore, wApp, settings);
-  createThumbs->setupGui(dialog->contents());
-
-  boost::thread([=]{
-    Session threadSession;
-    Dbo::Transaction t( threadSession );
-    auto ffmpegMedia = make_shared<FFMPEGMedia>(media, [=](const string &level) { return app->log(level); });
-    createThumbs->run( ffmpegMedia.get(), media, t, MediaScannerStep::OverwriteIfExisting );
-    while(! *dialogClosed)
-      boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
-    createThumbs->saveIfNeeded(t);
-    t.commit();
-    guiRun(app, [=] { q->reload(); app->triggerUpdate(); });
-  });
+  // TODO: reimplement
 }
 
 

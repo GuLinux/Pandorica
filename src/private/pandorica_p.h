@@ -39,7 +39,6 @@ class Playlist;
 
 class MediaCollectionBrowser;
 class Player;
-class MediaScanner;
 class Pandorica;
 typedef std::shared_ptr<std::list<Pandorica*>> PandoricaInstances;
 
@@ -47,7 +46,6 @@ class Pandorica::Private {
 public:
     Private(Pandorica* q);
     Player *player = 0;
-    std::string extensionFor(boost::filesystem::path p);
     void parseInitParameter();
     Playlist *playlist;
     Wt::WContainerWidget* playerContainerWidget;
@@ -74,11 +72,9 @@ public:
     Wt::WContainerWidget * playerPage;
     Wt::WContainerWidget * collectionPage;
     Wt::WContainerWidget * userSettingsPage;
-    Wt::WContainerWidget * mediaScannerPage;
     Wt::Signal<PlaylistItem*> nowPlaying;
     Wt::Signal<Wt::WApplication*> aboutToQuit;
     Wt::WContainerWidget *notifications;
-    std::shared_ptr<MediaScanner> mediaScanner;
     static PandoricaInstances instances();
     void post(std::function<void(Pandorica *app)> f, bool includeMine = false);
     void pathChanged(const std::string &path) const;

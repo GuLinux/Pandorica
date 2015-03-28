@@ -48,8 +48,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "settings.h"
 #include "groupsdialog.h"
 #include "latestcommentsdialog.h"
-#include "MediaScanner/mediascanner.h"
-#include "MediaScanner/googlepicker.h"
+#include "googlepicker.h"
 #include "utils/utils.h"
 
 #include "Models/models.h"
@@ -222,9 +221,7 @@ void Pandorica::authEvent()
     {NavigationBar::Player, d->playerPage = WW<WContainerWidget>().css("pandorica-player-tab")},
     {NavigationBar::MediaCollectionBrowser, d->collectionPage = new WContainerWidget},
     {NavigationBar::UserSettings, d->userSettingsPage = new WContainerWidget},
-    {NavigationBar::MediaScanner, d->mediaScannerPage = WW<WContainerWidget>().css("container") },
   });
-  d->widgetsStack->addWidget(d->mediaScannerPage);
   t.commit();
   d->registerSession();
   setupGui();
@@ -348,31 +345,6 @@ void Pandorica::Private::adminActions()
   navigationBar->manageGroups().connect([=](_n6) {  (new GroupsDialog(session, &settings))->show(); });
   navigationBar->configureApp().connect([=](_n6) { ServerSettingsPage::dialog(&settings, session, &mediaCollection); });
   navigationBar->usersManagement().connect([=](_n6) { UsersManagementPage::dialog(session); });
-  navigationBar->mediaScanner().connect([=](_n6) {
-#ifdef MEDIASCANNER_AS_DIALOG
-    mediaScanner->dialog();
-#else
-     // TODO: fix
-#endif
-    WDialog *chooseType = new WDialog();
-    WButtonGroup *buttonGroup = new WButtonGroup;
-    buttonGroup->addButton(WW<WRadioButton>("Current Directory", chooseType->contents()).setInline(false));
-    buttonGroup->addButton(WW<WRadioButton>("Current Directory (Recursive)", chooseType->contents()).setInline(false));
-    buttonGroup->addButton(WW<WRadioButton>("All Directories", chooseType->contents()).setInline(false));
-    vector<function<bool(Media&)>> filters {
-      [=](const Media &m) { return mediaCollectionBrowser->currentDirectoryHas(m); },
-      [=](const Media &m) { return mediaCollectionBrowser->currentDirectoryHasRecursively(m); },
-      [=](const Media &m) { return true; },
-    };
-    chooseType->footer()->addWidget(WW<WPushButton>("Cancel").css("btn-danger").onClick([=](WMouseEvent){ chooseType->reject(); }));
-    chooseType->footer()->addWidget(WW<WPushButton>("Scan").css("btn-primary").onClick([=](WMouseEvent){ 
-      widgetsStack->setCurrentWidget(mediaScannerPage);
-      auto index=buttonGroup->selectedButtonIndex();
-      chooseType->accept();
-      mediaScanner->scan(filters[index]);
-    }));
-    chooseType->show();
-  });
   navigationBar->viewAs().connect([=](_n6) {
     WDialog *dialog = new WDialog;
     Dbo::Transaction t(*session);
@@ -450,20 +422,7 @@ void Pandorica::setupGui()
   });
 
   d->mainWidget->animateShow({WAnimation::Fade});
-  d->mediaScanner = make_shared<MediaScanner>(d->session, &d->settings, &d->mediaCollection);
-  d->mediaScanner->scanFinished().connect([=](_n6) {
-    d->widgetsStack->setCurrentIndex(0);
-    d->mediaCollectionBrowser->reload();
-    d->pathChanged(internalPath());
-  });
   
-  WContainerWidget *mediaScannerContent = new WContainerWidget;
-  WContainerWidget *mediaScannerFooter = WW<WContainerWidget>().padding(5);
-  d->mediaScannerPage->addWidget(mediaScannerFooter);
-  d->mediaScannerPage->addWidget(mediaScannerContent);
-#ifndef MEDIASCANNER_AS_DIALOG
-  d->mediaScanner->setup(mediaScannerContent, mediaScannerFooter);
-#endif
 }
 void Pandorica::Private::pathChanged( const std::string &path ) const
 {
@@ -496,13 +455,6 @@ void Pandorica::refresh() {
   d->parseInitParameter();
   if(d->player)
     d->player->refresh();
-}
-
-
-string Pandorica::Private::extensionFor ( fs::path p ) {
-  string extension = p.extension().string();
-  boost::algorithm::to_lower(extension);
-  return extension;
 }
 
 

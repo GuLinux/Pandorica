@@ -1,15 +1,9 @@
 SET( models_srcs Models/group.cpp Models/user.cpp Models/mediarating.cpp Models/mediaattachment.cpp Models/sessioninfo.cpp)
 SET( mediascanner_srcs
-    MediaScanner/savesubtitlestodatabase.cpp
-    MediaScanner/createthumbnails.cpp
     libffmpegthumbnailer/videothumbnailer.cpp
     libffmpegthumbnailer/filmstripfilter.cpp
     libffmpegthumbnailer/pngwriter.cpp
     libffmpegthumbnailer/moviedecoder.cpp
-    MediaScanner/scanmediainfostep.cpp
-    MediaScanner/mediascanner.cpp
-    MediaScanner/mediascannerstep.cpp
-    MediaScanner/googlepicker.cpp
 )
 SET( player_srcs serversettingspage.cpp Models/setting.cpp selectdirectories.cpp  findorphansdialog.cpp
     player/videojs.cpp
@@ -68,6 +62,7 @@ set(pandorica_SOURCES ${models_srcs} ${mediascanner_srcs} ${player_srcs}
     savemediathumbnail.cpp
     mediathumbnailgenerator.cpp
     threadpool.cpp
+    googlepicker.cpp
     ${Pandorica_RCC_SRCS}
 )
 
