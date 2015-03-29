@@ -54,7 +54,7 @@ Image::operator ImageBlob() const
   return {outData, outData + d->blob.length()};
 }
 
-Image Image::scaled(uint32_t size, uint32_t quality) const
+std::shared_ptr<Image> Image::scaled(uint32_t size, uint32_t quality) const
 {
   auto image = std::shared_ptr<Image>(new Image);
   Magick::Image scaled_image {d->blob};
