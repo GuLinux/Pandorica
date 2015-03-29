@@ -412,7 +412,7 @@ void Pandorica::Private::play(PlaylistItem *playlistItem) {
       auto writeLock = session->writeLock();
       auto dialog = new WDialog(WString::tr("player.subtitles.extraction.title"));
       dialog->contents()->setLayout(new WVBoxLayout);
-      dialog->contents()->layout()->addWidget(new WText{WString::tr("player.subtitles.extraction.title")});
+      dialog->contents()->layout()->addWidget(new WText{WString::tr("player.subtitles.extraction")});
       WProgressBar *extractionProgress = new WProgressBar;
       dialog->contents()->layout()->addWidget(extractionProgress);
       dialog->show();

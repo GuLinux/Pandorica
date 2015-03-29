@@ -475,9 +475,7 @@ void MediaCollectionBrowser::Private::addMedia( const Media &media, WContainerWi
   item->mouseWentUp().connect([=](const WMouseEvent &e){
     if(e.button() != WMouseEvent::RightButton)
       return;
-    Dbo::Transaction t(*session);
     WPopupMenu *menu = new WPopupMenu;
-    menu->addSectionHeader(media.title(t));
     menu->addItem(WString::tr("mediabrowser.play"))->triggered().connect(std::bind([=]{ playSignal.emit(media);}));
     menu->addItem(WString::tr("mediabrowser.queue"))->triggered().connect(std::bind([=]{ queueSignal.emit(media);}));
     menu->aboutToHide().connect([=](_n6){delete menu;});
