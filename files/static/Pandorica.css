@@ -307,3 +307,7 @@ body {
 .server-settings-page-body {
   overflow-y: scroll;
 }
+
+.navbar-right {
+  margin-right: 0px!important;
+}

@@ -223,7 +223,7 @@ void NavigationBar::Private::setupAdminBar(Dbo::Transaction& transaction)
 
 void NavigationBar::Private::setupSearchBar()
 {
-  WLineEdit *searchBox = WW<WLineEdit>().css("form-control");
+  WLineEdit *searchBox = WW<WLineEdit>();
   searchBox->setTextSize(0);
   //searchBox->setStyleClass("search-query");
   searchBox->setAttributeValue("placeholder", wtr("menu.search"));
@@ -231,7 +231,7 @@ void NavigationBar::Private::setupSearchBar()
   //navigationBar->addSearch(searchBox, Wt::AlignRight);
   
 
-    navigationBar->addWidget(WW<WContainerWidget>().css("form-group").add(searchBox), AlignRight);
+    navigationBar->addSearch(searchBox, Wt::AlignmentFlag::AlignRight);
   
   string jsMatcher = JS( function (editElement) {
     return function(suggestion) {
