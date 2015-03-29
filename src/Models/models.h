@@ -22,8 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MODELS_H
 #include "Models/mediaproperties.h"
 #include "Models/mediaattachment.h"
-#include "Models/sessioninfo.h"
-#include "Models/sessiondetails.h"
 #include "Models/comment.h"
 #include "Models/mediarating.h"
 #include "Models/user.h"

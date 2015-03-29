@@ -60,8 +60,6 @@ class NavigationBar::Private
     Wt::Signal<Media> play;
     Wt::Signal<> logout;
 
-    Wt::Signal<> viewLoggedUsers;
-    Wt::Signal<> viewUsersHistory;
     Wt::Signal<> manageGroups;
     Wt::Signal<> findOrphans;
     Wt::Signal<> viewAs;

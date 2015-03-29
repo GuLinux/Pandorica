@@ -1,4 +1,9 @@
-SET( models_srcs Models/group.cpp Models/user.cpp Models/mediarating.cpp Models/mediaattachment.cpp Models/sessioninfo.cpp)
+SET( models_srcs 
+  Models/group.cpp
+  Models/user.cpp
+  Models/mediarating.cpp
+  Models/mediaattachment.cpp
+)
 SET( mediascanner_srcs
     libffmpegthumbnailer/videothumbnailer.cpp
     libffmpegthumbnailer/filmstripfilter.cpp
@@ -47,9 +52,7 @@ set(pandorica_SOURCES ${models_srcs} ${mediascanner_srcs} ${player_srcs}
     mediacollectionbrowser.cpp
     mediainfopanel.cpp
     commentscontainerwidget.cpp
-    sessiondetailsdialog.cpp
     customitemdelegates.cpp
-    loggedusersdialog.cpp
     playlist.cpp
     session.cpp 
     pandorica.cpp
