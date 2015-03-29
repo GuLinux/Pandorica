@@ -136,26 +136,6 @@
   <a href="{2}">{2}</a>
   </message>
 
-  <!-- Media Scanner -->
-  <message id="stepname.scanMediaInfoStep">Estrazione Informazioni Media</message>
-  <message id="stepname.saveSubtitlesToDatabase">Estrazione Sottotitoli</message>
-  <message id="stepname.createThumbnails">Crea Immagine Anteprima</message>
-
-  <message id="mediascanner.media.title">Titolo</message>
-    <message id="mediascanner.cd.title">Media Scanner (Cartella Corrente)</message>
-  <message id="mediascannerdialog.thumbnail.upload.label">Carica File</message>
-  <message id="mediascannerdialog.thumbnail.upload.error">Errore aprendo il file, prova con un altro.</message>
-  <message id="mediascannerdialog.thumbnail.upload.toobig">File troppo grande, prova con uno più piccolo.</message>
-
-  <message id="mediascannerdialog.subtitlesgenericmessage">Estrazione sottotitoli</message>
-  <message id="mediascannerdialog.subtitlesmessage">Estrazione sottotitoli: {1} di {2} (indice: {3}, titolo: {4}, lingua: {5})</message>
-  <message id="mediascannerdialog.thumbnaillabel">Anteprima (clicca per ricrearla da posizione casuale)</message>
-  <message id="mediascannerdialog.subtitles_extracted">
-    <plural case="1">Un sottotitolo estratto e pronto per il salvataggio.</plural>
-    <plural case="0">{1} sottotitoli estratti e pronti per il salvataggio.</plural>
-    <plural case="2">{1} sottotitoli estratti e pronti per il salvataggio.</plural>
-  </message>
-
   <!-- comments -->
   <message id="comments.label">Commenti</message>
   <message id="comments.addcomment.button">Aggiungi Commento</message>
@@ -404,4 +384,6 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
 <message id="usersmanagement_invite_email_dialog_label">Una email verrà inviata a {1} per notificare l'invito.</message>
 <message id="mediacollection_rescanning_title">Scansione Collezione Multimediale</message>
 <message id="mediacollection_rescanning_message">Attendere durante la scansione dei files della collezione multimediale...</message>
+<message id="player.subtitles.extraction">Attendere durante l'estrazione dei sottotitoli</message>
+<message id="player.subtitles.extraction.title">Estrazione Sottotitoli</message>
 </messages>

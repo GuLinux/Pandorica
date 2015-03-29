@@ -55,26 +55,6 @@
   <a href="{2}">{2}</a>
   </message>
 
-  <!-- Media Scanner -->
-  <message id="stepname.scanMediaInfoStep">Extract Media Information</message>
-  <message id="stepname.saveSubtitlesToDatabase">Extract Subtitles</message>
-  <message id="stepname.createThumbnails">Create Poster Image</message>
-
-  <message id="mediascanner.title">Media Scanner</message>
-  <message id="mediascanner.cd.title">Media Scanner (Current Directory)</message>
-  <message id="mediascanner.media.title">Title</message>
-  <message id="mediascannerdialog.thumbnail.upload.label">Upload File</message>
-  <message id="mediascannerdialog.thumbnail.upload.error">Error decoding file, try with another.</message>
-  <message id="mediascannerdialog.thumbnail.upload.toobig">File too large, please try with a smaller file.</message>
-  <message id="mediascannerdialog.thumbnaillabel">Preview (click the image to change to a new random position)</message>
-  <message id="mediascannerdialog.subtitlesgenericmessage">Extracting subtitles</message>
-  <message id="mediascannerdialog.subtitlesmessage">Extracting subtitles: {1} of {2} (index: {3}, title: {4}, language: {5})</message>
-  <message id="mediascannerdialog.subtitlesextracted">{1} subtitles extracted and ready to be saved.</message>
-  <message id="mediascannerdialog.subtitles_extracted">
-    <plural case="1">One subtitle extracted and ready to be saved.</plural>
-    <plural case="0">{1} subtitles extracted and ready to be saved.</plural>
-    <plural case="2">{1} subtitles extracted and ready to be saved.</plural>
-  </message>
 
   <!-- comments -->
   <message id="comments.label">Comments</message>
@@ -364,4 +344,6 @@ An email message notifying the invitation was sent to {1}.</message>
 <message id="usersmanagement_invite_email_dialog_label">An email will be sent to {1} to notify the invitation.</message>
 <message id="mediacollection_rescanning_title">MediaCollection Rescanning</message>
 <message id="mediacollection_rescanning_message">Please wait while media collection is rescanning files...</message>
+<message id="player.subtitles.extraction">Please wait while extracting media subtitles</message>
+<message id="player.subtitles.extraction.title">Subtitles Extraction</message>
 </messages>

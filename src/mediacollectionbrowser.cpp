@@ -472,6 +472,17 @@ void MediaCollectionBrowser::Private::addMedia( const Media &media, WContainerWi
   };
   
   auto item = replaceIcon( media.title( t ), icon, onClick, widget == nullptr ? new WContainerWidget : widget );
+  item->mouseWentUp().connect([=](const WMouseEvent &e){
+    if(e.button() != WMouseEvent::RightButton)
+      return;
+    Dbo::Transaction t(*session);
+    WPopupMenu *menu = new WPopupMenu;
+    menu->addSectionHeader(media.title(t));
+    menu->addItem(WString::tr("mediabrowser.play"))->triggered().connect(std::bind([=]{ playSignal.emit(media);}));
+    menu->addItem(WString::tr("mediabrowser.queue"))->triggered().connect(std::bind([=]{ queueSignal.emit(media);}));
+    menu->aboutToHide().connect([=](_n6){delete menu;});
+    menu->popup(e);
+  });
   auto icon_valid = make_shared<bool>(true);
   new WObjectScope([=]{ *icon_valid = false; }, item);
   
@@ -582,6 +593,7 @@ WContainerWidget *MediaCollectionBrowser::Private::replaceIcon( WString filename
 {
   empty = false;
   existing->clear();
+  existing->setAttributeValue("oncontextmenu", "event.cancelBubble = true; event.returnValue = false; return false;");
   existing->setStyleClass("col-md-2 col-lg-2 media-icon-container");
   existing->setContentAlignment( AlignmentFlag::AlignCenter );
   WAnchor *link = WW<WAnchor>().css( "thumbnail filesystem-item link-hand" );

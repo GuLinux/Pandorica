@@ -94,7 +94,7 @@ std::string Stream::toString() const
 }
 
 
-void FFMPEGMedia::extractSubtitles( std::function<bool()> keepGoing, function< void( double ) > percentCallback )
+void FFMPEGMedia::extractSubtitles( function<void(double)> percentCallback )
 {
   d->init();
   boost::unique_lock<boost::mutex> lock( d->mutex );
@@ -125,7 +125,7 @@ void FFMPEGMedia::extractSubtitles( std::function<bool()> keepGoing, function< v
 
   int lastPercent = 0;
 
-  while( d->pFormatCtx && keepGoing() && av_read_frame( d->pFormatCtx, &inputPacket ) >= 0 )
+  while( d->pFormatCtx && av_read_frame( d->pFormatCtx, &inputPacket ) >= 0 )
   {
     auto packetTimeBase = d->pFormatCtx->streams[inputPacket.stream_index]->time_base;
     int64_t packetSecond = inputPacket.pts * packetTimeBase.num / packetTimeBase.den;

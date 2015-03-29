@@ -76,7 +76,7 @@ class FFMPEGMedia
     bool valid() const;
     std::string metadata( std::string key ) const;
     std::vector<FFMPEG::Stream> streams(FFMPEG::StreamType type = FFMPEG::All) const;
-    void extractSubtitles(std::function<bool()> keepGoing, std::function<void(double)> percentCallback = [](double){});
+    void extractSubtitles(std::function<void(double)> percentCallback = [](double){});
     void lock();
     void unlock();
     const Media &media() const;

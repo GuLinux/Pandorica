@@ -75,6 +75,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WMessageBox>
 #include <Wt/WButtonGroup>
 #include <Wt/WRadioButton>
+#include <Wt/WVBoxLayout>
+#include <Wt/WProgressBar>
 #include <mutex>
 #include <boost/thread.hpp>
 
@@ -512,18 +514,30 @@ void Pandorica::Private::play(PlaylistItem *playlistItem) {
     auto lock = ThreadPool::lock(media.uid());
     if(media.subtitles_count(t) < ffmpegMedia->streams(FFMPEG::Subtitles).size()) {
       auto writeLock = session->writeLock();
-      auto messageBox = new WMessageBox("Subtitles Extraction", "Please wait while extracting media subtitles", Wt::Information, Wt::NoButton);
-      messageBox->show();
+      auto dialog = new WDialog(WString::tr("player.subtitles.extraction.title"));
+      dialog->contents()->setLayout(new WVBoxLayout);
+      dialog->contents()->layout()->addWidget(new WText{WString::tr("player.subtitles.extraction.title")});
+      WProgressBar *extractionProgress = new WProgressBar;
+      dialog->contents()->layout()->addWidget(extractionProgress);
+      dialog->show();
+      auto dialog_existing = make_shared<bool>(true);
       auto app = wApp;
       ThreadPool::instance()->post([=]{
         Session session;
         Dbo::Transaction t(session);
-        ffmpegMedia->extractSubtitles([]{return true;}, [](double){} );
+        ffmpegMedia->extractSubtitles([=](double percent){
+          WServer::instance()->post(app->sessionId(), [=]{
+            if(!dialog_existing) return;
+            extractionProgress->setValue(percent);
+            app->triggerUpdate(); 
+          });
+        } );
         for(auto subtitle: ffmpegMedia->streams(FFMPEG::Subtitles)) {
           session.add(new MediaAttachment( "subtitles", subtitle.metadata["title"], subtitle.metadata["language"], media.uid(), "text/plain", subtitle.data ));
         }
         WServer::instance()->post(app->sessionId(), [=]{
-          messageBox->hide();
+          dialog->hide();
+          delete dialog;
           play(playlistItem);
           app->triggerUpdate();
         });
