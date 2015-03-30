@@ -53,22 +53,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "qttrayicon.h"
 #endif
 #include <boost/optional.hpp>
-
+#include "Wt-Commons/wobjectscope.h"
 using namespace Wt;
 using namespace std;
 namespace fs = boost::filesystem;
 using namespace WtCommons;
 namespace po = boost::program_options;
 
-list<WApplication *> instances;
-
+std::vector<WApplication*> instances;
 WApplication *createApplication( const WEnvironment &env )
 {
   auto app = new Pandorica( env );
-  app->aboutToQuit().connect( [ = ]( WApplication * app, _n5 )
-  {
+  WObjectScope *removeApp = new WObjectScope( [ = ] {
     instances.erase( std::remove( begin(instances), end(instances), app ) );
-  } );
+  }, app );
   instances.push_back( app );
   return app;
 }
@@ -132,26 +130,6 @@ std::ostream &pOut() {
   return cout;
 }
 #endif
-
-void expireStaleSessions()
-{
-  try
-  {
-    Session session;
-    Dbo::Transaction t( session );
-    auto oldSessions = session.find<SessionInfo>().where( "session_ended IS NULL" ).resultList();
-
-    for( auto oldSession : oldSessions )
-      oldSession.modify()->end();
-
-    t.commit();
-  }
-  catch
-    ( std::exception &e )
-  {
-    pErr() << "Database error: " << e.what() << endl;
-  }
-}
 
 map<string, string> extensionsMimetypes
 {
@@ -422,7 +400,6 @@ int main( int argc, char **argv, char **envp )
     } );
 
     Session::configureAuth();
-    expireStaleSessions();
 
 #ifdef HAVE_QT
 #ifndef WIN32

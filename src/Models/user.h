@@ -29,7 +29,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class Media;
 class MediaRating;
 class Group;
-class SessionInfo;
 class Comment;
 namespace dbo = Wt::Dbo;
 
@@ -43,7 +42,6 @@ public:
   template<class Action>
   void persist(Action& a)
   {
-    dbo::hasMany(a, sessionInfos, dbo::ManyToOne, "user");
     dbo::hasMany(a, comments, dbo::ManyToOne, "user");
     dbo::hasMany(a, groups, dbo::ManyToMany, "groups_users");
     dbo::hasMany(a, ratings, dbo::ManyToOne, "user");
@@ -55,7 +53,6 @@ public:
   bool isAdmin() const;
   std::list<std::string> allowedPaths() const;
   
-  dbo::collection<dbo::ptr<SessionInfo>> sessionInfos;
   dbo::collection<dbo::ptr<Comment>> comments;
   dbo::collection< dbo::ptr<Group>> groups;
   dbo::collection<dbo::ptr<MediaRating>> ratings;

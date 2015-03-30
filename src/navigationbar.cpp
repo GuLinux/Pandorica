@@ -105,17 +105,6 @@ Signal<>& NavigationBar::viewAs()
   return d->viewAs;
 }
 
-
-Signal<>& NavigationBar::viewLoggedUsers()
-{
-  return d->viewLoggedUsers;
-}
-
-Signal<>& NavigationBar::viewUsersHistory()
-{
-  return d->viewUsersHistory;
-}
-
 Signal<>& NavigationBar::showUserSettings()
 {
   return d->showUserSettings;
@@ -225,8 +214,6 @@ void NavigationBar::Private::setupAdminBar(Dbo::Transaction& transaction)
       pApp->notify(wtr("empty_media_collection_message"), Pandorica::NotificationType::Information);
   });
 
-  activeUsersMenuItem = createItem(adminMenu, wtr("menu.users"), 0, [=](WMenuItem*, _n5) { viewLoggedUsers.emit();}, "menu-loggedusers");
-  createItem(adminMenu, wtr("users.history.title"), 0, [=](WMenuItem*, _n5) { viewUsersHistory.emit();}, "menu-users-log");
   createItem(adminMenu, wtr("menu.groups"), 0, [=](WMenuItem*, _n5) { manageGroups.emit();}, "menu-groups");
   createItem(adminMenu, wtr("menu.usersmanagement"), 0, [=](WMenuItem*, _n5) { usersManagement.emit();}, "menu-loggedusers");
   createItem(adminMenu, wtr("cleanup.orphans"), 0, [=](WMenuItem*, _n5) { findOrphans.emit();});

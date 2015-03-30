@@ -202,9 +202,6 @@ void UsersManagementPage::Private::addUserRow( Dbo::ptr< AuthInfo > &authInfo, D
     session->execute("DELETE FROM \"groups_users\" WHERE user_id = ?").bind(user_id);
     session->execute("DELETE FROM \"comment\" WHERE user_id = ?").bind(user_id);
     session->execute("DELETE FROM \"media_rating\" WHERE user_id = ?").bind(user_id);
-    for(Dbo::ptr<SessionInfo> sessionInfo: session->find<SessionInfo>().where("user_id = ?").bind(user_id).resultList() )
-      session->execute("DELETE FROM \"session_details\" WHERE session_info_session_id = ?").bind(sessionInfo.id());
-    session->execute("DELETE FROM \"session_info\" WHERE user_id = ?").bind(user_id);
     session->execute("DELETE FROM \"user\" WHERE id = ?").bind(user_id);
     if(authInfo) {
       session->execute("DELETE FROM \"auth_token\" WHERE auth_info_id = ?").bind( authInfo.id());

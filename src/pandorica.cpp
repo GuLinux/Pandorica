@@ -38,7 +38,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "playlist.h"
 #include "session.h"
-#include "loggedusersdialog.h"
 #include "Wt-Commons/wt_helpers.h"
 
 #include "commentscontainerwidget.h"
@@ -121,10 +120,6 @@ Pandorica::Private::Private(Pandorica *q)
 }
 
 
-Signal<Wt::WApplication*>& Pandorica::aboutToQuit() const
-{
-  return d->aboutToQuit;
-}
 
 Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(environment), d(this) {
   useStyleSheet(Settings::staticPath("/Pandorica.css"));
@@ -172,7 +167,6 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
     d->playlist->animateHide({WAnimation::Fade});
     d->mediaCollectionBrowser->animateHide({WAnimation::Fade});
     d->mainWidget->animateHide({WAnimation::Fade});
-    d->unregisterSession();
     WTimer::singleShot(500, [=](WMouseEvent) {
       delete d->mainWidget;
       d->mainWidget = 0;
@@ -210,10 +204,6 @@ void Pandorica::authEvent()
   log("notice") << "Clearing root and creating widgets";
   root()->addWidget(d->mainWidget = new WContainerWidget() );
   auto myUser = d->session->user();
-  SessionInfo* sessionInfo = new SessionInfo(myUser, sessionId(), wApp->environment().clientAddress());
-  SessionInfo::endStale(t);
-  auto sessionInfoPtr = d->session->add(sessionInfo);
-  wApp->log("notice") << "created sessionInfo with sessionId=" << sessionInfoPtr->sessionId();
   d->mediaCollection.setUserId(myUser.id());
   d->mainWidget->addWidget(d->navigationBar = new NavigationBar(d->session, &d->mediaCollection, &d->settings));
   d->mainWidget->addWidget(d->notifications = WW<WContainerWidget>());
@@ -225,72 +215,9 @@ void Pandorica::authEvent()
     {NavigationBar::UserSettings, d->userSettingsPage = new WContainerWidget},
   });
   t.commit();
-  d->registerSession();
   setupGui();
 }
 
-void Pandorica::Private::registerSession()
-{
-  unique_lock<mutex> lock(sessionRegistrationMutex);
-  if(isRegistered)
-    return;
-  {
-    PandoricaInstances sessions = Private::instances();
-    sessions->push_back(q);
-  }
-  isRegistered = true;
-  post([=](Pandorica *app){ app->d->updateUsersCount(); }, true);
-}
-void Pandorica::Private::unregisterSession()
-{
-  unique_lock<mutex> lock(sessionRegistrationMutex);
-  if(!isRegistered)
-    return;
-  {
-    PandoricaInstances sessionsP = Private::instances();
-    list<Pandorica*> &sessions  = *sessionsP;
-    WServer::instance()->log("notice") << "**** * instances size: " << sessions.size() << ", q: " << q;
-    for(auto instance: sessions)
-      WServer::instance()->log("notice") << "**** * instance: " << instance;
-      
-    sessions.erase(remove(begin(sessions), end(sessions), q));
-  }
-  isRegistered = false;
-  post([=](Pandorica *app){ app->d->updateUsersCount(); }, false);
-}
-
-
-PandoricaInstances Pandorica::Private::instances()
-{
-  static list<Pandorica*> _instances {};
-  static mutex instancesMutex;
-
-  shared_ptr<unique_lock<mutex>> instancesMutexLock = make_shared<unique_lock<mutex>>(instancesMutex);
-
-  WServer::instance()->log("notice") << "**** * creating instances mutex";
-  return PandoricaInstances(&_instances, [instancesMutexLock](void *) {
-    (void)instancesMutexLock;
-    WServer::instance()->log("notice") << "**** * unlocking instances mutex";
-  });
-}
-
-void Pandorica::Private::post( function<void(Pandorica *app)> f, bool includeMine )
-{
-  auto pandoricaInstances = instances();
-  for(Pandorica *i: *pandoricaInstances) {
-    if( i != q || includeMine)
-      WServer::instance()->post(i->sessionId(), [=]{
-	f(i);
-	i->triggerUpdate();
-      });
-  }
-}
-
-void Pandorica::Private::updateUsersCount()
-{
-  wApp->log("notice") << "refreshing users count";
-  navigationBar->updateUsersCount(Private::instances()->size());
-}
 
 #include "utils/stacktrace.h"
 #include "ffmpegmedia.h"
@@ -307,42 +234,11 @@ void Pandorica::notify( const WEvent &e )
 }
 
 
-void endSessionOnDatabase(string sessionId, long userId) {
-  Session privateSession;
-  Dbo::Transaction t(privateSession);
-  WServer::instance()->log("notice") << "Ending session on database ( sessionId = " << sessionId << ")";
-  
-  SessionInfoPtr sessionInfo = privateSession.find<SessionInfo>().where("session_id = ?").bind(sessionId);
-  if(!sessionInfo) {
-    WServer::instance()->log("notice") << "stale session not found";
-    return;
-  }
-  WServer::instance()->log("notice") << "Session found, ending" << sessionInfo->sessionId();
-  sessionInfo.modify()->end();
-  for(auto detail : sessionInfo.modify()->sessionDetails()) {
-    detail.modify()->ended();
-    detail.flush();
-  }
-  sessionInfo.flush();
-  t.commit();
-}
-
 Pandorica::~Pandorica() {
-  if(d->session->login().loggedIn()) {
-    WServer::instance()->ioService().post(boost::bind(endSessionOnDatabase, sessionId(), d->userId));
-  }
-  d->unregisterSession();
-  d->aboutToQuit.emit(this);
-  WServer::instance()->log("notice") << "Destroying app";
 }
-
-// #define MEDIASCANNER_AS_DIALOG
-
 
 void Pandorica::Private::adminActions()
 {
-  navigationBar->viewLoggedUsers().connect([=](_n6) {   (new LoggedUsersDialog{session, &settings})->show(); });
-  navigationBar->viewUsersHistory().connect([=](_n6) { (new LoggedUsersDialog{session, &settings, true})->show(); });
   navigationBar->findOrphans().connect([=](_n6) { (new FindOrphansDialog(&mediaCollection, session, &settings))->run(); });
   navigationBar->manageGroups().connect([=](_n6) {  (new GroupsDialog(session, &settings))->show(); });
   navigationBar->configureApp().connect([=](_n6) { ServerSettingsPage::dialog(&settings, session, &mediaCollection); });
@@ -568,12 +464,6 @@ void Pandorica::Private::play(PlaylistItem *playlistItem) {
   player->ended().connect([=](_n6){
     wApp->setLoadingIndicator(new WDefaultLoadingIndicator());
     wApp->setTitle( wtr("site-title"));
-    Dbo::Transaction t(*session);
-    SessionInfoPtr sessionInfo = session->find<SessionInfo>().where("session_id = ?").bind(q->sessionId());
-    for(auto detail : sessionInfo.modify()->sessionDetails())
-      detail.modify()->ended();
-    sessionInfo.flush();
-    t.commit();
     playlist->next();
   });
 
@@ -647,10 +537,6 @@ void Pandorica::Private::play(PlaylistItem *playlistItem) {
   infoBox->addWidget(downloadLink);
   wApp->setTitle( wtr("site-title") + " - " + media.title(t) );
   q->log("notice") << "using url " << mediaLink.url();
-  SessionInfoPtr sessionInfo = session->find<SessionInfo>().where("session_id = ?").bind(q->sessionId());
-  for(auto detail : sessionInfo.modify()->sessionDetails())
-    detail.modify()->ended();
-  sessionInfo.modify()->sessionDetails().insert(new SessionDetails{media.path()});
   t.commit();
   nowPlaying.emit(playlistItem);
 }

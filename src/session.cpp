@@ -101,8 +101,6 @@ Session::Session(bool full)
   mapClass<Group>("group");
   mapClass<GroupPath>("group_path");
   mapClass<AuthInfo>("auth_info");
-  mapClass<SessionInfo>("session_info");
-  mapClass<SessionDetails>("session_details");
   mapClass<Comment>("comment");
   mapClass<AuthInfo::AuthIdentityType>("auth_identity");
   mapClass<AuthInfo::AuthTokenType>("auth_token");

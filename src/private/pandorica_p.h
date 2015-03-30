@@ -40,7 +40,6 @@ class Playlist;
 class MediaCollectionBrowser;
 class Player;
 class Pandorica;
-typedef std::shared_ptr<std::list<Pandorica*>> PandoricaInstances;
 
 class Pandorica::Private {
 public:
@@ -65,21 +64,14 @@ public:
     MediaCollectionBrowser* mediaCollectionBrowser;
     MediaCollection mediaCollection;
     long userId = -1;
-    void updateUsersCount();
-    void registerSession();
-    void unregisterSession();
     NavigationBar* navigationBar;
     Wt::WContainerWidget * playerPage;
     Wt::WContainerWidget * collectionPage;
     Wt::WContainerWidget * userSettingsPage;
     Wt::Signal<PlaylistItem*> nowPlaying;
-    Wt::Signal<Wt::WApplication*> aboutToQuit;
     Wt::WContainerWidget *notifications;
-    static PandoricaInstances instances();
     void post(std::function<void(Pandorica *app)> f, bool includeMine = false);
     void pathChanged(const std::string &path) const;
-    bool isRegistered = false;
-    std::mutex sessionRegistrationMutex;
     Wt::WDialog *rescanIndicator = 0;
 private:
     void ratingFor(Media media, Wt::Dbo::Transaction t);
