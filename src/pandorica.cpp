@@ -42,6 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "commentscontainerwidget.h"
 #include "Wt-Commons/whtmltemplateslocalizedstrings.h"
+#include <Wt-Commons/wobjectscope.h>
 #include "media/mediacollection.h"
 #include "mediacollectionbrowser.h"
 #include "settings.h"
@@ -417,6 +418,7 @@ void Pandorica::Private::play(PlaylistItem *playlistItem) {
       dialog->contents()->layout()->addWidget(extractionProgress);
       dialog->show();
       auto dialog_existing = make_shared<bool>(true);
+      new WObjectScope([=]{ *dialog_existing = false; }, dialog);
       auto app = wApp;
       ThreadPool::instance()->post([=]{
         Session session;
