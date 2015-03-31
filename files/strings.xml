@@ -320,4 +320,5 @@ An email message notifying the invitation was sent to {1}.</message>
 <message id="player.subtitles.extraction">Please wait while extracting media subtitles</message>
 <message id="player.subtitles.extraction.title">Subtitles Extraction</message>
 <message id="media.image.fromfile">Random</message>
+<message id="media.image.download.error">Error downloading the selected image. Please retry, or try another one</message>
 </messages>

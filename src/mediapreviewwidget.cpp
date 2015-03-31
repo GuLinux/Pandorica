@@ -40,6 +40,7 @@
 #include "ffmpegmedia.h"
 #include "utils/d_ptr_implementation.h"
 #include "utils/utils.h"
+#include "pandorica.h"
 #include <fstream>
 #include <boost/format.hpp>
 
@@ -73,6 +74,8 @@ MediaPreviewWidget::Private::Private(const Media& media, Session* session, Media
   httpClient.done().connect([=](const boost::system::error_code &error_code, const Http::Message &message, _n4){
     if(error_code.value() != boost::system::errc::success || message.status() < 200 || message.status() > 299) {
       wApp->log("notice") << "error loading image: " << error_code.message() << ", status=" << message.status();
+      Pandorica::instance()->notify(WString::tr("media.image.download.error"), Pandorica::Alert, 10);
+      app->triggerUpdate();
       return;
     }
     ImageBlob imageBlob;

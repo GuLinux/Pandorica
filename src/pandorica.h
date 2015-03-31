@@ -42,9 +42,9 @@ class Pandorica : public Wt::WApplication
     void setupGui();
     virtual void refresh();
     void authEvent();
-    Wt::Signal<Wt::WApplication *> &aboutToQuit() const;
     enum NotificationType { Alert, Error, Success, Information };
     void notify(const Wt::WString &text, NotificationType notificationType, int autocloseAfterSeconds = 0);
+    static Pandorica *instance();
   protected:
     virtual void notify( const Wt::WEvent &e );
   private:

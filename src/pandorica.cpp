@@ -121,6 +121,12 @@ Pandorica::Private::Private(Pandorica *q)
 }
 
 
+Pandorica* Pandorica::instance()
+{
+  return reinterpret_cast<Pandorica*>(wApp);
+}
+
+
 
 Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(environment), d(this) {
   useStyleSheet(Settings::staticPath("/Pandorica.css"));
