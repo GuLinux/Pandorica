@@ -484,6 +484,7 @@ void MediaCollectionBrowser::Private::addMedia( const Media &media, WContainerWi
       menu->addSeparator();
       menu->addItem(WString::tr("mediabrowser.admin.setposter"))->triggered().connect(bind([=]{
         auto dialog = new WDialog(WString::tr("mediabrowser.admin.setposter"));
+        dialog->setWidth(1000);
         // dialog->resize(1000, 700);
         MediaPreviewWidget *mediaPreview = new MediaPreviewWidget(media, session);
         new WObjectScope([=]{wApp->log("notice") << "deleted mediaPreviewWidget for media " << media.path(); }, mediaPreview);
@@ -492,6 +493,7 @@ void MediaCollectionBrowser::Private::addMedia( const Media &media, WContainerWi
         dialog->footer()->addWidget(WW<WPushButton>(WString::tr("button.cancel")).css("btn-danger").onClick([=](WMouseEvent){ dialog->reject(); }));
         dialog->footer()->addWidget(WW<WPushButton>(WString::tr("button.ok")).css("btn-primary").onClick([=](WMouseEvent){ dialog->accept(); }));
         dialog->finished().connect([=](int ret, _n5){
+          Scope cleanup{[=]{delete dialog; }};
           if(ret != WDialog::Accepted) return;
         });
         dialog->show();

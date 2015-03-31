@@ -30,10 +30,11 @@ public:
     Wt::JSignal<Wt::WString> &imageChosen();
     void pick();
     GooglePicker *searchString(const Wt::WString &search) { _searchString = search; }
+    operator Wt::WPushButton* () const { return _button; }
 private:
   Wt::JSignal<Wt::WString> _imageChosen;
   Wt::WString _searchString;
-  Wt::WPushButton *_button;
+  Wt::WPushButton *_button = nullptr;
   std::string _developerKey;
 };
 

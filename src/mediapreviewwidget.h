@@ -22,6 +22,7 @@
 
 #include <Wt/WCompositeWidget>
 #include "media/media.h"
+#include "utils/d_ptr.h"
 
 class Session;
 class MediaPreviewWidget : public Wt::WCompositeWidget
@@ -29,7 +30,8 @@ class MediaPreviewWidget : public Wt::WCompositeWidget
 public:
     ~MediaPreviewWidget();
     MediaPreviewWidget(const Media &media, Session *session, Wt::WContainerWidget* parent = 0);
-
+private:
+  D_PTR;
 };
 
 #endif // MEDIAPREVIEWWIDGET_H
