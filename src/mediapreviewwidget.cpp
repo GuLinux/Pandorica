@@ -34,6 +34,8 @@
 #include <Wt/Utils>
 #include <Wt/WToolBar>
 #include <Wt/WProgressBar>
+#include <Wt/WMessageBox>
+#include <Wt/WLineEdit>
 #include "utils/image.h"
 #include "session.h"
 #include "threadpool.h"
@@ -149,6 +151,21 @@ MediaPreviewWidget::MediaPreviewWidget(const Media& media, Session *session, WCo
       });
     });
   });
+  WPushButton *loadFromURL = WW<WPushButton>(WString::tr("media.image.fromurl")).css("btn-xs").onClick([=](WMouseEvent){
+    WDialog *dialog = new WDialog(WString::tr("media.image.fromurl"));
+    dialog->setWidth(600);
+    WLineEdit *url = WW<WLineEdit>().css("input-sm");
+    dialog->setClosable(true);
+    dialog->footer()->addWidget(WW<WPushButton>(WString::tr("button.ok")).css("btn-primary").onClick([=](WMouseEvent){
+      if(! url->text().empty())
+        d->httpClient.get(url->text().toUTF8());
+      dialog->accept();
+    }));
+    dialog->finished().connect([=](int, _n5){wApp->log("notice") << "DELETING DIALOG!!!!!"; delete dialog;});
+    url->setPlaceholderText(WString::tr("media.image.fromurl.placeholder"));
+    dialog->contents()->addWidget(url);
+    dialog->show();
+  });
   
   WToolBar *toolbar = WW<WToolBar>().css("inline-block");
   WPushButton *googlePickerButton = *googlePicker;
@@ -156,6 +173,7 @@ MediaPreviewWidget::MediaPreviewWidget(const Media& media, Session *session, WCo
   if(googlePickerButton)
     toolbar->addButton(googlePickerButton);
   toolbar->addButton(loadFromFile);
+  toolbar->addButton(loadFromURL);
   
   content->addWidget(WW<WContainerWidget>().add(d->fileUploadContainer).add(toolbar));
   d->resetImageUploader();

@@ -375,4 +375,6 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
 <message id="player.subtitles.extraction.title">Estrazione Sottotitoli</message>
 <message id="media.image.fromfile">Casuale</message>
 <message id="media.image.download.error">Errore nel caricamento dell'immagine selezionata. Riprovare, o selezionare un'altra immagine.</message>
+<message id="media.image.fromurl">Aggiungi poster da internet</message>
+<message id="media.image.fromurl.placeholder">Inserisci un URL qui per scaricare</message>
 </messages>
