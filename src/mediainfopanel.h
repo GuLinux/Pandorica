@@ -34,10 +34,6 @@ public:
     void reset();
     Wt::Signal<Media> &play() const;
     Wt::Signal<Media> &queue() const;
-    Wt::Signal<Media> &setTitle() const;
-    Wt::Signal<Media> &setPoster() const;
-    Wt::Signal<Media> &deletePoster() const;
-    Wt::Signal<Media> &deleteAttachments() const;
     Wt::Signal<> &gotInfo() const;
     Wt::Signal<> &wasResetted() const;
     Wt::Signal<> &playFolder() const;

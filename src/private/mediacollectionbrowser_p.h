@@ -92,10 +92,10 @@ public:
     enum SortDirection{ Asc, Desc };
     Sort sortBy = Alpha;
     SortDirection sortDirection = Asc;
-    void setTitleFor(Media media);
-    void clearThumbnailsFor(Media media);
-    void clearAttachmentsFor(Media media);
-    void setPosterFor(Media media);
+    void setTitleFor(Media media, std::function< void(const Media &) > refreshIcon);
+    void clearThumbnailsFor(Media media, std::function< void(const Media &) > refreshIcon);
+    void clearAttachmentsFor(Media media, std::function< void(const Media &) > refreshIcon);
+    void setPosterFor(Media media, std::function< void(const Media &) > refreshIcon);
     typedef std::function<bool(Wt::Dbo::Transaction &, const Media&)> MediaFilter;
     std::map<Wt::WMenuItem*, MediaFilter> mediaFilters;
     void titleFilterDialog(Wt::WMenu *menu);

@@ -30,17 +30,12 @@ class MediaInfoPanel::Private
   void labelValueBox(std::string label, Wt::WWidget *widget, Wt::WTable* container);
   Wt::Signal<Media> play;
   Wt::Signal<Media> queue;
-  Wt::Signal<Media> setTitle;
-  Wt::Signal<Media> setPoster;
-  Wt::Signal<Media> deletePoster;
-  Wt::Signal<Media> deleteAttachments;
   Wt::Signal<> gotInfo;
   Wt::Signal<> wasResetted;
   Wt::Signal<> playFolder;
   Wt::Signal<> playFolderRecursive;
   Session *session;
   Settings* settings;
-  bool isAdmin;
   std::pair<Wt::WPanel*,Wt::WContainerWidget*> createPanel(std::string titleKey);
   
   private:

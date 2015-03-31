@@ -43,8 +43,6 @@ using namespace WtCommons;
 
 MediaInfoPanel::Private::Private( MediaInfoPanel *q, Session *session, Settings *settings ) : q( q ), session(session), settings(settings)
 {
-  Dbo::Transaction t(*session);
-  isAdmin = session->user()->isAdmin(t);
 }
 MediaInfoPanel::Private::~Private()
 {
@@ -185,31 +183,6 @@ void MediaInfoPanel::info( Media &media )
   addWidget( header );
   addWidget( mediaMediaInfoPanel.first );
   addWidget( actions.first );
-
-  if( d->isAdmin )
-  {
-    auto adminActions = d->createPanel( "mediabrowser.admin.actions" );
-    adminActions.first->addStyleClass( "visible-lg visible-md" );
-    adminActions.first->collapse();
-    adminActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.admin.settitle" ) ).css( "btn btn-block btn-sm btn-primary" ).onClick( [ = ]( WMouseEvent )
-    {
-      setTitle().emit( media );
-    } ) );
-    adminActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.admin.setposter" ) ).css( "btn btn-block btn-sm btn-primary" ).onClick( [ = ]( WMouseEvent )
-    {
-      setPoster().emit( media );
-    } ) );
-    adminActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.admin.deletepreview" ) ).css( "btn btn-block btn-sm btn-danger" ).onClick( [ = ]( WMouseEvent )
-    {
-      deletePoster().emit( media );
-    } ) );
-    adminActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.admin.deleteattachments" ) ).css( "btn btn-block btn-sm btn-danger" ).onClick( [ = ]( WMouseEvent )
-    {
-      deleteAttachments().emit( media );
-    } ) );
-    addWidget( adminActions.first );
-  }
-
   gotInfo().emit();
 }
 
@@ -239,14 +212,6 @@ void MediaInfoPanel::Private::labelValueBox( string label, WWidget *widget, WTab
   container->elementAt( currentRow, 1 )->addWidget( WW<WContainerWidget>().css( "media-info-value" ).setContentAlignment( AlignRight ).add( widget ) );
 }
 
-Signal< Media > &MediaInfoPanel::deleteAttachments() const
-{
-  return d->deleteAttachments;
-}
-Signal< Media > &MediaInfoPanel::deletePoster() const
-{
-  return d->deletePoster;
-}
 Signal< NoClass > &MediaInfoPanel::gotInfo() const
 {
   return d->gotInfo;
@@ -266,14 +231,6 @@ Signal< NoClass > &MediaInfoPanel::playFolderRecursive() const
 Signal< Media > &MediaInfoPanel::queue() const
 {
   return d->queue;
-}
-Signal< Media > &MediaInfoPanel::setPoster() const
-{
-  return d->setPoster;
-}
-Signal< Media > &MediaInfoPanel::setTitle() const
-{
-  return d->setTitle;
 }
 Signal< NoClass > &MediaInfoPanel::wasResetted() const
 {

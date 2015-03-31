@@ -308,10 +308,7 @@ void MediaCollectionBrowser::Private::setup(MediaInfoPanel *infoPanel)
   {
     queueSignal.emit( media );
   } );
-  infoPanel->setTitle().connect( this, &MediaCollectionBrowser::Private::setTitleFor );
-  infoPanel->setPoster().connect( this, &MediaCollectionBrowser::Private::setPosterFor );
-  infoPanel->deletePoster().connect( this, &MediaCollectionBrowser::Private::clearThumbnailsFor );
-  infoPanel->deleteAttachments().connect( this, &MediaCollectionBrowser::Private::clearAttachmentsFor);
+
   infoPanel->playFolder().connect( [ = ]( _n6 )
   {
     for( Media media : collection->sortedMediasList() )
@@ -500,54 +497,55 @@ void MediaCollectionBrowser::Private::addMedia( const Media &media, WContainerWi
     menu->addItem(WString::tr("mediabrowser.queue"))->triggered().connect(std::bind([=]{ queueSignal.emit(media);}));
     if(session->user()->isAdmin(t)) {
       menu->addSeparator();
-      menu->addItem(WString::tr("mediabrowser.admin.setposter"))->triggered().connect(bind([=]{
-        auto dialog = new WDialog(WString::tr("mediabrowser.admin.setposter"));
-        dialog->setWidth(800);
-        // dialog->resize(1000, 700);
-        MediaPreviewWidget *mediaPreview = new MediaPreviewWidget(media, session);
-        new WObjectScope([=]{wApp->log("notice") << "deleted mediaPreviewWidget for media " << media.path(); }, mediaPreview);
-        
-        dialog->contents()->addWidget(mediaPreview);
-        dialog->footer()->addWidget(WW<WPushButton>(WString::tr("button.cancel")).css("btn-danger").onClick([=](WMouseEvent){ dialog->reject(); }));
-        dialog->footer()->addWidget(WW<WPushButton>(WString::tr("button.ok")).css("btn-primary").onClick([=](WMouseEvent){ dialog->accept(); }));
-        dialog->finished().connect([=](int ret, _n5){
-          Scope cleanup{[=]{delete dialog; }};
-          if(ret != WDialog::Accepted) return;
-          mediaPreview->save();
-          refreshIcon(media);
-        });
-        dialog->show();
-      }));
+      menu->addItem(WString::tr("mediabrowser.admin.setposter"))->triggered().connect(bind([=]{ setPosterFor(media, refreshIcon);}));
+      menu->addItem(WString::tr("mediabrowser.admin.settitle"))->triggered().connect(bind([=]{ setTitleFor(media, refreshIcon); }));
+      menu->addItem(WString::tr("mediabrowser.admin.deletepreview"))->triggered().connect(bind([=]{ clearThumbnailsFor(media, refreshIcon); }));
+      menu->addItem(WString::tr("mediabrowser.admin.deleteattachments"))->triggered().connect(bind([=]{ clearAttachmentsFor(media, refreshIcon); }));
     }
     menu->aboutToHide().connect([=](_n6){delete menu;});
     menu->popup(e);
   });
 }
 
-void MediaCollectionBrowser::Private::clearThumbnailsFor( Media media )
+void MediaCollectionBrowser::Private::clearThumbnailsFor( Media media, std::function< void(const Media &) > refreshIcon )
 {
   Dbo::Transaction t( *session );
   session->execute( "DELETE FROM media_attachment WHERE media_id=? and type = 'preview';" ).bind( media.uid() );
   t.commit();
-  q->reload();
+  refreshIcon(media);
 }
 
-void MediaCollectionBrowser::Private::clearAttachmentsFor( Media media )
+void MediaCollectionBrowser::Private::clearAttachmentsFor( Media media, std::function< void(const Media &) > refreshIcon )
 {
   Dbo::Transaction t( *session );
   session->execute( "DELETE FROM media_attachment WHERE media_id=?;" ).bind( media.uid() );
   t.commit();
-  q->reload();
+  refreshIcon(media);
 }
 
 
-void MediaCollectionBrowser::Private::setPosterFor( Media media )
+void MediaCollectionBrowser::Private::setPosterFor( Media media, std::function<void(const Media &)> refreshIcon )
 {
-  // TODO: reimplement
+  auto dialog = new WDialog(WString::tr("mediabrowser.admin.setposter"));
+  dialog->setWidth(800);
+  // dialog->resize(1000, 700);
+  MediaPreviewWidget *mediaPreview = new MediaPreviewWidget(media, session);
+  new WObjectScope([=]{wApp->log("notice") << "deleted mediaPreviewWidget for media " << media.path(); }, mediaPreview);
+  
+  dialog->contents()->addWidget(mediaPreview);
+  dialog->footer()->addWidget(WW<WPushButton>(WString::tr("button.cancel")).css("btn-danger").onClick([=](WMouseEvent){ dialog->reject(); }));
+  dialog->footer()->addWidget(WW<WPushButton>(WString::tr("button.ok")).css("btn-primary").onClick([=](WMouseEvent){ dialog->accept(); }));
+  dialog->finished().connect([=](int ret, _n5){
+    Scope cleanup{[=]{delete dialog; }};
+    if(ret != WDialog::Accepted) return;
+    mediaPreview->save();
+    refreshIcon(media);
+  });
+  dialog->show();
 }
 
 
-void MediaCollectionBrowser::Private::setTitleFor( Media media )
+void MediaCollectionBrowser::Private::setTitleFor( Media media, std::function< void(const Media &) > refreshIcon )
 {
   Dbo::Transaction t( *session );
   MediaPropertiesPtr properties = media.properties( t );
@@ -601,7 +599,7 @@ void MediaCollectionBrowser::Private::setTitleFor( Media media )
     properties.modify()->setTitle( titleEdit->text().toUTF8() );
     properties.flush();
     t.commit();
-    q->reload();
+    refreshIcon(media);
   } );
   setTitleDialog->show();
 }
