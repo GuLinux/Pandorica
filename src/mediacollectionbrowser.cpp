@@ -484,7 +484,7 @@ void MediaCollectionBrowser::Private::addMedia( const Media &media, WContainerWi
       menu->addSeparator();
       menu->addItem(WString::tr("mediabrowser.admin.setposter"))->triggered().connect(bind([=]{
         auto dialog = new WDialog(WString::tr("mediabrowser.admin.setposter"));
-        dialog->resize(1000, 700);
+        // dialog->resize(1000, 700);
         MediaPreviewWidget *mediaPreview = new MediaPreviewWidget(media, session);
         new WObjectScope([=]{wApp->log("notice") << "deleted mediaPreviewWidget for media " << media.path(); }, mediaPreview);
         
