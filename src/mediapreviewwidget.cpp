@@ -41,6 +41,7 @@
 #include "utils/d_ptr_implementation.h"
 #include "utils/utils.h"
 #include <fstream>
+#include <boost/format.hpp>
 
 
 using namespace std;
@@ -88,7 +89,6 @@ MediaPreviewWidget::Private::Private(const Media& media, Session* session, Media
 void MediaPreviewWidget::Private::updateImage(const ImageBlob &imageblob)
 {
   image->setImageLink(( imageResource = make_shared<WMemoryResource>(Wt::Utils::guessImageMimeTypeData(imageblob), imageblob, image) ).get() );
-  new WObjectScope([=]{wApp->log("notice") << "****** destroyed wmemoryresource"; }, imageResource.get());
 }
 
 
@@ -120,7 +120,10 @@ MediaPreviewWidget::~MediaPreviewWidget()
 
 void MediaPreviewWidget::save()
 {
-
+  if(! d->imageResource ) return;
+  Dbo::Transaction t(*d->session);
+  d->session->execute((boost::format("DELETE FROM %s WHERE media_id = ?") % d->session->tableName<MediaAttachment>()).str()).bind(d->media.uid());
+  d->media.setImage(make_shared<Image>(d->imageResource->data()), t);
 }
 
 

@@ -473,6 +473,24 @@ void MediaCollectionBrowser::Private::addMedia( const Media &media, WContainerWi
   };
   
   auto item = replaceIcon( media.title( t ), icon, onClick, widget == nullptr ? new WContainerWidget : widget );
+  auto icon_valid = make_shared<bool>(true);
+  new WObjectScope([=]{ *icon_valid = false; }, item);
+  
+  auto refreshIcon = [=](const Media &media) {
+    if(! *icon_valid)
+      return;
+    addMedia(media, item); wApp->triggerUpdate();
+  };
+
+  ThreadPool::instance()->post([=]{
+    Session session;
+    auto lock = session.writeLock();
+    auto mediaLock = ThreadPool::lock(media.uid());
+    auto ffmpegMedia = make_shared<FFMPEGMedia>(media);
+    saveMediaInformation.save(ffmpegMedia, refreshIcon, session);
+    saveMediaThumbnail.save(ffmpegMedia, refreshIcon, session);
+  });
+  
   item->mouseWentUp().connect([=](const WMouseEvent &e){
     if(e.button() != WMouseEvent::RightButton)
       return;
@@ -495,29 +513,14 @@ void MediaCollectionBrowser::Private::addMedia( const Media &media, WContainerWi
         dialog->finished().connect([=](int ret, _n5){
           Scope cleanup{[=]{delete dialog; }};
           if(ret != WDialog::Accepted) return;
+          mediaPreview->save();
+          refreshIcon(media);
         });
         dialog->show();
       }));
     }
     menu->aboutToHide().connect([=](_n6){delete menu;});
     menu->popup(e);
-  });
-  auto icon_valid = make_shared<bool>(true);
-  new WObjectScope([=]{ *icon_valid = false; }, item);
-  
-  auto refreshIcon = [=](const Media &media) {
-    if(! *icon_valid)
-      return;
-    addMedia(media, item); wApp->triggerUpdate();
-  };
-
-  ThreadPool::instance()->post([=]{
-    Session session;
-    auto lock = session.writeLock();
-    auto mediaLock = ThreadPool::lock(media.uid());
-    auto ffmpegMedia = make_shared<FFMPEGMedia>(media);
-    saveMediaInformation.save(ffmpegMedia, refreshIcon, session);
-    saveMediaThumbnail.save(ffmpegMedia, refreshIcon, session);
   });
 }
 
