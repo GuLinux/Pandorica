@@ -30,6 +30,7 @@ class MediaPreviewWidget : public Wt::WCompositeWidget
 public:
     ~MediaPreviewWidget();
     MediaPreviewWidget(const Media &media, Session *session, Wt::WContainerWidget* parent = 0);
+    void save();
 private:
   D_PTR;
 };

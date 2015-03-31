@@ -23,6 +23,7 @@
 #include "googlepicker.h"
 #include "media/media.h"
 #include "Wt-Commons/wt_helpers.h"
+#include <Wt-Commons/wobjectscope.h>
 #include <Wt/WFileUpload>
 #include <Wt/Dbo/Transaction>
 #include <Wt/WImage>
@@ -54,29 +55,42 @@ public:
   Session *session;
   
   WImage *image;
-  shared_ptr<ImageBlob> imageBlob;
   WContainerWidget *fileUploadContainer;
   Http::Client httpClient;
-  void imageDownloaded(const boost::system::error_code &errorCode, const Http::Message &message);
   void resetImageUploader();
+  void updateImage(const ImageBlob& imageblob);
+  shared_ptr<WMemoryResource> imageResource;
 private:
   MediaPreviewWidget *q;
 };
 
 MediaPreviewWidget::Private::Private(const Media& media, Session* session, MediaPreviewWidget* q)
-  : app(wApp), media(media), session(session), image(WW<WImage>().css("image-responsive") ), fileUploadContainer(WW<WContainerWidget>().setInline(true))
+  : app(wApp), media(media), session(session), image(WW<WImage>().css("img-responsive") ), fileUploadContainer(WW<WContainerWidget>().setInline(true))
 {
   httpClient.setFollowRedirect(true);
   httpClient.setMaximumResponseSize(20 * 1024 * 1024);
+  httpClient.done().connect([=](const boost::system::error_code &error_code, const Http::Message &message, _n4){
+    if(error_code.value() != boost::system::errc::success || message.status() < 200 || message.status() > 299) {
+      wApp->log("notice") << "error loading image: " << error_code.message() << ", status=" << message.status();
+      return;
+    }
+    ImageBlob imageBlob;
+    ::Utils::copy(message.body(), imageBlob);
+    updateImage(imageBlob);
+    app->triggerUpdate();
+  });
   image->setMaximumSize(WLength::Auto, 450);
   image->setMargin(WLength::Auto, Side::Left);
   image->setMargin(WLength::Auto, Side::Right);
 }
 
-void MediaPreviewWidget::Private::imageDownloaded(const boost::system::error_code& errorCode, const Http::Message& message)
-{
 
+void MediaPreviewWidget::Private::updateImage(const ImageBlob &imageblob)
+{
+  image->setImageLink(( imageResource = make_shared<WMemoryResource>(Wt::Utils::guessImageMimeTypeData(imageblob), imageblob, image) ).get() );
+  new WObjectScope([=]{wApp->log("notice") << "****** destroyed wmemoryresource"; }, imageResource.get());
 }
+
 
 void MediaPreviewWidget::Private::resetImageUploader()
 {
@@ -87,10 +101,10 @@ void MediaPreviewWidget::Private::resetImageUploader()
   uploadCover->changed().connect(uploadCover, &WFileUpload::upload);
   
   uploadCover->uploaded().connect([=](_n1){
-    imageBlob = make_shared<ImageBlob>();
+    ImageBlob imageBlob;
     ifstream spoolFile(uploadCover->spoolFileName(), ios::binary);
-    std::copy(std::istreambuf_iterator<char>(spoolFile), std::istreambuf_iterator<char>(), back_inserter(*imageBlob));
-    image->setImageLink(new WMemoryResource(Wt::Utils::guessImageMimeTypeData(*imageBlob), *imageBlob, q));
+    std::copy(std::istreambuf_iterator<char>(spoolFile), std::istreambuf_iterator<char>(), back_inserter(imageBlob));
+    updateImage(imageBlob);
     resetImageUploader();
   });
   
@@ -102,8 +116,13 @@ void MediaPreviewWidget::Private::resetImageUploader()
 
 MediaPreviewWidget::~MediaPreviewWidget()
 {
+}
+
+void MediaPreviewWidget::save()
+{
 
 }
+
 
 MediaPreviewWidget::MediaPreviewWidget(const Media& media, Session *session, WContainerWidget* parent) : WCompositeWidget(parent), d(media, session, this)
 {
@@ -117,10 +136,9 @@ MediaPreviewWidget::MediaPreviewWidget(const Media& media, Session *session, WCo
   WPushButton *loadFromFile = WW<WPushButton>(WString::tr("media.image.fromfile")).css("btn-xs").onClick([=](WMouseEvent){
     ThreadPool::instance()->post([=]{
       FFMPEGMedia ffmpegMedia(media);
-      auto image_data = ffmpegMedia.randomThumbnail();
-      ImageBlob image_data_vector = *image_data;
+      auto image = ffmpegMedia.randomThumbnail();
       WServer::instance()->post(app->sessionId(), [=]{
-        d->image->setImageLink(new WMemoryResource{Wt::Utils::guessImageMimeTypeData(image_data_vector), image_data_vector});
+        d->updateImage(*image);
         app->triggerUpdate();
       });
     });
@@ -138,32 +156,14 @@ MediaPreviewWidget::MediaPreviewWidget(const Media& media, Session *session, WCo
 
   auto image_from_db = media.preview(t, Media::PreviewFull);
   
-  
-  
   if(image_from_db) {
     d->image->setImageLink(image_from_db->link(image_from_db, t, d->image));
   }
 
   
-  Http::Client *client = new Http::Client(this);
-  client->done().connect([=](const boost::system::error_code &error_code, const Http::Message &message, _n4){
-    if(error_code.value() != boost::system::errc::success || message.status() < 200 || message.status() > 299) {
-      wApp->log("notice") << "error loading image: " << error_code.message() << ", status=" << message.status();
-      return;
-    }
-    string content_type = *message.getHeader("Content-Type");
-    wApp->log("notice") << "content type: " << content_type;
-    ImageBlob imageBlob;
-    auto body = message.body();
-    copy(body.begin(), body.end(), back_inserter(imageBlob));
-    d->image->setImageLink(new WMemoryResource(content_type, imageBlob));
-    wApp->triggerUpdate();
-  });
   googlePicker->imageChosen().connect([=](const WString &url, _n5){
     wApp->log("notice") << "Got url: " << url;
-      client->setFollowRedirect(true);
-      client->setMaximumResponseSize(20 * 1024 * 1024);
-      client->get(url.toUTF8());
+    d->httpClient.get(url.toUTF8());
   });
   content->addWidget(d->image);
   setImplementation(content);

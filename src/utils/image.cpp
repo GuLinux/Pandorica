@@ -132,3 +132,9 @@ Image::Private::Private(Image* q) : q(q)
 Image::~Image()
 {
 }
+
+ImageBlob Image::blob() const
+{
+  return *this;
+}
+

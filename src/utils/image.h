@@ -37,6 +37,7 @@ public:
     operator ImageBlob() const;
     Image &resize(uint32_t size, uint32_t quality = 75 );
     std::shared_ptr< Image > scaled(uint32_t size, uint32_t quality = 75) const;
+    ImageBlob blob() const;
 private:
     Image();
     D_PTR;
