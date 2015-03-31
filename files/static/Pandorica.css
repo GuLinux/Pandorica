@@ -294,6 +294,11 @@ body {
 
 .pandorica-notification {
   margin-bottom: 0px;
+  z-index: 999;
+  display: block;
+  position: fixed;
+  bottom: 0px;
+  right: 0px;
 }
 
 .menuitem-closeable a,.inline-block {

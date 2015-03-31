@@ -187,13 +187,15 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
 void Pandorica::notify( const WString &text, Pandorica::NotificationType notificationType, int autocloseAfterSeconds )
 {
   static map<NotificationType,string> notificationTypes {
-    { Alert, "" },
+    { Alert, "alert-warning" },
     { Error, "alert-danger" },
     { Success, "alert-success" },
     { Information, "alert-information" },
   };
   WPushButton *closeButton = WW<WPushButton>().setTextFormat(Wt::XHTMLText).setText("&times;").css("close").setAttribute("data-dismiss", "alert");
-  WContainerWidget *notification = WW<WContainerWidget>().addCss("alert alert-block pandorica-notification").addCss(notificationTypes[notificationType]).add(closeButton).add(new WText(text));
+  WContainerWidget *notification = WW<WContainerWidget>()
+    .addCss("alert alert-block pandorica-notification")
+    .addCss(notificationTypes[notificationType]).add(closeButton).add(new WText(text));
   d->notifications->addWidget(notification);
   if(autocloseAfterSeconds > 0) {
     WTimer::singleShot(autocloseAfterSeconds * 1000, [=](WMouseEvent) {
