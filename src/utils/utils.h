@@ -74,6 +74,9 @@ public:
     static void sort(List &list, SortF f) {
       std::sort(std::begin(list), std::end(list), f);
     }
+    template<typename A, typename B> static void copy(const A &a, B &b) {
+      std::copy(std::begin(a), std::end(a), std::back_inserter(b));
+    }
 private:
   D_PTR;
 };

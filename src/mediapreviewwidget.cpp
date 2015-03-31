@@ -28,6 +28,7 @@
 #include <Wt/WImage>
 #include <Wt/WMemoryResource>
 #include <Wt/Http/Client>
+#include <Wt/WFileResource>
 #include "utils/image.h"
 #include "session.h"
 
@@ -44,17 +45,27 @@ MediaPreviewWidget::MediaPreviewWidget(const Media& media, Session *session, WCo
 {
   Dbo::Transaction t(*session);
   WContainerWidget *content = WW<WContainerWidget>();
-  content->setLayout(new WVBoxLayout);
   WFileUpload *uploadCover = WW<WFileUpload>().css("inline-block");
   uploadCover->setInline(true);
+  uploadCover->changed().connect(uploadCover, &WFileUpload::upload);
+  
   GooglePicker *googlePicker = new GooglePicker{"Load from Google Images"};
   googlePicker->searchString(media.title(t));
-  content->layout()->addWidget(WW<WContainerWidget>().add(uploadCover).add(googlePicker));
+  content->addWidget(WW<WContainerWidget>().add(uploadCover).add(googlePicker));
   WImage *image = WW<WImage>().css("img-responsive");
+  image->setMaximumSize(WLength::Auto, 450);
+  image->setMargin(WLength::Auto, Side::Left);
+  image->setMargin(WLength::Auto, Side::Right);
   auto image_from_db = media.preview(t, Media::PreviewFull);
   if(image_from_db) {
     image->setImageLink(image_from_db->link(image_from_db, t, image));
   }
+  uploadCover->uploaded().connect([=](_n1){
+    wApp->log("notice") << "uploaded image to " << uploadCover->spoolFileName();
+    image->setImageLink(new WFileResource{uploadCover->spoolFileName()});
+  });
+  
+  uploadCover->fileTooLarge().connect([=](int size, _n5){ wApp->log("notice") << "uploaded file too large (" << size << " bytes)"; });
   
   Http::Client *client = new Http::Client(this);
   client->done().connect([=](const boost::system::error_code &error_code, const Http::Message &message, _n4){
@@ -76,6 +87,6 @@ MediaPreviewWidget::MediaPreviewWidget(const Media& media, Session *session, WCo
       client->setMaximumResponseSize(20 * 1024 * 1024);
       client->get(url.toUTF8());
   });
-  content->layout()->addWidget(image);
+  content->addWidget(image);
   setImplementation(content);
 }
