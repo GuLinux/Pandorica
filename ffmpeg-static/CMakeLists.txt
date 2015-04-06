@@ -25,6 +25,4 @@ pkg_check_modules(LIBPNG libpng REQUIRED)
 add_custom_target(ffmpeg_libraries make ${MAKEOPTS} all install
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/build"
 )
-message("FFMPEG Include Directory: ${AVFORMAT_INCLUDE_DIRS}, library directory: ${AVFORMAT_LIBRARY_DIRS})")
-
 set(FFMPEG_STATIC_ROOT  ${CMAKE_CURRENT_BINARY_DIR}/ffmpeg_static PARENT_SCOPE)
