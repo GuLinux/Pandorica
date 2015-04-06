@@ -64,6 +64,8 @@ public:
   void resetImageUploader();
   void updateImage(const ImageBlob& imageblob);
   shared_ptr<WMemoryResource> imageResource;
+  void setLoadingIndicator();
+  void setErrorIndicator();
 private:
   MediaPreviewWidget *q;
 };
@@ -76,6 +78,7 @@ MediaPreviewWidget::Private::Private(const Media& media, Session* session, Media
   httpClient.done().connect([=](const boost::system::error_code &error_code, const Http::Message &message, _n4){
     if(error_code.value() != boost::system::errc::success || message.status() < 200 || message.status() > 299) {
       wApp->log("notice") << "error loading image: " << error_code.message() << ", status=" << message.status();
+      setErrorIndicator();
       Pandorica::instance()->notify(WString::tr("media.image.download.error"), Pandorica::Alert, 10);
       app->triggerUpdate();
       return;
@@ -88,7 +91,22 @@ MediaPreviewWidget::Private::Private(const Media& media, Session* session, Media
   image->setMaximumSize(WLength::Auto, 450);
   image->setMargin(WLength::Auto, Side::Left);
   image->setMargin(WLength::Auto, Side::Right);
+  setLoadingIndicator();
 }
+
+
+void MediaPreviewWidget::Private::setLoadingIndicator()
+{
+  static WFileResource *loadingIcon = new WFileResource("image/gif", SHARED_FILES_DIR "/static/icons/loader-large.gif");
+  image->setImageLink(loadingIcon);
+}
+
+void MediaPreviewWidget::Private::setErrorIndicator()
+{
+  static WFileResource *errorIcon = new WFileResource("image/png", SHARED_FILES_DIR "/static/icons/256_error.png");
+  image->setImageLink(errorIcon);
+}
+
 
 
 void MediaPreviewWidget::Private::updateImage(const ImageBlob &imageblob)
@@ -107,7 +125,7 @@ void MediaPreviewWidget::Private::resetImageUploader()
   
   uploadCover->uploaded().connect([=](_n1){
     ImageBlob imageBlob;
-    ifstream spoolFile(uploadCover->spoolFileName(), ios::binary);
+    ifstream spoolFile(uploadCover->spoolFileName(), std::ios::binary);
     std::copy(std::istreambuf_iterator<char>(spoolFile), std::istreambuf_iterator<char>(), back_inserter(imageBlob));
     updateImage(imageBlob);
     resetImageUploader();
@@ -142,6 +160,7 @@ MediaPreviewWidget::MediaPreviewWidget(const Media& media, Session *session, WCo
   GooglePicker *googlePicker = new GooglePicker{"Load from Google Images"};
   googlePicker->searchString(media.title(t));
   WPushButton *loadFromFile = WW<WPushButton>(WString::tr("media.image.fromfile")).css("btn-xs").onClick([=](WMouseEvent){
+    d->setLoadingIndicator();
     ThreadPool::instance()->post([=]{
       FFMPEGMedia ffmpegMedia(media);
       auto image = ffmpegMedia.randomThumbnail();
@@ -157,11 +176,13 @@ MediaPreviewWidget::MediaPreviewWidget(const Media& media, Session *session, WCo
     WLineEdit *url = WW<WLineEdit>().css("input-sm");
     dialog->setClosable(true);
     dialog->footer()->addWidget(WW<WPushButton>(WString::tr("button.ok")).css("btn-primary").onClick([=](WMouseEvent){
-      if(! url->text().empty())
+      if(! url->text().empty()) {
+        d->setLoadingIndicator();
         d->httpClient.get(url->text().toUTF8());
+      }
       dialog->accept();
     }));
-    dialog->finished().connect([=](int, _n5){wApp->log("notice") << "DELETING DIALOG!!!!!"; delete dialog;});
+    dialog->finished().connect([=](int, _n5){delete dialog;});
     url->setPlaceholderText(WString::tr("media.image.fromurl.placeholder"));
     dialog->contents()->addWidget(url);
     dialog->show();
@@ -186,7 +207,7 @@ MediaPreviewWidget::MediaPreviewWidget(const Media& media, Session *session, WCo
 
   
   googlePicker->imageChosen().connect([=](const WString &url, _n5){
-    wApp->log("notice") << "Got url: " << url;
+    d->setLoadingIndicator();
     d->httpClient.get(url.toUTF8());
   });
   content->addWidget(d->image);
