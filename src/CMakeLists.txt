@@ -110,6 +110,7 @@ if(WIN32)
   endif(${DBO_POSTGRES_FOUND} AND NOT (${DISABLE_POSTGRESQL}) ) 
 
 endif(WIN32)
+add_dependencies(${app_name} ffmpeg_libraries)
 
 target_link_libraries(${app_name}
   Wt_Commons_Library 

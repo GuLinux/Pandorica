@@ -1,3 +1,6 @@
 [submodule "Wt-Commons"]
 	path = Wt-Commons
 	url = https://github.com/GuLinux/Wt-Commons.git
+[submodule "ffmpeg-static/ffmpeg"]
+	path = ffmpeg-static/ffmpeg
+	url = git://source.ffmpeg.org/ffmpeg.git

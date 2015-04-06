@@ -6,10 +6,7 @@ project(${app_name})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 add_definitions(-DWT_NO_SLOT_MACROS)
 find_package(Wt 3.3.1 REQUIRED)
-find_package(FFMPEG REQUIRED)
 
-
-message("Found FFMPEG: ${AVFORMAT_INCLUDE_DIRS}")
 INCLUDE (CheckIncludeFiles)
 include(FindPackageHandleStandardArgs)
 find_package(Boost REQUIRED COMPONENTS signals system filesystem chrono thread regex program_options random date_time serialization OPTIONAL_COMPONENTS unit_test_framework )
@@ -82,6 +79,7 @@ if(QT_FOUND OR Qt5Widgets_FOUND)
   INSTALL(DIRECTORY files/desktop-files/hicolor DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons )
 endif(QT_FOUND OR Qt5Widgets_FOUND)
 
+add_subdirectory(ffmpeg-static)
 add_subdirectory(Wt-Commons)
 add_subdirectory(src)
 add_subdirectory(tests)
