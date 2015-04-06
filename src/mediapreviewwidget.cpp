@@ -97,13 +97,15 @@ MediaPreviewWidget::Private::Private(const Media& media, Session* session, Media
 
 void MediaPreviewWidget::Private::setLoadingIndicator()
 {
-  static WFileResource *loadingIcon = new WFileResource("image/gif", SHARED_FILES_DIR "/static/icons/loader-large.gif");
+  static WFileResource *loadingIcon = new WFileResource("image/png", SHARED_FILES_DIR "/static/icons/256-loading.png");
   image->setImageLink(loadingIcon);
+  image->addStyleClass("loading");
 }
 
 void MediaPreviewWidget::Private::setErrorIndicator()
 {
   static WFileResource *errorIcon = new WFileResource("image/png", SHARED_FILES_DIR "/static/icons/256_error.png");
+  image->removeStyleClass("loading");
   image->setImageLink(errorIcon);
 }
 
@@ -111,6 +113,7 @@ void MediaPreviewWidget::Private::setErrorIndicator()
 
 void MediaPreviewWidget::Private::updateImage(const ImageBlob &imageblob)
 {
+  image->removeStyleClass("loading");
   image->setImageLink(( imageResource = make_shared<WMemoryResource>(Wt::Utils::guessImageMimeTypeData(imageblob), imageblob, image) ).get() );
 }
 
@@ -202,6 +205,7 @@ MediaPreviewWidget::MediaPreviewWidget(const Media& media, Session *session, WCo
   auto image_from_db = media.preview(t, Media::PreviewFull);
   
   if(image_from_db) {
+    d->image->removeStyleClass("loading");
     d->image->setImageLink(image_from_db->link(image_from_db, t, d->image));
   }
 

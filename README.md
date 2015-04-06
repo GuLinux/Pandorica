@@ -120,3 +120,4 @@ You can also enable OAuth authentication: [Google](http://www.webtoolkit.eu/wt/d
 * icons: [Humano2 icon theme](http://schollidesign.deviantart.com/art/Human-O2-Iconset-105344123)
 * Web framework: [Wt](http://www.webtoolkit.eu/wt)
 * CSS framework: [Twitter Bootstrap](http://twitter.github.io/bootstrap)
+* new icons: [GeomIcons(https://www.iconfinder.com/iconsets/geomicons)]
