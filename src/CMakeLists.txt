@@ -4,10 +4,11 @@ SET( models_srcs
   Models/mediarating.cpp
   Models/mediaattachment.cpp
 )
-SET( mediascanner_srcs
+SET( libffmpegthumbnailer_srcs
     libffmpegthumbnailer/videothumbnailer.cpp
     libffmpegthumbnailer/filmstripfilter.cpp
     libffmpegthumbnailer/pngwriter.cpp
+    libffmpegthumbnailer/jpegwriter.cpp
     libffmpegthumbnailer/moviedecoder.cpp
 )
 SET( player_srcs serversettingspage.cpp Models/setting.cpp selectdirectories.cpp  findorphansdialog.cpp
@@ -41,7 +42,7 @@ if(Qt5Widgets_FOUND)
   set(qt_only_classes qttrayicon.cpp ${Pandorica_HEADERS_MOC})
 endif(Qt5Widgets_FOUND)
 
-set(pandorica_SOURCES ${models_srcs} ${mediascanner_srcs} ${player_srcs} 
+set(pandorica_SOURCES ${models_srcs} ${libffmpegthumbnailer_srcs} ${player_srcs} 
   ${qt_only_classes}
     authpage.cpp
     ffmpegmedia.cpp
@@ -73,49 +74,18 @@ set(pandorica_SOURCES ${models_srcs} ${mediascanner_srcs} ${player_srcs}
 add_subdirectory(media)
 add_subdirectory(utils)
 
-#add_definitions(-DWIN32_GUI_APP=1)
-if(WIN32)
-  set(DISABLE_WIN32 False CACHE bool "Disable win32 app mode (enabling console output)")
-  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(DISABLE_WIN32 True)
-    message("Debug mode enabled,  disabling win32 app support (log to console)")
-  endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  if( (QT4_FOUND OR Qt5Widgets_FOUND) AND NOT DISABLE_WIN32)
-    add_definitions(-DWIN32_GUI_APP=1)
-    add_executable(${app_name} WIN32 ${pandorica_SOURCES}  pandorica.rc )
-  else((QT4_FOUND OR Qt5Widgets_FOUND) AND NOT DISABLE_WIN32)
-    add_executable(${app_name} ${pandorica_SOURCES}  pandorica.rc )
-  endif((QT4_FOUND OR Qt5Widgets_FOUND) AND NOT DISABLE_WIN32)
-else(WIN32)
-  add_executable(${app_name} ${pandorica_SOURCES})
-endif(WIN32)
+add_executable(${app_name} ${pandorica_SOURCES})
 
 if(Qt5Widgets_FOUND)
   qt5_use_modules(Pandorica Network)
 endif(Qt5Widgets_FOUND)
-  
 
-string(TOLOWER "x${CMAKE_BUILD_TYPE}" build_type)
-#if("${build_type}" STREQUAL "xdebug")
-#  message("Linking to WT Debug Libraries")
-#  set(WT_LINK_LIBS ${Wt_DEBUG_LIBRARY} ${Wt_DBO_DEBUG_LIBRARY} ${Wt_DBOPOSTGRES_DEBUG_LIBRARY} ${Wt_DBOMYSQL_DEBUG_LIBRARY} ${Wt_DBOSQLITE3_DEBUG_LIBRARY} ${Wt_CONNECTOR_DEBUG_LIBRARY} )
-#else("${build_type}" STREQUAL "xdebug")
-  message("Linking to WT Release Libraries")
-  set(WT_LINK_LIBS ${Wt_LIBRARY} ${Wt_DBO_LIBRARY} ${Wt_DBOPOSTGRES_LIBRARY} ${Wt_DBOMYSQL_LIBRARY} ${Wt_DBOSQLITE3_LIBRARY} ${Wt_CONNECTOR_LIBRARY})
-#endif("${build_type}" STREQUAL "xdebug")
-if(WIN32)
-  set(WIN32_LIBS "-Wl,--enable-auto-import" -lws2_32 -lwsock32)
-  if(${DBO_POSTGRES_FOUND} AND NOT (${DISABLE_POSTGRESQL}) )
-    set(WIN32_LIBS ${WIN32_LIBS} -lpq)
-  endif(${DBO_POSTGRES_FOUND} AND NOT (${DISABLE_POSTGRESQL}) ) 
-
-endif(WIN32)
 add_dependencies(${app_name} ffmpeg_libraries)
 message("FFMPEG Include Directory: ${AVFORMAT_INCLUDE_DIRS}, library directory: ${AVFORMAT_LIBRARY_DIRS})")
 
 target_link_libraries(${app_name}
   Wt_Commons_Library 
-  ${WT_LINK_LIBS}
+  ${Wt_LIBRARIES}
   ${Boost_LIBRARIES} 
   ${GraphicsMagick_LDFLAGS} 
   ${Qt5Widgets_LIBRARIES} 
@@ -126,8 +96,8 @@ target_link_libraries(${app_name}
   ${AVCODEC_LDFLAGS} 
   ${AVUTIL_LDFLAGS} 
   ${SWSCALE_LDFLAGS} 
-  ${LIBPNG_LIBRARIES} 
-  ${WIN32_LIBS}
-  )
+  ${PNG_LIBRARIES} 
+  ${JPEG_LIBRARIES}
+)
 install(TARGETS ${app_name} RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 

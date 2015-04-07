@@ -27,22 +27,7 @@ if(Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
   function(register_integration_test name)
     register_test(${name} integration  ${ARGN})
   endfunction()
-  
-  if(WIN32)
-    # TODO: there has to be a better way to do all this, even on this infernal operating system...
-    pkg_check_modules(SQLITE3 sqlite3)
-    pkg_check_modules(PNG libpng)
-    pkg_check_modules(TIFF libtiff-4)
-    pkg_check_modules(ZLIB zlib)
-    pkg_check_modules(XML libxml-2.0)
-    pkg_check_modules(QTGUI QtGui)
-    message("QtGui libs: ${QTGUI_LIBRARIES}, LDFLAGS: ${QTDGUI_LDFLAGS_OTHER}")
-    set(WIN32_LIBS -lwsock32 -lws2_32 -lssp -lwinpthread -lgomp -lfreetype ${ZLIB_LIBRARIES} ${XML_LIBRARIES} -ljpeg -llcms2 ${SQLITE3_LIBRARIES} ${PNG_LIBRARIES} ${TIFF_LIBRARIES})
-    if(${DBO_POSTGRES_FOUND} AND NOT (${DISABLE_POSTGRESQL}) )
-      set(WIN32_LIBS ${WIN32_LIBS} -lpq)
-    endif(${DBO_POSTGRES_FOUND} AND NOT (${DISABLE_POSTGRESQL}) ) 
-  endif(WIN32)
-  
+
   register_unit_test(mediadirectory mediadirectorytest.cpp ${CMAKE_SOURCE_DIR}/src/media/mediadirectory.cpp ${CMAKE_SOURCE_DIR}/src/media/media.cpp )
   link_unit_test(mediadirectory ${Wt_DBO_LIBRARY} ${Wt_LIBRARIES} ${WIN32_LIBS})
   

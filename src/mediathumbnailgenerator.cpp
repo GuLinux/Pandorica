@@ -106,6 +106,11 @@ std::shared_ptr<Image> MediaThumbnailGenerator::image(int quality, AVFormatConte
   else
     videoThumbnailer.setSeekTime( currentPosition.timing );
   ImageBlob fullImage;
-  videoThumbnailer.generateThumbnail( media->media().fullPath(), ThumbnailerImageType::Png, fullImage, pAvContext );
+#ifdef HAVE_JPEG
+  auto format = ThumbnailerImageType::Jpeg;
+#else
+  auto format = ThumbnailerImageType::Png;
+#endif
+  videoThumbnailer.generateThumbnail( media->media().fullPath(), format, fullImage, pAvContext );
   return std::make_shared<Image>(fullImage);
 }

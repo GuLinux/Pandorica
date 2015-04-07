@@ -66,7 +66,6 @@ pkg_check_modules(AVUTIL libavutil REQUIRED)
 pkg_check_modules(AVFORMAT libavformat REQUIRED)
 pkg_check_modules(AVCODEC libavcodec REQUIRED)
 pkg_check_modules(SWSCALE libswscale REQUIRED)
-pkg_check_modules(LIBPNG libpng REQUIRED)
 
 set(ffmpeg_build_command test -r ${CMAKE_CURRENT_BINARY_DIR}/ffmpeg/lib/libavcodec.a || make -j${MAKE_JOB_OPTIONS} all install > ${make_log_file} 2>&1)
 add_custom_target(ffmpeg_libraries ${ffmpeg_build_command} WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/build" )

@@ -24,6 +24,7 @@
 #include <Magick++/Blob.h>
 #else
 #include <QImage>
+#include <QStringList>
 #endif
 
 class Image::Private
@@ -35,6 +36,7 @@ public:
 #else
     QImage image;
     int quality = 100;
+    std::string contentType;
 #endif
 
 private:

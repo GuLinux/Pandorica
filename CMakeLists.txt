@@ -6,6 +6,16 @@ project(${app_name})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 add_definitions(-DWT_NO_SLOT_MACROS)
 find_package(Wt 3.3.1 REQUIRED)
+find_package(PNG REQUIRED)
+find_package(JPEG)
+if(JPEG_FOUND)
+  add_definitions(-DHAVE_JPEG)
+endif(JPEG_FOUND)
+if(PNG_FOUND)
+  add_definitions(-DHAVE_PNG)
+endif(PNG_FOUND)
+
+include_directories(${PNG_INCLUDE_DIRS} ${JPEG_INCLUDE_DIR})
 
 INCLUDE (CheckIncludeFiles)
 include(FindPackageHandleStandardArgs)
@@ -48,7 +58,6 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS(DBO_SQLITE3 DEFAULT_MSG HAVE_DBO_SQLITE3)
 
 
 
-add_definitions(-DHAVE_PNG)
 set(DISABLE_MYSQL True CACHE bool "Disable MySql Wt Backend")
 
 if(${DBO_MYSQL_FOUND} AND NOT(${DISABLE_MYSQL}) )

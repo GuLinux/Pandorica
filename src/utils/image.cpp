@@ -73,16 +73,19 @@ Image::Image(const Image& image) : d(this)
 #else
 #warning Using Qt Image Backend
 #include <QBuffer>
+#include <Wt/Utils>
 
 Image::Image(const std::string& filename)
     : d(this)
 {
   d->image.load(QString::fromStdString(filename));
+  d->contentType = Wt::Utils::guessImageMimeType(filename);
 }
 Image::Image(const ImageBlob& imageBlob)
     : d(this)
 {
   d->image.loadFromData(imageBlob.data(), imageBlob.size());
+  d->contentType = Wt::Utils::guessImageMimeTypeData(imageBlob);
 }
 
 Image& Image::resize(uint32_t size, uint32_t quality)
@@ -91,13 +94,15 @@ Image& Image::resize(uint32_t size, uint32_t quality)
   d->quality = quality;
   return *this;
 }
-
+#include <QDebug>
 Image::operator ImageBlob() const
 {
   QByteArray ba;
   QBuffer buffer(&ba);
   buffer.open(QIODevice::WriteOnly);
-  d->image.save(&buffer, "PNG", d->quality);
+  QString format = QString::fromStdString(d->contentType).split('/')[1].toUpper();
+  qDebug() << "content type: " << QString::fromStdString(d->contentType) << ", format: " << format;
+  d->image.save(&buffer, format.toLocal8Bit().constData(), d->quality);
   buffer.close();
   return {ba.begin(), ba.end()};
 }
@@ -107,6 +112,7 @@ std::shared_ptr<Image> Image::scaled(uint32_t size, uint32_t quality) const
   auto image = std::shared_ptr<Image>(new Image);
   image->d->image = d->image.scaled(size, size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
   image->d->quality = quality;
+  image->d->contentType = d->contentType;
   return image;
 }
 
@@ -114,6 +120,7 @@ Image::Image(const Image& image) : d(this)
 {
   d->image = image.d->image;
   d->quality = image.d->quality;
+  d->contentType = image.d->contentType;
 }
 
 
