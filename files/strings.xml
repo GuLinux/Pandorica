@@ -154,6 +154,7 @@
   <message id="button.retry">Retry</message>
   <message id="button.next">Next</message>
   <message id="button.cancel">Cancel</message>
+  <message id="button.clear">Clear</message>
   <message id="button.ok">Ok</message>
   <message id="button.upload">Upload</message>
 
@@ -323,4 +324,6 @@ An email message notifying the invitation was sent to {1}.</message>
 <message id="media.image.download.error">Error downloading the selected image. Please retry, or try another one</message>
 <message id="media.image.fromurl">Set poster from address</message>
 <message id="media.image.fromurl.placeholder">Insert an URL to download here</message>
+<message id="mediabrowser.admin.setlabel">Set label</message>
+<message id="mediacollectionbrowser.setlabel.message">Set display label for {1}</message>
 </messages>

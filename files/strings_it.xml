@@ -190,6 +190,7 @@
   <message id="gui_language.label">Lingua</message>
 
   <message id="button.close">Chiudi</message>
+  <message id="button.clear">Pulisci</message>
   <message id="users.current.title">Utenti Collegati</message>
   <message id="users.history.title">Cronologia Utenti</message>
 
@@ -377,4 +378,6 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
 <message id="media.image.download.error">Errore nel caricamento dell'immagine selezionata. Riprovare, o selezionare un'altra immagine.</message>
 <message id="media.image.fromurl">Aggiungi poster da internet</message>
 <message id="media.image.fromurl.placeholder">Inserisci un URL qui per scaricare</message>
+<message id="mediabrowser.admin.setlabel">Imposta etichetta</message>
+<message id="mediacollectionbrowser.setlabel.message">Assegna un'etichetta a {1}</message>
 </messages>

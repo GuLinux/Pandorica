@@ -64,8 +64,8 @@ iframe[src='http://cdn.adsbarscipt.com/links/flash/?updnew'] {
   font-size: smaller;
 /*  word-wrap: break-word; 
   min-height: 160px; */
-  height:148px;
-  max-height:148px;
+  /*height:148px;*/
+  max-height:168px;
   text-overflow: ellipsis;
   overflow: hidden;
 /*
@@ -73,12 +73,13 @@ iframe[src='http://cdn.adsbarscipt.com/links/flash/?updnew'] {
 */
 }
 
-.filesystem-item-label {
+.filesystem-item-label, .filesystem-item-sublabel {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
   display: block;
 }
+
 
 .filesystem-item img {
   vertical-align: middle;

@@ -428,10 +428,30 @@ void MediaCollectionBrowser::Private::addDirectory( const shared_ptr<MediaDirect
   {
     browse( directory );
   };
-  addIcon( WString::fromUTF8(directory->label()), []( WObject * )
-  {
-    return Settings::icon( Settings::FolderBig );
-  }, onClick )->addStyleClass("media-directory");
+
+  Dbo::Transaction t(*session);
+  auto createIcon = [=](WContainerWidget *existing){
+    Dbo::Transaction t(*session);
+    auto label = CollectionItemProperty::label(directory->path(), t);
+    wApp->log("notice") << "Got label: " << label;
+    return WW<WContainerWidget>(addIcon( WString::fromUTF8(directory->label()), label ? WString::fromUTF8(label->value()) : "", []( WObject * )
+    {
+      return Settings::icon( Settings::FolderBig );
+    }, onClick, existing )).addCss("media-directory").get();
+  };
+  WContainerWidget *directoryIcon = createIcon(nullptr);
+  
+  if(session->user()->isAdmin(t)) {
+    directoryIcon->mouseWentUp().connect([=](const WMouseEvent &e){
+      if(e.button() != WMouseEvent::RightButton)
+      return;
+      Dbo::Transaction t(*session);
+      WPopupMenu *menu = new WPopupMenu;
+      menu->addItem(WString::tr("mediabrowser.admin.setlabel"))->triggered().connect(bind([=]{ setLabel(directory->path(), std::bind(createIcon, directoryIcon)); }));
+      menu->aboutToHide().connect([=](_n6){delete menu;});
+      menu->popup(e);
+    });
+  }
 }
 
 
@@ -468,8 +488,8 @@ void MediaCollectionBrowser::Private::addMedia( const Media &media, WContainerWi
     Dbo::Transaction t( *session );
     return preview->link( preview, t, parent ).url();
   };
-  
-  auto item = replaceIcon( media.title( t ), icon, onClick, widget == nullptr ? new WContainerWidget : widget );
+  auto label = CollectionItemProperty::label(media.path(), t);
+  auto item = addIcon( media.title( t ), label ? WString::fromUTF8(label->value()) : WString{}, icon, onClick, widget == nullptr ? new WContainerWidget : widget );
   auto icon_valid = make_shared<bool>(true);
   new WObjectScope([=]{ *icon_valid = false; }, item);
   
@@ -501,6 +521,7 @@ void MediaCollectionBrowser::Private::addMedia( const Media &media, WContainerWi
       menu->addItem(WString::tr("mediabrowser.admin.settitle"))->triggered().connect(bind([=]{ setTitleFor(media, refreshIcon); }));
       menu->addItem(WString::tr("mediabrowser.admin.deletepreview"))->triggered().connect(bind([=]{ clearThumbnailsFor(media, refreshIcon); }));
       menu->addItem(WString::tr("mediabrowser.admin.deleteattachments"))->triggered().connect(bind([=]{ clearAttachmentsFor(media, refreshIcon); }));
+      menu->addItem(WString::tr("mediabrowser.admin.setlabel"))->triggered().connect(bind([=]{ setLabel(media.path(), std::bind(refreshIcon, media)); }));
     }
     menu->aboutToHide().connect([=](_n6){delete menu;});
     menu->popup(e);
@@ -605,12 +626,10 @@ void MediaCollectionBrowser::Private::setTitleFor( Media media, std::function< v
 }
 
 
-WContainerWidget *MediaCollectionBrowser::Private::addIcon( WString filename, GetIconF icon, OnClick onClick ) {
-  return replaceIcon(filename, icon, onClick, new WContainerWidget);
-}
-
-WContainerWidget *MediaCollectionBrowser::Private::replaceIcon( WString filename, GetIconF icon, OnClick onClick, Wt::WContainerWidget *existing )
+WContainerWidget *MediaCollectionBrowser::Private::addIcon( const WString& filename, const WString& label, GetIconF icon, OnClick onClick, WContainerWidget* existing )
 {
+  if(!existing)
+    existing = new WContainerWidget;
   empty = false;
   existing->clear();
   existing->setAttributeValue("oncontextmenu", "event.cancelBubble = true; event.returnValue = false; return false;");
@@ -620,6 +639,10 @@ WContainerWidget *MediaCollectionBrowser::Private::replaceIcon( WString filename
   link->setToolTip(filename);
   link->setImage( new WImage( icon( existing ) ) );
   link->addWidget( WW<WText>( filename ).css( "filesystem-item-label" ) );
+  if(!label.empty()) {
+    link->addWidget( WW<WText>( WString("<small>{1}</small>").arg(label) ).css( "filesystem-item-sublabel" ) );
+    wApp->log("notice") << "item label: " << label;
+  }
   existing->addWidget( link );
   link->clicked().connect( onClick );
 
@@ -667,6 +690,32 @@ Signal< Media > &MediaCollectionBrowser::play()
 Signal< Media > &MediaCollectionBrowser::queue()
 {
   return d->queueSignal;
+}
+
+
+void MediaCollectionBrowser::Private::setLabel(const boost::filesystem::path& path, std::function< void() > refresh)
+{
+  Dbo::Transaction t(*session);
+  WDialog *dialog = new WDialog(WString::tr("mediabrowser.admin.setlabel"));
+  auto layout = new WVBoxLayout;
+  dialog->contents()->setLayout(layout);
+  layout->addWidget(new WText{WString::tr("mediacollectionbrowser.setlabel.message").arg(path.filename().string())});
+  auto label = CollectionItemProperty::label(path, t);
+  WLineEdit *editLabel=  new WLineEdit{label ? WString::fromUTF8(label->value()) : ""};
+  layout->addWidget(editLabel);
+  dialog->footer()->addWidget(WW<WPushButton>(WString::tr("button.ok")).css("btn-primary").onClick([=](WMouseEvent){
+    Dbo::Transaction t(*session);
+    CollectionItemProperty::label(path, editLabel->text().toUTF8(), t);
+    dialog->accept();
+  }));
+  dialog->footer()->addWidget(WW<WPushButton>(WString::tr("button.cancel")).onClick([=](WMouseEvent){ dialog->reject(); }));
+  dialog->footer()->addWidget(WW<WPushButton>(WString::tr("button.clear")).onClick([=](WMouseEvent){
+    Dbo::Transaction t(*session);
+    CollectionItemProperty::label(path, {}, t);
+    dialog->reject();
+  }));
+  dialog->show();
+  dialog->finished().connect([=](int r, _n5){ refresh();  delete dialog; });
 }
 
 

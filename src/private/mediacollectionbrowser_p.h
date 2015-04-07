@@ -110,14 +110,13 @@ public:
     SaveMediaThumbnail saveMediaThumbnail;
     void clear();
     bool empty = true;
+    void setLabel(const boost::filesystem::path &path, std::function<void()> refresh);
 private:
     void addDirectory( const std::shared_ptr< MediaDirectory > &directory );
     void addMedia(const Media& media, Wt::WContainerWidget *widget = 0);
-    Wt::WContainerWidget* addIcon(Wt::WString filename, GetIconF icon, OnClick onClick);
-    Wt::WContainerWidget* replaceIcon(Wt::WString filename, GetIconF icon, OnClick onClick, Wt::WContainerWidget *existing);
+    Wt::WContainerWidget* addIcon(const Wt::WString &filename, const Wt::WString &label, GetIconF icon, OnClick onClick, Wt::WContainerWidget *existing = 0);
     MediaCollectionBrowser* q;
 };
-
 
 
 #endif

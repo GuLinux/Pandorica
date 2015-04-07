@@ -22,13 +22,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/Auth/User>
 #include <Wt/Dbo/Types>
 #include <Wt/WGlobal>
+#include <boost/filesystem.hpp>
 
 class Media;
 class MediaRating;
 class Group;
 class Comment;
 namespace dbo = Wt::Dbo;
-
+class CollectionItemProperty;
+typedef dbo::ptr<CollectionItemProperty> CollectionItemPropertyPtr;
 class CollectionItemProperty {
 public:
   CollectionItemProperty() {}
@@ -44,6 +46,16 @@ public:
     Wt::Dbo::field(a, _item_ref, "item_ref");
     Wt::Dbo::field(a, _value, "value");
   }
+  static CollectionItemPropertyPtr label(const boost::filesystem::path &path, const Wt::Dbo::Transaction &transaction) {
+    return transaction.session().find<CollectionItemProperty>().where("name = 'fs-label' AND item_ref = ?").bind(path.string());
+  }
+  
+  static void label(const boost::filesystem::path &path, const std::string &label, const Wt::Dbo::Transaction &transaction) {
+    transaction.session().execute("DELETE FROM collection_item_property WHERE item_ref = ?").bind(path.string());
+    if(!label.empty())
+      transaction.session().add(new CollectionItemProperty("fs-label", path.string(), label));
+  }
+  
 private:
   std::string _name;
   std::string _item_ref;
