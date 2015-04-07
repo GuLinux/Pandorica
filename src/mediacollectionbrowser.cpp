@@ -699,7 +699,7 @@ void MediaCollectionBrowser::Private::setLabel(const boost::filesystem::path& pa
   WDialog *dialog = new WDialog(WString::tr("mediabrowser.admin.setlabel"));
   auto layout = new WVBoxLayout;
   dialog->contents()->setLayout(layout);
-  layout->addWidget(new WText{WString::tr("mediacollectionbrowser.setlabel.message").arg(path.filename().string())});
+  layout->addWidget(new WText{WString::tr("mediacollectionbrowser.setlabel.message").arg(path.string())});
   auto label = CollectionItemProperty::label(path, t);
   WLineEdit *editLabel=  new WLineEdit{label ? WString::fromUTF8(label->value()) : ""};
   layout->addWidget(editLabel);
