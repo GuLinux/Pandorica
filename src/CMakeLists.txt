@@ -4,13 +4,6 @@ SET( models_srcs
   Models/mediarating.cpp
   Models/mediaattachment.cpp
 )
-SET( libffmpegthumbnailer_srcs
-    libffmpegthumbnailer/videothumbnailer.cpp
-    libffmpegthumbnailer/filmstripfilter.cpp
-    libffmpegthumbnailer/pngwriter.cpp
-    libffmpegthumbnailer/jpegwriter.cpp
-    libffmpegthumbnailer/moviedecoder.cpp
-)
 SET( player_srcs serversettingspage.cpp Models/setting.cpp selectdirectories.cpp  findorphansdialog.cpp
     player/videojs.cpp
     player/wmediaplayerwrapper.cpp
@@ -18,8 +11,6 @@ SET( player_srcs serversettingspage.cpp Models/setting.cpp selectdirectories.cpp
     player/mediaelementjs.cpp
     player/purehtml5js.cpp
 )
-
-include_directories(libffmpegthumbnailer)
 
 include_directories(${AVUTIL_INCLUDE_DIRS} ${AVFORMAT_INCLUDE_DIRS} ${AVCODEC_INCLUDE_DIRS} ${SWSCALE_INCLUDE_DIRS} ${LIBPNG_INCLUDE_DIRS})
 
@@ -42,7 +33,7 @@ if(Qt5Widgets_FOUND)
   set(qt_only_classes qttrayicon.cpp ${Pandorica_HEADERS_MOC})
 endif(Qt5Widgets_FOUND)
 
-set(pandorica_SOURCES ${models_srcs} ${libffmpegthumbnailer_srcs} ${player_srcs} 
+set(pandorica_SOURCES ${models_srcs} ${player_srcs} 
   ${qt_only_classes}
     authpage.cpp
     ffmpegmedia.cpp
@@ -84,7 +75,8 @@ add_dependencies(${app_name} ffmpeg_libraries)
 message("FFMPEG Include Directory: ${AVFORMAT_INCLUDE_DIRS}, library directory: ${AVFORMAT_LIBRARY_DIRS})")
 
 target_link_libraries(${app_name}
-  Wt_Commons_Library 
+  Wt_Commons_Library
+  pandorica_libffmpegthumbnailer
   ${Wt_LIBRARIES}
   ${Boost_LIBRARIES} 
   ${GraphicsMagick_LDFLAGS} 

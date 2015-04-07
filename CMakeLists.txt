@@ -83,5 +83,6 @@ endif(QT_FOUND OR Qt5Widgets_FOUND)
 
 add_subdirectory(ffmpeg-static)
 add_subdirectory(Wt-Commons)
+add_subdirectory(libffmpegthumbnailer)
 add_subdirectory(src)
 add_subdirectory(tests)

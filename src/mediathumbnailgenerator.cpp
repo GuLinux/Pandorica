@@ -22,8 +22,8 @@
 #include <random>
 #include "ffmpegmedia.h"
 #include <boost/format.hpp>
-#include "videothumbnailer.h"
-#include <filmstripfilter.h>
+#include "libffmpegthumbnailer/videothumbnailer.h"
+#include "libffmpegthumbnailer/filmstripfilter.h"
 
 using namespace ffmpegthumbnailer;
 using namespace Wt;

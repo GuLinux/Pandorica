@@ -29,9 +29,20 @@ Also make sure to have a recent gcc version supporting C++11.
 
 On a typical Ubuntu machine you need to do the following:
 
-`sudo apt-get install build-essential cmake yasm` (compilers and tools)
-`sudo apt-get install git` (required if you want to clone the git repository)
-`sudo apt-get install libpng12-dev zlib1g-dev libjpeg8-dev libgraphicsmagick++1-dev libboost1.55-all-dev libwt-dev libwtdbo-dev`
+ * `sudo apt-get install build-essential cmake yasm` (compilers and tools)
+ * `sudo apt-get install git` (required if you want to clone the git repository)
+ * `sudo apt-get install libpng12-dev zlib1g-dev libjpeg8-dev libgraphicsmagick++1-dev libboost1.55-all-dev libwt-dev libwtdbo-dev`
+ 
+at least one of
+
+ * `sudo apt-get install libwtdbosqlite-dev`
+ * `sudo apt-get install libwtdbopostgres-dev`
+ 
+ Optionally, to have Qt integration (system tray icon plus other improvements), install one of these:
+ * `sudo apt-get install libqt4-dev`
+ * `sudo apt-get install qtbase5-dev`
+ 
+
 
 ### Database ###
 At least one of
