@@ -154,6 +154,11 @@ iframe[src='http://cdn.adsbarscipt.com/links/flash/?updnew'] {
   background: transparent url(icons/site-logo.png)  center left no-repeat;
 }
 
+.media-directory {
+  opacity: 0.75;
+  filter: alpha(opacity=75); 
+}
+
 .mediascannerdialog-filename {
   font-size: smaller;
   text-overflow: ellipsis;

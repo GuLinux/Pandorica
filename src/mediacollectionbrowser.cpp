@@ -431,7 +431,7 @@ void MediaCollectionBrowser::Private::addDirectory( const shared_ptr<MediaDirect
   addIcon( WString::fromUTF8(directory->label()), []( WObject * )
   {
     return Settings::icon( Settings::FolderBig );
-  }, onClick );
+  }, onClick )->addStyleClass("media-directory");
 }
 
 

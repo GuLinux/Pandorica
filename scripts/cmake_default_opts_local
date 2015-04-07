@@ -1,0 +1,4 @@
+#!/bin/bash
+project_rootdir="$( readlink -f "$( dirname "$0")/.." )"
+cmake "$project_rootdir" -DCMAKE_BUILD_TYPE=Debug -DSHARED_FILES_DIR="$project_rootdir/files" "$@"
+

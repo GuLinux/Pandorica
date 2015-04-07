@@ -49,7 +49,7 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS(DBO_SQLITE3 DEFAULT_MSG HAVE_DBO_SQLITE3)
 
 
 add_definitions(-DHAVE_PNG)
-set(DISABLE_MYSQL False CACHE bool "Disable MySql Wt Backend")
+set(DISABLE_MYSQL True CACHE bool "Disable MySql Wt Backend")
 
 if(${DBO_MYSQL_FOUND} AND NOT(${DISABLE_MYSQL}) )
   add_definitions(-DHAVE_MYSQL)
