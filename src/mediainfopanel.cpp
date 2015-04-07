@@ -69,18 +69,25 @@ void MediaInfoPanel::reset()
            );
   addWidget( new WBreak );
   addWidget( WW<WText>( wtr( "infopanel.empty.message" ) ) );
-  auto folderActions = d->createPanel( "mediabrowser.folderActions" );
+
+  addWidget( d->addFolderActions() );
+  wasResetted().emit();
+}
+
+WPanel *MediaInfoPanel::Private::addFolderActions()
+{
+  auto folderActions = createPanel( "mediabrowser.folderActions" );
   folderActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.folderActions.playFolder" ) ).css( "btn btn-block btn-sm btn-primary" ).onClick( [ = ]( WMouseEvent )
   {
-    d->playFolder.emit();
+    playFolder.emit();
   } ) );
   folderActions.second->addWidget( WW<WPushButton>( wtr( "mediabrowser.folderActions.playFolderRecursive" ) ).css( "btn btn-block btn-sm" ).onClick( [ = ]( WMouseEvent )
   {
-    d->playFolderRecursive.emit();
+    playFolderRecursive.emit();
   } ) );
-  addWidget( folderActions.first );
-  wasResetted().emit();
+  return folderActions.first;
 }
+
 
 
 void MediaInfoPanel::info( Media &media )
@@ -183,6 +190,7 @@ void MediaInfoPanel::info( Media &media )
   addWidget( header );
   addWidget( mediaMediaInfoPanel.first );
   addWidget( actions.first );
+  addWidget(d->addFolderActions());
   gotInfo().emit();
 }
 

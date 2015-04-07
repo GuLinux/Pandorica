@@ -37,9 +37,12 @@ class MediaInfoPanel::Private
   Session *session;
   Settings* settings;
   std::pair<Wt::WPanel*,Wt::WContainerWidget*> createPanel(std::string titleKey);
+  Wt::WPanel *addFolderActions();
   
   private:
     class MediaInfoPanel *const q;
 };
+
+
 
 #endif // MEDIAINFOPANELPRIVATE_H
