@@ -33,10 +33,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifdef HAVE_POSTGRES
   #include <Wt/Dbo/backend/Postgres>
 #endif
-#ifdef HAVE_MYSQL
-  #include <Wt/Dbo/backend/MySQL>
-#endif
+#ifdef HAVE_SQLITE3
 #include <Wt/Dbo/backend/Sqlite3>
+#endif
 #include <Wt/WApplication>
 #include <Wt/WServer>
 #include "private/session_p.h"
@@ -138,37 +137,6 @@ Auth::Login& Session::login()
   return d->login;
 }
 
-#ifdef HAVE_MYSQL
-struct MySqlParams {
-  bool isValid = false;
-  string db;
-  string dbUser;
-  string dbPasswd;
-  string dbHost = "localhost";
-  int dbPort = 0;
-  
-  static MySqlParams readFromConfiguration() {
-    bool isValid = true;
-    string db, dbUser, dbPasswd, dbHost, dbPort;
-    isValid &= WServer::instance()->readConfigurationProperty("mysql-db-name", db);
-    isValid &= WServer::instance()->readConfigurationProperty("mysql-db-user", dbUser);
-    isValid &= WServer::instance()->readConfigurationProperty("mysql-db-password", dbPasswd);
-    MySqlParams params;
-    params.isValid = isValid;
-    params.db = db;
-    params.dbUser = dbUser;
-    params.dbPasswd = dbPasswd;
-    if(WServer::instance()->readConfigurationProperty("mysql-db-hostname", dbHost)) {
-      params.dbHost = dbHost;
-    }
-    if(WServer::instance()->readConfigurationProperty("mysql-db-port", dbPort)) {
-      params.dbPort = boost::lexical_cast<int>(dbPort);
-    }
-    return params;
-  }
-};
-
-#endif
 
 namespace {
   shared_ptr<mutex> sqlite3_write_lock_mutex = make_shared<mutex>();
@@ -176,7 +144,7 @@ namespace {
 
 void Session::Private::createConnection()
 {
-  string psqlConnParameters, mysqlConnParameters;
+  string psqlConnParameters;
   bool havePostgresConfiguration = WServer::instance()->readConfigurationProperty("psql-connection", psqlConnParameters);
 #ifdef HAVE_POSTGRES
   if(havePostgresConfiguration && !psqlConnParameters.empty()) {
@@ -185,20 +153,14 @@ void Session::Private::createConnection()
     return;
   }
 #endif
-#ifdef HAVE_MYSQL
-  MySqlParams mySqlParams = MySqlParams::readFromConfiguration();
-  if(mySqlParams.isValid) {
-    WServer::instance()->log("notice") << "Using mysql connection";
-    connection.reset(new dbo::backend::MySQL(mySqlParams.db, mySqlParams.dbUser, mySqlParams.dbPasswd, mySqlParams.dbHost, mySqlParams.dbPort));
-    return;
-  }
-#endif
+#ifdef HAVE_SQLITE3
   mutex = sqlite3_write_lock_mutex;
   string sqlite3DatabasePath = Settings::sqlite3DatabasePath();
   WServer::instance()->log("notice") << "Using sqlite connection: " << sqlite3DatabasePath;
   
   connection.reset(new dbo::backend::Sqlite3(Settings::sqlite3DatabasePath()));
   connection->executeSql("PRAGMA journal_mode=WAL;");
+#endif
 }
 
 class Session::WriteLock {

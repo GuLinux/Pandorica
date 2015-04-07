@@ -6,6 +6,24 @@ project(${app_name})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 add_definitions(-DWT_NO_SLOT_MACROS)
 find_package(Wt 3.3.1 REQUIRED)
+
+set(HAVE_DBO_BACKEND FALSE)
+if(Wt_DBOPOSTGRES_LIBRARY)
+  add_definitions(-DHAVE_POSTGRES)
+  message("Wt Postgres DBO Library found: ${Wt_DBOPOSTGRES_LIBRARY}")
+  set(HAVE_DBO_BACKEND TRUE)
+endif(Wt_DBOPOSTGRES_LIBRARY)
+
+if(Wt_DBOSQLITE3_LIBRARY)
+  add_definitions(-DHAVE_SQLITE3)
+  message("Wt Sqlite3 DBO Library found: ${Wt_DBOSQLITE3_LIBRARY}")
+  set(HAVE_DBO_BACKEND TRUE)
+endif(Wt_DBOSQLITE3_LIBRARY)
+
+if(NOT HAVE_DBO_BACKEND)
+  message(FATAL_ERROR "You must install at least one database backend library (sqlite3, postgres)")
+endif(NOT HAVE_DBO_BACKEND)
+
 find_package(PNG REQUIRED)
 find_package(JPEG)
 if(JPEG_FOUND)
@@ -49,31 +67,6 @@ endif(NOT QT4_FOUND AND NOT Qt5Widgets_FOUND)
 
 include_directories(${Wt_INCLUDE_DIR} ${QT_INCLUDE_DIR} ${CMAKE_SOURCE_DIR} ${GRAPHICSMAGICK_INCLUDE_DIRS} src )
 
-find_path(HAVE_DBO_SQLITE3 Wt/Dbo/backend/Sqlite3)
-find_path(HAVE_DBO_MYSQL Wt/Dbo/backend/MySQL)
-find_path(HAVE_DBO_POSTGRES Wt/Dbo/backend/Postgres)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(DBO_MYSQL DEFAULT_MSG HAVE_DBO_MYSQL)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(DBO_POSTGRES DEFAULT_MSG HAVE_DBO_POSTGRES)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(DBO_SQLITE3 DEFAULT_MSG HAVE_DBO_SQLITE3)
-
-
-
-set(DISABLE_MYSQL True CACHE bool "Disable MySql Wt Backend")
-
-if(${DBO_MYSQL_FOUND} AND NOT(${DISABLE_MYSQL}) )
-  add_definitions(-DHAVE_MYSQL)
-  STRING(REGEX REPLACE "wtdbo" "wtdbomysql" Wt_DBOMYSQL_DEBUG_LIBRARY "${Wt_DBO_DEBUG_LIBRARY}")
-  STRING(REGEX REPLACE "wtdbo" "wtdbomysql" Wt_DBOMYSQL_LIBRARY "${Wt_DBO_LIBRARY}")
-endif(${DBO_MYSQL_FOUND} AND NOT(${DISABLE_MYSQL}) )
-if(${DBO_POSTGRES_FOUND} AND NOT (${DISABLE_POSTGRESQL}) )
-  add_definitions(-DHAVE_POSTGRES)
-endif(${DBO_POSTGRES_FOUND} AND NOT (${DISABLE_POSTGRESQL}) )
-if(${DBO_SQLITE3_FOUND})
-  add_definitions(-DHAVE_SQLITE3)
-endif(${DBO_SQLITE3_FOUND})
-
-set(Wt_CONNECTOR_LIBRARY "${Wt_HTTP_LIBRARY}")
-set(Wt_CONNECTOR_DEBUG_LIBRARY ${Wt_HTTP_DEBUG_LIBRARY})
 
 SET(SHARED_FILES_DIR ${CMAKE_INSTALL_PREFIX}/share/${app_name} CACHE string "Shared files installation directory")
 add_definitions(-DSHARED_FILES_DIR="${SHARED_FILES_DIR}" )

@@ -27,7 +27,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/Dbo/Session>
 #include <Wt/Dbo/ptr>
 #include <Wt/Dbo/SqlConnection>
-#include <Wt/Dbo/backend/Sqlite3>
 #include <Wt/Auth/PasswordService>
 #include <Wt/Auth/AuthService>
 #include "Models/models.h"
