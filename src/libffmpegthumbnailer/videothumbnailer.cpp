@@ -122,9 +122,8 @@ void VideoThumbnailer::generateThumbnail(const string& videoFile, ImageWriter& i
     {
         try
         {
-            int secondToSeekTo = m_SeekTime.empty() ?
-                movieDecoder.getDuration() * m_SeekPercentage / 100 :
-                timeToSeconds(m_SeekTime);
+            int secondToSeekTo = m_SeekTime.empty() ? movieDecoder.getDuration() * m_SeekPercentage / 100
+													: timeToSeconds(m_SeekTime);
             movieDecoder.seek(secondToSeekTo);
         }
         catch (exception& e)
@@ -194,7 +193,7 @@ void VideoThumbnailer::generateThumbnail(const string& videoFile, ThumbnailerIma
 
 void VideoThumbnailer::writeImage(const string& videoFile, ImageWriter& imageWriter, const VideoFrame& videoFrame, int duration, vector<uint8_t*>& rowPointers)
 {
-    if (videoFile != "-")
+    if((videoFile != "-") && (videoFile.find("rtsp://") != 0) && (videoFile.find("udp://") != 0) && (videoFile.find("http://") != 0))
     {
         struct stat statInfo;
         if (stat(videoFile.c_str(), &statInfo) == 0)
@@ -353,7 +352,6 @@ int VideoThumbnailer::getBestThumbnailIndex(vector<VideoFrame>& videoFrames, con
         }
         
 #ifdef DEBUG_MODE
-#warning Debug Mode on
         stringstream outputFile;
         outputFile << "frames/Frame" << setfill('0') << setw(3) << i << "_" << rmse << endl;
         ImageWriter* imageWriter = ImageWriterFactory<const string&>::createImageWriter(Png, outputFile.str());

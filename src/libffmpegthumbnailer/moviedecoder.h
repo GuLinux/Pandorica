@@ -22,9 +22,6 @@
 #include <vector>
 
 extern "C" {
-#ifndef UINT64_C
-#define UINT64_C uint64_t
-#endif
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 }
@@ -37,7 +34,7 @@ struct VideoFrame;
 class MovieDecoder
 {
 public:
-    MovieDecoder(const std::string& filename, AVFormatContext* pavContext = NULL);
+    MovieDecoder(const std::string& filename, AVFormatContext* pavContext = nullptr);
     ~MovieDecoder();
 
     std::string getCodec();

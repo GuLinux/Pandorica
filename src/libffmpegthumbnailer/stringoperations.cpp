@@ -25,7 +25,7 @@ namespace ffmpegthumbnailer
 
 string& StringOperations::lowercase(string& aString)
 {
-    transform(begin(aString), end(aString), begin(aString), ToLower());
+    transform(aString.begin(), aString.end(), aString.begin(), ToLower());
     return aString;
 }
 
