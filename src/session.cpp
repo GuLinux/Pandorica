@@ -107,6 +107,7 @@ Session::Session(bool full)
   mapClass<MediaAttachment>("media_attachment");
   mapClass<MediaRating>("media_rating");
   mapClass<Setting>("settings");
+  mapClass<CollectionItemProperty>("collection_item_property");
   try {
     Dbo::Transaction t(*this);
     int db_version=Setting::value(DATABASE_VERSION_SETTING, t, 0);

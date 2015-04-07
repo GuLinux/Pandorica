@@ -27,5 +27,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Models/user.h"
 #include "Models/group.h"
 #include "Models/setting.h"
+#include "Models/collection_item_properties.h"
 
 #endif
