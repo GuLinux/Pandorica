@@ -12,7 +12,7 @@ SET( player_srcs serversettingspage.cpp Models/setting.cpp selectdirectories.cpp
     player/purehtml5js.cpp
 )
 
-include_directories(${AVUTIL_INCLUDE_DIRS} ${AVFORMAT_INCLUDE_DIRS} ${AVCODEC_INCLUDE_DIRS} ${SWSCALE_INCLUDE_DIRS} ${LIBPNG_INCLUDE_DIRS})
+include_directories(${FFMPEG_STATIC_INCLUDES})
 
 if(QT4_FOUND)
   INCLUDE(   ${QT_USE_FILE}   )
