@@ -353,6 +353,7 @@ int VideoThumbnailer::getBestThumbnailIndex(vector<VideoFrame>& videoFrames, con
         }
         
 #ifdef DEBUG_MODE
+#warning Debug Mode on
         stringstream outputFile;
         outputFile << "frames/Frame" << setfill('0') << setw(3) << i << "_" << rmse << endl;
         ImageWriter* imageWriter = ImageWriterFactory<const string&>::createImageWriter(Png, outputFile.str());

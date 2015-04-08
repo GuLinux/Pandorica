@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WFileResource>
 #include <Wt/WServer>
 #include <Wt/Http/Response>
+#include <Wt/Utils>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <fstream>
@@ -98,6 +99,18 @@ MediaAttachmentResource::MediaAttachmentResource(const Cache::File &cache_file, 
 {
   suggestFileName(WString::fromUTF8(cache_file.name), Inline);
 }
+
+MediaAttachment::MediaAttachment(const string& type, const string& name, const string& value, const string& mediaId, const string& mimetype, const vector< uint8_t >& data)
+  : _type(type), _name(name), _value(value), _mediaId(mediaId), _mimetype(mimetype), _data(data)
+{
+}
+
+MediaAttachment* MediaAttachment::image(const string& name, const string& mediaId, const vector< uint8_t >& data)
+{
+  return new MediaAttachment("preview", name, "", mediaId, Wt::Utils::guessImageMimeTypeData(data), data);
+}
+
+
 
 Wt::WLink MediaAttachment::link(Dbo::ptr< MediaAttachment > myPtr, Dbo::Transaction &transaction, WObject* parent, bool useCacheIfAvailable) const
 {

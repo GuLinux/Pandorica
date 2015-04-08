@@ -15,8 +15,15 @@ if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/build/config.mak)
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/build"
     OUTPUT_FILE ${configure_log_file}
     ERROR_FILE ${configure_log_file}
+    RESULT_VARIABLE FFMPEG_CONFIGURE_RESULT
   )
+  if(NOT FFMPEG_CONFIGURE_RESULT EQUAL 0)
+    message("Error configuring ffmpeg!")
+    execute_process(COMMAND cat ${configure_log_file})
+    message(FATAL_ERROR "Aborting Pandorica Configuration")
+  endif(NOT FFMPEG_CONFIGURE_RESULT EQUAL 0)
 endif(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/build/config.mak)
+
 
 if(NOT DEFINED PROCESSOR_COUNT)
   # Unknown:

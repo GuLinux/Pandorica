@@ -63,5 +63,6 @@ void SaveMediaThumbnail::save(const shared_ptr< FFMPEGMedia >& media, function< 
     WServer::instance()->post(appSessionId, boost::bind(onSave, media->media() ));
   } catch(std::exception &e) {
     WServer::instance()->log("notice") << "Unable to create thumbnail for media " << media->media().path();
+    WServer::instance()->log("notice") << e.what();
   }
 }
