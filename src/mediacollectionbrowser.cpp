@@ -703,17 +703,19 @@ void MediaCollectionBrowser::Private::setLabel(const boost::filesystem::path& pa
   auto label = CollectionItemProperty::label(path, t);
   WLineEdit *editLabel=  new WLineEdit{label ? WString::fromUTF8(label->value()) : ""};
   layout->addWidget(editLabel);
-  dialog->footer()->addWidget(WW<WPushButton>(WString::tr("button.ok")).css("btn-primary").onClick([=](WMouseEvent){
-    Dbo::Transaction t(*session);
-    CollectionItemProperty::label(path, editLabel->text().toUTF8(), t);
-    dialog->accept();
-  }));
+  WPushButton *okButton;
+  editLabel->keyWentUp().connect([=](WKeyEvent){ okButton->setEnabled(! editLabel->text().empty()); });
   dialog->footer()->addWidget(WW<WPushButton>(WString::tr("button.cancel")).onClick([=](WMouseEvent){ dialog->reject(); }));
-  dialog->footer()->addWidget(WW<WPushButton>(WString::tr("button.clear")).onClick([=](WMouseEvent){
+  dialog->footer()->addWidget(WW<WPushButton>(WString::tr("button.clear")).css("btn-danger").onClick([=](WMouseEvent){
     Dbo::Transaction t(*session);
     CollectionItemProperty::label(path, {}, t);
     dialog->reject();
   }));
+  dialog->footer()->addWidget(okButton = WW<WPushButton>(WString::tr("button.ok")).css("btn-primary").onClick([=](WMouseEvent){
+    Dbo::Transaction t(*session);
+    CollectionItemProperty::label(path, editLabel->text().toUTF8(), t);
+    dialog->accept();
+  }).setEnabled(!editLabel->text().empty()));
   dialog->show();
   dialog->finished().connect([=](int r, _n5){ refresh();  delete dialog; });
 }
