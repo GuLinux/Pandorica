@@ -97,7 +97,7 @@ MediaPreviewWidget::Private::Private(const Media& media, Session* session, Media
 
 void MediaPreviewWidget::Private::setLoadingIndicator()
 {
-  static WFileResource *loadingIcon = new WFileResource("image/png", SHARED_FILES_DIR "/static/icons/128-loading.png");
+  static WFileResource *loadingIcon = new WFileResource("image/png", SHARED_FILES_DIR "/static/icons/loading-64.png");
   image->setImageLink(loadingIcon);
   image->addStyleClass("loading");
 }
