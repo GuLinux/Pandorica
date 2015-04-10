@@ -64,8 +64,8 @@ iframe[src='http://cdn.adsbarscipt.com/links/flash/?updnew'] {
   font-size: smaller;
 /*  word-wrap: break-word; 
   min-height: 160px; */
-  /*height:148px;*/
-  max-height:168px;
+  height:170px;
+  max-height:170px;
   text-overflow: ellipsis;
   overflow: hidden;
 /*
@@ -158,14 +158,6 @@ iframe[src='http://cdn.adsbarscipt.com/links/flash/?updnew'] {
 .media-directory {
   opacity: 0.75;
   filter: alpha(opacity=75); 
-}
-
-.mediascannerdialog-filename {
-  font-size: smaller;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-  display: block;
 }
 
 .playlist-toggle span {
