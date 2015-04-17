@@ -71,16 +71,7 @@ include_directories(${Wt_INCLUDE_DIR} ${QT_INCLUDE_DIR} ${CMAKE_SOURCE_DIR} ${GR
 SET(SHARED_FILES_DIR ${CMAKE_INSTALL_PREFIX}/share/${app_name} CACHE string "Shared files installation directory")
 add_definitions(-DSHARED_FILES_DIR="${SHARED_FILES_DIR}" )
 
-set(TRANSLATION_FILES files/strings.xml files/strings_it.xml )
-INSTALL(FILES ${TRANSLATION_FILES} DESTINATION ${SHARED_FILES_DIR} )
-INSTALL(FILES files/title_from_filename_replacements.json DESTINATION ${SHARED_FILES_DIR})
-INSTALL(DIRECTORY files/html_templates DESTINATION ${SHARED_FILES_DIR} FILES_MATCHING PATTERN "*.html" )
-INSTALL(DIRECTORY files/static DESTINATION ${SHARED_FILES_DIR} )
-if(QT_FOUND OR Qt5Widgets_FOUND)
-  INSTALL(FILES files/desktop-files/pandorica.desktop DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
-  INSTALL(DIRECTORY files/desktop-files/hicolor DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons )
-endif(QT_FOUND OR Qt5Widgets_FOUND)
-
+add_subdirectory(files)
 add_subdirectory(ffmpeg-static)
 add_subdirectory(Wt-Commons)
 add_subdirectory(libffmpegthumbnailer)

@@ -4,3 +4,6 @@
 [submodule "ffmpeg-static/ffmpeg"]
 	path = ffmpeg-static/ffmpeg
 	url = git://source.ffmpeg.org/ffmpeg.git
+[submodule "files/mediaelement"]
+	path = files/mediaelement
+	url = https://github.com/johndyer/mediaelement.git
