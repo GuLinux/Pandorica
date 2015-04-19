@@ -74,11 +74,14 @@ Then, just run the '*Pandorica*' command. When used with no arguments,  *Pandori
 
 ## Mobile ##
 *Pandorica* is already mostly mobile ready.
-You just need to set
+You need to add the following code:
 
-    <progressive-bootstrap>true</progressive-bootstrap>
+  `<meta-headers user-agent=".*">`
+  `  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />`
+  `</meta-headers>`
 
-in your wt_config.xml file.
+
+in your wt_config.xml file, outside the "properties" section.
 
 
 ## Advanced configuration and customization ##
