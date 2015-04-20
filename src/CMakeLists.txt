@@ -75,6 +75,7 @@ add_dependencies(${app_name} ffmpeg_libraries)
 message("FFMPEG Include Directory: ${AVFORMAT_INCLUDE_DIRS}, library directory: ${AVFORMAT_LIBRARY_DIRS})")
 
 target_link_libraries(${app_name}
+  -rdynamic
   Wt_Commons_Library
   pandorica_libffmpegthumbnailer
   ${Wt_LIBRARIES}
