@@ -1,10 +1,9 @@
-
 set(TRANSLATION_FILES strings.xml strings_it.xml )
 INSTALL(FILES ${TRANSLATION_FILES} DESTINATION ${SHARED_FILES_DIR} )
 INSTALL(FILES title_from_filename_replacements.json DESTINATION ${SHARED_FILES_DIR})
 INSTALL(DIRECTORY html_templates DESTINATION ${SHARED_FILES_DIR} FILES_MATCHING PATTERN "*.html" )
 INSTALL(DIRECTORY static DESTINATION ${SHARED_FILES_DIR} )
 if(QT_FOUND OR Qt5Widgets_FOUND)
-  INSTALL(FILES desktop-pandorica.desktop DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
+  INSTALL(FILES desktop-files/pandorica.desktop DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
   INSTALL(DIRECTORY desktop-hicolor DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons )
 endif(QT_FOUND OR Qt5Widgets_FOUND)
