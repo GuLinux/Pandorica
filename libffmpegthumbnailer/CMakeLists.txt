@@ -8,3 +8,4 @@ SET( libffmpegthumbnailer_srcs
 include_directories(${FFMPEG_STATIC_INCLUDES})
 
 add_library(pandorica_libffmpegthumbnailer STATIC ${libffmpegthumbnailer_srcs})
+add_dependencies(pandorica_libffmpegthumbnailer ffmpeg_libraries)
