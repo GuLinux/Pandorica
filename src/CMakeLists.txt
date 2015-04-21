@@ -73,13 +73,12 @@ endif(Qt5Widgets_FOUND)
 
 add_dependencies(${app_name} ffmpeg_libraries)
 message("FFMPEG Include Directory: ${AVFORMAT_INCLUDE_DIRS}, library directory: ${AVFORMAT_LIBRARY_DIRS})")
-set(ADDITIONAL_LINKER_FLAGS "" CACHE STRING "Additional linker flags (useful for static linking)")
-
 target_link_libraries(${app_name}
   -rdynamic
   Wt_Commons_Library
   pandorica_libffmpegthumbnailer
   ${Wt_LIBRARIES}
+  ${Wt_STATIC_DEPENDENCIES}
   ${Boost_LIBRARIES} 
   ${GraphicsMagick_LDFLAGS} 
   ${Qt5Widgets_LIBRARIES} 
@@ -92,7 +91,6 @@ target_link_libraries(${app_name}
   ${SWSCALE_LDFLAGS} 
   ${PNG_LIBRARIES} 
   ${JPEG_LIBRARIES}
-  ${ADDITIONAL_LINKER_FLAGS}
 )
 install(TARGETS ${app_name} RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 
