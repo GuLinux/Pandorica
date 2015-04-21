@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 enable_testing()
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/" Wt-Commons/cmake/)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/" ${CMAKE_SOURCE_DIR}/Wt-Commons/cmake/)
 set(app_name Pandorica)
 project(${app_name})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
