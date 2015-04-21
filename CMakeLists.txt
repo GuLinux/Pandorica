@@ -70,6 +70,7 @@ include_directories(${Wt_INCLUDE_DIR} ${QT_INCLUDE_DIR} ${CMAKE_SOURCE_DIR} ${GR
 
 SET(SHARED_FILES_DIR ${CMAKE_INSTALL_PREFIX}/share/${app_name} CACHE string "Shared files installation directory")
 add_definitions(-DSHARED_FILES_DIR="${SHARED_FILES_DIR}" )
+add_definitions(-DWT_SHARED_FILES_DIR="${Wt_SHARED_DIR}" )
 
 
 add_subdirectory(files)

@@ -234,7 +234,7 @@ bool initServer( int argc, char **argv, WServer &server, po::variables_map &vm )
   po::options_description pandorica_invisible_options;
   pandorica_invisible_options.add_options()
 #ifndef WIN32
-  ( "docroot", po::value<string>()->default_value( "/usr/share/Wt" ) );
+  ( "docroot", po::value<string>()->default_value( WT_SHARED_FILES_DIR ) );
 #else
   ( "docroot", po::value<string>()->default_value( boost::filesystem::path( boost::filesystem::current_path() ).string() ) );
 #endif
