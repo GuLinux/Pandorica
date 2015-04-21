@@ -70,7 +70,7 @@ include_directories(${Wt_INCLUDE_DIR} ${QT_INCLUDE_DIR} ${CMAKE_SOURCE_DIR} ${GR
 
 SET(SHARED_FILES_DIR ${CMAKE_INSTALL_PREFIX}/share/${app_name} CACHE string "Shared files installation directory")
 add_definitions(-DSHARED_FILES_DIR="${SHARED_FILES_DIR}" )
-set(ADDITIONAL_LINKER_FLAGS "" CACHE STRING "Additional linker flags (useful for static linking)")
+
 
 add_subdirectory(files)
 add_subdirectory(ffmpeg-static)
