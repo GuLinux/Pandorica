@@ -37,7 +37,7 @@ Setting::Session::Session()
   try {
     createTables();
   } catch(std::exception &e) {
-    WServer::instance()->log("warning") << "error creating new database: " << e.what();
+//     WServer::instance()->log("warning") << "error creating new database: " << e.what();
   }
 }
 

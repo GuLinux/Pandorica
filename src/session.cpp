@@ -108,11 +108,10 @@ Session::Session(bool full)
   mapClass<MediaRating>("media_rating");
   mapClass<Setting>("settings");
   mapClass<CollectionItemProperty>("collection_item_property");
-  try {
-    int db_version=Setting::value(DATABASE_VERSION_SETTING, 0);
-    WServer::instance()->log("notice") << "Found database version " << db_version;
-  } catch(std::exception &e) {
-    WServer::instance()->log("warning") << "error fetching database version: " << e.what();
+  int db_version=Setting::value(DATABASE_VERSION_SETTING, 0);
+  WServer::instance()->log("notice") << "Found database version " << db_version;
+  if(db_version == 0) {
+    WServer::instance()->log("warning") << "error fetching database version";
     try {
       createTables();
     } catch(std::exception &e) {
