@@ -130,7 +130,6 @@ Pandorica* Pandorica::instance()
 
 Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(environment), d(this) {
   useStyleSheet(Settings::staticPath("/Pandorica.css"));
-  addMetaLink(Settings::staticPath("/icons/favicon.png"), "shortcut icon", {}, {}, {}, {}, false); // TODO: wt config file?
   requireJQuery(Settings::staticPath("/jquery.min.js"));
   require(Settings::staticPath("/bootstrap/js/bootstrap.min.js"));
   

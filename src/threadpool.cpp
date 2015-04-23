@@ -22,13 +22,14 @@
 #include <utils/d_ptr_implementation.h>
 #include <Wt/WServer>
 #include "Models/setting.h"
+#include <boost/thread.hpp>
 
 using namespace std;
 using namespace Wt;
 
 ThreadPool::Private::Private(ThreadPool* q) : /* work(ioService), */ q(q)
 {
-  ioService.setThreadCount(Setting::value("threadpool_threads_count", ioService.threadCount()));
+  ioService.setThreadCount(Setting::value("threadpool_threads_count", boost::thread::hardware_concurrency()));
   ioService.start();
 }
 
