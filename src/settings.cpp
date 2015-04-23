@@ -221,12 +221,12 @@ void Settings::init(boost::program_options::variables_map commandLineOptions)
 {
   if( boost::any_cast<string>(commandLineOptions["server-mode"].value()) == "managed")
     staticFilesDeployPath = boost::any_cast<string>(commandLineOptions["static-deploy-path"].value()) ;
-  sqlite3DatabasePath_ = boost::any_cast<string>(commandLineOptions["sqlite3-database-path"].value());
+  sqlite3DatabasePath_ = boost::any_cast<string>(commandLineOptions["sqlite3-databases-path"].value());
 }
 
-string Settings::sqlite3DatabasePath()
+string Settings::sqlite3DatabasePath(const std::string &databaseName)
 {
-  return sqlite3DatabasePath_;
+  return (boost::filesystem::path(sqlite3DatabasePath_) / databaseName).string();
 }
 
 bool Settings::emailVerificationMandatory()

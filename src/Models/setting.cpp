@@ -20,8 +20,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "setting.h"
-
+#include <Wt/Dbo/backend/Sqlite3>
+#include <Wt/WServer>
+#include <boost/filesystem.hpp>
+#include "settings.h"
 using namespace std;
+using namespace Wt;
+
+Setting::Session::Session()
+{
+  connection.reset(new Dbo::backend::Sqlite3(Settings::sqlite3DatabasePath("Pandorica_Settings.sqlite")));
+  connection->setProperty("show-queries", "false");
+  connection->executeSql("PRAGMA journal_mode=WAL;");
+  setConnection(*connection);
+  mapClass<Setting>("settings");
+  try {
+    createTables();
+  } catch(std::exception &e) {
+    WServer::instance()->log("warning") << "error creating new database: " << e.what();
+  }
+}
+
 
 Setting::Setting()
 {

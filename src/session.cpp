@@ -156,10 +156,10 @@ void Session::Private::createConnection()
 #endif
 #ifdef HAVE_SQLITE3
   mutex = sqlite3_write_lock_mutex;
-  string sqlite3DatabasePath = Settings::sqlite3DatabasePath();
+  string sqlite3DatabasePath = Settings::sqlite3DatabasePath("Pandorica.sqlite");
   WServer::instance()->log("notice") << "Using sqlite connection: " << sqlite3DatabasePath;
   
-  connection.reset(new dbo::backend::Sqlite3(Settings::sqlite3DatabasePath()));
+  connection.reset(new dbo::backend::Sqlite3(sqlite3DatabasePath ));
   connection->executeSql("PRAGMA journal_mode=WAL;");
 #endif
 }

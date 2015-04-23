@@ -70,7 +70,7 @@ class Settings
     static std::string staticDeployPath();
     std::string relativePath( std::string mediaPath, Wt::Dbo::Session *session, bool removeTrailingSlash = false ) const;
     static void init( boost::program_options::variables_map commandLineOptions );
-    static std::string sqlite3DatabasePath();
+    static std::string sqlite3DatabasePath(const std::string &databaseName);
     static bool emailVerificationMandatory();
 
     enum AnimationType

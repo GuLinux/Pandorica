@@ -32,6 +32,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class Setting
 {
+  class Session : public Wt::Dbo::Session {
+  public: 
+    Session();
+  private:
+    std::unique_ptr<Wt::Dbo::SqlConnection> connection;
+  };
 public:
     Setting();
     ~Setting();
