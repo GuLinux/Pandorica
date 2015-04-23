@@ -100,6 +100,13 @@ public:
       return collection;
     }
 
+    static const std::string QuitPassword;
+    static const std::string PostgreSQL_Hostname;
+    static const std::string PostgreSQL_Port;
+    static const std::string PostgreSQL_Database;
+    static const std::string PostgreSQL_Application;
+    static const std::string PostgreSQL_Username;
+    static const std::string PostgreSQL_Password;
 private:
 private:
     std::string _key;

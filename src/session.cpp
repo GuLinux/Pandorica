@@ -42,7 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Models/models.h"
 #include "settings.h"
-
+#include <boost/format.hpp>
 #include "utils/d_ptr_implementation.h"
 #define DATABASE_VERSION 1
 #define DATABASE_VERSION_SETTING "db_version"
@@ -140,12 +140,39 @@ namespace {
   shared_ptr<mutex> sqlite3_write_lock_mutex = make_shared<mutex>();
 }
 
+
+string Session::Private::psqlConnectionString() const {
+  string hostname = Setting::value<string>(Setting::PostgreSQL_Hostname, "localhost");
+  string dbName = Setting::value<string>(Setting::PostgreSQL_Database, "Pandorica");
+  string username = Setting::value<string>(Setting::PostgreSQL_Username, "Pandorica");
+  string password = Setting::value<string>(Setting::PostgreSQL_Password);
+  int port = Setting::value<int>(Setting::PostgreSQL_Port, 5432);
+  string applicationName = Setting::value<string>(Setting::PostgreSQL_Application, "Pandorica");
+  if(password.empty() )
+    return {};
+  WServer::instance()->log("notice") << "Using postgresql connection: " <<
+  (boost::format("application_name=%s host=%s port=%d dbname=%s user=%s")
+    % applicationName
+    % hostname
+    % port
+    % dbName
+    % username
+  ).str();
+
+  return (boost::format("application_name=%s host=%s port=%d dbname=%s user=%s password=%s")
+    % applicationName
+    % hostname
+    % port
+    % dbName
+    % username
+    % password
+  ).str();
+}
 void Session::Private::createConnection()
 {
-  static string psqlConnParameters = Setting::value<string>("psql-connection");
 #ifdef HAVE_POSTGRES
+  static string psqlConnParameters = psqlConnectionString();
   if(!psqlConnParameters.empty()) {
-    WServer::instance()->log("notice") << "Using postgresql connection";
     connection.reset(new dbo::backend::Postgres(psqlConnParameters));
     return;
   }

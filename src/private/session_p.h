@@ -34,6 +34,7 @@ class Session::Private {
 public:
     Private(Session *q) : q(q) {}
     void createConnection();
+    std::string psqlConnectionString() const;
     std::unique_ptr<Wt::Dbo::SqlConnection> connection;
     UserDatabase *users = 0;
     Wt::Auth::Login login;

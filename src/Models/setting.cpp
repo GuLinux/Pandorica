@@ -47,8 +47,13 @@ shared_ptr<unique_lock<mutex>> Setting::Session::writeLock()
   return make_shared<unique_lock<mutex>>(write_mutex);
 }
 
-
-
+const std::string Setting::QuitPassword = "quit-password";
+const std::string Setting::PostgreSQL_Hostname = "postgresql-hostname";
+const std::string Setting::PostgreSQL_Port = "postgresql-port";
+const std::string Setting::PostgreSQL_Database = "postgresql-database";
+const std::string Setting::PostgreSQL_Application = "postgresql-application";
+const std::string Setting::PostgreSQL_Username = "postgresql-username";
+const std::string Setting::PostgreSQL_Password = "postgresql-password";
 Setting::Setting()
 {
 
