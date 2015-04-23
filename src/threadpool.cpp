@@ -21,16 +21,14 @@
 #include "threadpool_p.h"
 #include <utils/d_ptr_implementation.h>
 #include <Wt/WServer>
+#include "Models/setting.h"
 
 using namespace std;
 using namespace Wt;
 
 ThreadPool::Private::Private(ThreadPool* q) : /* work(ioService), */ q(q)
 {
-  string threads = boost::lexical_cast<string>(ioService.threadCount());
-  if(WServer::instance()->readConfigurationProperty("threadpool_threads_count", threads)) {
-    ioService.setThreadCount(boost::lexical_cast<int>(threads));
-  }
+  ioService.setThreadCount(Setting::value("threadpool_threads_count", ioService.threadCount()));
   ioService.start();
 }
 

@@ -143,10 +143,9 @@ namespace {
 
 void Session::Private::createConnection()
 {
-  string psqlConnParameters;
-  bool havePostgresConfiguration = WServer::instance()->readConfigurationProperty("psql-connection", psqlConnParameters);
+  static string psqlConnParameters = Setting::value<string>("psql-connection");
 #ifdef HAVE_POSTGRES
-  if(havePostgresConfiguration && !psqlConnParameters.empty()) {
+  if(!psqlConnParameters.empty()) {
     WServer::instance()->log("notice") << "Using postgresql connection";
     connection.reset(new dbo::backend::Postgres(psqlConnParameters));
     return;

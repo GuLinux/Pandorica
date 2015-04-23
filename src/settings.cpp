@@ -222,15 +222,14 @@ void Settings::init(boost::program_options::variables_map commandLineOptions)
 
 string Settings::sqlite3DatabasePath(const std::string &databaseName)
 {
-  return (boost::filesystem::path(sqlite3DatabasePath_) / databaseName).string();
+  auto path = boost::filesystem::path(sqlite3DatabasePath_);
+  boost::filesystem::create_directories(path);
+  return (path / databaseName).string();
 }
 
 bool Settings::emailVerificationMandatory()
 {
-  string emailVerificationMandatorySetting{"false"};
-  if(!WServer::instance()->readConfigurationProperty("email-verification-mandatory", emailVerificationMandatorySetting))
-    return false;
-  return emailVerificationMandatorySetting == "true";
+  return Setting::value<bool>("emailVerificationMandatory", false);
 }
 
 

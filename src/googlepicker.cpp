@@ -18,6 +18,7 @@
  */
 
 #include "googlepicker.h"
+#include "Models/setting.h"
 #include <Wt/WApplication>
 #include <Wt/WTemplate>
 
@@ -35,7 +36,8 @@ GooglePicker::~GooglePicker()
 
 GooglePicker::GooglePicker(const WString &buttonText, WContainerWidget* parent) : WCompositeWidget(parent), _imageChosen(this, "picker_image_chosen")
 {
-  if(! wApp->readConfigurationProperty("googleBrowserDeveloperKey", _developerKey)) {
+  _developerKey = Setting::value<string>("googleBrowserDeveloperKey", "AIzaSyA1ytuIbBRAsAS8f_4LDapsNUVsCZQmWG8");
+  if(! _developerKey.empty() ) {
     setImplementation(new WContainerWidget);
     return;
   }

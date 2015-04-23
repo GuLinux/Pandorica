@@ -348,9 +348,7 @@ int main( int argc, char **argv, char **envp )
     //ioService.start();
     Settings::init( vm );
     server.addEntryPoint( Application, createApplication );
-    string quitPassword;
-    server.readConfigurationProperty( "quit-password", quitPassword );
-    
+    string quitPassword = Setting::value<string>("quit-password");
     {
       Session session( false );
 

@@ -40,6 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WTimer>
 #include "Wt-Commons/wt_helpers.h"
 #include "utils/d_ptr_implementation.h"
+#include <Models/setting.h>
 
 using namespace std;
 using namespace Wt;
@@ -112,9 +113,8 @@ Mail::Mailbox Utils::Private::authMailbox()
 
 Mail::Mailbox Utils::Private::mailboxFor( string nameProperty, string addressProperty, Mail::Mailbox defaultMailbox )
 {
-  string name, address;
-  WServer::instance()->readConfigurationProperty( nameProperty, name );
-  WServer::instance()->readConfigurationProperty( addressProperty, address );
+  string name = Setting::value<string>(nameProperty);
+  string address = Setting::value<string>(addressProperty);
 
   if( name.empty() || address.empty() )
   {
