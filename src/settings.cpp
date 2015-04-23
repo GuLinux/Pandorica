@@ -59,7 +59,7 @@ vector< string > Settings::mediasDirectories(Dbo::Session *session) const
 {
   if(d->mediaDirectories.empty()) {
     Dbo::Transaction t(*session);
-    d->mediaDirectories = Setting::values<string>("media_directories", t);
+    d->mediaDirectories = Setting::values<string>("media_directories");
   }
   return d->mediaDirectories;
 }
@@ -77,17 +77,13 @@ const string PATH_SEP()
 void Settings::addMediaDirectory(string directory, Dbo::Session* session)
 {
   d->mediaDirectories.push_back(directory);
-  Dbo::Transaction t(*session);
-  Setting::write<string>("media_directories", d->mediaDirectories, t);
-  t.commit();
+  Setting::write<string>("media_directories", d->mediaDirectories);
 }
 
 void Settings::removeMediaDirectory(string directory, Dbo::Session* session)
 {
   d->mediaDirectories.erase(remove_if(begin(d->mediaDirectories), end(d->mediaDirectories), [=](string d) { return d == directory; }), end(d->mediaDirectories));
-  Dbo::Transaction t(*session);
-  Setting::write<string>("media_directories", d->mediaDirectories, t);
-  t.commit();
+  Setting::write<string>("media_directories", d->mediaDirectories);
 }
 
 string Settings::sharedFilesDir(std::string append)

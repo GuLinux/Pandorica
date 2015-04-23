@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/Dbo/ptr>
 
 #include <string>
+#include <mutex>
 #include <boost/lexical_cast.hpp>
 
 class Setting
@@ -35,6 +36,7 @@ class Setting
   class Session : public Wt::Dbo::Session {
   public: 
     Session();
+    static std::shared_ptr<std::unique_lock<std::mutex>> writeLock();
   private:
     std::unique_ptr<Wt::Dbo::SqlConnection> connection;
   };
@@ -52,37 +54,47 @@ public:
 
     
     template<class Type>
-    static void write(std::string key, Type value, Wt::Dbo::Transaction &transaction) {
-      transaction.session().execute("DELETE FROM settings WHERE \"key\" = ?").bind(key);
+    static void write(const std::string &key, const Type &value) {
+      Session session;
+      Wt::Dbo::Transaction t(session);
+      auto writeLock = session.writeLock();
+      session.execute("DELETE FROM settings WHERE \"key\" = ?").bind(key);
       Setting *setting = new Setting;
       setting->_key = key;
       setting->_value = boost::lexical_cast<std::string>(value);
-      transaction.session().add(setting);
+      session.add(setting);
     }
     
     template<typename Type, class Cont>
-    static void write(std::string key, Cont values, Wt::Dbo::Transaction &transaction) {
-      transaction.session().execute("DELETE FROM settings WHERE \"key\" = ?").bind(key);
+    static void write(const std::string &key, const Cont &values) {
+      Session session;
+      Wt::Dbo::Transaction t(session);
+      auto writeLock = session.writeLock();
+      session.execute("DELETE FROM settings WHERE \"key\" = ?").bind(key);
       for(Type value: values) {
         Setting *setting = new Setting;
         setting->_key = key;
         setting->_value = boost::lexical_cast<std::string>(value);
-        transaction.session().add(setting);
+        session.add(setting);
       }
     }
     
     template<class Type>
-    static Type value(std::string key, Wt::Dbo::Transaction &transaction, Type defaultValue = Type{} ) {
-      Wt::Dbo::ptr<Setting> setting = transaction.session().find<Setting>().where("\"key\" = ?").bind(key);
+    static Type value(const std::string &key, const Type &defaultValue = Type{} ) {
+      Session session;
+      Wt::Dbo::Transaction t(session);
+      Wt::Dbo::ptr<Setting> setting = session.find<Setting>().where("\"key\" = ?").bind(key);
       if(!setting)
         return defaultValue;
       return boost::lexical_cast<Type>(setting->_value);
     }
     
     template<class Type>
-    static std::vector<Type> values(std::string key, Wt::Dbo::Transaction &transaction) {
+    static std::vector<Type> values(const std::string &key) {
+      Session session;
+      Wt::Dbo::Transaction t(session);
       std::vector<Type> collection;
-      auto dboValues = transaction.session().find<Setting>().where("\"key\" = ?").bind(key).resultList();
+      auto dboValues = session.find<Setting>().where("\"key\" = ?").bind(key).resultList();
       std::transform(dboValues.begin(), dboValues.end(), std::back_inserter(collection),
                      [=](Wt::Dbo::ptr<Setting> setting) { return boost::lexical_cast<Type>(setting->_value); });
       return collection;

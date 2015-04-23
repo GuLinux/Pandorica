@@ -41,6 +41,13 @@ Setting::Session::Session()
   }
 }
 
+shared_ptr<unique_lock<mutex>> Setting::Session::writeLock()
+{
+  static mutex write_mutex;
+  return make_shared<unique_lock<mutex>>(write_mutex);
+}
+
+
 
 Setting::Setting()
 {

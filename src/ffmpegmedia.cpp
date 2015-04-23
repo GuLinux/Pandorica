@@ -190,7 +190,7 @@ FFMPegStreamConversion::FFMPegStreamConversion( AVFormatContext *inputFormatCont
     inputStream( inputFormatContext->streams[stream.index] )
 {
   pair<string, string> encoderFormat {"srt", "subrip"};
-  string inputCodecDescription = string( " codec " ) + ( inputStream->codec ? ( inputStream->codec->codec_name + string("-") + boost::lexical_cast<string>(inputStream->codec->codec_id) ): "UNKNOWN" );
+  string inputCodecDescription = string( " codec " ) + ( inputStream->codec->codec ? ( inputStream->codec->codec->long_name + string("-") + boost::lexical_cast<string>(inputStream->codec->codec_id) ): "UNKNOWN" );
 
   decoder = avCreateObject( avcodec_find_decoder( inputStream->codec->codec_id ), ConcatStrings( {"creating AV Decoder for", inputCodecDescription} ) );
   {

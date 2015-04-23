@@ -109,8 +109,7 @@ Session::Session(bool full)
   mapClass<Setting>("settings");
   mapClass<CollectionItemProperty>("collection_item_property");
   try {
-    Dbo::Transaction t(*this);
-    int db_version=Setting::value(DATABASE_VERSION_SETTING, t, 0);
+    int db_version=Setting::value(DATABASE_VERSION_SETTING, 0);
     WServer::instance()->log("notice") << "Found database version " << db_version;
   } catch(std::exception &e) {
     WServer::instance()->log("warning") << "error fetching database version: " << e.what();
@@ -119,8 +118,7 @@ Session::Session(bool full)
     } catch(std::exception &e) {
       WServer::instance()->log("warning") << "error creating new database: " << e.what();
     }
-    Dbo::Transaction t(*this);
-    Setting::write(DATABASE_VERSION_SETTING, DATABASE_VERSION, t);
+    Setting::write(DATABASE_VERSION_SETTING, DATABASE_VERSION);
   }
   if(!full)
     return;
