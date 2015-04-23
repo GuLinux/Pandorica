@@ -47,6 +47,8 @@ std::shared_ptr<ThreadPool> ThreadPool::instance()
 
 
 std::shared_ptr<std::unique_lock<std::mutex>> ThreadPool::lock(const std::string &name) {
+  static std::mutex locks_mutex;
+  std::unique_lock<std::mutex> lock_locks_mutex(locks_mutex);
   static map<string,shared_ptr<mutex>> locks;
   if(locks.count(name) == 0) {
     locks[name] = make_shared<mutex>();
