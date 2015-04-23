@@ -199,6 +199,7 @@ bool initServer( int argc, char **argv, WServer &server, po::variables_map &vm )
   pandorica_general_options.add_options()
   ( "http-address", po::value<string>()->default_value( "0.0.0.0" ), "http address for listening" )
   ( "http-port", po::value<int>()->default_value( 8080 ), "http port for listening" )
+  ( "config,c", po::value<string>()->default_value( (boost::format( "%s/pandorica.xml" ) % WT_SHARED_FILES_DIR ).str() ), "Pandorica XML Configuration file (wt_config.xml)" )
   ( "server-mode", po::value<string>()->default_value( "standalone" ), "Server run mode.\nAllowed modes are:\n\
   \t* standalone: Pandorica will run without an external http server.\n\
   \t* managed:    Pandorica will run inside an http server (apache, lighttp, etc). This means you have to take care of shared resource files." )
@@ -234,11 +235,7 @@ bool initServer( int argc, char **argv, WServer &server, po::variables_map &vm )
   pandorica_visible_options.add( pandorica_general_options ).add( pandorica_db_options ).add( pandorica_managed_options );
   po::options_description pandorica_invisible_options;
   pandorica_invisible_options.add_options()
-#ifndef WIN32
   ( "docroot", po::value<string>()->default_value( (boost::format( "%s;/resources" ) % WT_SHARED_FILES_DIR ).str() ) );
-#else
-  ( "docroot", po::value<string>()->default_value( boost::filesystem::path( boost::filesystem::current_path() ).string() ) );
-#endif
   po::options_description pandorica_all_options;
   pandorica_all_options.add( pandorica_visible_options ).add( pandorica_invisible_options );
 
@@ -263,11 +260,11 @@ bool initServer( int argc, char **argv, WServer &server, po::variables_map &vm )
     wt_options.push_back( "--help" );
   }
 
-  if( !vm.count( "https-address" ) )
-  {
-    wt_options.push_back( "--http-address" );
-    wt_options.push_back( optionValue<string>( vm, "http-address" ) );
-  }
+  wt_options.push_back( "--http-address" );
+  wt_options.push_back( optionValue<string>( vm, "http-address" ) );
+  
+  wt_options.push_back( "--config" );
+  wt_options.push_back( optionValue<string>( vm, "config" ) );
 
 
   wt_options.push_back( "--docroot" );
