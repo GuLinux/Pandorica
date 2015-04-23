@@ -54,6 +54,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 #include <boost/optional.hpp>
 #include "Wt-Commons/wobjectscope.h"
+#include <boost/format.hpp>
 using namespace Wt;
 using namespace std;
 namespace fs = boost::filesystem;
@@ -234,7 +235,7 @@ bool initServer( int argc, char **argv, WServer &server, po::variables_map &vm )
   po::options_description pandorica_invisible_options;
   pandorica_invisible_options.add_options()
 #ifndef WIN32
-  ( "docroot", po::value<string>()->default_value( "/usr/share/Wt" ) );
+  ( "docroot", po::value<string>()->default_value( (boost::format( "%s;/resources" ) % WT_SHARED_FILES_DIR ).str() ) );
 #else
   ( "docroot", po::value<string>()->default_value( boost::filesystem::path( boost::filesystem::current_path() ).string() ) );
 #endif
