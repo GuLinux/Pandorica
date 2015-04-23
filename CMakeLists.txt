@@ -78,4 +78,12 @@ add_subdirectory(ffmpeg-static)
 add_subdirectory(Wt-Commons)
 add_subdirectory(libffmpegthumbnailer)
 add_subdirectory(src)
-add_subdirectory(tests)
+
+set(ENABLE_TESTS Off CACHE BOOL "Enable tests execution")
+if(ENABLE_TESTS)
+  message("Enabling tests")
+  add_subdirectory(tests)
+else(ENABLE_TESTS)
+  message("Tests disabled")
+endif(ENABLE_TESTS)
+

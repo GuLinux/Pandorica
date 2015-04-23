@@ -1,4 +1,6 @@
 build*
+debian
+.bzr*
 .kateproject*
 *.swp
 webroot/uploads
