@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WServer>
 #include <boost/filesystem.hpp>
 #include "settings.h"
+#include <map>
 using namespace std;
 using namespace Wt;
 
@@ -47,13 +48,30 @@ shared_ptr<unique_lock<mutex>> Setting::Session::writeLock()
   return make_shared<unique_lock<mutex>>(write_mutex);
 }
 
-const std::string Setting::QuitPassword = "quit-password";
-const std::string Setting::PostgreSQL_Hostname = "postgresql-hostname";
-const std::string Setting::PostgreSQL_Port = "postgresql-port";
-const std::string Setting::PostgreSQL_Database = "postgresql-database";
-const std::string Setting::PostgreSQL_Application = "postgresql-application";
-const std::string Setting::PostgreSQL_Username = "postgresql-username";
-const std::string Setting::PostgreSQL_Password = "postgresql-password";
+string Setting::keyName(Setting::KeyName key)
+{
+  static map<KeyName,string> keyNames {
+    {QuitPassword, "quit-password"},
+    {PostgreSQL_Hostname, "postgresql-hostname"},
+    {PostgreSQL_Database, "postgresql-database"},
+    {PostgreSQL_Port, "postgresql-port"},
+    {PostgreSQL_Application, "postgresql-application"},
+    {PostgreSQL_Username, "postgresql-username"},
+    {PostgreSQL_Password, "postgresql-password"},
+    {GoogleBrowserDeveloperKey, "google-browser-dveloper-key"},
+    {DatabaseVersion, "db_version"},
+    {MediaDirectories, "media_directories"},
+    {EmailVerificationMandatory, "email_verification_mandatory"},
+    {ThreadPoolThreads, "threadpool_threads_count"},
+    {AdminEmailName, "admin_mail_name"},
+    {AdminEmailAddress, "admin_mail_address"},
+    {AuthEmailName, "auth_mail_sender_name"},
+    {AuthEmailAddress, "auth_mail_sender_address"},
+  };
+  
+  return keyNames[key];
+}
+
 Setting::Setting()
 {
 

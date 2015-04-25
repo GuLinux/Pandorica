@@ -59,7 +59,7 @@ vector< string > Settings::mediasDirectories(Dbo::Session *session) const
 {
   if(d->mediaDirectories.empty()) {
     Dbo::Transaction t(*session);
-    d->mediaDirectories = Setting::values<string>("media_directories");
+    d->mediaDirectories = Setting::values<string>(Setting::MediaDirectories);
   }
   return d->mediaDirectories;
 }
@@ -77,13 +77,13 @@ const string PATH_SEP()
 void Settings::addMediaDirectory(string directory, Dbo::Session* session)
 {
   d->mediaDirectories.push_back(directory);
-  Setting::write<string>("media_directories", d->mediaDirectories);
+  Setting::write<string>(Setting::MediaDirectories, d->mediaDirectories);
 }
 
 void Settings::removeMediaDirectory(string directory, Dbo::Session* session)
 {
   d->mediaDirectories.erase(remove_if(begin(d->mediaDirectories), end(d->mediaDirectories), [=](string d) { return d == directory; }), end(d->mediaDirectories));
-  Setting::write<string>("media_directories", d->mediaDirectories);
+  Setting::write<string>(Setting::MediaDirectories, d->mediaDirectories);
 }
 
 string Settings::sharedFilesDir(std::string append)
@@ -229,7 +229,7 @@ string Settings::sqlite3DatabasePath(const std::string &databaseName)
 
 bool Settings::emailVerificationMandatory()
 {
-  return Setting::value<bool>("emailVerificationMandatory", false);
+  return Setting::value<bool>(Setting::EmailVerificationMandatory, false);
 }
 
 

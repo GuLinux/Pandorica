@@ -29,7 +29,7 @@ using namespace Wt;
 
 ThreadPool::Private::Private(ThreadPool* q) : /* work(ioService), */ q(q)
 {
-  ioService.setThreadCount(Setting::value("threadpool_threads_count", boost::thread::hardware_concurrency()));
+  ioService.setThreadCount(Setting::value(Setting::ThreadPoolThreads, boost::thread::hardware_concurrency()));
   ioService.start();
 }
 

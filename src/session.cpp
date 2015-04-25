@@ -45,7 +45,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/format.hpp>
 #include "utils/d_ptr_implementation.h"
 #define DATABASE_VERSION 1
-#define DATABASE_VERSION_SETTING "db_version"
 
 namespace {
   class MyOAuth : public std::vector<const Wt::Auth::OAuthService *>
@@ -108,7 +107,7 @@ Session::Session(bool full)
   mapClass<MediaRating>("media_rating");
   mapClass<Setting>("settings");
   mapClass<CollectionItemProperty>("collection_item_property");
-  int db_version=Setting::value(DATABASE_VERSION_SETTING, 0);
+  int db_version=Setting::value(Setting::DatabaseVersion, 0);
   WServer::instance()->log("notice") << "Found database version " << db_version;
   if(db_version == 0) {
     WServer::instance()->log("warning") << "error fetching database version";
@@ -117,7 +116,8 @@ Session::Session(bool full)
     } catch(std::exception &e) {
       WServer::instance()->log("warning") << "error creating new database: " << e.what();
     }
-    Setting::write(DATABASE_VERSION_SETTING, DATABASE_VERSION);
+    Setting::write(Setting::DatabaseVersion
+    , DATABASE_VERSION);
   }
   if(!full)
     return;

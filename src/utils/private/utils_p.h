@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/Mail/Mailbox>
 #include <Wt/WLength>
 #include "utils/utils.h"
+#include "Models/setting.h"
 
 struct FindAndReplace
 {
@@ -41,7 +42,7 @@ class Utils::Private
     Private( ::Utils *q );
     static Wt::Mail::Mailbox adminMailbox();
     static Wt::Mail::Mailbox authMailbox();
-    static Wt::Mail::Mailbox mailboxFor( std::string nameProperty, std::string addressProperty, Wt::Mail::Mailbox defaultMailbox );
+    static Wt::Mail::Mailbox mailboxFor( Setting::KeyName nameProperty, Setting::KeyName addressProperty, Wt::Mail::Mailbox defaultMailbox );
   private:
     class ::Utils *const q;
 };

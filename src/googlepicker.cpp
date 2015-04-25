@@ -36,7 +36,7 @@ GooglePicker::~GooglePicker()
 
 GooglePicker::GooglePicker(const WString &buttonText, WContainerWidget* parent) : WCompositeWidget(parent), _imageChosen(this, "picker_image_chosen")
 {
-  _developerKey = Setting::value<string>("googleBrowserDeveloperKey", "AIzaSyA1ytuIbBRAsAS8f_4LDapsNUVsCZQmWG8");
+  _developerKey = Setting::value<string>(Setting::GoogleBrowserDeveloperKey, "AIzaSyA1ytuIbBRAsAS8f_4LDapsNUVsCZQmWG8");
   if(! _developerKey.empty() ) {
     setImplementation(new WContainerWidget);
     return;

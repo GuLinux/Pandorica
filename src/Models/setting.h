@@ -43,7 +43,24 @@ class Setting
 public:
     Setting();
     ~Setting();
-
+    enum KeyName {
+      QuitPassword,
+      PostgreSQL_Hostname,
+      PostgreSQL_Port,
+      PostgreSQL_Database,
+      PostgreSQL_Application,
+      PostgreSQL_Username,
+      PostgreSQL_Password,
+      GoogleBrowserDeveloperKey,
+      DatabaseVersion,
+      MediaDirectories,
+      EmailVerificationMandatory,
+      ThreadPoolThreads,
+      AdminEmailName,
+      AdminEmailAddress,
+      AuthEmailName,
+      AuthEmailAddress,
+    };
 
     template<class Action>
     void persist(Action& a) {
@@ -54,11 +71,11 @@ public:
 
     
     template<class Type>
-    static void write(const std::string &key, const Type &value) {
+    static void write(KeyName key, const Type &value) {
       Session session;
       Wt::Dbo::Transaction t(session);
       auto writeLock = session.writeLock();
-      session.execute("DELETE FROM settings WHERE \"key\" = ?").bind(key);
+      session.execute("DELETE FROM settings WHERE \"key\" = ?").bind(keyName(key));
       Setting *setting = new Setting;
       setting->_key = key;
       setting->_value = boost::lexical_cast<std::string>(value);
@@ -66,11 +83,11 @@ public:
     }
     
     template<typename Type, class Cont>
-    static void write(const std::string &key, const Cont &values) {
+    static void write(KeyName key, const Cont &values) {
       Session session;
       Wt::Dbo::Transaction t(session);
       auto writeLock = session.writeLock();
-      session.execute("DELETE FROM settings WHERE \"key\" = ?").bind(key);
+      session.execute("DELETE FROM settings WHERE \"key\" = ?").bind(keyName(key));
       for(Type value: values) {
         Setting *setting = new Setting;
         setting->_key = key;
@@ -80,37 +97,32 @@ public:
     }
     
     template<class Type>
-    static Type value(const std::string &key, const Type &defaultValue = Type{} ) {
+    static Type value(KeyName key, const Type &defaultValue = Type{} ) {
       Session session;
       Wt::Dbo::Transaction t(session);
-      Wt::Dbo::ptr<Setting> setting = session.find<Setting>().where("\"key\" = ?").bind(key);
+      Wt::Dbo::ptr<Setting> setting = session.find<Setting>().where("\"key\" = ?").bind(keyName(key));
       if(!setting)
         return defaultValue;
       return boost::lexical_cast<Type>(setting->_value);
     }
     
     template<class Type>
-    static std::vector<Type> values(const std::string &key) {
+    static std::vector<Type> values(KeyName key) {
       Session session;
       Wt::Dbo::Transaction t(session);
       std::vector<Type> collection;
-      auto dboValues = session.find<Setting>().where("\"key\" = ?").bind(key).resultList();
+      auto dboValues = session.find<Setting>().where("\"key\" = ?").bind(keyName(key)).resultList();
       std::transform(dboValues.begin(), dboValues.end(), std::back_inserter(collection),
                      [=](Wt::Dbo::ptr<Setting> setting) { return boost::lexical_cast<Type>(setting->_value); });
       return collection;
     }
 
-    static const std::string QuitPassword;
-    static const std::string PostgreSQL_Hostname;
-    static const std::string PostgreSQL_Port;
-    static const std::string PostgreSQL_Database;
-    static const std::string PostgreSQL_Application;
-    static const std::string PostgreSQL_Username;
-    static const std::string PostgreSQL_Password;
-private:
+
+    
 private:
     std::string _key;
     std::string _value;
+    static std::string keyName(KeyName key);
 };
 
 

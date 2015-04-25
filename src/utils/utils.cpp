@@ -102,16 +102,16 @@ void Utils::inviteUserEmail( std::string email, const WString &body)
 
 Mail::Mailbox Utils::Private::adminMailbox()
 {
-  return mailboxFor( "admin-mail-name", "admin-mail-address", {"admin@localhost"} );
+  return mailboxFor( Setting::AdminEmailName, Setting::AdminEmailAddress, {"admin@localhost"} );
 }
 
 Mail::Mailbox Utils::Private::authMailbox()
 {
-  return mailboxFor( "auth-mail-sender-name", "auth-mail-sender-address", {"noreply@localhost"} );
+  return mailboxFor( Setting::AuthEmailName, Setting::AuthEmailAddress, {"noreply@localhost"} );
 }
 
 
-Mail::Mailbox Utils::Private::mailboxFor( string nameProperty, string addressProperty, Mail::Mailbox defaultMailbox )
+Mail::Mailbox Utils::Private::mailboxFor( Setting::KeyName nameProperty, Setting::KeyName addressProperty, Mail::Mailbox defaultMailbox )
 {
   string name = Setting::value<string>(nameProperty);
   string address = Setting::value<string>(addressProperty);
