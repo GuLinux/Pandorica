@@ -70,7 +70,7 @@ void Session::configureAuth()
 {
   myAuthService.setAuthTokensEnabled(true, "logincookie");
   myAuthService.setEmailVerificationEnabled(true);
-  myAuthService.setIdentityPolicy(Wt::Auth::LoginNameIdentity);
+  myAuthService.setIdentityPolicy(Wt::Auth::OptionalIdentity);
   Wt::Auth::PasswordVerifier *verifier = new Wt::Auth::PasswordVerifier();
   verifier->addHashFunction(new Wt::Auth::BCryptHashFunction(7));
   myPasswordService.setVerifier(verifier);

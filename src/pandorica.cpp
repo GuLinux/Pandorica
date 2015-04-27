@@ -161,7 +161,6 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
   setLocalizedStrings(combinedLocalizedStrings);
   setTitle(wtr("site-title"));
 
-  addMetaHeader("viewport", "width=device-width, initial-scale=1, maximum-scale=1");
   internalPathChanged().connect([=](const string &p, _n5) { d->pathChanged(p); });
 
   d->authPage = new AuthPage(d->session);
