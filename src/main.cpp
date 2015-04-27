@@ -235,7 +235,7 @@ bool initServer( int argc, char **argv, WServer &server, po::variables_map &vm )
   pandorica_visible_options.add( pandorica_general_options ).add( pandorica_db_options ).add( pandorica_managed_options );
   po::options_description pandorica_invisible_options;
   pandorica_invisible_options.add_options()
-  ( "docroot", po::value<string>()->default_value( (boost::format( "%s;/resources" ) % WT_SHARED_FILES_DIR ).str() ) );
+  ( "docroot", po::value<string>()->default_value( (boost::format( "%s;/resources" ) % SHARED_FILES_DIR ).str() ) );
   po::options_description pandorica_all_options;
   pandorica_all_options.add( pandorica_visible_options ).add( pandorica_invisible_options );
 
