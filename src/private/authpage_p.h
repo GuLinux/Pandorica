@@ -36,7 +36,7 @@ public:
     Wt::Signal<> loggedOut;
     Session *session;
     bool mailSent = false;
-    AuthWidgetCustom* authWidget;
+    Wt::Auth::AuthWidget* authWidget;
     void authEvent();
 private:
     class AuthPage* const q;
