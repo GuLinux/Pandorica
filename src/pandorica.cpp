@@ -188,7 +188,7 @@ void Pandorica::notify( const WString &text, Pandorica::NotificationType notific
     { Alert, "alert-warning" },
     { Error, "alert-danger" },
     { Success, "alert-success" },
-    { Information, "alert-information" },
+    { Information, "alert-info" },
   };
   WPushButton *closeButton = WW<WPushButton>().setTextFormat(Wt::XHTMLText).setText("&times;").css("close").setAttribute("data-dismiss", "alert");
   WContainerWidget *notification = WW<WContainerWidget>()
