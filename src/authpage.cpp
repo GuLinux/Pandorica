@@ -94,12 +94,19 @@ string animationJs(WWidget *widget, string animation) {
 }
 
 void AuthPage::Private::authEvent() {
-  log("notice") << __PRETTY_FUNCTION__;
+  static map<Auth::LoginState, string> states {
+    {Auth::LoggedOut, "LoggedOut"},
+    {Auth::DisabledLogin, "DisabledLogin"},
+    {Auth::WeakLogin, "WeakLogin"},
+    {Auth::StrongLogin, "StrongLogin"},
+  };
+  log("notice") << __PRETTY_FUNCTION__ << ": state=" << states[session->login().state()];
+  Scope scope([=]{ loginChanged.emit(session->login().state()); });
   if(!session->login().loggedIn()) {
-    log("notice") << __PRETTY_FUNCTION__ << ": logout detected";
-    loggedOut.emit();
-    messagesContainer->clear();
-    q->doJavaScript(animationJs(q, "fadeIn"));
+//     log("notice") << __PRETTY_FUNCTION__ << ": logout detected";
+//     loggedOut.emit();
+//     messagesContainer->clear();
+//     q->doJavaScript(animationJs(q, "fadeIn"));
     return;
   }
   log("notice") << "User logged in";
@@ -132,7 +139,7 @@ void AuthPage::Private::authEvent() {
   }
 //   q->addStyleClass("hidden");
   q->doJavaScript(animationJs(q, "fadeOut"));
-  loggedIn.emit();
+//   loggedIn.emit();
 }
 
 bool AuthPage::Private::seedIfNoAdmins(dbo::Transaction& transaction, Auth::User &user)
@@ -175,15 +182,11 @@ AuthPage::~AuthPage()
 {
 }
 
-Signal<>& AuthPage::loggedIn() const
+Signal<Auth::LoginState>& AuthPage::loginChanged() const
 {
-  return d->loggedIn;
+  return d->loginChanged;
 }
 
-Signal<>& AuthPage::loggedOut() const
-{
-  return d->loggedOut;
-}
 
 
 
@@ -193,7 +196,7 @@ AuthPage::AuthPage(Session* session, WContainerWidget* parent)
   session->login().changed().connect([=](_n6){ d->authEvent(); });
   
   addWidget(WW<WText>(WString("<h1 style=\"text-align: center;\">{1}</h1>").arg(wtr("site-title"))));
-  d->authWidget = new AuthWidgetCustom(Session::auth(), session->users(), session->login());
+  d->authWidget = new Wt::Auth::AuthWidget(Session::auth(), session->users(), session->login());
   d->authWidget->model()->addPasswordAuth(&Session::passwordAuth());
   d->authWidget->model()->addOAuth(Session::oAuth());
   d->authWidget->setRegistrationEnabled(true);

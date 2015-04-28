@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <Wt/WContainerWidget>
 #include <Wt/Dbo/Transaction>
+#include <Wt/Auth/Login>
 #include "utils/d_ptr.h"
 
 class Session;
@@ -33,8 +34,7 @@ class AuthPage : public Wt::WContainerWidget
 public:
     ~AuthPage();
     AuthPage(Session *session, Wt::WContainerWidget* parent = 0);
-  Wt::Signal<> &loggedIn() const;
-  Wt::Signal<> &loggedOut() const;
+  Wt::Signal<Wt::Auth::LoginState> &loginChanged() const;
   void initAuth();
 private:
   D_PTR;

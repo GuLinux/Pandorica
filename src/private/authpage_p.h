@@ -32,8 +32,7 @@ class AuthPage::Private
 public:
     Private(Session *session, AuthPage* q);
     Wt::WContainerWidget* messagesContainer;
-    Wt::Signal<> loggedIn;
-    Wt::Signal<> loggedOut;
+    Wt::Signal<Wt::Auth::LoginState> loginChanged;
     Session *session;
     bool mailSent = false;
     Wt::Auth::AuthWidget* authWidget;

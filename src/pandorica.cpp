@@ -166,8 +166,13 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
   d->authPage = new AuthPage(d->session);
   root()->addWidget(d->authPage); 
 //  root()->addWidget(d->authPage = new AuthPage(d->session));
-  d->authPage->loggedIn().connect(this, &Pandorica::authEvent);
-  d->authPage->loggedOut().connect([=](_n6) {
+  d->authPage->loginChanged().connect([=](Auth::LoginState state, _n5) {
+    if(state == Auth::WeakLogin || state == Auth::StrongLogin) {
+      authEvent();
+      return;
+    }
+    if(state == Auth::DisabledLogin)
+      return;
     d->navigationBar->animateHide({WAnimation::Fade});
     d->playlist->animateHide({WAnimation::Fade});
     d->mediaCollectionBrowser->animateHide({WAnimation::Fade});
