@@ -114,7 +114,7 @@ Session::Session(bool full)
     try {
       createTables();
     } catch(std::exception &e) {
-      WServer::instance()->log("warning") << "error creating new database: " << e.what();
+//       WServer::instance()->log("warning") << "error creating new database: " << e.what();
     }
     Setting::write(Setting::DatabaseVersion
     , DATABASE_VERSION);
