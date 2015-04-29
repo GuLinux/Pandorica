@@ -60,6 +60,9 @@ public:
       AdminEmailAddress,
       AuthEmailName,
       AuthEmailAddress,
+      GroupsACL,
+      PandoricaSetup,
+      PandoricaMode,
     };
 
     template<class Action>
@@ -77,7 +80,7 @@ public:
       auto writeLock = session.writeLock();
       session.execute("DELETE FROM settings WHERE \"key\" = ?").bind(keyName(key));
       Setting *setting = new Setting;
-      setting->_key = key;
+      setting->_key = keyName(key);
       setting->_value = boost::lexical_cast<std::string>(value);
       session.add(setting);
     }
@@ -90,7 +93,7 @@ public:
       session.execute("DELETE FROM settings WHERE \"key\" = ?").bind(keyName(key));
       for(Type value: values) {
         Setting *setting = new Setting;
-        setting->_key = key;
+        setting->_key = keyName(key);
         setting->_value = boost::lexical_cast<std::string>(value);
         session.add(setting);
       }

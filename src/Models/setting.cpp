@@ -67,6 +67,9 @@ string Setting::keyName(Setting::KeyName key)
     {AdminEmailAddress, "admin_mail_address"},
     {AuthEmailName, "auth_mail_sender_name"},
     {AuthEmailAddress, "auth_mail_sender_address"},
+    {GroupsACL, "groups_acl"},
+    {PandoricaSetup, "pandorica_setup"},
+    {PandoricaMode, "pandorica_mode"},
   };
   
   return keyNames[key];
