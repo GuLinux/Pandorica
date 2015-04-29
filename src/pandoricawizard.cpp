@@ -58,11 +58,13 @@ void PandoricaWizard::Private::addPandoricaModePage()
   groupBox->addWidget(advancedMode);
   advancedModeLabel->setBuddy(advancedMode);
   groupBox->addWidget(advancedModeLabel);
-  WPushButton *nextButton = WW<WPushButton>(WString::tr("button.next")).css("btn-primary").onClick([=](WMouseEvent){ stack->setCurrentIndex(stack->currentIndex()+1); }).setEnabled(currentMode != Unset);
+  WPushButton *nextButton = WW<WPushButton>(WString::tr("button.next")).css("btn-primary").onClick([=](WMouseEvent){ stack->setCurrentIndex(stack->currentIndex()+1); }).setEnabled(currentMode == Advanced);
+  WPushButton *finishButton = WW<WPushButton>(WString::tr("button.next")).css("btn-success").onClick([=](WMouseEvent){ delete q; }).setEnabled(currentMode == Simple);
   groupBox->addWidget(nextButton);
   buttonGroup->checkedChanged().connect([=](WRadioButton* b,_n5){
-    nextButton->setEnabled(true);
     PandoricaMode newMode = b==simpleMode ? Simple : Advanced;
+    nextButton->setEnabled(newMode == Simple);
+    finishButton->setEnabled(newMode == Advanced);
     Setting::write(Setting::PandoricaMode, static_cast<int>(newMode));
   });
   stack->addWidget(groupBox);
