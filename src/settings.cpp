@@ -88,11 +88,7 @@ void Settings::removeMediaDirectory(string directory, Dbo::Session* session)
 
 string Settings::sharedFilesDir(std::string append)
 {
-#ifdef WIN32
-  return boost::filesystem::path( boost::filesystem::current_path() ).string() + append;
-#else
   return string{SHARED_FILES_DIR} + append;
-#endif
 }
 
 

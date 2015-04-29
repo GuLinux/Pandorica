@@ -60,6 +60,7 @@ public:
       AdminEmailAddress,
       AuthEmailName,
       AuthEmailAddress,
+      GroupsACL,
     };
 
     template<class Action>

@@ -68,9 +68,10 @@ using namespace Wt;
 
 void Session::configureAuth()
 {
-  myAuthService.setAuthTokensEnabled(true, "logincookie");
-  myAuthService.setEmailVerificationEnabled(true);
-  myAuthService.setEmailVerificationRequired(true);
+//   myAuthService.setAuthTokensEnabled(true, "logincookie");
+  bool emailVerificationMandatory = Settings::emailVerificationMandatory();
+  myAuthService.setEmailVerificationEnabled(emailVerificationMandatory);
+  myAuthService.setEmailVerificationRequired(emailVerificationMandatory);
   myAuthService.setIdentityPolicy(Wt::Auth::LoginNameIdentity);
   Wt::Auth::PasswordVerifier *verifier = new Wt::Auth::PasswordVerifier();
   verifier->addHashFunction(new Wt::Auth::BCryptHashFunction(7));
@@ -123,6 +124,8 @@ Session::Session(bool full)
   if(!full)
     return;
   d->users = new UserDatabase(*this);
+  if(Setting::value<bool>(Setting::GroupsACL, true))
+    d->users->setNewUserStatus(Auth::User::Disabled);
 }
 
 Wt::Dbo::SqlConnection *Session::connection() const

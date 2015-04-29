@@ -64,7 +64,7 @@ public:
     MediaCollectionBrowser* mediaCollectionBrowser;
     MediaCollection mediaCollection;
     long userId = -1;
-    NavigationBar* navigationBar;
+    NavigationBar* navigationBar  = nullptr;
     Wt::WContainerWidget * playerPage;
     Wt::WContainerWidget * collectionPage;
     Wt::WContainerWidget * userSettingsPage;

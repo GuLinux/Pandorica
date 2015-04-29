@@ -44,49 +44,35 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace std;
 using namespace Wt;
-using namespace Wt::Auth;
+using namespace Auth;
 using namespace WtCommons;
 
 namespace dbo = Wt::Dbo;
-
-AuthWidgetCustom::AuthWidgetCustom(const AuthService& baseAuth, AbstractUserDatabase& users, Login& login, WContainerWidget* parent)
-  : AuthWidget(baseAuth, users, login, parent)
-{
-}
-
-RegistrationModel* AuthWidgetCustom::createRegistrationModel()
-{
-  RegistrationModel *model = AuthWidget::createRegistrationModel();
-  model->setEmailPolicy(Settings::emailVerificationMandatory() ? RegistrationModel::EmailMandatory : RegistrationModel::EmailOptional);
-  return model;
-}
 
 AuthPage::Private::Private(Session* session, AuthPage* q) : session(session), q(q)
 {
 }
 
 
-void AuthWidgetCustom::createOAuthLoginView()
+CustomAuthWidget::CustomAuthWidget(const Auth::AuthService& baseAuth, Auth::AbstractUserDatabase& users, Auth::Login& login, WContainerWidget* parent)
+  : Auth::AuthWidget(baseAuth, users, login, parent)
 {
-  Wt::Auth::AuthWidget::createOAuthLoginView();
-  if(!resolveWidget("icons")) return;
-  WContainerWidget *icons = (WContainerWidget*) resolveWidget("icons");
-  for(auto child: icons->children()) {
-    WImage *image = dynamic_cast<WImage*>(child);
-    if(!image) continue;
-    string imageUrl = image->imageLink().url();
-    
-    boost::replace_all(imageUrl, "css", Settings::staticDeployPath() + "/icons/oauth" );
-    log("notice") << "found oauth image: " << image->imageLink().url() << " >> " << imageUrl;
-    image->setImageLink(imageUrl);
-  }
+
 }
 
 
-Message::Message(Wt::WString text, Wt::WContainerWidget* parent): WTemplate(parent)
+void CustomAuthWidget::recreateView()
+{
+  createLoginView();
+}
+
+
+
+
+Message::Message(WString text, WContainerWidget* parent): WTemplate(parent)
 {
   addStyleClass("alert");
-  setTemplateText(WString("<button type=\"button\" class=\"close\" data-dismiss=\"alert\">&times;</button>{1}").arg(text), Wt::XHTMLUnsafeText);
+  setTemplateText(WString("<button type=\"button\" class=\"close\" data-dismiss=\"alert\">&times;</button>{1}").arg(text), XHTMLUnsafeText);
 }
 
 string animationJs(WWidget *widget, string animation) {
@@ -101,45 +87,22 @@ void AuthPage::Private::authEvent() {
     {Auth::StrongLogin, "StrongLogin"},
   };
   log("notice") << __PRETTY_FUNCTION__ << ": state=" << states[session->login().state()];
+  if(session->login().state() == Auth::DisabledLogin) {
+    log("notice") << "Got disabled login";
+//     session->login().logout();
+    authWidget->recreateView();
+    return;
+  }
   Scope scope([=]{ loginChanged.emit(session->login().state()); });
-  if(!session->login().loggedIn()) {
-//     log("notice") << __PRETTY_FUNCTION__ << ": logout detected";
-//     loggedOut.emit();
-//     messagesContainer->clear();
-//     q->doJavaScript(animationJs(q, "fadeIn"));
+  if(!session->login().loggedIn() || session->login().state() == Auth::DisabledLogin) {
     return;
   }
   log("notice") << "User logged in";
   dbo::Transaction t(*session);
   //   changeSessionId();
   Auth::User user = session->login().user();
-  WPushButton *refreshButton = WW<WPushButton>(wtr("button.retry")).css("btn btn-link").onClick([this](WMouseEvent) {
-    authEvent();
-  }).setAttribute("data-dismiss", "alert");
-  if(Settings::emailVerificationMandatory() && !user.unverifiedEmail().empty()) {
-    log("notice") << "User email empty, unconfirmed?";
-    Message *message = WW<Message>(wtr("user.need_mail_verification")).addCss("alert-block");
-    message->bindWidget("refresh", refreshButton);
-    messagesContainer->addWidget(message);
-    return;
-  }
-  log("notice") << "User email confirmed, or verification not mandatory";
-
-  if(seedIfNoAdmins(t, user)) return;
-  
-  if(session->user()->groups.size() <= 0) {
-    Message *message = WW<Message>(wtr("user.need_to_be_enabled")).addCss("alert-block");
-    if(!mailSent) {
-      ::Utils::mailForUnauthorizedUser(user.email(), user.identity(Auth::Identity::LoginName));
-      mailSent = true;
-    }
-    messagesContainer->addWidget(message);
-    message->bindWidget("refresh", refreshButton);
-    return;
-  }
-//   q->addStyleClass("hidden");
   q->doJavaScript(animationJs(q, "fadeOut"));
-//   loggedIn.emit();
+  seedIfNoAdmins(t, user);
 }
 
 bool AuthPage::Private::seedIfNoAdmins(dbo::Transaction& transaction, Auth::User &user)
@@ -169,7 +132,6 @@ bool AuthPage::Private::seedIfNoAdmins(dbo::Transaction& transaction, Auth::User
       t.commit();
       ::Utils::mailForNewAdmin(user.email(), user.identity("loginname"));
       addMyselfToAdmins->accept();
-      authEvent();
     }).css("btn btn-primary"));
     addMyselfToAdmins->show();
     return true;
@@ -194,9 +156,9 @@ AuthPage::AuthPage(Session* session, WContainerWidget* parent)
     : WContainerWidget(parent), d(session, this)
 {
   session->login().changed().connect([=](_n6){ d->authEvent(); });
-  
+  addStyleClass("container");
   addWidget(WW<WText>(WString("<h1 style=\"text-align: center;\">{1}</h1>").arg(wtr("site-title"))));
-  d->authWidget = new Wt::Auth::AuthWidget(Session::auth(), session->users(), session->login());
+  d->authWidget = new CustomAuthWidget(Session::auth(), session->users(), session->login());
   d->authWidget->model()->addPasswordAuth(&Session::passwordAuth());
   d->authWidget->model()->addOAuth(Session::oAuth());
   d->authWidget->setRegistrationEnabled(true);

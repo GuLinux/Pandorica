@@ -171,7 +171,7 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
       authEvent();
       return;
     }
-    if(state == Auth::DisabledLogin)
+    if(state == Auth::DisabledLogin || ! d->navigationBar)
       return;
     d->navigationBar->animateHide({WAnimation::Fade});
     d->playlist->animateHide({WAnimation::Fade});
@@ -182,6 +182,7 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
       d->mainWidget = 0;
       d->userId = -1;
     });
+    d->navigationBar = nullptr;
   });
   d->authPage->initAuth();
 }

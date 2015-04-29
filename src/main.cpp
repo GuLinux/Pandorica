@@ -317,6 +317,9 @@ bool addStaticResources( WServer &server )
   }
 
   server.addResource( staticResources, Settings::staticDeployPath() );
+  auto oauth_icons_path = boost::filesystem::path(SHARED_FILES_DIR) / "static" / "icons" / "oauth";
+  server.addResource(new WFileResource("image/png", (oauth_icons_path / "oauth-google.png").string()), "/css/oauth-google.png");
+  server.addResource(new WFileResource("image/png", (oauth_icons_path / "oauth-facebook.png").string()), "/css/oauth-facebook.png");
   return true;
 }
 

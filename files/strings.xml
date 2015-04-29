@@ -326,4 +326,5 @@ An email message notifying the invitation was sent to {1}.</message>
 <message id="media.image.fromurl.placeholder">Insert an URL to download here</message>
 <message id="mediabrowser.admin.setlabel">Set label</message>
 <message id="mediacollectionbrowser.setlabel.message">Set display label for {1}</message>
+<message id="Wt.Auth.account-disabled">Account disabled. Please contact Pandorica Administrator</message>
 </messages>

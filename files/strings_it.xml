@@ -380,4 +380,5 @@ cliccando il link seguente o copiando l'URL nel tuo browser:
 <message id="media.image.fromurl.placeholder">Inserisci un URL qui per scaricare</message>
 <message id="mediabrowser.admin.setlabel">Imposta etichetta</message>
 <message id="mediacollectionbrowser.setlabel.message">Assegna un'etichetta a {1}</message>
+<message id="Wt.Auth.account-disabled">Account disabilitato. Si prega di contattare l'amministratore di Pandorica</message>
 </messages>
