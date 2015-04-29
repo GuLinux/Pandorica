@@ -59,6 +59,7 @@ set(pandorica_SOURCES ${models_srcs} ${player_srcs}
     threadpool.cpp
     googlepicker.cpp
     mediapreviewwidget.cpp
+    pandoricawizard.cpp
     ${Pandorica_RCC_SRCS}
 )
 

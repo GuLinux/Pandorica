@@ -41,6 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "settings.h"
 #include <boost/format.hpp>
 #include "utils/d_ptr_implementation.h"
+#include "pandoricawizard.h"
 
 using namespace std;
 using namespace Wt;
@@ -173,6 +174,11 @@ AuthPage::AuthPage(Session* session, WContainerWidget* parent)
   d->authWidget->setRegistrationEnabled(true);
   addWidget(d->stack);
   d->stack->addWidget(d->authWidget);
+  if(! Setting::value<bool>(Setting::PandoricaSetup, false)) {
+    auto wizard = new PandoricaWizard;
+    d->stack->addWidget(wizard);
+    d->stack->setCurrentWidget(wizard);
+  }
   addWidget(d->messagesContainer = new WContainerWidget());
 }
 
