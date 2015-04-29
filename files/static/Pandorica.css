@@ -351,3 +351,7 @@ body {
   -webkit-animation-iteration-count: infinite;
   -webkit-animation-timing-function: linear;
 }
+
+.Wt-auth-registration .modal-footer {
+  float:left;
+}

@@ -54,10 +54,18 @@ AuthPage::Private::Private(Session* session, AuthPage* q) : session(session), q(
 }
 
 
-CustomAuthWidget::CustomAuthWidget(const Auth::AuthService& baseAuth, Auth::AbstractUserDatabase& users, Auth::Login& login, WContainerWidget* parent)
-  : Auth::AuthWidget(baseAuth, users, login, parent)
+CustomAuthWidget::CustomAuthWidget(const Auth::AuthService& baseAuth, Auth::AbstractUserDatabase& users, Auth::Login& login, WStackedWidget *stack, WContainerWidget* parent)
+  : Auth::AuthWidget(baseAuth, users, login, parent), stack(stack)
 {
 
+}
+
+void CustomAuthWidget::registerNewUser(const Wt::Auth::Identity& oauth)
+{
+//     Wt::Auth::AuthWidget::registerNewUser(oauth);
+  auto registrationWidget = createRegistrationView(oauth);
+  stack->addWidget(registrationWidget);
+  stack->setCurrentWidget(registrationWidget);
 }
 
 
@@ -155,14 +163,16 @@ Signal<Auth::LoginState>& AuthPage::loginChanged() const
 AuthPage::AuthPage(Session* session, WContainerWidget* parent)
     : WContainerWidget(parent), d(session, this)
 {
+  d->stack = new WStackedWidget;
   session->login().changed().connect([=](_n6){ d->authEvent(); });
   addStyleClass("container");
   addWidget(WW<WText>(WString("<h1 style=\"text-align: center;\">{1}</h1>").arg(wtr("site-title"))));
-  d->authWidget = new CustomAuthWidget(Session::auth(), session->users(), session->login());
+  d->authWidget = new CustomAuthWidget(Session::auth(), session->users(), session->login(), d->stack);
   d->authWidget->model()->addPasswordAuth(&Session::passwordAuth());
   d->authWidget->model()->addOAuth(Session::oAuth());
   d->authWidget->setRegistrationEnabled(true);
-  addWidget(d->authWidget);
+  addWidget(d->stack);
+  d->stack->addWidget(d->authWidget);
   addWidget(d->messagesContainer = new WContainerWidget());
 }
 

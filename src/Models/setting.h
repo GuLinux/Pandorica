@@ -61,6 +61,7 @@ public:
       AuthEmailName,
       AuthEmailAddress,
       GroupsACL,
+      PandoricaSetup,
     };
 
     template<class Action>

@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef AUTHPAGEPRIVATE_H
 #define AUTHPAGEPRIVATE_H
 #include <Wt/Auth/AuthWidget>
+#include <Wt/WStackedWidget>
 #include "authpage.h"
 
 class Session;
@@ -29,10 +30,14 @@ class AuthPage;
 
 class CustomAuthWidget : public Wt::Auth::AuthWidget {
 public:
-  CustomAuthWidget(const Wt::Auth::AuthService& baseAuth, Wt::Auth::AbstractUserDatabase& users, Wt::Auth::Login& login, Wt::WContainerWidget *parent = 0);
+  CustomAuthWidget(const Wt::Auth::AuthService& baseAuth, Wt::Auth::AbstractUserDatabase& users, Wt::Auth::Login& login, Wt::WStackedWidget *stack, Wt::WContainerWidget *parent = 0);
   void recreateView();
-  
+  virtual void registerNewUser(const Wt::Auth::Identity& oauth);
+private:
+  Wt::WStackedWidget *stack;
 };
+
+
 
 class AuthPage::Private
 {
@@ -44,6 +49,7 @@ public:
     bool mailSent = false;
     CustomAuthWidget* authWidget;
     void authEvent();
+    Wt::WStackedWidget *stack;
 private:
     class AuthPage* const q;
     bool seedIfNoAdmins(Wt::Dbo::Transaction& transaction, Wt::Auth::User& user);
