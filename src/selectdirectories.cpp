@@ -189,7 +189,7 @@ void SelectDirectories::Private::addSubItems( WStandardItem *item, bool sync )
   {
     fs::directory_iterator it {path};
     vector<fs::path> paths;
-    log( "notice" ) << "Filtering directory tree for path: " << path.string();
+//     log( "notice" ) << "Filtering directory tree for path: " << path.string();
     copy_if( it, fs::directory_iterator(), back_inserter( paths ), [ = ]( fs::path p )
     {
       try
@@ -202,7 +202,7 @@ void SelectDirectories::Private::addSubItems( WStandardItem *item, bool sync )
         log( "warning" ) << "Error filtering path " << p.string() << ": " << e.what();
       }
     } );
-    log( "notice" ) << "Sorting tree for path: " << path.string();
+//     log( "notice" ) << "Sorting tree for path: " << path.string();
     sort( begin(paths), end(paths), [ = ]( fs::path a, fs::path b )
     {
       return a.filename() < b.filename();
@@ -211,7 +211,7 @@ void SelectDirectories::Private::addSubItems( WStandardItem *item, bool sync )
     {
       for_each( begin(paths), end(paths), [ = ]( fs::path p )
       {
-        log( "notice" ) << "Adding subpath " << p.string() << " to path " << path.string();
+//         log( "notice" ) << "Adding subpath " << p.string() << " to path " << path.string();
 
         if( items.count( p ) > 0 )
           return;
@@ -236,7 +236,7 @@ void SelectDirectories::Private::addSubItems( WStandardItem *item, bool sync )
   catch
     ( std::exception &e )
   {
-    log( "warning" ) << "Error adding subdirectories for path " << path << ": " << e.what();
+//     log( "warning" ) << "Error adding subdirectories for path " << path << ": " << e.what();
   }
 }
 

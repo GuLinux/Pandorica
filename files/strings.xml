@@ -153,6 +153,8 @@
   <message id="button.close">Close</message>
   <message id="button.retry">Retry</message>
   <message id="button.next">Next</message>
+  <message id="button.previous">Previous</message>
+  <message id="button.finish">Finish</message>
   <message id="button.cancel">Cancel</message>
   <message id="button.clear">Clear</message>
   <message id="button.ok">Ok</message>

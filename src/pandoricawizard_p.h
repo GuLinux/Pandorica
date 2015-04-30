@@ -21,6 +21,8 @@
 #define PRIVATE_H
 #include "pandoricawizard.h"
 #include <Wt/WStackedWidget>
+#include <map>
+#include <functional>
 
 class PandoricaWizard::Private
 {
@@ -29,7 +31,12 @@ public:
     virtual ~Private();
     void addPandoricaModePage();
     void addFileSystemChooser();
+    enum Page { PandoricaModePage, FileSystemChooserPage };
     Wt::WStackedWidget *stack;
+    std::map<Page, std::function<void()>> showPage;
+    Page previousPage;
+    Page nextPage;
+    Wt::WPushButton *previous, *next, *finish;
     enum PandoricaMode {
       Unset = 0x0, Simple = 0x1, Advanced = 0x2
     };

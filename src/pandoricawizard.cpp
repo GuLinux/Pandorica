@@ -28,6 +28,7 @@
 #include <Wt/WRadioButton>
 #include <Wt/WPushButton>
 #include <Wt/WLabel>
+#include <Wt/WToolBar>
 #include "Wt-Commons/wt_helpers.h"
 
 using namespace Wt;
@@ -45,39 +46,55 @@ PandoricaWizard::Private::~Private()
 void PandoricaWizard::Private::addPandoricaModePage()
 {
   PandoricaMode currentMode = static_cast<PandoricaMode>(Setting::value<int>(Setting::PandoricaMode, static_cast<int>(PandoricaMode::Unset)));
-  WGroupBox *groupBox = new WGroupBox("Pandorica Mode");
-  WButtonGroup *buttonGroup = new WButtonGroup(groupBox);
+  auto pandoricaMode = new WGroupBox("Pandorica Mode");
+  WButtonGroup *buttonGroup = new WButtonGroup(pandoricaMode);
   WRadioButton *simpleMode, *advancedMode;
   buttonGroup->addButton(simpleMode = WW<WRadioButton>("simple mode").setInline(false));
   buttonGroup->addButton(advancedMode = WW<WRadioButton>("advanced mode").setInline(false));
   simpleMode->setChecked(currentMode == Simple);
   advancedMode->setChecked(currentMode == Advanced);
-  groupBox->addWidget(simpleMode);
+  pandoricaMode->addWidget(simpleMode);
   WLabel *simpleModeLabel = WW<WLabel>("Sigle user mode, automatically share every content to anyone on the same network without permissions or logging in. This is suggested for regular home usage.").setInline(false);
   simpleModeLabel->setBuddy(simpleMode);
-  groupBox->addWidget(simpleModeLabel);
+  pandoricaMode->addWidget(simpleModeLabel);
   WLabel *advancedModeLabel = WW<WLabel>("Multi user mode, requires login and permissions for viewing content. Highly reccomended for public network servers.").setInline(false);
-  groupBox->addWidget(advancedMode);
+  pandoricaMode->addWidget(advancedMode);
   advancedModeLabel->setBuddy(advancedMode);
-  groupBox->addWidget(advancedModeLabel);
-  WPushButton *nextButton = WW<WPushButton>(WString::tr("button.next")).css("btn-primary").onClick([=](WMouseEvent){ stack->setCurrentIndex(stack->currentIndex()+1); }).setEnabled(currentMode != Unset);
-  groupBox->addWidget(nextButton);
+  pandoricaMode->addWidget(advancedModeLabel);
   buttonGroup->checkedChanged().connect([=](WRadioButton* b,_n5){
     PandoricaMode newMode = b==simpleMode ? Simple : Advanced;
-    nextButton->setEnabled(true);
+    next->setEnabled(true);
     Setting::write(Setting::PandoricaMode, static_cast<int>(newMode));
   });
-  stack->addWidget(groupBox);
+  stack->addWidget(pandoricaMode);
+  showPage[PandoricaModePage] = [=] {
+    stack->setCurrentWidget(pandoricaMode);
+    next->setEnabled(static_cast<PandoricaMode>(Setting::value<int>(Setting::PandoricaMode, static_cast<int>(PandoricaMode::Unset))) != Unset);
+    previous->setDisabled(true);
+    finish->setDisabled(true);
+    nextPage = FileSystemChooserPage;
+  };
 }
 
 
 void PandoricaWizard::Private::addFileSystemChooser()
 {
-  WGroupBox *groupBox = new WGroupBox("Multimedia Library");
-  auto selectDirectories = new SelectDirectories({"/"}, Settings::mediasDirectories(), [=](const string &p){}, [=](const string &p){}, SelectDirectories::Multiple );
+  auto fileSystemChooser = new WGroupBox("Multimedia Library");
+  auto selectDirectories = new SelectDirectories({"/"},
+						 Settings::mediasDirectories(), [=](const string &p){Settings::addMediaDirectory(p);},
+						 [=](const string &p){Settings::removeMediaDirectory(p);},
+						 SelectDirectories::Multiple );
   selectDirectories->setHeight(500);
-  selectDirectories->addTo(groupBox);
-  stack->addWidget(groupBox);
+  selectDirectories->addTo(fileSystemChooser);
+  stack->addWidget(fileSystemChooser);
+  showPage[FileSystemChooserPage] = [=] {
+    stack->setCurrentWidget(fileSystemChooser);
+    next->setEnabled(static_cast<PandoricaMode>(Setting::value<int>(Setting::PandoricaMode, static_cast<int>(PandoricaMode::Unset))) != Simple);
+    previous->setEnabled(true);
+    finish->setEnabled(static_cast<PandoricaMode>(Setting::value<int>(Setting::PandoricaMode, static_cast<int>(PandoricaMode::Unset))) == PandoricaMode::Simple);
+    nextPage = FileSystemChooserPage;
+    previousPage = PandoricaModePage;
+  };
 }
 
 
@@ -88,7 +105,16 @@ PandoricaWizard::~PandoricaWizard()
 PandoricaWizard::PandoricaWizard(Wt::WContainerWidget* parent)
     : d(this)
 {
-  setImplementation(d->stack);
+  setImplementation(
+    WW<WContainerWidget>().add(d->stack)
+    .add(
+      WW<WToolBar>().css("pull-right")
+      .addButton(d->previous = WW<WPushButton>(WString::tr("button.previous")).css("btn-warning").setEnabled(false).onClick([=](WMouseEvent){ d->showPage[d->previousPage](); }))
+      .addButton(d->next = WW<WPushButton>(WString::tr("button.next")).css("btn-primary").setEnabled(false).onClick([=](WMouseEvent){ d->showPage[d->nextPage](); }))
+      .addButton(d->finish = WW<WPushButton>(WString::tr("button.finish")).css("btn-success").setEnabled(false).onClick([=](WMouseEvent){ delete this; }))
+    )
+  );
   d->addPandoricaModePage();
   d->addFileSystemChooser();
+  d->showPage[Private::PandoricaModePage]();
 }
