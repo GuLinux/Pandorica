@@ -49,9 +49,9 @@ class Settings
   public:
     Settings();
     virtual ~Settings();
-    std::vector<std::string> mediasDirectories( Wt::Dbo::Session *session ) const;
-    void addMediaDirectory( std::string directory, Wt::Dbo::Session *session );
-    void removeMediaDirectory( std::string directory, Wt::Dbo::Session *session );
+    static std::vector<std::string> mediasDirectories();
+    static void addMediaDirectory( std::string directory );
+    static void removeMediaDirectory( std::string directory );
 
     std::string value( std::string cookieName );
     std::string locale();

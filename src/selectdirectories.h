@@ -36,7 +36,7 @@ class WContainerWidget;
 
 typedef std::function<void(std::string)> OnPathClicked;
 
-class SelectDirectories : public Wt::WObject
+class SelectDirectories : public Wt::WObject // TODO: make this a WCompositeWidget?
 {
 public:
   enum SelectionType { Single, Multiple };

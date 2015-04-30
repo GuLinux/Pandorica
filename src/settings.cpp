@@ -55,13 +55,8 @@ map<string,string> defaultValues {
 Settings::Settings() : d(this) {}
 Settings::~Settings() {}
 
-vector< string > Settings::mediasDirectories(Dbo::Session *session) const
-{
-  if(d->mediaDirectories.empty()) {
-    Dbo::Transaction t(*session);
-    d->mediaDirectories = Setting::values<string>(Setting::MediaDirectories);
-  }
-  return d->mediaDirectories;
+vector< string > Settings::mediasDirectories() {
+  return Setting::values<string>(Setting::MediaDirectories);
 }
 
 const string PATH_SEP()
@@ -74,16 +69,19 @@ const string PATH_SEP()
 }
 
 
-void Settings::addMediaDirectory(string directory, Dbo::Session* session)
+void Settings::addMediaDirectory(string directory)
 {
-  d->mediaDirectories.push_back(directory);
-  Setting::write<string>(Setting::MediaDirectories, d->mediaDirectories);
+  auto _mediaDirectories = Settings::mediasDirectories();
+  _mediaDirectories.push_back(directory);
+  Setting::write<string>(Setting::MediaDirectories, _mediaDirectories);
 }
 
-void Settings::removeMediaDirectory(string directory, Dbo::Session* session)
+void Settings::removeMediaDirectory(string directory)
 {
-  d->mediaDirectories.erase(remove_if(begin(d->mediaDirectories), end(d->mediaDirectories), [=](string d) { return d == directory; }), end(d->mediaDirectories));
-  Setting::write<string>(Setting::MediaDirectories, d->mediaDirectories);
+  auto _mediaDirectories = Settings::mediasDirectories();
+  
+  _mediaDirectories.erase(remove_if(begin(_mediaDirectories), end(_mediaDirectories), [=](string d) { return d == directory; }), end(_mediaDirectories));
+  Setting::write<string>(Setting::MediaDirectories, _mediaDirectories);
 }
 
 string Settings::sharedFilesDir(std::string append)
@@ -94,7 +92,7 @@ string Settings::sharedFilesDir(std::string append)
 
 string Settings::relativePath(string mediaPath, Dbo::Session* session, bool removeTrailingSlash) const
 {
-  for(string mediaDirectory: mediasDirectories(session)) {
+  for(string mediaDirectory: mediasDirectories()) {
     if(mediaPath.find(mediaDirectory) == string::npos) continue;
     string relPath = boost::replace_all_copy(mediaPath, mediaDirectory, "");
     if(removeTrailingSlash && relPath[0] == '/') {

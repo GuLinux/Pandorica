@@ -21,6 +21,8 @@
 #include "pandoricawizard_p.h"
 #include "utils/d_ptr_implementation.h"
 #include "Models/setting.h"
+#include "selectdirectories.h"
+#include "settings.h"
 #include <Wt/WGroupBox>
 #include <Wt/WButtonGroup>
 #include <Wt/WRadioButton>
@@ -58,15 +60,23 @@ void PandoricaWizard::Private::addPandoricaModePage()
   groupBox->addWidget(advancedMode);
   advancedModeLabel->setBuddy(advancedMode);
   groupBox->addWidget(advancedModeLabel);
-  WPushButton *nextButton = WW<WPushButton>(WString::tr("button.next")).css("btn-primary").onClick([=](WMouseEvent){ stack->setCurrentIndex(stack->currentIndex()+1); }).setEnabled(currentMode == Advanced);
-  WPushButton *finishButton = WW<WPushButton>(WString::tr("button.next")).css("btn-success").onClick([=](WMouseEvent){ delete q; }).setEnabled(currentMode == Simple);
+  WPushButton *nextButton = WW<WPushButton>(WString::tr("button.next")).css("btn-primary").onClick([=](WMouseEvent){ stack->setCurrentIndex(stack->currentIndex()+1); }).setEnabled(currentMode != Unset);
   groupBox->addWidget(nextButton);
   buttonGroup->checkedChanged().connect([=](WRadioButton* b,_n5){
     PandoricaMode newMode = b==simpleMode ? Simple : Advanced;
-    nextButton->setEnabled(newMode == Simple);
-    finishButton->setEnabled(newMode == Advanced);
+    nextButton->setEnabled(true);
     Setting::write(Setting::PandoricaMode, static_cast<int>(newMode));
   });
+  stack->addWidget(groupBox);
+}
+
+
+void PandoricaWizard::Private::addFileSystemChooser()
+{
+  WGroupBox *groupBox = new WGroupBox("Multimedia Library");
+  auto selectDirectories = new SelectDirectories({"/"}, Settings::mediasDirectories(), [=](const string &p){}, [=](const string &p){}, SelectDirectories::Multiple );
+  selectDirectories->setHeight(500);
+  selectDirectories->addTo(groupBox);
   stack->addWidget(groupBox);
 }
 
@@ -80,4 +90,5 @@ PandoricaWizard::PandoricaWizard(Wt::WContainerWidget* parent)
 {
   setImplementation(d->stack);
   d->addPandoricaModePage();
+  d->addFileSystemChooser();
 }

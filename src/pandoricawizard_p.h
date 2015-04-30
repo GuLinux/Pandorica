@@ -28,6 +28,7 @@ public:
     Private(PandoricaWizard* q);
     virtual ~Private();
     void addPandoricaModePage();
+    void addFileSystemChooser();
     Wt::WStackedWidget *stack;
     enum PandoricaMode {
       Unset = 0x0, Simple = 0x1, Advanced = 0x2

@@ -55,7 +55,7 @@ void MediaCollection::rescan( const function< void() >& onFinish )
     d->collection.clear();
     d->mediaDirectories.clear();
     
-    for( fs::path p : d->settings->mediasDirectories( &transaction.session() ) ) {
+    for( fs::path p : d->settings->mediasDirectories() ) {
       shared_ptr<MediaDirectory> rootDirectory(new MediaDirectory(p));
       d->mediaDirectories.push_back(rootDirectory);
       d->listDirectory( p, rootDirectory );

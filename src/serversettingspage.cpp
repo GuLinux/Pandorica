@@ -91,10 +91,10 @@ WContainerWidget* ServerSettingsPage::Private::selectMediaRootPage()
 #else
   rootPaths.push_back("/");
 #endif
-  SelectDirectories *selectDirectories = new SelectDirectories(rootPaths, settings->mediasDirectories(session), [=](string p){
-    settings->addMediaDirectory(p, session);
+  SelectDirectories *selectDirectories = new SelectDirectories(rootPaths, settings->mediasDirectories(), [=](string p){
+    settings->addMediaDirectory(p);
   }, [=](string p){
-    settings->removeMediaDirectory(p, session);
+    settings->removeMediaDirectory(p);
   }, SelectDirectories::Multiple, q );
   selectDirectories->setHeight(465);
   selectDirectories->addTo(groupBox);
