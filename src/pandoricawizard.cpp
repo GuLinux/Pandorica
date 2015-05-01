@@ -53,6 +53,7 @@ void PandoricaWizard::Private::addPandoricaModePage()
   auto currentDatabaseType = Settings::databaseType();
   Settings::PandoricaMode currentMode = Settings::pandoricaMode();
   auto pandoricaMode = new WGroupBox("Pandorica Mode");
+  
   WButtonGroup *buttonGroup = new WButtonGroup(pandoricaMode);
   WRadioButton *simpleMode, *advancedMode;
   buttonGroup->addButton(simpleMode = WW<WRadioButton>("simple mode").setInline(false));
@@ -67,6 +68,7 @@ void PandoricaWizard::Private::addPandoricaModePage()
   pandoricaMode->addWidget(advancedMode);
   advancedModeLabel->setBuddy(advancedMode);
   pandoricaMode->addWidget(advancedModeLabel);
+  
   buttonGroup->checkedChanged().connect([=](WRadioButton* b,_n5){
     Settings::PandoricaMode newMode = b==simpleMode ? Settings::Simple : Settings::Advanced;
     Settings::databaseType(newMode == Settings::Simple ? Settings::Sqlite3 : currentDatabaseType);
@@ -99,9 +101,53 @@ void PandoricaWizard::Private::addFileSystemChooser()
     next->setEnabled(Settings::pandoricaMode() != Settings::Simple);
     previous->setEnabled(true);
     finish->setEnabled(Settings::pandoricaMode() == Settings::Simple);
-    nextPage = FileSystemChooserPage;
+    nextPage = DatabaseSetup;
     previousPage = PandoricaModePage;
   };
+}
+
+void PandoricaWizard::Private::addDatabaseSetup()
+{
+  auto dbType = Settings::databaseType();
+  auto groupBox = new WGroupBox("Setup Database Connection");
+  WButtonGroup *buttonGroup = new WButtonGroup(groupBox);
+  WRadioButton *sqlite3, *postgresql;
+  buttonGroup->addButton(sqlite3 = WW<WRadioButton>("Sqlite3").setInline(false));
+  buttonGroup->addButton(postgresql = WW<WRadioButton>("PostgreSQL").setInline(false));
+  sqlite3->setChecked(dbType == Settings::Sqlite3);
+  postgresql->setChecked(dbType == Settings::PostgreSQL);
+  groupBox->addWidget(sqlite3);
+  WLabel *sqlite3Label = WW<WLabel>("A simple, single file database, requiring no setup. Reccomended for few users usage.").setInline(false);
+  sqlite3Label->setBuddy(sqlite3);
+  groupBox->addWidget(sqlite3Label);
+  WLabel *postgresqlLabel = WW<WLabel>("A more advanced database engine. Requires an external PostgreSQL installation.").setInline(false);
+#ifndef HAVE_POSTGRES
+  postgresql->setEnabled(false);
+#endif
+  groupBox->addWidget(postgresql);
+  postgresqlLabel->setBuddy(postgresql);
+  stack->addWidget(groupBox);
+  groupBox->addWidget(postgresqlLabel);
+  showPage[DatabaseSetup] = [=] {
+    previous->setEnabled(true);
+    next->setEnabled(true);
+    finish->setEnabled(false);
+    previousPage = FileSystemChooserPage;
+    stack->setCurrentWidget(groupBox);
+  };
+}
+
+
+GroupPtr PandoricaWizard::Private::adminGroup()
+{
+  Session session;
+  Dbo::Transaction t(session);
+  GroupPtr adminGroup = session.find<Group>().where("group_name = ?").bind("Admin");
+  wApp->log("notice") << "Admin group found: " << adminGroup << (adminGroup ? string{": "} + adminGroup->groupName() : string{});
+  if(! adminGroup) {
+    wApp->log("notice") << "Creating main admin group";
+    adminGroup = session.add(new Group("Admin", true));
+  }
 }
 
 
@@ -110,12 +156,8 @@ PandoricaWizard::~PandoricaWizard()
   wApp->log("notice") << "Finalizing settings...";
   Session session(true);
   Dbo::Transaction t(session);
-  GroupPtr adminGroup = session.find<Group>().where("group_name = ?").bind("Admin");
-  wApp->log("notice") << "Admin group found: " << adminGroup << (adminGroup ? string{": "} + adminGroup->groupName() : string{});
-  if(! adminGroup) {
-    wApp->log("notice") << "Creating main admin group";
-    adminGroup = session.add(new Group("Admin", true));
-  }
+  auto adminGroup = d->adminGroup();
+  
   Auth::User adminAuthUser = session.users().findWithIdentity("pandorica", "Admin");
   if(!adminAuthUser.isValid()) {
     adminAuthUser = session.users().registerNew();
@@ -151,5 +193,6 @@ PandoricaWizard::PandoricaWizard(Wt::WContainerWidget* parent)
   );
   d->addPandoricaModePage();
   d->addFileSystemChooser();
+  d->addDatabaseSetup();
   d->showPage[Private::PandoricaModePage]();
 }

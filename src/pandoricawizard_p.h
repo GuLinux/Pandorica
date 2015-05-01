@@ -24,6 +24,7 @@
 #include <map>
 #include <functional>
 
+class Group;
 class PandoricaWizard::Private
 {
 public:
@@ -31,16 +32,16 @@ public:
     virtual ~Private();
     void addPandoricaModePage();
     void addFileSystemChooser();
-    enum Page { PandoricaModePage, FileSystemChooserPage };
+    void addDatabaseSetup();
+    enum Page { PandoricaModePage, FileSystemChooserPage, DatabaseSetup };
     Wt::WStackedWidget *stack;
     std::map<Page, std::function<void()>> showPage;
     Page previousPage;
     Page nextPage;
     Wt::WPushButton *previous, *next, *finish;
     Wt::Signal<> finished;
+    Wt::Dbo::ptr<Group> adminGroup();
 private:
     class PandoricaWizard* const q;
 };
-
-
 #endif // PRIVATE_H
