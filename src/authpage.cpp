@@ -177,7 +177,7 @@ AuthPage::AuthPage(Session* session, WContainerWidget* parent)
     wizard->finished().connect(d.get(), &AuthPage::Private::setupLogin);
   }
   else
-    d->setupLogin();
+    WServer::instance()->post(wApp->sessionId(), [=]{d->setupLogin();});
   addWidget(d->messagesContainer = new WContainerWidget());
 }
 
@@ -186,7 +186,6 @@ void AuthPage::Private::setupLogin()
   if(Settings::pandoricaMode() == Settings::Simple) {
     session->login().login(session->users().findWithIdentity("pandorica", "Admin"));
     wApp->log("notice") << "Simple login mode found: logging in admin user: " << session->login().loggedIn();
-    wApp->changeSessionId();
     return;
   }
   authWidget = new CustomAuthWidget(Session::auth(), session->users(), session->login(), stack);

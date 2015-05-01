@@ -167,6 +167,7 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
   root()->addWidget(d->authPage); 
 //  root()->addWidget(d->authPage = new AuthPage(d->session));
   d->authPage->loginChanged().connect([=](Auth::LoginState state, _n5) {
+    log("notice") << "got login event: " << state;
     if(state == Auth::WeakLogin || state == Auth::StrongLogin) {
       authEvent();
       return;
