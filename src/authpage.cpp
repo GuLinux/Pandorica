@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "authpage.h"
 #include "private/authpage_p.h"
 #include <Wt/Auth/RegistrationModel>
+#include <Wt/Auth/Dbo/UserDatabase>
 #include <Wt/WText>
 #include <Wt/WPushButton>
 #include <Wt/WDialog>
@@ -164,25 +165,39 @@ Signal<Auth::LoginState>& AuthPage::loginChanged() const
 AuthPage::AuthPage(Session* session, WContainerWidget* parent)
     : WContainerWidget(parent), d(session, this)
 {
-  d->stack = new WStackedWidget;
   session->login().changed().connect([=](_n6){ d->authEvent(); });
+  d->stack = new WStackedWidget;
   addStyleClass("container");
   addWidget(WW<WText>(WString("<h1 style=\"text-align: center;\">{1}</h1>").arg(wtr("site-title"))));
-  d->authWidget = new CustomAuthWidget(Session::auth(), session->users(), session->login(), d->stack);
-  d->authWidget->model()->addPasswordAuth(&Session::passwordAuth());
-  d->authWidget->model()->addOAuth(Session::oAuth());
-  d->authWidget->setRegistrationEnabled(true);
   addWidget(d->stack);
-  d->stack->addWidget(d->authWidget);
   if(! Setting::value<bool>(Setting::PandoricaSetup, false)) {
     auto wizard = new PandoricaWizard;
     d->stack->addWidget(wizard);
     d->stack->setCurrentWidget(wizard);
+    wizard->finished().connect(d.get(), &AuthPage::Private::setupLogin);
   }
+  else
+    d->setupLogin();
   addWidget(d->messagesContainer = new WContainerWidget());
 }
 
+void AuthPage::Private::setupLogin()
+{
+  if(Settings::pandoricaMode() == Settings::Simple) {
+    session->login().login(session->users().findWithIdentity("pandorica", "Admin"));
+    wApp->log("notice") << "Simple login mode found: logging in admin user: " << session->login().loggedIn();
+    wApp->changeSessionId();
+    return;
+  }
+  authWidget = new CustomAuthWidget(Session::auth(), session->users(), session->login(), stack);
+  authWidget->model()->addPasswordAuth(&Session::passwordAuth());
+  authWidget->model()->addOAuth(Session::oAuth());
+  authWidget->setRegistrationEnabled(true);
+  stack->addWidget(authWidget);
+  authWidget->processEnvironment();
+}
+
+
 void AuthPage::initAuth()
 {
-  d->authWidget->processEnvironment();
 }

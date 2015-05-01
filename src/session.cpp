@@ -121,7 +121,7 @@ Session::Session(bool full)
   if(!full)
     return;
   d->users = new UserDatabase(*this);
-  if(Setting::value<bool>(Setting::GroupsACL, true))
+  if(Setting::value<bool>(Setting::GroupsACL, false))
     d->users->setNewUserStatus(Auth::User::Disabled);
 }
 
@@ -218,7 +218,7 @@ Session::~Session()
   delete d->users;
 }
 
-Wt::Auth::AbstractUserDatabase& Session::users()
+UserDatabase& Session::users()
 {
   return *d->users;
 }

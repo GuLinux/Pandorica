@@ -50,10 +50,12 @@ public:
     CustomAuthWidget* authWidget;
     void authEvent();
     Wt::WStackedWidget *stack;
+    void setupLogin();
 private:
     class AuthPage* const q;
     bool seedIfNoAdmins(Wt::Dbo::Transaction& transaction, Wt::Auth::User& user);
 };
+
 
 
 class Message : public Wt::WTemplate {

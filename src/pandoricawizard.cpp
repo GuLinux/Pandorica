@@ -30,6 +30,9 @@
 #include <Wt/WPushButton>
 #include <Wt/WLabel>
 #include <Wt/WToolBar>
+#include <Wt/Auth/AbstractUserDatabase>
+#include <Wt/Auth/Dbo/AuthInfo>
+#include <Wt/Auth/Dbo/UserDatabase>
 #include "Wt-Commons/wt_helpers.h"
 #include "Models/models.h"
 
@@ -105,7 +108,7 @@ void PandoricaWizard::Private::addFileSystemChooser()
 PandoricaWizard::~PandoricaWizard()
 {
   wApp->log("notice") << "Finalizing settings...";
-  Session session;
+  Session session(true);
   Dbo::Transaction t(session);
   GroupPtr adminGroup = session.find<Group>().where("group_name = ?").bind("Admin");
   wApp->log("notice") << "Admin group found: " << adminGroup << (adminGroup ? string{": "} + adminGroup->groupName() : string{});
@@ -113,11 +116,18 @@ PandoricaWizard::~PandoricaWizard()
     wApp->log("notice") << "Creating main admin group";
     adminGroup = session.add(new Group("Admin", true));
   }
-  UserPtr adminUser = session.find<User>().where("id = 1");
-  if(!adminUser) {
-    adminUser = session.add(new User);
+  Auth::User adminAuthUser = session.users().findWithIdentity("pandorica", "Admin");
+  if(!adminAuthUser.isValid()) {
+    adminAuthUser = session.users().registerNew();
+    session.users().setIdentity(adminAuthUser, "pandorica", "Admin");
+    AuthInfoPtr authInfo = session.users().find(adminAuthUser);
+    UserPtr adminUser = session.add(new User());
+    adminAuthUser.setStatus(Auth::User::Normal);
+    authInfo.modify()->setUser(adminUser);
+    adminGroup.modify()->users.insert(adminUser);
+    t.commit();
   }
-  adminGroup.modify()->users.insert(adminUser);
+  Setting::write(Setting::PandoricaSetup, true);
   d->finished.emit();
 }
 
