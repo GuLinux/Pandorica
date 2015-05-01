@@ -23,6 +23,7 @@
 #include "Models/setting.h"
 #include "selectdirectories.h"
 #include "settings.h"
+#include "session.h"
 #include <Wt/WGroupBox>
 #include <Wt/WButtonGroup>
 #include <Wt/WRadioButton>
@@ -30,6 +31,7 @@
 #include <Wt/WLabel>
 #include <Wt/WToolBar>
 #include "Wt-Commons/wt_helpers.h"
+#include "Models/models.h"
 
 using namespace Wt;
 using namespace WtCommons;
@@ -45,14 +47,15 @@ PandoricaWizard::Private::~Private()
 
 void PandoricaWizard::Private::addPandoricaModePage()
 {
-  PandoricaMode currentMode = static_cast<PandoricaMode>(Setting::value<int>(Setting::PandoricaMode, static_cast<int>(PandoricaMode::Unset)));
+  auto currentDatabaseType = Settings::databaseType();
+  Settings::PandoricaMode currentMode = Settings::pandoricaMode();
   auto pandoricaMode = new WGroupBox("Pandorica Mode");
   WButtonGroup *buttonGroup = new WButtonGroup(pandoricaMode);
   WRadioButton *simpleMode, *advancedMode;
   buttonGroup->addButton(simpleMode = WW<WRadioButton>("simple mode").setInline(false));
   buttonGroup->addButton(advancedMode = WW<WRadioButton>("advanced mode").setInline(false));
-  simpleMode->setChecked(currentMode == Simple);
-  advancedMode->setChecked(currentMode == Advanced);
+  simpleMode->setChecked(currentMode == Settings::Simple);
+  advancedMode->setChecked(currentMode == Settings::Advanced);
   pandoricaMode->addWidget(simpleMode);
   WLabel *simpleModeLabel = WW<WLabel>("Sigle user mode, automatically share every content to anyone on the same network without permissions or logging in. This is suggested for regular home usage.").setInline(false);
   simpleModeLabel->setBuddy(simpleMode);
@@ -62,14 +65,15 @@ void PandoricaWizard::Private::addPandoricaModePage()
   advancedModeLabel->setBuddy(advancedMode);
   pandoricaMode->addWidget(advancedModeLabel);
   buttonGroup->checkedChanged().connect([=](WRadioButton* b,_n5){
-    PandoricaMode newMode = b==simpleMode ? Simple : Advanced;
+    Settings::PandoricaMode newMode = b==simpleMode ? Settings::Simple : Settings::Advanced;
+    Settings::databaseType(newMode == Settings::Simple ? Settings::Sqlite3 : currentDatabaseType);
     next->setEnabled(true);
-    Setting::write(Setting::PandoricaMode, static_cast<int>(newMode));
+    Settings::pandoricaMode(newMode);
   });
   stack->addWidget(pandoricaMode);
   showPage[PandoricaModePage] = [=] {
     stack->setCurrentWidget(pandoricaMode);
-    next->setEnabled(static_cast<PandoricaMode>(Setting::value<int>(Setting::PandoricaMode, static_cast<int>(PandoricaMode::Unset))) != Unset);
+    next->setEnabled(Settings::pandoricaMode() != Settings::Unset);
     previous->setDisabled(true);
     finish->setDisabled(true);
     nextPage = FileSystemChooserPage;
@@ -89,9 +93,9 @@ void PandoricaWizard::Private::addFileSystemChooser()
   stack->addWidget(fileSystemChooser);
   showPage[FileSystemChooserPage] = [=] {
     stack->setCurrentWidget(fileSystemChooser);
-    next->setEnabled(static_cast<PandoricaMode>(Setting::value<int>(Setting::PandoricaMode, static_cast<int>(PandoricaMode::Unset))) != Simple);
+    next->setEnabled(Settings::pandoricaMode() != Settings::Simple);
     previous->setEnabled(true);
-    finish->setEnabled(static_cast<PandoricaMode>(Setting::value<int>(Setting::PandoricaMode, static_cast<int>(PandoricaMode::Unset))) == PandoricaMode::Simple);
+    finish->setEnabled(Settings::pandoricaMode() == Settings::Simple);
     nextPage = FileSystemChooserPage;
     previousPage = PandoricaModePage;
   };
@@ -100,7 +104,28 @@ void PandoricaWizard::Private::addFileSystemChooser()
 
 PandoricaWizard::~PandoricaWizard()
 {
+  wApp->log("notice") << "Finalizing settings...";
+  Session session;
+  Dbo::Transaction t(session);
+  GroupPtr adminGroup = session.find<Group>().where("group_name = ?").bind("Admin");
+  wApp->log("notice") << "Admin group found: " << adminGroup << (adminGroup ? string{": "} + adminGroup->groupName() : string{});
+  if(! adminGroup) {
+    wApp->log("notice") << "Creating main admin group";
+    adminGroup = session.add(new Group("Admin", true));
+  }
+  UserPtr adminUser = session.find<User>().where("id = 1");
+  if(!adminUser) {
+    adminUser = session.add(new User);
+  }
+  adminGroup.modify()->users.insert(adminUser);
+  d->finished.emit();
 }
+
+Signal<>& PandoricaWizard::finished() const
+{
+  return d->finished;
+}
+
 
 PandoricaWizard::PandoricaWizard(Wt::WContainerWidget* parent)
     : d(this)

@@ -52,6 +52,7 @@ string Setting::keyName(Setting::KeyName key)
 {
   static map<KeyName,string> keyNames {
     {QuitPassword, "quit-password"},
+    {DatabaseType, "database-type"},
     {PostgreSQL_Hostname, "postgresql-hostname"},
     {PostgreSQL_Database, "postgresql-database"},
     {PostgreSQL_Port, "postgresql-port"},
@@ -71,7 +72,6 @@ string Setting::keyName(Setting::KeyName key)
     {PandoricaSetup, "pandorica_setup"},
     {PandoricaMode, "pandorica_mode"},
   };
-  
   return keyNames[key];
 }
 

@@ -91,6 +91,12 @@ class Settings
       widget->animateHide( animations[animationType].get() );
     }
 
+    enum DatabaseType { PostgreSQL, Sqlite3 };
+    enum PandoricaMode { Unset = 0x0, Simple = 0x1, Advanced = 0x2 };
+    static DatabaseType databaseType();
+    static void databaseType(DatabaseType type);
+    static PandoricaMode pandoricaMode();
+    static void pandoricaMode(PandoricaMode mode);
   private:
     D_PTR;
 

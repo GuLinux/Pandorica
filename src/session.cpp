@@ -33,9 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifdef HAVE_POSTGRES
   #include <Wt/Dbo/backend/Postgres>
 #endif
-#ifdef HAVE_SQLITE3
 #include <Wt/Dbo/backend/Sqlite3>
-#endif
 #include <Wt/WApplication>
 #include <Wt/WServer>
 #include "private/session_p.h"
@@ -118,8 +116,7 @@ Session::Session(bool full)
     } catch(std::exception &e) {
 //       WServer::instance()->log("warning") << "error creating new database: " << e.what();
     }
-    Setting::write(Setting::DatabaseVersion
-    , DATABASE_VERSION);
+    Setting::write(Setting::DatabaseVersion, DATABASE_VERSION);
   }
   if(!full)
     return;
@@ -176,19 +173,17 @@ void Session::Private::createConnection()
 {
 #ifdef HAVE_POSTGRES
   static string psqlConnParameters = psqlConnectionString();
-  if(!psqlConnParameters.empty()) {
+  if(Settings::databaseType() == Settings::PostgreSQL && !psqlConnParameters.empty()) {
     connection.reset(new dbo::backend::Postgres(psqlConnParameters));
     return;
   }
 #endif
-#ifdef HAVE_SQLITE3
   mutex = sqlite3_write_lock_mutex;
   string sqlite3DatabasePath = Settings::sqlite3DatabasePath("Pandorica.sqlite");
   WServer::instance()->log("notice") << "Using sqlite connection: " << sqlite3DatabasePath;
   
   connection.reset(new dbo::backend::Sqlite3(sqlite3DatabasePath ));
   connection->executeSql("PRAGMA journal_mode=WAL;");
-#endif
 }
 
 class Session::WriteLock {

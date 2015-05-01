@@ -28,7 +28,7 @@ class PandoricaWizard : public Wt::WCompositeWidget
 public:
     ~PandoricaWizard();
     PandoricaWizard(Wt::WContainerWidget* parent = 0);
-
+    Wt::Signal<> &finished() const;
 private:
     D_PTR;
 };

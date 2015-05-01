@@ -240,5 +240,24 @@ WAnimation Settings::Animation::get()
   ? mobile : desktop;
 }
 
+void Settings::databaseType(Settings::DatabaseType type)
+{
+  Setting::write(Setting::DatabaseType, static_cast<int>(type));
+}
+
+Settings::DatabaseType Settings::databaseType()
+{
+  return static_cast<DatabaseType>(Setting::value<int>(Setting::DatabaseType, static_cast<int>(DatabaseType::Sqlite3)));
+}
+
+void Settings::pandoricaMode(Settings::PandoricaMode mode)
+{
+  Setting::write(Setting::PandoricaMode, static_cast<int>(mode));
+}
+
+Settings::PandoricaMode Settings::pandoricaMode()
+{
+  return static_cast<PandoricaMode>(Setting::value<int>(Setting::PandoricaMode, static_cast<int>(PandoricaMode::Unset)));
+}
 
 

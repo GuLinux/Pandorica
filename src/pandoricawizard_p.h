@@ -37,10 +37,7 @@ public:
     Page previousPage;
     Page nextPage;
     Wt::WPushButton *previous, *next, *finish;
-    enum PandoricaMode {
-      Unset = 0x0, Simple = 0x1, Advanced = 0x2
-    };
-
+    Wt::Signal<> finished;
 private:
     class PandoricaWizard* const q;
 };

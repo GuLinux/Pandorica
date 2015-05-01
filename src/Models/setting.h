@@ -45,6 +45,7 @@ public:
     ~Setting();
     enum KeyName {
       QuitPassword,
+      DatabaseType,
       PostgreSQL_Hostname,
       PostgreSQL_Port,
       PostgreSQL_Database,
