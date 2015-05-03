@@ -344,4 +344,5 @@ An email message notifying the invitation was sent to {1}.</message>
 <message id="wizard.sqlite3.label">A simple, single file database, requiring no setup. Reccomended for few users usage.</message>
 <message id="wizard.postgresql">PostgreSQL</message>
 <message id="wizard.postgresql.label">A more advanced database engine. Requires an external PostgreSQL installation.</message>
+<message id="wizard.postgresql">PostgreSQL Connection Settings</message>
 </messages>

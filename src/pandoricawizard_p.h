@@ -40,7 +40,7 @@ public:
     Page nextPage;
     Wt::WPushButton *previous, *next, *finish;
     Wt::Signal<> finished;
-    Wt::Dbo::ptr<Group> adminGroup();
+    Wt::Dbo::ptr<Group> adminGroup(Wt::Dbo::Transaction &transaction);
     Wt::WRadioButton *addRadio(const std::string &textKey, Wt::WContainerWidget *container, Wt::WButtonGroup *buttonGroup);
     void displayPage(Wt::WWidget *widget, Page previousPage, Page nextPage);
 private:

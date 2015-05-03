@@ -33,7 +33,10 @@
 #include <Wt/Auth/AbstractUserDatabase>
 #include <Wt/Auth/Dbo/AuthInfo>
 #include <Wt/Auth/Dbo/UserDatabase>
+#include <Wt/WLineEdit>
+#include <Wt/WSpinBox>
 #include "Wt-Commons/wt_helpers.h"
+#include <Wt-Commons/wform.h>
 #include "Models/models.h"
 
 using namespace Wt;
@@ -87,18 +90,53 @@ void PandoricaWizard::Private::addFileSystemChooser()
 
 void PandoricaWizard::Private::addDatabaseSetup()
 {
-  auto dbType = Settings::databaseType();
   auto groupBox = new WGroupBox(WString::tr("wizard.dbsettings"));
   WButtonGroup *buttonGroup = new WButtonGroup(groupBox);
   WRadioButton *sqlite3 = addRadio("wizard.sqlite3", groupBox, buttonGroup);
   WRadioButton *postgresql = addRadio("wizard.postgresql", groupBox, buttonGroup);
+  WGroupBox *postgresqlSettings = WW<WGroupBox>(WString::tr("wizard.postgresql")).setHidden(true);
   
+  WForm *postgresqlSettingsForm = WW<WForm>();
+  WLineEdit *psqlUser, *psqlHost, *psqlDatabase, *psqlAppName, *psqlPassword;
+  WSpinBox *psqlPort;
+  postgresqlSettingsForm->add(psqlHost = new WLineEdit, "wizard.postgresql.host");
+  postgresqlSettingsForm->add(psqlPort = new WSpinBox, "wizard.postgresql.port");
+  postgresqlSettingsForm->add(psqlAppName = new WLineEdit, "wizard.postgresql.appname");
+  postgresqlSettingsForm->add(psqlDatabase = new WLineEdit, "wizard.postgresql.database");
+  postgresqlSettingsForm->add(psqlUser = new WLineEdit, "wizard.postgresql.username");
+  postgresqlSettingsForm->add(psqlPassword = new WLineEdit, "wizard.postgresql.password");
+  psqlPassword->setEchoMode(WLineEdit::Password);
+  psqlPort->setRange(0, 65535);
+  postgresqlSettings->addWidget(postgresqlSettingsForm);
+  
+  psqlHost->changed().connect([=](_n1){Setting::write(Setting::PostgreSQL_Hostname, psqlHost->text().toUTF8());});
+  psqlPort->changed().connect([=](_n1){Setting::write(Setting::PostgreSQL_Port, psqlPort->value() );});
+  psqlAppName->changed().connect([=](_n1){Setting::write(Setting::PostgreSQL_Application, psqlAppName->text().toUTF8());});
+  psqlDatabase->changed().connect([=](_n1){Setting::write(Setting::PostgreSQL_Database, psqlDatabase->text().toUTF8());});
+  psqlUser->changed().connect([=](_n1){Setting::write(Setting::PostgreSQL_Username, psqlUser->text().toUTF8());});
+  psqlPassword->changed().connect([=](_n1){Setting::write(Setting::PostgreSQL_Password, psqlPassword->text().toUTF8());});
+  
+  groupBox->addWidget(postgresqlSettings);
+  buttonGroup->checkedChanged().connect([=](WRadioButton *b, _n5){
+    Settings::databaseType(b == sqlite3 ? Settings::Sqlite3 : Settings::PostgreSQL);
+    postgresqlSettings->setHidden(b != postgresql);
+  });
 #ifndef HAVE_POSTGRES
   postgresql->setEnabled(false);
 #endif
   stack->addWidget(groupBox);
   showPage[DatabaseSetup] = [=] {
     displayPage(groupBox, FileSystemChooserPage, None);
+    auto dbType = Settings::databaseType();
+    buttonGroup->setCheckedButton(dbType == Settings::Sqlite3 ? sqlite3 : postgresql);
+    postgresqlSettings->setHidden(dbType != Settings::PostgreSQL);
+    
+    psqlHost->setText(Settings::postgresqlHost());
+    psqlPort->setValue(Settings::postgresqlPort());
+    psqlAppName->setText(Settings::postgresqlApplication());
+    psqlDatabase->setText(Settings::postgresqlDatabase());
+    psqlUser->setText(Settings::postgresqlUsername());
+    psqlPassword->setText(Settings::postgresqlPassword());
   };
 }
 
@@ -126,16 +164,15 @@ WRadioButton* PandoricaWizard::Private::addRadio(const string& textKey, WContain
 
 
 
-GroupPtr PandoricaWizard::Private::adminGroup()
+GroupPtr PandoricaWizard::Private::adminGroup(Dbo::Transaction &transaction)
 {
-  Session session;
-  Dbo::Transaction t(session);
-  GroupPtr adminGroup = session.find<Group>().where("group_name = ?").bind("Admin");
+  GroupPtr adminGroup = transaction.session().find<Group>().where("group_name = ?").bind("Admin");
   wApp->log("notice") << "Admin group found: " << adminGroup << (adminGroup ? string{": "} + adminGroup->groupName() : string{});
   if(! adminGroup) {
     wApp->log("notice") << "Creating main admin group";
-    adminGroup = session.add(new Group("Admin", true));
+    adminGroup = transaction.session().add(new Group("Admin", true));
   }
+  return adminGroup;
 }
 
 
@@ -144,7 +181,7 @@ PandoricaWizard::~PandoricaWizard()
   wApp->log("notice") << "Finalizing settings...";
   Session session(true);
   Dbo::Transaction t(session);
-  auto adminGroup = d->adminGroup();
+  auto adminGroup = d->adminGroup(t);
   
   Auth::User adminAuthUser = session.users().findWithIdentity("pandorica", "Admin");
   if(!adminAuthUser.isValid()) {

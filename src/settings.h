@@ -97,6 +97,13 @@ class Settings
     static void databaseType(DatabaseType type);
     static PandoricaMode pandoricaMode();
     static void pandoricaMode(PandoricaMode mode);
+    
+    static std::string postgresqlHost();
+    static int postgresqlPort();
+    static std::string postgresqlApplication();
+    static std::string postgresqlDatabase();
+    static std::string postgresqlUsername();
+    static std::string postgresqlPassword();
   private:
     D_PTR;
 

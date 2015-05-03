@@ -260,4 +260,33 @@ Settings::PandoricaMode Settings::pandoricaMode()
   return static_cast<PandoricaMode>(Setting::value<int>(Setting::PandoricaMode, static_cast<int>(PandoricaMode::Simple)));
 }
 
+string Settings::postgresqlHost()
+{
+  return Setting::value<string>(Setting::PostgreSQL_Hostname, "localhost");
+}
+
+int Settings::postgresqlPort()
+{
+  return Setting::value<int>(Setting::PostgreSQL_Port, 5432);
+}
+
+string Settings::postgresqlApplication()
+{
+  return Setting::value<string>(Setting::PostgreSQL_Application, "Pandorica");
+}
+
+string Settings::postgresqlDatabase()
+{
+  return Setting::value<string>(Setting::PostgreSQL_Database, "Pandorica");
+}
+
+string Settings::postgresqlUsername()
+{
+  return Setting::value<string>(Setting::PostgreSQL_Username, "Pandorica");
+}
+
+string Settings::postgresqlPassword()
+{
+  return Setting::value<string>(Setting::PostgreSQL_Password);
+}
 

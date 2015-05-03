@@ -143,12 +143,12 @@ namespace {
 
 
 string Session::Private::psqlConnectionString() const {
-  string hostname = Setting::value<string>(Setting::PostgreSQL_Hostname, "localhost");
-  string dbName = Setting::value<string>(Setting::PostgreSQL_Database, "Pandorica");
-  string username = Setting::value<string>(Setting::PostgreSQL_Username, "Pandorica");
-  string password = Setting::value<string>(Setting::PostgreSQL_Password);
-  int port = Setting::value<int>(Setting::PostgreSQL_Port, 5432);
-  string applicationName = Setting::value<string>(Setting::PostgreSQL_Application, "Pandorica");
+  string hostname = Settings::postgresqlHost();
+  string dbName = Settings::postgresqlDatabase();
+  string username = Settings::postgresqlUsername();
+  string password = Settings::postgresqlPassword();
+  int port = Settings::postgresqlPort();
+  string applicationName = Settings::postgresqlApplication();
   if(password.empty() )
     return {};
   WServer::instance()->log("notice") << "Using postgresql connection: " <<
