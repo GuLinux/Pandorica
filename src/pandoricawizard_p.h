@@ -33,7 +33,7 @@ public:
     void addPandoricaModePage();
     void addFileSystemChooser();
     void addDatabaseSetup();
-    enum Page { PandoricaModePage, FileSystemChooserPage, DatabaseSetup };
+    enum Page { None, PandoricaModePage, FileSystemChooserPage, DatabaseSetup };
     Wt::WStackedWidget *stack;
     std::map<Page, std::function<void()>> showPage;
     Page previousPage;
@@ -41,7 +41,10 @@ public:
     Wt::WPushButton *previous, *next, *finish;
     Wt::Signal<> finished;
     Wt::Dbo::ptr<Group> adminGroup();
+    Wt::WRadioButton *addRadio(const std::string &textKey, Wt::WContainerWidget *container, Wt::WButtonGroup *buttonGroup);
+    void displayPage(Wt::WWidget *widget, Page previousPage, Page nextPage);
 private:
     class PandoricaWizard* const q;
 };
+
 #endif // PRIVATE_H

@@ -257,7 +257,7 @@ void Settings::pandoricaMode(Settings::PandoricaMode mode)
 
 Settings::PandoricaMode Settings::pandoricaMode()
 {
-  return static_cast<PandoricaMode>(Setting::value<int>(Setting::PandoricaMode, static_cast<int>(PandoricaMode::Unset)));
+  return static_cast<PandoricaMode>(Setting::value<int>(Setting::PandoricaMode, static_cast<int>(PandoricaMode::Simple)));
 }
 
 

@@ -51,44 +51,28 @@ PandoricaWizard::Private::~Private()
 void PandoricaWizard::Private::addPandoricaModePage()
 {
   auto currentDatabaseType = Settings::databaseType();
-  Settings::PandoricaMode currentMode = Settings::pandoricaMode();
-  auto pandoricaMode = new WGroupBox("Pandorica Mode");
+  auto pandoricaMode = new WGroupBox(WString::tr("wizard.pandoricamode"));
   
   WButtonGroup *buttonGroup = new WButtonGroup(pandoricaMode);
-  WRadioButton *simpleMode, *advancedMode;
-  buttonGroup->addButton(simpleMode = WW<WRadioButton>("simple mode").setInline(false));
-  buttonGroup->addButton(advancedMode = WW<WRadioButton>("advanced mode").setInline(false));
-  simpleMode->setChecked(currentMode == Settings::Simple);
-  advancedMode->setChecked(currentMode == Settings::Advanced);
-  pandoricaMode->addWidget(simpleMode);
-  WLabel *simpleModeLabel = WW<WLabel>("Sigle user mode, automatically share every content to anyone on the same network without permissions or logging in. This is suggested for regular home usage.").setInline(false);
-  simpleModeLabel->setBuddy(simpleMode);
-  pandoricaMode->addWidget(simpleModeLabel);
-  WLabel *advancedModeLabel = WW<WLabel>("Multi user mode, requires login and permissions for viewing content. Highly reccomended for public network servers.").setInline(false);
-  pandoricaMode->addWidget(advancedMode);
-  advancedModeLabel->setBuddy(advancedMode);
-  pandoricaMode->addWidget(advancedModeLabel);
+  WRadioButton *simpleMode = addRadio("wizard.pandoricamode.simple", pandoricaMode, buttonGroup);
+  WRadioButton *advancedMode = addRadio("wizard.pandoricamode.advanced", pandoricaMode, buttonGroup);
   
   buttonGroup->checkedChanged().connect([=](WRadioButton* b,_n5){
     Settings::PandoricaMode newMode = b==simpleMode ? Settings::Simple : Settings::Advanced;
     Settings::databaseType(newMode == Settings::Simple ? Settings::Sqlite3 : currentDatabaseType);
-    next->setEnabled(true);
     Settings::pandoricaMode(newMode);
   });
   stack->addWidget(pandoricaMode);
   showPage[PandoricaModePage] = [=] {
-    stack->setCurrentWidget(pandoricaMode);
-    next->setEnabled(Settings::pandoricaMode() != Settings::Unset);
-    previous->setDisabled(true);
-    finish->setDisabled(true);
-    nextPage = FileSystemChooserPage;
+    displayPage(pandoricaMode, None, FileSystemChooserPage);
+    buttonGroup->setCheckedButton(Settings::pandoricaMode() == Settings::Simple ? simpleMode : advancedMode);
   };
 }
 
 
 void PandoricaWizard::Private::addFileSystemChooser()
 {
-  auto fileSystemChooser = new WGroupBox("Multimedia Library");
+  auto fileSystemChooser = new WGroupBox(WString::tr("wizard.medialibrary"));
   auto selectDirectories = new SelectDirectories({"/"},
 						 Settings::mediasDirectories(), [=](const string &p){Settings::addMediaDirectory(p);},
 						 [=](const string &p){Settings::removeMediaDirectory(p);},
@@ -97,45 +81,49 @@ void PandoricaWizard::Private::addFileSystemChooser()
   selectDirectories->addTo(fileSystemChooser);
   stack->addWidget(fileSystemChooser);
   showPage[FileSystemChooserPage] = [=] {
-    stack->setCurrentWidget(fileSystemChooser);
-    next->setEnabled(Settings::pandoricaMode() != Settings::Simple);
-    previous->setEnabled(true);
-    finish->setEnabled(Settings::pandoricaMode() == Settings::Simple);
-    nextPage = DatabaseSetup;
-    previousPage = PandoricaModePage;
+    displayPage(fileSystemChooser, PandoricaModePage, Settings::pandoricaMode() == Settings::Simple ? None : DatabaseSetup);
   };
 }
 
 void PandoricaWizard::Private::addDatabaseSetup()
 {
   auto dbType = Settings::databaseType();
-  auto groupBox = new WGroupBox("Setup Database Connection");
+  auto groupBox = new WGroupBox(WString::tr("wizard.dbsettings"));
   WButtonGroup *buttonGroup = new WButtonGroup(groupBox);
-  WRadioButton *sqlite3, *postgresql;
-  buttonGroup->addButton(sqlite3 = WW<WRadioButton>("Sqlite3").setInline(false));
-  buttonGroup->addButton(postgresql = WW<WRadioButton>("PostgreSQL").setInline(false));
-  sqlite3->setChecked(dbType == Settings::Sqlite3);
-  postgresql->setChecked(dbType == Settings::PostgreSQL);
-  groupBox->addWidget(sqlite3);
-  WLabel *sqlite3Label = WW<WLabel>("A simple, single file database, requiring no setup. Reccomended for few users usage.").setInline(false);
-  sqlite3Label->setBuddy(sqlite3);
-  groupBox->addWidget(sqlite3Label);
-  WLabel *postgresqlLabel = WW<WLabel>("A more advanced database engine. Requires an external PostgreSQL installation.").setInline(false);
+  WRadioButton *sqlite3 = addRadio("wizard.sqlite3", groupBox, buttonGroup);
+  WRadioButton *postgresql = addRadio("wizard.postgresql", groupBox, buttonGroup);
+  
 #ifndef HAVE_POSTGRES
   postgresql->setEnabled(false);
 #endif
-  groupBox->addWidget(postgresql);
-  postgresqlLabel->setBuddy(postgresql);
   stack->addWidget(groupBox);
-  groupBox->addWidget(postgresqlLabel);
   showPage[DatabaseSetup] = [=] {
-    previous->setEnabled(true);
-    next->setEnabled(true);
-    finish->setEnabled(false);
-    previousPage = FileSystemChooserPage;
-    stack->setCurrentWidget(groupBox);
+    displayPage(groupBox, FileSystemChooserPage, None);
   };
 }
+
+
+void PandoricaWizard::Private::displayPage(WWidget* widget, Page previousPage, Page nextPage)
+{
+  stack->setCurrentWidget(widget);
+  this->previousPage = previousPage;
+  this->nextPage = nextPage;
+  previous->setEnabled(previousPage != None);
+  next->setEnabled(nextPage != None);
+  finish->setEnabled(nextPage == None);
+}
+
+
+WRadioButton* PandoricaWizard::Private::addRadio(const string& textKey, WContainerWidget* container, WButtonGroup* buttonGroup)
+{
+  WRadioButton *button = WW<WRadioButton>(WString::tr(textKey)).setInline(false);
+  WLabel *label = WW<WLabel>(WString::tr(textKey + ".label")).setInline(false);
+  WW<WContainerWidget>(container).add(button).add(label);
+  label->setBuddy(button);
+  buttonGroup->addButton(button);
+  return button;
+}
+
 
 
 GroupPtr PandoricaWizard::Private::adminGroup()

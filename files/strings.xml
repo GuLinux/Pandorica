@@ -329,4 +329,19 @@ An email message notifying the invitation was sent to {1}.</message>
 <message id="mediabrowser.admin.setlabel">Set label</message>
 <message id="mediacollectionbrowser.setlabel.message">Set display label for {1}</message>
 <message id="Wt.Auth.account-disabled">Account disabled. Please contact Pandorica Administrator</message>
+
+
+<message id="wizard.pandoricamode">Pandorica Mode</message>
+<message id="wizard.pandoricamode.simple">Simple Mode</message>
+<message id="wizard.pandoricamode.simple.label">Sigle user mode, automatically share every content to anyone on the same network without permissions or logging in. This is suggested for regular home usage.</message>
+<message id="wizard.pandoricamode.advanced">Advanced Mode</message>
+<message id="wizard.pandoricamode.advanced.label">Multi user mode, requires login and permissions for viewing content. Highly reccomended for public network servers.</message>
+
+<message id="wizard.medialibrary">Multimedia Library</message>
+
+<message id="wizard.dbsettings">Database Connection</message>
+<message id="wizard.sqlite3">SQLite3</message>
+<message id="wizard.sqlite3.label">A simple, single file database, requiring no setup. Reccomended for few users usage.</message>
+<message id="wizard.postgresql">PostgreSQL</message>
+<message id="wizard.postgresql.label">A more advanced database engine. Requires an external PostgreSQL installation.</message>
 </messages>
