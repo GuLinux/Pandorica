@@ -345,4 +345,10 @@ An email message notifying the invitation was sent to {1}.</message>
 <message id="wizard.postgresql">PostgreSQL</message>
 <message id="wizard.postgresql.label">A more advanced database engine. Requires an external PostgreSQL installation.</message>
 <message id="wizard.postgresql">PostgreSQL Connection Settings</message>
+<message id="wizard.postgresql.host">PostgreSQL Database Host</message>
+<message id="wizard.postgresql.port">PostgreSQL Database Port</message>
+<message id="wizard.postgresql.appname">Application Name</message>
+<message id="wizard.postgresql.database">Database Schema</message>
+<message id="wizard.postgresql.username">PostgreSQL Username</message>
+<message id="wizard.postgresql.password">PostgreSQL Password</message>
 </messages>
