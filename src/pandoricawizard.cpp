@@ -33,6 +33,9 @@
 #include <Wt/Auth/AbstractUserDatabase>
 #include <Wt/Auth/Dbo/AuthInfo>
 #include <Wt/Auth/Dbo/UserDatabase>
+#include <Wt/Auth/AuthWidget>
+#include <Wt/Auth/RegistrationModel>
+#include <Wt/Auth/RegistrationWidget>
 #include <Wt/WLineEdit>
 #include <Wt/WSpinBox>
 #include <Wt/WCheckBox>
@@ -169,6 +172,7 @@ void PandoricaWizard::Private::addAuthentication()
     auto authMode = static_cast<Settings::AuthenticationMode>(buttonGroup->id(b));
     emailVerification->setHidden(authMode == Settings::NoAuth);
     Settings::authenticationMode(authMode);
+    emailVerification->setChecked(Settings::emailVerificationMandatory());
     displayPage(groupBox, DatabaseSetup, authMode == Settings::NoAuth ? CongratsPage : AdminUserCreation);
   });
   emailVerification->changed().connect([=](_n1){ Setting::write(Setting::EmailVerificationMandatory, emailVerification->isChecked()); });
@@ -189,6 +193,13 @@ void PandoricaWizard::Private::addAdminUserPage()
   WGroupBox *groupBox = WW<WGroupBox>(WString::tr("wizard.admincreation"));
   stack->addWidget(groupBox);
   showPage[AdminUserCreation] = [=] {
+    groupBox->clear();
+    Session *session = new Session(true); // TODO: RAII or something else to delete this
+    WContainerWidget *container = new WContainerWidget(groupBox);
+    Auth::RegistrationModel *model = new Auth::RegistrationModel(session->auth(), session->users(), session->login(), container);
+    auto registrationWidget = new Auth::RegistrationWidget();
+    registrationWidget->setModel(model);
+    container->addWidget(registrationWidget);
     displayPage(groupBox, Authentication, CongratsPage);
   };
 }
