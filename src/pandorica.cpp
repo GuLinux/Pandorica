@@ -62,7 +62,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WIOService>
 #include "authpage.h"
 #include "findorphansdialog.h"
-#include "selectdirectories.h"
 #include "serversettingspage.h"
 #include "navigationbar.h"
 #include "settingspage.h"
