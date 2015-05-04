@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <map>
 #include <boost/filesystem.hpp>
+#include <Wt/WAbstractItemView>
 #include "selectdirectories.h"
 
 namespace boost
@@ -55,12 +56,15 @@ class SelectDirectories::Private
     void trySelecting( Wt::WStandardItem *item, boost::filesystem::path path );
     SelectDirectories::SelectionType selectionType;
     std::map<boost::filesystem::path, Wt::WStandardItem *> items;
-    void scrollTo(const boost::filesystem::path &p);
+    void scrollTo(const boost::filesystem::path &p, Wt::WAbstractItemView::ScrollHint scrollHint = Wt::WAbstractItemView::PositionAtTop);
+    static const std::string item_css;
   private:
     Wt::WStandardItem *buildStandardItem( boost::filesystem::path path, bool addSubItems );
     class SelectDirectories *const q;
     std::vector<std::string> selectedPaths;
 };
+
+
 
 
 #endif // SELECTDIRECTORIESPRIVATE_H

@@ -138,8 +138,19 @@ iframe[src='http://cdn.adsbarscipt.com/links/flash/?updnew'] {
   padding-right: 5px;
 }
 
+.tree-directory-item {
+  -webkit-transition: background-color 1s linear 1s;
+  -moz-transition: background-color 1s linear 1s;
+  -o-transition: background-color 1s linear 1s;
+  transition: background-color 1s linear 1s;
+}
+
 .tree-directory-item input {
   vertical-align: middle;
+}
+
+.tree-directory-item-hl {
+  background-color: yellow;
 }
 
 .hidden {

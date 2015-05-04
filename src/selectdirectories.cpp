@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WIOService>
 #include <Wt/WPushButton>
 #include <Wt/WToolBar>
+#include <Wt/WTimer>
 #include <boost/filesystem.hpp>
 #include "Wt-Commons/wt_helpers.h"
 #include "utils/d_ptr_implementation.h"
@@ -59,7 +60,7 @@ SelectDirectories::SelectDirectories( vector< string > rootPaths, vector< string
   setImplementation(container);
   WToolBar *toolbar = WW<WToolBar>(container).addCss("col-xs-6 col-xs-offset-3 text-center")
     .addButton(WW<WPushButton>(WString::tr("button.home")).css("btn-lg").setEnabled(getenv("HOME")).onClick([=](WMouseEvent){ d->scrollTo(getenv("HOME")); }).setIcon(Settings::staticPath("/icons/actions/home-20.png")) )
-    .addButton(WW<WPushButton>(WString::tr("button.root")).css("btn-lg").onClick([=](WMouseEvent){ d->scrollTo("/"); }).setIcon(Settings::staticPath("/icons/actions/chevron-up-20.png")) )
+    .addButton(WW<WPushButton>(WString::tr("button.root")).css("btn-lg").onClick([=](WMouseEvent){ d->scrollTo("/", WAbstractItemView::PositionAtCenter); }).setIcon(Settings::staticPath("/icons/actions/chevron-up-20.png")) )
   ;
   WTreeView *tree = WW<WTreeView>().addCss("col-xs-12");
   container->addWidget(tree);
@@ -133,7 +134,7 @@ void SelectDirectories::setWidth( WLength width )
 
 
 
-void SelectDirectories::Private::scrollTo(const boost::filesystem::path& p)
+void SelectDirectories::Private::scrollTo(const boost::filesystem::path& p, WAbstractItemView::ScrollHint scrollHint)
 {
   fs::path path;
   for(auto component: p) {
@@ -147,7 +148,11 @@ void SelectDirectories::Private::scrollTo(const boost::filesystem::path& p)
   if(!items[p])
     return;
   tree->expand(items[p]->index());
-  tree->scrollTo(items[p]->index(), WTreeView::PositionAtTop);
+  tree->scrollTo(items[p]->index(), scrollHint);
+  items[p]->setStyleClass(item_css + " tree-directory-item-hl");
+  WTimer::singleShot(5000, [=](WMouseEvent){
+    items[p]->setStyleClass(item_css);
+  });
 }
 
 void SelectDirectories::Private::populateTree( std::string path )
@@ -167,14 +172,16 @@ void SelectDirectories::Private::populateTree( std::string path )
       }
     }
   }
-};
+}
+
+const std::string SelectDirectories::Private::item_css = "tree-directory-item link-hand";
 
 WStandardItem *SelectDirectories::Private::buildStandardItem( boost::filesystem::path path, bool shouldAddSubItems )
 {
   string folderName {path.filename().string()};
   WStandardItem *item = new WStandardItem {Settings::icon( Settings::FolderSmall ), folderName};
   item->setCheckable( selectionType == SelectDirectories::Multiple );
-  item->setStyleClass( "tree-directory-item link-hand" );
+  item->setStyleClass(item_css);
   item->setLink( "" );
   item->setToolTip( wtr( "tree.double.click.to.expand" ) );
   item->setData( path );
