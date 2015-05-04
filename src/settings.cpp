@@ -223,7 +223,7 @@ string Settings::sqlite3DatabasePath(const std::string &databaseName)
 
 bool Settings::emailVerificationMandatory()
 {
-  return Setting::value<bool>(Setting::EmailVerificationMandatory, false);
+  return authenticationMode() != NoAuth && Setting::value<bool>(Setting::EmailVerificationMandatory, false);
 }
 
 
@@ -249,6 +249,19 @@ Settings::DatabaseType Settings::databaseType()
 {
   return static_cast<DatabaseType>(Setting::value<int>(Setting::DatabaseType, static_cast<int>(DatabaseType::Sqlite3)));
 }
+
+void Settings::authenticationMode(Settings::AuthenticationMode type)
+{
+  Setting::write(Setting::AuthenticationMode, static_cast<int>(type));
+}
+
+Settings::AuthenticationMode Settings::authenticationMode()
+{
+  if(pandoricaMode() == Simple)
+    return NoAuth;
+  return static_cast<AuthenticationMode>(Setting::value<int>(Setting::Setting::AuthenticationMode, static_cast<int>(AuthenticationMode::NoAuth)));
+}
+
 
 void Settings::pandoricaMode(Settings::PandoricaMode mode)
 {

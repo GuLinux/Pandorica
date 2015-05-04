@@ -35,6 +35,7 @@
 #include <Wt/Auth/Dbo/UserDatabase>
 #include <Wt/WLineEdit>
 #include <Wt/WSpinBox>
+#include <Wt/WCheckBox>
 #include "Wt-Commons/wt_helpers.h"
 #include <Wt-Commons/wform.h>
 #include "Models/models.h"
@@ -49,6 +50,17 @@ PandoricaWizard::Private::Private(PandoricaWizard* q) : q(q), stack(new WStacked
 PandoricaWizard::Private::~Private()
 {
 }
+
+
+void PandoricaWizard::Private::addBeginPage()
+{
+  WGroupBox *installation = WW<WGroupBox>(WString::tr("wizard.begin")).add(WW<WText>(WString::tr("wizard.begin.message")));
+  stack->addWidget(installation);
+  showPage[Begin] = [=] {
+    displayPage(installation, None, PandoricaModePage);
+  };
+}
+
 
 
 void PandoricaWizard::Private::addPandoricaModePage()
@@ -67,7 +79,7 @@ void PandoricaWizard::Private::addPandoricaModePage()
   });
   stack->addWidget(pandoricaMode);
   showPage[PandoricaModePage] = [=] {
-    displayPage(pandoricaMode, None, FileSystemChooserPage);
+    displayPage(pandoricaMode, Begin, FileSystemChooserPage);
     buttonGroup->setCheckedButton(Settings::pandoricaMode() == Settings::Simple ? simpleMode : advancedMode);
   };
 }
@@ -126,7 +138,7 @@ void PandoricaWizard::Private::addDatabaseSetup()
 #endif
   stack->addWidget(groupBox);
   showPage[DatabaseSetup] = [=] {
-    displayPage(groupBox, FileSystemChooserPage, None);
+    displayPage(groupBox, FileSystemChooserPage, Authentication);
     auto dbType = Settings::databaseType();
     buttonGroup->setCheckedButton(dbType == Settings::Sqlite3 ? sqlite3 : postgresql);
     postgresqlSettings->setHidden(dbType != Settings::PostgreSQL);
@@ -141,6 +153,57 @@ void PandoricaWizard::Private::addDatabaseSetup()
 }
 
 
+void PandoricaWizard::Private::addAuthentication()
+{
+  WGroupBox *groupBox = WW<WGroupBox>(WString::tr("wizard.authentication"));
+  stack->addWidget(groupBox);
+  WButtonGroup *buttonGroup = new WButtonGroup(groupBox);
+  WRadioButton *authNone = addRadio("wizard.authentication.none", groupBox, buttonGroup, Settings::NoAuth);
+  WRadioButton *authBasic = addRadio("wizard.authentication.autenticate.simple", groupBox, buttonGroup, Settings::AuthenticateSimple);
+  WRadioButton *authACL = addRadio("wizard.authentication.autenticate.full", groupBox, buttonGroup, Settings::AuthenticateACL);
+  WCheckBox *emailVerification = WW<WCheckBox>(WString::tr("wizard.authentication.emailverification")).setHidden(true);
+  groupBox->addWidget(emailVerification);
+  map<Settings::AuthenticationMode, WRadioButton*> buttons { {Settings::NoAuth, authNone}, {Settings::AuthenticateSimple, authBasic}, {Settings::AuthenticateACL, authACL} };
+  
+  buttonGroup->checkedChanged().connect([=](WRadioButton *b, _n5){
+    auto authMode = static_cast<Settings::AuthenticationMode>(buttonGroup->id(b));
+    emailVerification->setHidden(authMode == Settings::NoAuth);
+    Settings::authenticationMode(authMode);
+    displayPage(groupBox, DatabaseSetup, authMode == Settings::NoAuth ? CongratsPage : AdminUserCreation);
+  });
+  emailVerification->changed().connect([=](_n1){ Setting::write(Setting::EmailVerificationMandatory, emailVerification->isChecked()); });
+  
+  showPage[Authentication] = [=] {
+    auto authenticationMode = Settings::authenticationMode();
+    displayPage(groupBox, DatabaseSetup, authenticationMode == Settings::NoAuth ? CongratsPage : AdminUserCreation);
+    buttonGroup->setCheckedButton(buttons.at(authenticationMode));
+    emailVerification->setHidden(authenticationMode == Settings::NoAuth);
+    emailVerification->setChecked(Settings::emailVerificationMandatory());
+  };
+}
+
+
+void PandoricaWizard::Private::addAdminUserPage()
+{
+
+  WGroupBox *groupBox = WW<WGroupBox>(WString::tr("wizard.admincreation"));
+  stack->addWidget(groupBox);
+  showPage[AdminUserCreation] = [=] {
+    displayPage(groupBox, Authentication, CongratsPage);
+  };
+}
+
+void PandoricaWizard::Private::addFinishPage()
+{
+  WGroupBox *groupBox = WW<WGroupBox>(WString::tr("wizard.finished")).add(WW<WText>(WString::tr("wizard.finished.text")));
+  stack->addWidget(groupBox);
+  showPage[CongratsPage] = [=] {
+    displayPage(groupBox, Settings::authenticationMode() == Settings::NoAuth ? Authentication : AdminUserCreation, None);
+  };
+}
+
+
+
 void PandoricaWizard::Private::displayPage(WWidget* widget, Page previousPage, Page nextPage)
 {
   stack->setCurrentWidget(widget);
@@ -152,13 +215,13 @@ void PandoricaWizard::Private::displayPage(WWidget* widget, Page previousPage, P
 }
 
 
-WRadioButton* PandoricaWizard::Private::addRadio(const string& textKey, WContainerWidget* container, WButtonGroup* buttonGroup)
+WRadioButton* PandoricaWizard::Private::addRadio(const string& textKey, WContainerWidget* container, WButtonGroup* buttonGroup, int id)
 {
   WRadioButton *button = WW<WRadioButton>(WString::tr(textKey)).setInline(false);
   WLabel *label = WW<WLabel>(WString::tr(textKey + ".label")).setInline(false);
   WW<WContainerWidget>(container).add(button).add(label);
   label->setBuddy(button);
-  buttonGroup->addButton(button);
+  buttonGroup->addButton(button, id);
   return button;
 }
 
@@ -216,8 +279,12 @@ PandoricaWizard::PandoricaWizard(Wt::WContainerWidget* parent)
       .addButton(d->finish = WW<WPushButton>(WString::tr("button.finish")).css("btn-success").setEnabled(false).onClick([=](WMouseEvent){ delete this; }))
     )
   );
+  d->addBeginPage();
   d->addPandoricaModePage();
   d->addFileSystemChooser();
   d->addDatabaseSetup();
-  d->showPage[Private::PandoricaModePage]();
+  d->addAuthentication();
+  d->addAdminUserPage();
+  d->addFinishPage();
+  d->showPage[Private::Begin]();
 }

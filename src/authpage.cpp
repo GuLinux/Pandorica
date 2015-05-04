@@ -183,7 +183,7 @@ AuthPage::AuthPage(Session* session, WContainerWidget* parent)
 
 void AuthPage::Private::setupLogin()
 {
-  if(Settings::pandoricaMode() == Settings::Simple) {
+  if(Settings::authenticationMode() == Settings::Settings::NoAuth) {
     session->login().login(session->users().findWithIdentity("pandorica", "Admin"));
     wApp->log("notice") << "Simple login mode found: logging in admin user: " << session->login().loggedIn();
     return;

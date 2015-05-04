@@ -55,15 +55,15 @@ public:
       GoogleBrowserDeveloperKey,
       DatabaseVersion,
       MediaDirectories,
-      EmailVerificationMandatory,
       ThreadPoolThreads,
       AdminEmailName,
       AdminEmailAddress,
       AuthEmailName,
       AuthEmailAddress,
-      GroupsACL,
       PandoricaSetup,
       PandoricaMode,
+      AuthenticationMode,
+      EmailVerificationMandatory,
     };
 
     template<class Action>

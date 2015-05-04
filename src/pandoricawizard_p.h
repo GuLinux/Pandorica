@@ -33,7 +33,8 @@ public:
     void addPandoricaModePage();
     void addFileSystemChooser();
     void addDatabaseSetup();
-    enum Page { None, PandoricaModePage, FileSystemChooserPage, DatabaseSetup };
+    void addAuthentication();
+    enum Page { None, Begin, PandoricaModePage, FileSystemChooserPage, DatabaseSetup, Authentication, AdminUserCreation, CongratsPage };
     Wt::WStackedWidget *stack;
     std::map<Page, std::function<void()>> showPage;
     Page previousPage;
@@ -41,10 +42,14 @@ public:
     Wt::WPushButton *previous, *next, *finish;
     Wt::Signal<> finished;
     Wt::Dbo::ptr<Group> adminGroup(Wt::Dbo::Transaction &transaction);
-    Wt::WRadioButton *addRadio(const std::string &textKey, Wt::WContainerWidget *container, Wt::WButtonGroup *buttonGroup);
+    Wt::WRadioButton *addRadio(const std::string &textKey, Wt::WContainerWidget *container, Wt::WButtonGroup *buttonGroup, int id = -1);
     void displayPage(Wt::WWidget *widget, Page previousPage, Page nextPage);
+    void addFinishPage();
+    void addAdminUserPage();
+    void addBeginPage();
 private:
     class PandoricaWizard* const q;
 };
+
 
 #endif // PRIVATE_H

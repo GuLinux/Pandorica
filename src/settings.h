@@ -98,6 +98,10 @@ class Settings
     static PandoricaMode pandoricaMode();
     static void pandoricaMode(PandoricaMode mode);
     
+    enum AuthenticationMode { NoAuth, AuthenticateSimple, AuthenticateACL };
+    
+    static AuthenticationMode authenticationMode();
+    static void authenticationMode(AuthenticationMode type);
     static std::string postgresqlHost();
     static int postgresqlPort();
     static std::string postgresqlApplication();

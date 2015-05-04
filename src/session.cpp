@@ -121,7 +121,7 @@ Session::Session(bool full)
   if(!full)
     return;
   d->users = new UserDatabase(*this);
-  if(Setting::value<bool>(Setting::GroupsACL, false))
+  if(Settings::authenticationMode() == Settings::AuthenticateACL)
     d->users->setNewUserStatus(Auth::User::Disabled);
 }
 
