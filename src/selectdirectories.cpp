@@ -42,17 +42,20 @@ SelectDirectories::Private::Private( SelectDirectories *q, vector< string > sele
 {
 }
 
-SelectDirectories::SelectDirectories( vector< string > rootPaths, string selectedPath, OnPathClicked onPathSelected, WObject *parent )
+SelectDirectories::SelectDirectories( vector< string > rootPaths, string selectedPath, OnPathClicked onPathSelected, WContainerWidget* parent )
   : SelectDirectories( rootPaths, {selectedPath}, onPathSelected, []( string ) {}, Single, parent )
 {
 
 }
 
 
-SelectDirectories::SelectDirectories( vector< string > rootPaths, vector< string > selectedPaths, OnPathClicked onPathSelected, OnPathClicked onPathUnselected, SelectionType selectionType, WObject *parent )
-  : WObject( parent ), d( this, selectedPaths, selectionType )
+SelectDirectories::SelectDirectories( vector< string > rootPaths, vector< string > selectedPaths, OnPathClicked onPathSelected, OnPathClicked onPathUnselected, SelectDirectories::SelectionType selectionType, WContainerWidget* parent )
+  : WCompositeWidget( parent ), d( this, selectedPaths, selectionType )
 {
+  WContainerWidget *container = new WContainerWidget;
+  setImplementation(container);
   WTreeView *tree = new WTreeView();
+  container->addWidget(tree);
   d->tree = tree;
   d->app = wApp;
   d->model = new WStandardItemModel( this );
@@ -140,12 +143,6 @@ void SelectDirectories::Private::populateTree( std::string path )
     }
   }
 };
-
-
-void SelectDirectories::addTo( WContainerWidget *container )
-{
-  container->addWidget( d->tree );
-}
 
 WStandardItem *SelectDirectories::Private::buildStandardItem( boost::filesystem::path path, bool shouldAddSubItems )
 {

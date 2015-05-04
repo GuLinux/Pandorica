@@ -95,9 +95,8 @@ WContainerWidget* ServerSettingsPage::Private::selectMediaRootPage()
     settings->addMediaDirectory(p);
   }, [=](string p){
     settings->removeMediaDirectory(p);
-  }, SelectDirectories::Multiple, q );
+  }, SelectDirectories::Multiple, groupBox );
   selectDirectories->setHeight(465);
-  selectDirectories->addTo(groupBox);
   return groupBox;
 }
 

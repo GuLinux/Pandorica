@@ -93,7 +93,7 @@ void PandoricaWizard::Private::addFileSystemChooser()
 						 [=](const string &p){Settings::removeMediaDirectory(p);},
 						 SelectDirectories::Multiple );
   selectDirectories->setHeight(500);
-  selectDirectories->addTo(fileSystemChooser);
+  fileSystemChooser->addWidget(selectDirectories);
   stack->addWidget(fileSystemChooser);
   showPage[FileSystemChooserPage] = [=] {
     displayPage(fileSystemChooser, PandoricaModePage, Settings::pandoricaMode() == Settings::Simple ? None : DatabaseSetup);

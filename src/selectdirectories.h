@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <Wt/WObject>
 #include <Wt/WLength>
+#include <Wt/WCompositeWidget>
 #include "utils/d_ptr.h"
 
 namespace Wt {
@@ -36,14 +37,13 @@ class WContainerWidget;
 
 typedef std::function<void(std::string)> OnPathClicked;
 
-class SelectDirectories : public Wt::WObject // TODO: make this a WCompositeWidget?
+class SelectDirectories : public Wt::WCompositeWidget
 {
 public:
   enum SelectionType { Single, Multiple };
-  SelectDirectories(std::vector<std::string> rootPaths, std::string selectedPath, OnPathClicked onPathSelected, Wt::WObject *parent = 0);
-  SelectDirectories(std::vector<std::string> rootPaths, std::vector<std::string> selectedPaths, OnPathClicked onPathSelected, OnPathClicked onPathUnselected, SelectionType selectionType, Wt::WObject *parent = 0);
+  SelectDirectories(std::vector<std::string> rootPaths, std::string selectedPath, OnPathClicked onPathSelected, Wt::WContainerWidget *parent = 0);
+  SelectDirectories(std::vector<std::string> rootPaths, std::vector<std::string> selectedPaths, OnPathClicked onPathSelected, OnPathClicked onPathUnselected, SelectionType selectionType, Wt::WContainerWidget *parent = 0);
   virtual ~SelectDirectories();
-  void addTo(Wt::WContainerWidget *container);
   void setWidth(Wt::WLength width);
   void setHeight(Wt::WLength height);
   inline void resize(Wt::WLength &width, Wt::WLength &height) { setWidth(width); setHeight(height); }

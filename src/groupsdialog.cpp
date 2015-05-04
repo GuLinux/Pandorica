@@ -256,7 +256,7 @@ GroupDirectoriesDialog::GroupDirectoriesDialog(Dbo::ptr< Group > group, Session*
   setHeight(400);
   
   selectDirectories->setHeight(400);
-  selectDirectories->addTo(contents());
+  contents()->addWidget(selectDirectories);
 }
 
 
