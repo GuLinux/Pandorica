@@ -34,6 +34,7 @@ namespace dbo = Wt::Dbo;
 
 class User;
 typedef Wt::Auth::Dbo::AuthInfo<User> AuthInfo;
+typedef Wt::Dbo::ptr<AuthInfo> AuthInfoPtr;
 
 class User {
 public:

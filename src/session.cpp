@@ -33,9 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifdef HAVE_POSTGRES
   #include <Wt/Dbo/backend/Postgres>
 #endif
-#ifdef HAVE_SQLITE3
 #include <Wt/Dbo/backend/Sqlite3>
-#endif
 #include <Wt/WApplication>
 #include <Wt/WServer>
 #include "private/session_p.h"
@@ -68,9 +66,10 @@ using namespace Wt;
 
 void Session::configureAuth()
 {
-  myAuthService.setAuthTokensEnabled(true, "logincookie");
-  myAuthService.setEmailVerificationEnabled(true);
-  myAuthService.setEmailVerificationRequired(true);
+//   myAuthService.setAuthTokensEnabled(true, "logincookie");
+  bool emailVerificationMandatory = Settings::emailVerificationMandatory();
+  myAuthService.setEmailVerificationEnabled(emailVerificationMandatory);
+  myAuthService.setEmailVerificationRequired(emailVerificationMandatory);
   myAuthService.setIdentityPolicy(Wt::Auth::LoginNameIdentity);
   Wt::Auth::PasswordVerifier *verifier = new Wt::Auth::PasswordVerifier();
   verifier->addHashFunction(new Wt::Auth::BCryptHashFunction(7));
@@ -117,12 +116,13 @@ Session::Session(bool full)
     } catch(std::exception &e) {
 //       WServer::instance()->log("warning") << "error creating new database: " << e.what();
     }
-    Setting::write(Setting::DatabaseVersion
-    , DATABASE_VERSION);
+    Setting::write(Setting::DatabaseVersion, DATABASE_VERSION);
   }
   if(!full)
     return;
   d->users = new UserDatabase(*this);
+  if(Settings::authenticationMode() == Settings::AuthenticateACL)
+    d->users->setNewUserStatus(Auth::User::Disabled);
 }
 
 Wt::Dbo::SqlConnection *Session::connection() const
@@ -143,12 +143,12 @@ namespace {
 
 
 string Session::Private::psqlConnectionString() const {
-  string hostname = Setting::value<string>(Setting::PostgreSQL_Hostname, "localhost");
-  string dbName = Setting::value<string>(Setting::PostgreSQL_Database, "Pandorica");
-  string username = Setting::value<string>(Setting::PostgreSQL_Username, "Pandorica");
-  string password = Setting::value<string>(Setting::PostgreSQL_Password);
-  int port = Setting::value<int>(Setting::PostgreSQL_Port, 5432);
-  string applicationName = Setting::value<string>(Setting::PostgreSQL_Application, "Pandorica");
+  string hostname = Settings::postgresqlHost();
+  string dbName = Settings::postgresqlDatabase();
+  string username = Settings::postgresqlUsername();
+  string password = Settings::postgresqlPassword();
+  int port = Settings::postgresqlPort();
+  string applicationName = Settings::postgresqlApplication();
   if(password.empty() )
     return {};
   WServer::instance()->log("notice") << "Using postgresql connection: " <<
@@ -173,19 +173,17 @@ void Session::Private::createConnection()
 {
 #ifdef HAVE_POSTGRES
   static string psqlConnParameters = psqlConnectionString();
-  if(!psqlConnParameters.empty()) {
+  if(Settings::databaseType() == Settings::PostgreSQL && !psqlConnParameters.empty()) {
     connection.reset(new dbo::backend::Postgres(psqlConnParameters));
     return;
   }
 #endif
-#ifdef HAVE_SQLITE3
   mutex = sqlite3_write_lock_mutex;
   string sqlite3DatabasePath = Settings::sqlite3DatabasePath("Pandorica.sqlite");
   WServer::instance()->log("notice") << "Using sqlite connection: " << sqlite3DatabasePath;
   
   connection.reset(new dbo::backend::Sqlite3(sqlite3DatabasePath ));
   connection->executeSql("PRAGMA journal_mode=WAL;");
-#endif
 }
 
 class Session::WriteLock {
@@ -220,7 +218,7 @@ Session::~Session()
   delete d->users;
 }
 
-Wt::Auth::AbstractUserDatabase& Session::users()
+UserDatabase& Session::users()
 {
   return *d->users;
 }
@@ -229,6 +227,7 @@ Wt::Auth::AbstractUserDatabase& Session::users()
 
 dbo::ptr<User> Session::user()
 {
+  Dbo::Transaction t(*this);
   if (!d->login.loggedIn())
     return dbo::ptr<User>();
   dbo::ptr<AuthInfo> authInfo = d->users->find(d->login.user());

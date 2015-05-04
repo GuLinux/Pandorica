@@ -69,8 +69,8 @@ ServerSettingsPage::ServerSettingsPage(Settings* settings, Session* session, Med
   contents()->addStyleClass("server-settings-page-body");
   contents()->addWidget(d->selectMediaRootPage());
   setClosable(false);
-  setHeight(650);
-  setWidth(600);
+//   setHeight(650);
+//   setWidth(600);
 
   footer()->addWidget(d->buttonOk = WW<WPushButton>(wtr("button.ok")).css("btn btn-primary").onClick([=](WMouseEvent) { accept(); }));
   finished().connect([=](WDialog::DialogCode, _n5) {
@@ -91,13 +91,12 @@ WContainerWidget* ServerSettingsPage::Private::selectMediaRootPage()
 #else
   rootPaths.push_back("/");
 #endif
-  SelectDirectories *selectDirectories = new SelectDirectories(rootPaths, settings->mediasDirectories(session), [=](string p){
-    settings->addMediaDirectory(p, session);
+  SelectDirectories *selectDirectories = new SelectDirectories(rootPaths, settings->mediasDirectories(), [=](string p){
+    settings->addMediaDirectory(p);
   }, [=](string p){
-    settings->removeMediaDirectory(p, session);
-  }, SelectDirectories::Multiple, q );
-  selectDirectories->setHeight(465);
-  selectDirectories->addTo(groupBox);
+    settings->removeMediaDirectory(p);
+  }, SelectDirectories::Multiple, groupBox );
+  selectDirectories->setHeight(400);
   return groupBox;
 }
 

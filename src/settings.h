@@ -49,9 +49,9 @@ class Settings
   public:
     Settings();
     virtual ~Settings();
-    std::vector<std::string> mediasDirectories( Wt::Dbo::Session *session ) const;
-    void addMediaDirectory( std::string directory, Wt::Dbo::Session *session );
-    void removeMediaDirectory( std::string directory, Wt::Dbo::Session *session );
+    static std::vector<std::string> mediasDirectories();
+    static void addMediaDirectory( std::string directory );
+    static void removeMediaDirectory( std::string directory );
 
     std::string value( std::string cookieName );
     std::string locale();
@@ -91,6 +91,23 @@ class Settings
       widget->animateHide( animations[animationType].get() );
     }
 
+    enum DatabaseType { PostgreSQL, Sqlite3 };
+    enum PandoricaMode { Simple = 0x1, Advanced = 0x2 };
+    static DatabaseType databaseType();
+    static void databaseType(DatabaseType type);
+    static PandoricaMode pandoricaMode();
+    static void pandoricaMode(PandoricaMode mode);
+    
+    enum AuthenticationMode { NoAuth, AuthenticateSimple, AuthenticateACL };
+    
+    static AuthenticationMode authenticationMode();
+    static void authenticationMode(AuthenticationMode type);
+    static std::string postgresqlHost();
+    static int postgresqlPort();
+    static std::string postgresqlApplication();
+    static std::string postgresqlDatabase();
+    static std::string postgresqlUsername();
+    static std::string postgresqlPassword();
   private:
     D_PTR;
 

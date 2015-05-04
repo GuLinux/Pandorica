@@ -238,7 +238,7 @@ GroupDirectoriesDialog::GroupDirectoriesDialog(Dbo::ptr< Group > group, Session*
   vector<string> selectedGroupPaths;
   
   transform(begin(group->groupPaths), end(group->groupPaths), back_inserter(selectedGroupPaths), [=](Dbo::ptr<GroupPath> g) { return g->path(); } );
-  SelectDirectories* selectDirectories = new SelectDirectories(settings->mediasDirectories(session), selectedGroupPaths, 
+  SelectDirectories* selectDirectories = new SelectDirectories(settings->mediasDirectories(), selectedGroupPaths, 
     [=](string path) {
       Dbo::Transaction t(*session);
       group.modify()->groupPaths.insert(new GroupPath{path});
@@ -256,7 +256,7 @@ GroupDirectoriesDialog::GroupDirectoriesDialog(Dbo::ptr< Group > group, Session*
   setHeight(400);
   
   selectDirectories->setHeight(400);
-  selectDirectories->addTo(contents());
+  contents()->addWidget(selectDirectories);
 }
 
 

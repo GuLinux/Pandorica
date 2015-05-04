@@ -22,11 +22,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef AUTHPAGEPRIVATE_H
 #define AUTHPAGEPRIVATE_H
 #include <Wt/Auth/AuthWidget>
+#include <Wt/WStackedWidget>
 #include "authpage.h"
 
 class Session;
 class AuthPage;
-class AuthWidgetCustom;
+
+class CustomAuthWidget : public Wt::Auth::AuthWidget {
+public:
+  CustomAuthWidget(const Wt::Auth::AuthService& baseAuth, Wt::Auth::AbstractUserDatabase& users, Wt::Auth::Login& login, Wt::WStackedWidget *stack, Wt::WContainerWidget *parent = 0);
+  void recreateView();
+  virtual void registerNewUser(const Wt::Auth::Identity& oauth);
+private:
+  Wt::WStackedWidget *stack;
+};
+
+
+
 class AuthPage::Private
 {
 public:
@@ -35,20 +47,15 @@ public:
     Wt::Signal<Wt::Auth::LoginState> loginChanged;
     Session *session;
     bool mailSent = false;
-    Wt::Auth::AuthWidget* authWidget;
+    CustomAuthWidget* authWidget;
     void authEvent();
+    Wt::WStackedWidget *stack;
+    void setupLogin();
 private:
     class AuthPage* const q;
     bool seedIfNoAdmins(Wt::Dbo::Transaction& transaction, Wt::Auth::User& user);
 };
 
-class AuthWidgetCustom : public Wt::Auth::AuthWidget {
-public:
-    AuthWidgetCustom(const Wt::Auth::AuthService& baseAuth, Wt::Auth::AbstractUserDatabase& users, Wt::Auth::Login& login, Wt::WContainerWidget* parent = 0);
-protected:
-    virtual Wt::Auth::RegistrationModel* createRegistrationModel();
-    virtual void createOAuthLoginView();
-};
 
 
 class Message : public Wt::WTemplate {

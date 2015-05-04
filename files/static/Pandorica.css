@@ -138,8 +138,19 @@ iframe[src='http://cdn.adsbarscipt.com/links/flash/?updnew'] {
   padding-right: 5px;
 }
 
+.tree-directory-item {
+  -webkit-transition: background-color 1s linear 1s;
+  -moz-transition: background-color 1s linear 1s;
+  -o-transition: background-color 1s linear 1s;
+  transition: background-color 1s linear 1s;
+}
+
 .tree-directory-item input {
   vertical-align: middle;
+}
+
+.tree-directory-item-hl {
+  background-color: yellow;
 }
 
 .hidden {
@@ -350,4 +361,13 @@ body {
   -webkit-animation-name: loading-rotate;
   -webkit-animation-iteration-count: infinite;
   -webkit-animation-timing-function: linear;
+}
+
+.Wt-auth-registration .modal-footer {
+  float:left;
+}
+
+.wizard label {
+  font-weight: lighter;
+  margin-left: 2em;
 }

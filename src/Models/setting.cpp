@@ -52,6 +52,7 @@ string Setting::keyName(Setting::KeyName key)
 {
   static map<KeyName,string> keyNames {
     {QuitPassword, "quit-password"},
+    {DatabaseType, "database-type"},
     {PostgreSQL_Hostname, "postgresql-hostname"},
     {PostgreSQL_Database, "postgresql-database"},
     {PostgreSQL_Port, "postgresql-port"},
@@ -63,15 +64,12 @@ string Setting::keyName(Setting::KeyName key)
     {MediaDirectories, "media_directories"},
     {EmailVerificationMandatory, "email_verification_mandatory"},
     {ThreadPoolThreads, "threadpool_threads_count"},
-    {AdminEmailName, "admin_mail_name"},
-    {AdminEmailAddress, "admin_mail_address"},
     {AuthEmailName, "auth_mail_sender_name"},
     {AuthEmailAddress, "auth_mail_sender_address"},
-    {GroupsACL, "groups_acl"},
     {PandoricaSetup, "pandorica_setup"},
     {PandoricaMode, "pandorica_mode"},
+    {AuthenticationMode, "authentication_mode"},
   };
-  
   return keyNames[key];
 }
 
@@ -84,3 +82,34 @@ Setting::~Setting()
 {
 
 }
+
+map<Setting::KeyName, vector<string>> Setting::values_cache {};
+
+vector< string > Setting::get_values(Setting::KeyName key)
+{
+  if(values_cache.count(key) == 0) {
+    vector<string> _values;
+    Session session;
+    Wt::Dbo::Transaction t(session);
+    auto dboValues = session.find<Setting>().where("\"key\" = ?").bind(keyName(key)).resultList();
+    transform(dboValues.begin(), dboValues.end(), back_inserter(_values), [=](const Dbo::ptr<Setting> &s){ return s->_value; });
+    values_cache[key] = _values;
+  }
+  return values_cache[key];
+}
+
+void Setting::write_values(Setting::KeyName key, const vector< string >& values)
+{
+  Session session;
+  Wt::Dbo::Transaction t(session);
+  auto writeLock = session.writeLock();
+  session.execute("DELETE FROM settings WHERE \"key\" = ?").bind(keyName(key));
+  for(auto value: values) {
+    Setting *setting = new Setting;
+    setting->_key = keyName(key);
+    setting->_value = value;
+    session.add(setting);
+  }
+  values_cache[key] = values;
+}
+

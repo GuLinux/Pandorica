@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "session.h"
 #include "Models/models.h"
 #include "media/media.h"
+#include <settings.h>
 
 using namespace std;
 
@@ -35,6 +36,8 @@ bool User::isAdmin(Wt::Dbo::Transaction &transaction) const
 
 list<string> User::allowedPaths() const
 {
+  if(Settings::authenticationMode() != Settings::AuthenticateACL)
+    return {"/"};
   list<string> paths;
   for(auto group: groups) {
     paths.merge(group->allowedPaths());

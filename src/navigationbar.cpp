@@ -39,6 +39,7 @@
 #include <Wt/WSortFilterProxyModel>
 #include "media/mediacollection.h"
 #include "utils/d_ptr_implementation.h"
+#include "settings.h"
 
 using namespace Wt;
 using namespace WtCommons;
@@ -197,8 +198,10 @@ void NavigationBar::Private::setupNavigationBar(Dbo::Transaction& transaction,  
   };
   
   createItem(mainMenu, wtr("menu.settings"), pagesMap[NavigationBar::UserSettings], [=](WMenuItem*, _n5) { showUserSettings.emit(); }, "hidden-lg hidden-md menu-settings");
-  createItem(userMenuItem->menu(), wtr("menu.logout"), 0, logout, "menu-logout");
-  createItem(mainMenu, wtr("menu.logout"), 0, logout, "menu-logout hidden-lg hidden-md");
+  if(Settings::authenticationMode() != Settings::NoAuth) {
+    createItem(userMenuItem->menu(), wtr("menu.logout"), 0, logout, "menu-logout");
+    createItem(mainMenu, wtr("menu.logout"), 0, logout, "menu-logout hidden-lg hidden-md");
+  }
 }
 
 
@@ -214,10 +217,14 @@ void NavigationBar::Private::setupAdminBar(Dbo::Transaction& transaction)
       pApp->notify(wtr("empty_media_collection_message"), Pandorica::NotificationType::Information);
   });
 
-  createItem(adminMenu, wtr("menu.groups"), 0, [=](WMenuItem*, _n5) { manageGroups.emit();}, "menu-groups");
-  createItem(adminMenu, wtr("menu.usersmanagement"), 0, [=](WMenuItem*, _n5) { usersManagement.emit();}, "menu-loggedusers");
+  if(Settings::authenticationMode() == Settings::AuthenticateACL) {
+    createItem(adminMenu, wtr("menu.groups"), 0, [=](WMenuItem*, _n5) { manageGroups.emit();}, "menu-groups");
+    createItem(adminMenu, wtr("menu.usersmanagement"), 0, [=](WMenuItem*, _n5) { usersManagement.emit();}, "menu-loggedusers");
+  }
   createItem(adminMenu, wtr("cleanup.orphans"), 0, [=](WMenuItem*, _n5) { findOrphans.emit();});
-  createItem(adminMenu, wtr("menu.viewas"), 0, [=](WMenuItem*, _n5) { viewAs.emit();});
+  if(Settings::authenticationMode() == Settings::AuthenticateACL) {
+    createItem(adminMenu, wtr("menu.viewas"), 0, [=](WMenuItem*, _n5) { viewAs.emit();});
+  }
   createItem(adminMenu, wtr("menu.configure.app"), 0, [=](WMenuItem*, _n5) { configureApp.emit();});
 }
 

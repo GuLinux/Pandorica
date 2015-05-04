@@ -62,7 +62,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WIOService>
 #include "authpage.h"
 #include "findorphansdialog.h"
-#include "selectdirectories.h"
 #include "serversettingspage.h"
 #include "navigationbar.h"
 #include "settingspage.h"
@@ -167,11 +166,12 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
   root()->addWidget(d->authPage); 
 //  root()->addWidget(d->authPage = new AuthPage(d->session));
   d->authPage->loginChanged().connect([=](Auth::LoginState state, _n5) {
+    log("notice") << "got login event: " << state;
     if(state == Auth::WeakLogin || state == Auth::StrongLogin) {
       authEvent();
       return;
     }
-    if(state == Auth::DisabledLogin)
+    if(state == Auth::DisabledLogin || ! d->navigationBar)
       return;
     d->navigationBar->animateHide({WAnimation::Fade});
     d->playlist->animateHide({WAnimation::Fade});
@@ -182,6 +182,7 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
       d->mainWidget = 0;
       d->userId = -1;
     });
+    d->navigationBar = nullptr;
   });
   d->authPage->initAuth();
 }

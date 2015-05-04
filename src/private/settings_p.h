@@ -31,6 +31,5 @@ class Settings::Private
     Private( Settings *q ) : q( q ) {}
     Settings *q;
     std::map<std::string, std::string> sessionSettings;
-    std::vector<std::string> mediaDirectories;
 };
 #endif

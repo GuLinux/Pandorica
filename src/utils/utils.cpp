@@ -59,30 +59,6 @@ Utils::~Utils()
 {
 }
 
-void Utils::mailForNewAdmin( string email, WString identity )
-{
-  Mail::Client client;
-  Mail::Message message;
-  message.setFrom( Utils::Private::authMailbox() );
-  message.setSubject( WString::tr( "new_admin_subject" ) );
-  message.setBody( WString::tr( "new_admin_body" ).arg( identity ).arg( email ) );
-  message.addRecipient( Mail::To, Utils::Private::adminMailbox() );
-  client.connect();
-  client.send( message );
-}
-
-void Utils::mailForUnauthorizedUser( string email, WString identity )
-{
-  Mail::Client client;
-  Mail::Message message;
-  message.setFrom( Utils::Private::authMailbox() );
-  message.setSubject( WString::tr( "unauthorized_user_login_subject" ) );
-  message.setBody( WString::tr( "unauthorized_user_login_body" ).arg( identity ).arg( email ).arg( wApp->makeAbsoluteUrl( wApp->bookmarkUrl( "/" ) ) ) );
-  message.addRecipient( Mail::To, Utils::Private::adminMailbox() );
-  client.connect();
-  client.send( message );
-}
-
 void Utils::inviteUserEmail( std::string email, const WString &body)
 {
   Mail::Client client;
@@ -100,10 +76,6 @@ void Utils::inviteUserEmail( std::string email, const WString &body)
 }
 
 
-Mail::Mailbox Utils::Private::adminMailbox()
-{
-  return mailboxFor( Setting::AdminEmailName, Setting::AdminEmailAddress, {"admin@localhost"} );
-}
 
 Mail::Mailbox Utils::Private::authMailbox()
 {

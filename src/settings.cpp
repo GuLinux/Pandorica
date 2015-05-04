@@ -55,13 +55,8 @@ map<string,string> defaultValues {
 Settings::Settings() : d(this) {}
 Settings::~Settings() {}
 
-vector< string > Settings::mediasDirectories(Dbo::Session *session) const
-{
-  if(d->mediaDirectories.empty()) {
-    Dbo::Transaction t(*session);
-    d->mediaDirectories = Setting::values<string>(Setting::MediaDirectories);
-  }
-  return d->mediaDirectories;
+vector< string > Settings::mediasDirectories() {
+  return Setting::values<string>(Setting::MediaDirectories);
 }
 
 const string PATH_SEP()
@@ -74,31 +69,30 @@ const string PATH_SEP()
 }
 
 
-void Settings::addMediaDirectory(string directory, Dbo::Session* session)
+void Settings::addMediaDirectory(string directory)
 {
-  d->mediaDirectories.push_back(directory);
-  Setting::write<string>(Setting::MediaDirectories, d->mediaDirectories);
+  auto _mediaDirectories = Settings::mediasDirectories();
+  _mediaDirectories.push_back(directory);
+  Setting::write<string>(Setting::MediaDirectories, _mediaDirectories);
 }
 
-void Settings::removeMediaDirectory(string directory, Dbo::Session* session)
+void Settings::removeMediaDirectory(string directory)
 {
-  d->mediaDirectories.erase(remove_if(begin(d->mediaDirectories), end(d->mediaDirectories), [=](string d) { return d == directory; }), end(d->mediaDirectories));
-  Setting::write<string>(Setting::MediaDirectories, d->mediaDirectories);
+  auto _mediaDirectories = Settings::mediasDirectories();
+  
+  _mediaDirectories.erase(remove_if(begin(_mediaDirectories), end(_mediaDirectories), [=](string d) { return d == directory; }), end(_mediaDirectories));
+  Setting::write<string>(Setting::MediaDirectories, _mediaDirectories);
 }
 
 string Settings::sharedFilesDir(std::string append)
 {
-#ifdef WIN32
-  return boost::filesystem::path( boost::filesystem::current_path() ).string() + append;
-#else
   return string{SHARED_FILES_DIR} + append;
-#endif
 }
 
 
 string Settings::relativePath(string mediaPath, Dbo::Session* session, bool removeTrailingSlash) const
 {
-  for(string mediaDirectory: mediasDirectories(session)) {
+  for(string mediaDirectory: mediasDirectories()) {
     if(mediaPath.find(mediaDirectory) == string::npos) continue;
     string relPath = boost::replace_all_copy(mediaPath, mediaDirectory, "");
     if(removeTrailingSlash && relPath[0] == '/') {
@@ -229,7 +223,7 @@ string Settings::sqlite3DatabasePath(const std::string &databaseName)
 
 bool Settings::emailVerificationMandatory()
 {
-  return Setting::value<bool>(Setting::EmailVerificationMandatory, false);
+  return authenticationMode() != NoAuth && Setting::value<bool>(Setting::EmailVerificationMandatory, false);
 }
 
 
@@ -246,5 +240,66 @@ WAnimation Settings::Animation::get()
   ? mobile : desktop;
 }
 
+void Settings::databaseType(Settings::DatabaseType type)
+{
+  Setting::write(Setting::DatabaseType, static_cast<int>(type));
+}
 
+Settings::DatabaseType Settings::databaseType()
+{
+  return static_cast<DatabaseType>(Setting::value<int>(Setting::DatabaseType, static_cast<int>(DatabaseType::Sqlite3)));
+}
+
+void Settings::authenticationMode(Settings::AuthenticationMode type)
+{
+  Setting::write(Setting::AuthenticationMode, static_cast<int>(type));
+}
+
+Settings::AuthenticationMode Settings::authenticationMode()
+{
+  if(pandoricaMode() == Simple)
+    return NoAuth;
+  return static_cast<AuthenticationMode>(Setting::value<int>(Setting::Setting::AuthenticationMode, static_cast<int>(AuthenticationMode::NoAuth)));
+}
+
+
+void Settings::pandoricaMode(Settings::PandoricaMode mode)
+{
+  Setting::write(Setting::PandoricaMode, static_cast<int>(mode));
+}
+
+Settings::PandoricaMode Settings::pandoricaMode()
+{
+  return static_cast<PandoricaMode>(Setting::value<int>(Setting::PandoricaMode, static_cast<int>(PandoricaMode::Simple)));
+}
+
+string Settings::postgresqlHost()
+{
+  return Setting::value<string>(Setting::PostgreSQL_Hostname, "localhost");
+}
+
+int Settings::postgresqlPort()
+{
+  return Setting::value<int>(Setting::PostgreSQL_Port, 5432);
+}
+
+string Settings::postgresqlApplication()
+{
+  return Setting::value<string>(Setting::PostgreSQL_Application, "Pandorica");
+}
+
+string Settings::postgresqlDatabase()
+{
+  return Setting::value<string>(Setting::PostgreSQL_Database, "Pandorica");
+}
+
+string Settings::postgresqlUsername()
+{
+  return Setting::value<string>(Setting::PostgreSQL_Username, "Pandorica");
+}
+
+string Settings::postgresqlPassword()
+{
+  return Setting::value<string>(Setting::PostgreSQL_Password);
+}
 

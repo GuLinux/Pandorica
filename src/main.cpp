@@ -317,6 +317,9 @@ bool addStaticResources( WServer &server )
   }
 
   server.addResource( staticResources, Settings::staticDeployPath() );
+  auto oauth_icons_path = boost::filesystem::path(SHARED_FILES_DIR) / "static" / "icons" / "oauth";
+  server.addResource(new WFileResource("image/png", (oauth_icons_path / "oauth-google.png").string()), "/css/oauth-google.png");
+  server.addResource(new WFileResource("image/png", (oauth_icons_path / "oauth-facebook.png").string()), "/css/oauth-facebook.png");
   return true;
 }
 
@@ -349,23 +352,20 @@ int main( int argc, char **argv, char **envp )
     Settings::init( vm );
     server.addEntryPoint( Application, createApplication );
     string quitPassword = Setting::value<string>(Setting::QuitPassword);
+    if( vm.count( "dump-schema" ) )
     {
       Session session( false );
-
-      if( vm.count( "dump-schema" ) )
-      {
-        string schemaPath {boost::any_cast<string>( vm["dump-schema"].value() )};
-	if(schemaPath == "-") {
-	  pOut() << session.tableCreationSql();
-	} else {
-	  ofstream schema;
-	  schema.open( schemaPath );
-	  schema << session.tableCreationSql();
-	  schema.close();
-	  pOut() << "Schema correctly wrote to " << schemaPath << '\n';
-	}
-        return 0;
+      string schemaPath {boost::any_cast<string>( vm["dump-schema"].value() )};
+      if(schemaPath == "-") {
+        pOut() << session.tableCreationSql();
+      } else {
+        ofstream schema;
+        schema.open( schemaPath );
+        schema << session.tableCreationSql();
+        schema.close();
+        pOut() << "Schema correctly wrote to " << schemaPath << '\n';
       }
+      return 0;
     }
 
     auto checkForActiveSessions = [ = ]()

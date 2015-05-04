@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "authpage.h"
 #include "private/authpage_p.h"
 #include <Wt/Auth/RegistrationModel>
+#include <Wt/Auth/Dbo/UserDatabase>
 #include <Wt/WText>
 #include <Wt/WPushButton>
 #include <Wt/WDialog>
@@ -41,52 +42,47 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "settings.h"
 #include <boost/format.hpp>
 #include "utils/d_ptr_implementation.h"
+#include "pandoricawizard.h"
 
 using namespace std;
 using namespace Wt;
-using namespace Wt::Auth;
+using namespace Auth;
 using namespace WtCommons;
 
 namespace dbo = Wt::Dbo;
-
-AuthWidgetCustom::AuthWidgetCustom(const AuthService& baseAuth, AbstractUserDatabase& users, Login& login, WContainerWidget* parent)
-  : AuthWidget(baseAuth, users, login, parent)
-{
-}
-
-RegistrationModel* AuthWidgetCustom::createRegistrationModel()
-{
-  RegistrationModel *model = AuthWidget::createRegistrationModel();
-  model->setEmailPolicy(Settings::emailVerificationMandatory() ? RegistrationModel::EmailMandatory : RegistrationModel::EmailOptional);
-  return model;
-}
 
 AuthPage::Private::Private(Session* session, AuthPage* q) : session(session), q(q)
 {
 }
 
 
-void AuthWidgetCustom::createOAuthLoginView()
+CustomAuthWidget::CustomAuthWidget(const Auth::AuthService& baseAuth, Auth::AbstractUserDatabase& users, Auth::Login& login, WStackedWidget *stack, WContainerWidget* parent)
+  : Auth::AuthWidget(baseAuth, users, login, parent), stack(stack)
 {
-  Wt::Auth::AuthWidget::createOAuthLoginView();
-  if(!resolveWidget("icons")) return;
-  WContainerWidget *icons = (WContainerWidget*) resolveWidget("icons");
-  for(auto child: icons->children()) {
-    WImage *image = dynamic_cast<WImage*>(child);
-    if(!image) continue;
-    string imageUrl = image->imageLink().url();
-    
-    boost::replace_all(imageUrl, "css", Settings::staticDeployPath() + "/icons/oauth" );
-    log("notice") << "found oauth image: " << image->imageLink().url() << " >> " << imageUrl;
-    image->setImageLink(imageUrl);
-  }
+
+}
+
+void CustomAuthWidget::registerNewUser(const Wt::Auth::Identity& oauth)
+{
+//     Wt::Auth::AuthWidget::registerNewUser(oauth);
+  auto registrationWidget = createRegistrationView(oauth);
+  stack->addWidget(registrationWidget);
+  stack->setCurrentWidget(registrationWidget);
 }
 
 
-Message::Message(Wt::WString text, Wt::WContainerWidget* parent): WTemplate(parent)
+void CustomAuthWidget::recreateView()
+{
+  createLoginView();
+}
+
+
+
+
+Message::Message(WString text, WContainerWidget* parent): WTemplate(parent)
 {
   addStyleClass("alert");
-  setTemplateText(WString("<button type=\"button\" class=\"close\" data-dismiss=\"alert\">&times;</button>{1}").arg(text), Wt::XHTMLUnsafeText);
+  setTemplateText(WString("<button type=\"button\" class=\"close\" data-dismiss=\"alert\">&times;</button>{1}").arg(text), XHTMLUnsafeText);
 }
 
 string animationJs(WWidget *widget, string animation) {
@@ -101,80 +97,21 @@ void AuthPage::Private::authEvent() {
     {Auth::StrongLogin, "StrongLogin"},
   };
   log("notice") << __PRETTY_FUNCTION__ << ": state=" << states[session->login().state()];
+  if(session->login().state() == Auth::DisabledLogin) {
+    log("notice") << "Got disabled login";
+//     session->login().logout();
+    authWidget->recreateView();
+    return;
+  }
   Scope scope([=]{ loginChanged.emit(session->login().state()); });
-  if(!session->login().loggedIn()) {
-//     log("notice") << __PRETTY_FUNCTION__ << ": logout detected";
-//     loggedOut.emit();
-//     messagesContainer->clear();
-//     q->doJavaScript(animationJs(q, "fadeIn"));
+  if(!session->login().loggedIn() || session->login().state() == Auth::DisabledLogin) {
     return;
   }
   log("notice") << "User logged in";
   dbo::Transaction t(*session);
   //   changeSessionId();
   Auth::User user = session->login().user();
-  WPushButton *refreshButton = WW<WPushButton>(wtr("button.retry")).css("btn btn-link").onClick([this](WMouseEvent) {
-    authEvent();
-  }).setAttribute("data-dismiss", "alert");
-  if(Settings::emailVerificationMandatory() && !user.unverifiedEmail().empty()) {
-    log("notice") << "User email empty, unconfirmed?";
-    Message *message = WW<Message>(wtr("user.need_mail_verification")).addCss("alert-block");
-    message->bindWidget("refresh", refreshButton);
-    messagesContainer->addWidget(message);
-    return;
-  }
-  log("notice") << "User email confirmed, or verification not mandatory";
-
-  if(seedIfNoAdmins(t, user)) return;
-  
-  if(session->user()->groups.size() <= 0) {
-    Message *message = WW<Message>(wtr("user.need_to_be_enabled")).addCss("alert-block");
-    if(!mailSent) {
-      ::Utils::mailForUnauthorizedUser(user.email(), user.identity(Auth::Identity::LoginName));
-      mailSent = true;
-    }
-    messagesContainer->addWidget(message);
-    message->bindWidget("refresh", refreshButton);
-    return;
-  }
-//   q->addStyleClass("hidden");
   q->doJavaScript(animationJs(q, "fadeOut"));
-//   loggedIn.emit();
-}
-
-bool AuthPage::Private::seedIfNoAdmins(dbo::Transaction& transaction, Auth::User &user)
-{
-  dbo::collection<GroupPtr> adminGroups = session->find<Group>().where("is_admin = ?").bind(true);
-  int adminUsersCount = 0;
-  for(auto group: adminGroups) {
-    adminUsersCount += group->users.size();
-  }
-  wApp->log("notice") << "adminUsersCount: " << adminUsersCount << ", admin groups: " << adminGroups.size();
-  if(adminGroups.size() == 0 || adminUsersCount == 0) {
-    // transaction.rollback();
-    WDialog *addMyselfToAdmins = new WDialog{wtr("admin_missing_dialog_title")};
-    addMyselfToAdmins->contents()->addWidget(new WText{wtr("admin_missing_dialog_text").arg(user.identity("loginname")) });
-    WLineEdit *groupName = new WLineEdit;
-    groupName->setText(wtr("admin_missing_dialog_default_groupname"));
-    auto groupNameLabel = new WLabel(wtr("admin_missing_dialog_groupname_label"));
-    groupNameLabel->setBuddy(groupName);
-    WContainerWidget *formInline = WW<WContainerWidget>().css("form-inline").add(groupNameLabel).add(groupName).padding(5);
-    addMyselfToAdmins->contents()->addWidget(formInline);
-    addMyselfToAdmins->footer()->addWidget(WW<WPushButton>(wtr("button.cancel")).onClick([=](WMouseEvent){ addMyselfToAdmins->reject(); }).css("btn btn-danger"));
-    addMyselfToAdmins->footer()->addWidget(WW<WPushButton>(wtr("button.ok")).onClick([=](WMouseEvent){
-      dbo::Transaction t(*session);
-      GroupPtr newGroup = session->add(new Group{groupName->text().toUTF8(), true});
-      auto sessionUser = session->user();
-      newGroup.modify()->users.insert(sessionUser);
-      t.commit();
-      ::Utils::mailForNewAdmin(user.email(), user.identity("loginname"));
-      addMyselfToAdmins->accept();
-      authEvent();
-    }).css("btn btn-primary"));
-    addMyselfToAdmins->show();
-    return true;
-  }
-  return false;
 }
 
 
@@ -194,17 +131,37 @@ AuthPage::AuthPage(Session* session, WContainerWidget* parent)
     : WContainerWidget(parent), d(session, this)
 {
   session->login().changed().connect([=](_n6){ d->authEvent(); });
-  
+  d->stack = new WStackedWidget;
+  addStyleClass("container");
   addWidget(WW<WText>(WString("<h1 style=\"text-align: center;\">{1}</h1>").arg(wtr("site-title"))));
-  d->authWidget = new Wt::Auth::AuthWidget(Session::auth(), session->users(), session->login());
-  d->authWidget->model()->addPasswordAuth(&Session::passwordAuth());
-  d->authWidget->model()->addOAuth(Session::oAuth());
-  d->authWidget->setRegistrationEnabled(true);
-  addWidget(d->authWidget);
+  addWidget(d->stack);
+  if(! Setting::value<bool>(Setting::PandoricaSetup, false)) {
+    auto wizard = new PandoricaWizard;
+    d->stack->addWidget(wizard);
+    d->stack->setCurrentWidget(wizard);
+    wizard->finished().connect(d.get(), &AuthPage::Private::setupLogin);
+  }
+  else
+    WServer::instance()->post(wApp->sessionId(), [=]{d->setupLogin();});
   addWidget(d->messagesContainer = new WContainerWidget());
 }
 
+void AuthPage::Private::setupLogin()
+{
+  if(Settings::authenticationMode() == Settings::Settings::NoAuth) {
+    session->login().login(session->users().findWithIdentity("pandorica", "Admin"));
+    wApp->log("notice") << "Simple login mode found: logging in admin user: " << session->login().loggedIn();
+    return;
+  }
+  authWidget = new CustomAuthWidget(Session::auth(), session->users(), session->login(), stack);
+  authWidget->model()->addPasswordAuth(&Session::passwordAuth());
+  authWidget->model()->addOAuth(Session::oAuth());
+  authWidget->setRegistrationEnabled(true);
+  stack->addWidget(authWidget);
+  authWidget->processEnvironment();
+}
+
+
 void AuthPage::initAuth()
 {
-  d->authWidget->processEnvironment();
 }

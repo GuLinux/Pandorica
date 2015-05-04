@@ -28,12 +28,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WStandardItem>
 #include <Wt/WContainerWidget>
 #include <Wt/WIOService>
+#include <Wt/WPushButton>
+#include <Wt/WToolBar>
+#include <Wt/WTimer>
 #include <boost/filesystem.hpp>
 #include "Wt-Commons/wt_helpers.h"
 #include "utils/d_ptr_implementation.h"
 
 using namespace std;
 using namespace Wt;
+using namespace WtCommons;
 
 namespace fs = boost::filesystem;
 
@@ -42,17 +46,24 @@ SelectDirectories::Private::Private( SelectDirectories *q, vector< string > sele
 {
 }
 
-SelectDirectories::SelectDirectories( vector< string > rootPaths, string selectedPath, OnPathClicked onPathSelected, WObject *parent )
+SelectDirectories::SelectDirectories( vector< string > rootPaths, string selectedPath, OnPathClicked onPathSelected, WContainerWidget* parent )
   : SelectDirectories( rootPaths, {selectedPath}, onPathSelected, []( string ) {}, Single, parent )
 {
 
 }
 
 
-SelectDirectories::SelectDirectories( vector< string > rootPaths, vector< string > selectedPaths, OnPathClicked onPathSelected, OnPathClicked onPathUnselected, SelectionType selectionType, WObject *parent )
-  : WObject( parent ), d( this, selectedPaths, selectionType )
+SelectDirectories::SelectDirectories( vector< string > rootPaths, vector< string > selectedPaths, OnPathClicked onPathSelected, OnPathClicked onPathUnselected, SelectDirectories::SelectionType selectionType, WContainerWidget* parent )
+  : WCompositeWidget( parent ), d( this, selectedPaths, selectionType )
 {
-  WTreeView *tree = new WTreeView();
+  WContainerWidget *container = WW<WContainerWidget>();
+  setImplementation(container);
+  WToolBar *toolbar = WW<WToolBar>(WW<WContainerWidget>(container).addCss("center-block"))
+    .addButton(WW<WPushButton>(WString::tr("button.home")).css("btn-lg").setEnabled(getenv("HOME")).onClick([=](WMouseEvent){ d->scrollTo(getenv("HOME")); }).setIcon(Settings::staticPath("/icons/actions/home-20.png")) )
+    .addButton(WW<WPushButton>(WString::tr("button.root")).css("btn-lg").onClick([=](WMouseEvent){ d->scrollTo("/", WAbstractItemView::PositionAtCenter); }).setIcon(Settings::staticPath("/icons/actions/chevron-up-20.png")) )
+  ;
+  WTreeView *tree = WW<WTreeView>();
+  container->addWidget(tree);
   d->tree = tree;
   d->app = wApp;
   d->model = new WStandardItemModel( this );
@@ -122,6 +133,28 @@ void SelectDirectories::setWidth( WLength width )
 }
 
 
+
+void SelectDirectories::Private::scrollTo(const boost::filesystem::path& p, WAbstractItemView::ScrollHint scrollHint)
+{
+  fs::path path;
+  for(auto component: p) {
+    path /= component;
+    wApp->log("notice") << "scrollTo: adding component: " << path;
+    if(! items[path])
+      return;
+    addSubItems(items[path], true);
+    tree->expand(items[path]->index());
+  }
+  if(!items[p])
+    return;
+  tree->expand(items[p]->index());
+  tree->scrollTo(items[p]->index(), scrollHint);
+  items[p]->setStyleClass(item_css + " tree-directory-item-hl");
+  WTimer::singleShot(5000, [=](WMouseEvent){
+    items[p]->setStyleClass(item_css);
+  });
+}
+
 void SelectDirectories::Private::populateTree( std::string path )
 {
   model->appendRow( buildStandardItem( path, true ) );
@@ -139,26 +172,16 @@ void SelectDirectories::Private::populateTree( std::string path )
       }
     }
   }
-};
-
-
-void SelectDirectories::addTo( WContainerWidget *container )
-{
-  container->addWidget( d->tree );
 }
+
+const std::string SelectDirectories::Private::item_css = "tree-directory-item link-hand";
 
 WStandardItem *SelectDirectories::Private::buildStandardItem( boost::filesystem::path path, bool shouldAddSubItems )
 {
   string folderName {path.filename().string()};
-#ifdef WIN32
-
-  if( folderName == "/" )
-    folderName = path.string();
-
-#endif
   WStandardItem *item = new WStandardItem {Settings::icon( Settings::FolderSmall ), folderName};
   item->setCheckable( selectionType == SelectDirectories::Multiple );
-  item->setStyleClass( "tree-directory-item link-hand" );
+  item->setStyleClass(item_css);
   item->setLink( "" );
   item->setToolTip( wtr( "tree.double.click.to.expand" ) );
   item->setData( path );
@@ -181,6 +204,8 @@ WStandardItem *SelectDirectories::Private::buildStandardItem( boost::filesystem:
   return item;
 }
 
+
+
 void SelectDirectories::Private::addSubItems( WStandardItem *item, bool sync )
 {
   fs::path path = boost::any_cast<fs::path>( item->data() );
@@ -189,7 +214,7 @@ void SelectDirectories::Private::addSubItems( WStandardItem *item, bool sync )
   {
     fs::directory_iterator it {path};
     vector<fs::path> paths;
-    log( "notice" ) << "Filtering directory tree for path: " << path.string();
+//     log( "notice" ) << "Filtering directory tree for path: " << path.string();
     copy_if( it, fs::directory_iterator(), back_inserter( paths ), [ = ]( fs::path p )
     {
       try
@@ -202,7 +227,7 @@ void SelectDirectories::Private::addSubItems( WStandardItem *item, bool sync )
         log( "warning" ) << "Error filtering path " << p.string() << ": " << e.what();
       }
     } );
-    log( "notice" ) << "Sorting tree for path: " << path.string();
+//     log( "notice" ) << "Sorting tree for path: " << path.string();
     sort( begin(paths), end(paths), [ = ]( fs::path a, fs::path b )
     {
       return a.filename() < b.filename();
@@ -211,7 +236,7 @@ void SelectDirectories::Private::addSubItems( WStandardItem *item, bool sync )
     {
       for_each( begin(paths), end(paths), [ = ]( fs::path p )
       {
-        log( "notice" ) << "Adding subpath " << p.string() << " to path " << path.string();
+//         log( "notice" ) << "Adding subpath " << p.string() << " to path " << path.string();
 
         if( items.count( p ) > 0 )
           return;
@@ -236,7 +261,7 @@ void SelectDirectories::Private::addSubItems( WStandardItem *item, bool sync )
   catch
     ( std::exception &e )
   {
-    log( "warning" ) << "Error adding subdirectories for path " << path << ": " << e.what();
+//     log( "warning" ) << "Error adding subdirectories for path " << path << ": " << e.what();
   }
 }
 
