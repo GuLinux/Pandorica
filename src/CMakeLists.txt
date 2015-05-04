@@ -69,7 +69,7 @@ add_subdirectory(utils)
 add_executable(${app_name} ${pandorica_SOURCES})
 
 if(Qt5Widgets_FOUND)
-  qt5_use_modules(Pandorica Network)
+  qt5_use_modules(Pandorica Network Widgets)
 endif(Qt5Widgets_FOUND)
 
 add_dependencies(${app_name} ffmpeg_libraries)
@@ -82,10 +82,6 @@ target_link_libraries(${app_name}
   ${Wt_STATIC_DEPENDENCIES}
   ${Boost_LIBRARIES} 
   ${GraphicsMagick_LDFLAGS} 
-  ${Qt5Widgets_LIBRARIES} 
-  ${QT_QTCORE_LIBRARY} 
-  ${QT_QTNETWORK_LIBRARY} 
-  ${QT_QTGUI_LIBRARY} 
   ${AVFORMAT_LDFLAGS} 
   ${AVCODEC_LDFLAGS} 
   ${AVUTIL_LDFLAGS} 
