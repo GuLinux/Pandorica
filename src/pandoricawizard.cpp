@@ -97,6 +97,7 @@ void PandoricaWizard::Private::addFileSystemChooser()
 						 [=](const string &p){Settings::removeMediaDirectory(p);},
 						 SelectDirectories::Multiple );
   selectDirectories->setHeight(500);
+  fileSystemChooser->addWidget(WW<WText>(WString::tr("wizard.medialibrary.message")));
   fileSystemChooser->addWidget(selectDirectories);
   stack->addWidget(fileSystemChooser);
   showPage[FileSystemChooserPage] = [=] {
@@ -163,8 +164,8 @@ void PandoricaWizard::Private::addAuthentication()
   stack->addWidget(groupBox);
   WButtonGroup *buttonGroup = new WButtonGroup(groupBox);
   WRadioButton *authNone = addRadio("wizard.authentication.none", groupBox, buttonGroup, Settings::NoAuth);
-  WRadioButton *authBasic = addRadio("wizard.authentication.autenticate.simple", groupBox, buttonGroup, Settings::AuthenticateSimple);
-  WRadioButton *authACL = addRadio("wizard.authentication.autenticate.full", groupBox, buttonGroup, Settings::AuthenticateACL);
+  WRadioButton *authBasic = addRadio("wizard.authentication.simple", groupBox, buttonGroup, Settings::AuthenticateSimple);
+  WRadioButton *authACL = addRadio("wizard.authentication.full", groupBox, buttonGroup, Settings::AuthenticateACL);
   WCheckBox *emailVerification = WW<WCheckBox>(WString::tr("wizard.authentication.emailverification")).setHidden(true);
   groupBox->addWidget(emailVerification);
   map<Settings::AuthenticationMode, WRadioButton*> buttons { {Settings::NoAuth, authNone}, {Settings::AuthenticateSimple, authBasic}, {Settings::AuthenticateACL, authACL} };

@@ -31,6 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/algorithm/string.hpp>
 #include "utils/d_ptr_implementation.h"
 #include <boost/thread.hpp>
+#include "utils/stacktrace.h"
 using namespace Wt;
 using namespace std;
 using namespace Wt::Utils;
@@ -157,7 +158,18 @@ void MediaCollection::Private::listDirectory( boost::filesystem::path path, shar
 
   try
   {
-    copy( fs::recursive_directory_iterator( path, fs::symlink_option::recurse ), fs::recursive_directory_iterator(), back_inserter( v ) );
+    fs::recursive_directory_iterator it( path, fs::symlink_option::recurse );
+    while(it != fs::recursive_directory_iterator()) {
+      if(it.level() > 20)
+        it.pop();
+      try {
+        v.push_back(*it++);
+      } catch(std::exception &e) {
+        log("notice") << "Error scanning for path " << *it  << ": " << e.what();
+        it.pop();
+      }
+    }
+    //copy( fs::recursive_directory_iterator( path, fs::symlink_option::recurse, ec ), fs::recursive_directory_iterator(), back_inserter( v ) );
 //     sort( v.begin(), v.end() ); // TODO: not needed?
 
     for( fs::directory_entry entry : v )

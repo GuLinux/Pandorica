@@ -334,13 +334,17 @@ An email message notifying the invitation was sent to {1}.</message>
 <message id="button.root">Root</message>
 
 
+<message id="wizard.begin">Welcome to Pandorica</message>
+<message id="wizard.begin.message">This installation wizard will guide you setting up Pandorica Media Server.</message>
+
 <message id="wizard.pandoricamode">Pandorica Mode</message>
 <message id="wizard.pandoricamode.simple">Simple Mode</message>
 <message id="wizard.pandoricamode.simple.label">Sigle user mode, automatically share every content to anyone on the same network without permissions or logging in. This is suggested for regular home usage.</message>
 <message id="wizard.pandoricamode.advanced">Advanced Mode</message>
-<message id="wizard.pandoricamode.advanced.label">Multi user mode, requires login and permissions for viewing content. Highly reccomended for public network servers.</message>
+<message id="wizard.pandoricamode.advanced.label">Allow you to choose multi user mode, groups, registration options. Highly reccomended for public network servers.</message>
 
 <message id="wizard.medialibrary">Multimedia Library</message>
+<message id="wizard.medialibrary.message">You can choose multiple directories for media library indexing.</message>
 
 <message id="wizard.dbsettings">Database Connection</message>
 <message id="wizard.sqlite3">SQLite3</message>
@@ -354,4 +358,23 @@ An email message notifying the invitation was sent to {1}.</message>
 <message id="wizard.postgresql.database">Database Schema</message>
 <message id="wizard.postgresql.username">PostgreSQL Username</message>
 <message id="wizard.postgresql.password">PostgreSQL Password</message>
+
+<message id="wizard.authentication">Authentication Mode</message>
+<message id="wizard.authentication.none">No Authentication</message>
+<message id="wizard.authentication.none.label">Pandorica will be accessible to everyone in the local network. Prefect choice for a home user installation</message>
+
+<message id="wizard.authentication.simple">Simple Authentication</message>
+<message id="wizard.authentication.simple.label">Login will be required to access Pandorica. No other permissions will be required.</message>
+
+<message id="wizard.authentication.full">Full Authentication with Groups</message>
+<message id="wizard.authentication.full.label">New users will be required to be managed by an administrators. Perfect choice for an internet media server.</message>
+
+<message id="wizard.authentication.emailverification">Require email verification</message>
+
+<message id="wizard.admincreation">Create Administration Account</message>
+<message id="wizard.admincreation.registrationhint">Here you can create an account that will be automatically added to Pandorica Administrators. You may skip this step by clicking "next", but if you enabled groups ACL, you will not be able to log in!</message>
+
+
+<message id="wizard.finished">Finished</message>
+<message id="wizard.finished.text">Setup completed. You may now start using <strong>Pandorica</strong>. Enjoy!</message>
 </messages>
