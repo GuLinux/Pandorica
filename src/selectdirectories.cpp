@@ -56,13 +56,13 @@ SelectDirectories::SelectDirectories( vector< string > rootPaths, string selecte
 SelectDirectories::SelectDirectories( vector< string > rootPaths, vector< string > selectedPaths, OnPathClicked onPathSelected, OnPathClicked onPathUnselected, SelectDirectories::SelectionType selectionType, WContainerWidget* parent )
   : WCompositeWidget( parent ), d( this, selectedPaths, selectionType )
 {
-  WContainerWidget *container = WW<WContainerWidget>().css("container-fluid");
+  WContainerWidget *container = WW<WContainerWidget>();
   setImplementation(container);
-  WToolBar *toolbar = WW<WToolBar>(container).addCss("col-xs-6 col-xs-offset-3 text-center")
+  WToolBar *toolbar = WW<WToolBar>(WW<WContainerWidget>(container).addCss("center-block"))
     .addButton(WW<WPushButton>(WString::tr("button.home")).css("btn-lg").setEnabled(getenv("HOME")).onClick([=](WMouseEvent){ d->scrollTo(getenv("HOME")); }).setIcon(Settings::staticPath("/icons/actions/home-20.png")) )
     .addButton(WW<WPushButton>(WString::tr("button.root")).css("btn-lg").onClick([=](WMouseEvent){ d->scrollTo("/", WAbstractItemView::PositionAtCenter); }).setIcon(Settings::staticPath("/icons/actions/chevron-up-20.png")) )
   ;
-  WTreeView *tree = WW<WTreeView>().addCss("col-xs-12");
+  WTreeView *tree = WW<WTreeView>();
   container->addWidget(tree);
   d->tree = tree;
   d->app = wApp;

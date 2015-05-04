@@ -41,6 +41,7 @@
 #include <Wt/WCheckBox>
 #include "Wt-Commons/wt_helpers.h"
 #include <Wt-Commons/wform.h>
+#include <Wt-Commons/wobjectscope.h>
 #include "Models/models.h"
 
 using namespace Wt;
@@ -194,12 +195,30 @@ void PandoricaWizard::Private::addAdminUserPage()
   stack->addWidget(groupBox);
   showPage[AdminUserCreation] = [=] {
     groupBox->clear();
+    groupBox->addWidget(new WText{WString::tr("wizard.admincreation.registrationhint")});
     Session *session = new Session(true); // TODO: RAII or something else to delete this
     WContainerWidget *container = new WContainerWidget(groupBox);
-    Auth::RegistrationModel *model = new Auth::RegistrationModel(session->auth(), session->users(), session->login(), container);
+    Auth::RegistrationModel *model = new Auth::RegistrationModel(session->auth(), session->users(), session->login());
     auto registrationWidget = new Auth::RegistrationWidget();
     registrationWidget->setModel(model);
+    model->addPasswordAuth(&session->passwordAuth());
+    session->users().setNewUserStatus(Auth::User::Normal);
     container->addWidget(registrationWidget);
+    auto registrationWidgetDeleted = new WObjectScope([=]{
+//       session->flush();
+      if(model->login().loggedIn() && model->login().user().isValid()) {
+        Dbo::Transaction t(*session);
+        auto user = session->user();
+        wApp->log("notice") << "Registered user";
+        adminGroup(t).modify()->users.insert(user);
+      }
+      groupBox->clear();
+      groupBox->addWidget(new WText{WString::tr("wizard.admincreation.registered")});
+      WServer::instance()->post(wApp->sessionId(), [=]{
+        delete model;
+        delete session;
+      });
+    }, registrationWidget);
     displayPage(groupBox, Authentication, CongratsPage);
   };
 }
@@ -282,13 +301,15 @@ PandoricaWizard::PandoricaWizard(Wt::WContainerWidget* parent)
     : d(this)
 {
   setImplementation(
-    WW<WContainerWidget>().add(d->stack)
+    WW<WContainerWidget>()
     .add(
-      WW<WToolBar>().css("pull-right")
+      WW<WToolBar>().addCss("pull-right")
       .addButton(d->previous = WW<WPushButton>(WString::tr("button.previous")).css("btn-warning").setEnabled(false).onClick([=](WMouseEvent){ d->showPage[d->previousPage](); }))
       .addButton(d->next = WW<WPushButton>(WString::tr("button.next")).css("btn-primary").setEnabled(false).onClick([=](WMouseEvent){ d->showPage[d->nextPage](); }))
       .addButton(d->finish = WW<WPushButton>(WString::tr("button.finish")).css("btn-success").setEnabled(false).onClick([=](WMouseEvent){ delete this; }))
     )
+    .add(new WBreak)
+    .add(d->stack)
   );
   d->addBeginPage();
   d->addPandoricaModePage();

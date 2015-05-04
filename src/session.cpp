@@ -227,6 +227,7 @@ UserDatabase& Session::users()
 
 dbo::ptr<User> Session::user()
 {
+  Dbo::Transaction t(*this);
   if (!d->login.loggedIn())
     return dbo::ptr<User>();
   dbo::ptr<AuthInfo> authInfo = d->users->find(d->login.user());
