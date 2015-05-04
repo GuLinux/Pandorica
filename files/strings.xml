@@ -330,6 +330,9 @@ An email message notifying the invitation was sent to {1}.</message>
 <message id="mediacollectionbrowser.setlabel.message">Set display label for {1}</message>
 <message id="Wt.Auth.account-disabled">Account disabled. Please contact Pandorica Administrator</message>
 
+<message id="button.home">Home</message>
+<message id="button.root">Root</message>
+
 
 <message id="wizard.pandoricamode">Pandorica Mode</message>
 <message id="wizard.pandoricamode.simple">Simple Mode</message>

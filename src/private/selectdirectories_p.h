@@ -54,10 +54,13 @@ class SelectDirectories::Private
     void addSubItems( Wt::WStandardItem *item, bool sync = false );
     void trySelecting( Wt::WStandardItem *item, boost::filesystem::path path );
     SelectDirectories::SelectionType selectionType;
+    std::map<boost::filesystem::path, Wt::WStandardItem *> items;
+    void scrollTo(const boost::filesystem::path &p);
   private:
     Wt::WStandardItem *buildStandardItem( boost::filesystem::path path, bool addSubItems );
     class SelectDirectories *const q;
     std::vector<std::string> selectedPaths;
-    std::map<boost::filesystem::path, Wt::WStandardItem *> items;
 };
+
+
 #endif // SELECTDIRECTORIESPRIVATE_H
