@@ -246,8 +246,6 @@ clicking on the following link or copying the URL into your browser:
   <message id="unauthorized_user_login_body">The user {1} ({2}) just tried to login.
     Since it doesn't appear to be in the authorized users list, it needs to be moderated.
       Visit {3} to do it.</message>
-  <message id="new_admin_subject">Pandorica: new admin added</message>
-  <message id="new_admin_body">The user {1} ({2}) was just added to the administrators list.</message>
 <message id="button.save">Save</message>
 <message id="configure.app.select_media_directories">Select Media Directories</message>
 <message id="empty_media_collection_message">It looks like your Media Collection is empty.<br />You can configure it by clicking the "Admin" menu, then choosing "<b>Configure App</b>".</message>
@@ -369,7 +367,7 @@ An email message notifying the invitation was sent to {1}.</message>
 <message id="wizard.authentication.full">Full Authentication with Groups</message>
 <message id="wizard.authentication.full.label">New users will be required to be managed by an administrators. Perfect choice for an internet media server.</message>
 
-<message id="wizard.authentication.emailverification">Require email verification</message>
+<message id="wizard.authentication.emailverification">Require email verification (warning: you need a SMTP server on localhost:25 for email relay, or you won't be able to log in!)</message>
 
 <message id="wizard.admincreation">Create Administration Account</message>
 <message id="wizard.admincreation.registrationhint">Here you can create an account that will be automatically added to Pandorica Administrators. You may skip this step by clicking "next", but if you enabled groups ACL, you will not be able to log in!</message>

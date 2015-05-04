@@ -40,7 +40,6 @@ class Utils::Private
 {
   public:
     Private( ::Utils *q );
-    static Wt::Mail::Mailbox adminMailbox();
     static Wt::Mail::Mailbox authMailbox();
     static Wt::Mail::Mailbox mailboxFor( Setting::KeyName nameProperty, Setting::KeyName addressProperty, Wt::Mail::Mailbox defaultMailbox );
   private:

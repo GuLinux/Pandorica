@@ -366,3 +366,8 @@ body {
 .Wt-auth-registration .modal-footer {
   float:left;
 }
+
+.wizard label {
+  font-weight: lighter;
+  margin-left: 2em;
+}

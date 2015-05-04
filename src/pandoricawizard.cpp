@@ -47,7 +47,7 @@
 using namespace Wt;
 using namespace WtCommons;
 using namespace std;
-PandoricaWizard::Private::Private(PandoricaWizard* q) : q(q), stack(new WStackedWidget)
+PandoricaWizard::Private::Private(PandoricaWizard* q) : q(q), stack(WW<WStackedWidget>().addCss("wizard"))
 {
 }
 
@@ -168,6 +168,7 @@ void PandoricaWizard::Private::addAuthentication()
   WRadioButton *authACL = addRadio("wizard.authentication.full", groupBox, buttonGroup, Settings::AuthenticateACL);
   WCheckBox *emailVerification = WW<WCheckBox>(WString::tr("wizard.authentication.emailverification")).setHidden(true);
   groupBox->addWidget(emailVerification);
+
   map<Settings::AuthenticationMode, WRadioButton*> buttons { {Settings::NoAuth, authNone}, {Settings::AuthenticateSimple, authBasic}, {Settings::AuthenticateACL, authACL} };
   
   buttonGroup->checkedChanged().connect([=](WRadioButton *b, _n5){
@@ -177,7 +178,9 @@ void PandoricaWizard::Private::addAuthentication()
     emailVerification->setChecked(Settings::emailVerificationMandatory());
     displayPage(groupBox, DatabaseSetup, authMode == Settings::NoAuth ? CongratsPage : AdminUserCreation);
   });
-  emailVerification->changed().connect([=](_n1){ Setting::write(Setting::EmailVerificationMandatory, emailVerification->isChecked()); });
+  emailVerification->changed().connect([=](_n1){
+    Setting::write(Setting::EmailVerificationMandatory, emailVerification->isChecked());
+  });
   
   showPage[Authentication] = [=] {
     auto authenticationMode = Settings::authenticationMode();
@@ -197,7 +200,7 @@ void PandoricaWizard::Private::addAdminUserPage()
   showPage[AdminUserCreation] = [=] {
     groupBox->clear();
     groupBox->addWidget(new WText{WString::tr("wizard.admincreation.registrationhint")});
-    Session *session = new Session(true); // TODO: RAII or something else to delete this
+    Session *session = new Session(true);
     WContainerWidget *container = new WContainerWidget(groupBox);
     Auth::RegistrationModel *model = new Auth::RegistrationModel(session->auth(), session->users(), session->login());
     auto registrationWidget = new Auth::RegistrationWidget();

@@ -112,41 +112,6 @@ void AuthPage::Private::authEvent() {
   //   changeSessionId();
   Auth::User user = session->login().user();
   q->doJavaScript(animationJs(q, "fadeOut"));
-  seedIfNoAdmins(t, user);
-}
-
-bool AuthPage::Private::seedIfNoAdmins(dbo::Transaction& transaction, Auth::User &user)
-{
-  dbo::collection<GroupPtr> adminGroups = session->find<Group>().where("is_admin = ?").bind(true);
-  int adminUsersCount = 0;
-  for(auto group: adminGroups) {
-    adminUsersCount += group->users.size();
-  }
-  wApp->log("notice") << "adminUsersCount: " << adminUsersCount << ", admin groups: " << adminGroups.size();
-  if(adminGroups.size() == 0 || adminUsersCount == 0) {
-    // transaction.rollback();
-    WDialog *addMyselfToAdmins = new WDialog{wtr("admin_missing_dialog_title")};
-    addMyselfToAdmins->contents()->addWidget(new WText{wtr("admin_missing_dialog_text").arg(user.identity("loginname")) });
-    WLineEdit *groupName = new WLineEdit;
-    groupName->setText(wtr("admin_missing_dialog_default_groupname"));
-    auto groupNameLabel = new WLabel(wtr("admin_missing_dialog_groupname_label"));
-    groupNameLabel->setBuddy(groupName);
-    WContainerWidget *formInline = WW<WContainerWidget>().css("form-inline").add(groupNameLabel).add(groupName).padding(5);
-    addMyselfToAdmins->contents()->addWidget(formInline);
-    addMyselfToAdmins->footer()->addWidget(WW<WPushButton>(wtr("button.cancel")).onClick([=](WMouseEvent){ addMyselfToAdmins->reject(); }).css("btn btn-danger"));
-    addMyselfToAdmins->footer()->addWidget(WW<WPushButton>(wtr("button.ok")).onClick([=](WMouseEvent){
-      dbo::Transaction t(*session);
-      GroupPtr newGroup = session->add(new Group{groupName->text().toUTF8(), true});
-      auto sessionUser = session->user();
-      newGroup.modify()->users.insert(sessionUser);
-      t.commit();
-      ::Utils::mailForNewAdmin(user.email(), user.identity("loginname"));
-      addMyselfToAdmins->accept();
-    }).css("btn btn-primary"));
-    addMyselfToAdmins->show();
-    return true;
-  }
-  return false;
 }
 
 
