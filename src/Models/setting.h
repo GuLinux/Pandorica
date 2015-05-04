@@ -56,8 +56,6 @@ public:
       DatabaseVersion,
       MediaDirectories,
       ThreadPoolThreads,
-      AdminEmailName,
-      AdminEmailAddress,
       AuthEmailName,
       AuthEmailAddress,
       PandoricaSetup,
@@ -76,48 +74,29 @@ public:
     
     template<class Type>
     static void write(KeyName key, const Type &value) {
-      Session session;
-      Wt::Dbo::Transaction t(session);
-      auto writeLock = session.writeLock();
-      session.execute("DELETE FROM settings WHERE \"key\" = ?").bind(keyName(key));
-      Setting *setting = new Setting;
-      setting->_key = keyName(key);
-      setting->_value = boost::lexical_cast<std::string>(value);
-      session.add(setting);
+      write_values(key, {boost::lexical_cast<std::string>(value)} );
     }
     
     template<typename Type, class Cont>
     static void write(KeyName key, const Cont &values) {
-      Session session;
-      Wt::Dbo::Transaction t(session);
-      auto writeLock = session.writeLock();
-      session.execute("DELETE FROM settings WHERE \"key\" = ?").bind(keyName(key));
-      for(Type value: values) {
-        Setting *setting = new Setting;
-        setting->_key = keyName(key);
-        setting->_value = boost::lexical_cast<std::string>(value);
-        session.add(setting);
-      }
+      std::vector<std::string> string_values;
+      std::transform(std::begin(values), std::end(values), std::back_inserter(string_values), [=](const Type &t){ return boost::lexical_cast<std::string>(t); });
+      write_values(key, string_values);
     }
     
     template<class Type>
     static Type value(KeyName key, const Type &defaultValue = Type{} ) {
-      Session session;
-      Wt::Dbo::Transaction t(session);
-      Wt::Dbo::ptr<Setting> setting = session.find<Setting>().where("\"key\" = ?").bind(keyName(key));
-      if(!setting)
+      auto _values = values<Type>(key);
+      if(_values.empty())
         return defaultValue;
-      return boost::lexical_cast<Type>(setting->_value);
+      return _values[0];
     }
     
     template<class Type>
     static std::vector<Type> values(KeyName key) {
-      Session session;
-      Wt::Dbo::Transaction t(session);
+      auto _values = get_values(key);
       std::vector<Type> collection;
-      auto dboValues = session.find<Setting>().where("\"key\" = ?").bind(keyName(key)).resultList();
-      std::transform(dboValues.begin(), dboValues.end(), std::back_inserter(collection),
-                     [=](Wt::Dbo::ptr<Setting> setting) { return boost::lexical_cast<Type>(setting->_value); });
+      std::transform(_values.begin(), _values.end(), std::back_inserter(collection), [=](const std::string &s) { return boost::lexical_cast<Type>(s); });
       return collection;
     }
 
@@ -127,6 +106,10 @@ private:
     std::string _key;
     std::string _value;
     static std::string keyName(KeyName key);
+    
+    static std::vector<std::string> get_values(KeyName key);
+    static void write_values(KeyName key, const std::vector<std::string> &values);
+    static std::map<KeyName, std::vector<std::string>> values_cache;
 };
 
 
