@@ -14,22 +14,12 @@ SET( player_srcs serversettingspage.cpp Models/setting.cpp selectdirectories.cpp
 
 include_directories(${FFMPEG_STATIC_INCLUDES})
 
-if(QT4_FOUND)
-  INCLUDE(   ${QT_USE_FILE}   )
-  include_directories(${QT_INCLUDE_DIR}/QtNetwork) # Hack to skip include <QtModule/QtClass> include style
-  message("Qt4 headers found: compiling with system tray icon support")
-  add_definitions(-DHAVE_QT)
-  QT4_ADD_RESOURCES(Pandorica_RCC_SRCS ${CMAKE_SOURCE_DIR}/files/icons.qrc)
-  QT4_WRAP_CPP(Pandorica_HEADERS_MOC qttrayicon.h)
-  set(qt_only_classes qttrayicon.cpp ${Pandorica_HEADERS_MOC})
-endif(QT4_FOUND)
 if(Qt5Widgets_FOUND)
-#INCLUDE(   ${QT_USE_FILE}   )
-  include_directories(${Qt5Widgets_INCLUDE_DIRS})
+  set(Pandorica_Qt_Libraries Qt5::Widgets Qt5::Network Qt5::Core)
+  #include_directories(${Qt5Widgets_INCLUDE_DIRS})
   message("Qt5 headers found: compiling with system tray icon support")
   add_definitions(-DHAVE_QT -DHAVE_QT5 )
-  qt5_add_resources(Pandorica_RCC_SRCS ${CMAKE_SOURCE_DIR}/files/icons.qrc)
-  qt5_wrap_cpp(Pandorica_HEADERS_MOC qttrayicon.h)
+  set(CMAKE_AUTOMOC ON)
   set(qt_only_classes qttrayicon.cpp ${Pandorica_HEADERS_MOC})
 endif(Qt5Widgets_FOUND)
 
@@ -67,11 +57,8 @@ add_subdirectory(media)
 add_subdirectory(utils)
 
 add_executable(${app_name} ${pandorica_SOURCES})
-
 if(Qt5Widgets_FOUND)
-  qt5_use_modules(Pandorica Network Widgets)
-  set(Pandorica_Qt_Libraries Qt5::Widgets Qt5::Network)
-  include_directories(${Qt5Widgets_INCLUDE_DIRS})
+  qt5_use_modules(Pandorica Network Widgets Core)
 endif(Qt5Widgets_FOUND)
 
 add_dependencies(${app_name} ffmpeg_libraries)
