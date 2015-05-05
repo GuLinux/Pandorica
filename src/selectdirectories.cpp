@@ -34,6 +34,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/filesystem.hpp>
 #include "Wt-Commons/wt_helpers.h"
 #include "utils/d_ptr_implementation.h"
+#ifdef HAVE_QT5
+#include <QStorageInfo>
+#include <QStandardPaths>
+#endif
 
 using namespace std;
 using namespace Wt;
@@ -58,6 +62,18 @@ SelectDirectories::SelectDirectories( vector< string > rootPaths, vector< string
 {
   WContainerWidget *container = WW<WContainerWidget>();
   setImplementation(container);
+  
+#ifdef HAVE_QT5
+  for(QStorageInfo vol: QStorageInfo::mountedVolumes()) {
+    std::cerr << "vol: " << vol.device().data() << ", path=" << vol.rootPath().toStdString() << ", " << vol.displayName().toStdString() << ", fs: " << vol.fileSystemType().toStdString() << std::endl;
+  }
+  for(auto type: vector<QStandardPaths::StandardLocation>{QStandardPaths::HomeLocation, QStandardPaths::MusicLocation, QStandardPaths::MoviesLocation}) {
+    for(auto dir: QStandardPaths::standardLocations(type)) {
+      std::cerr << "location name: " << QStandardPaths::displayName(type).toStdString() << ", path: " << dir.toStdString() << std::endl;
+    }
+  }
+#endif
+  
   WToolBar *toolbar = WW<WToolBar>(WW<WContainerWidget>(container).addCss("center-block"))
     .addButton(WW<WPushButton>(WString::tr("button.home")).css("btn-lg").setEnabled(getenv("HOME")).onClick([=](WMouseEvent){ d->scrollTo(getenv("HOME")); }).setIcon(Settings::staticPath("/icons/actions/home-20.png")) )
     .addButton(WW<WPushButton>(WString::tr("button.root")).css("btn-lg").onClick([=](WMouseEvent){ d->scrollTo("/", WAbstractItemView::PositionAtCenter); }).setIcon(Settings::staticPath("/icons/actions/chevron-up-20.png")) )
