@@ -125,8 +125,12 @@ Session::Session(bool full)
   if(!full)
     return;
   d->users = new UserDatabase(*this);
+#if WT_SERIES >= 3 && WT_MAJOR >= 3 && WT_MINOR >= 4
   if(Settings::authenticationMode() == Settings::AuthenticateACL)
     d->users->setNewUserStatus(Auth::User::Disabled);
+#else
+  #warning "Wt < 3.3.4 detected, skipping user acl"
+#endif
 }
 
 Wt::Dbo::SqlConnection *Session::connection() const
