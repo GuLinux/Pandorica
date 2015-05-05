@@ -139,10 +139,10 @@ iframe[src='http://cdn.adsbarscipt.com/links/flash/?updnew'] {
 }
 
 .tree-directory-item {
-  -webkit-transition: background-color 1s linear 1s;
-  -moz-transition: background-color 1s linear 1s;
-  -o-transition: background-color 1s linear 1s;
-  transition: background-color 1s linear 1s;
+  -webkit-transition: background-color 700ms linear;
+  -moz-transition: background-color 700ms linear;
+  -o-transition: background-color 700ms linear;
+  transition: background-color 700ms linear;
 }
 
 .tree-directory-item input {
@@ -150,7 +150,7 @@ iframe[src='http://cdn.adsbarscipt.com/links/flash/?updnew'] {
 }
 
 .tree-directory-item-hl {
-  background-color: yellow;
+  background-color: #C0C0C0;
 }
 
 .hidden {
@@ -370,4 +370,9 @@ body {
 .wizard label {
   font-weight: lighter;
   margin-left: 2em;
+}
+
+.btn-volumes {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
 }

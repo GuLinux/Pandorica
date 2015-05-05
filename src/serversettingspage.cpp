@@ -70,7 +70,7 @@ ServerSettingsPage::ServerSettingsPage(Settings* settings, Session* session, Med
   contents()->addWidget(d->selectMediaRootPage());
   setClosable(false);
 //   setHeight(650);
-//   setWidth(600);
+  setWidth(600);
 
   footer()->addWidget(d->buttonOk = WW<WPushButton>(wtr("button.ok")).css("btn btn-primary").onClick([=](WMouseEvent) { accept(); }));
   finished().connect([=](WDialog::DialogCode, _n5) {

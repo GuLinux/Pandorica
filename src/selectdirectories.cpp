@@ -31,6 +31,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WPushButton>
 #include <Wt/WToolBar>
 #include <Wt/WTimer>
+#include <Wt/WMenu>
+#include <Wt/WPopupMenu>
 #include <boost/filesystem.hpp>
 #include "Wt-Commons/wt_helpers.h"
 #include "utils/d_ptr_implementation.h"
@@ -38,6 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QStorageInfo>
 #include <QStandardPaths>
 #endif
+#include <boost/format.hpp>
 
 using namespace std;
 using namespace Wt;
@@ -62,22 +65,46 @@ SelectDirectories::SelectDirectories( vector< string > rootPaths, vector< string
 {
   WContainerWidget *container = WW<WContainerWidget>();
   setImplementation(container);
+  WToolBar *toolbar = WW<WToolBar>(WW<WContainerWidget>(container).addCss("center-block"));
   
 #ifdef HAVE_QT5
+  WPopupMenu *volumes = new WPopupMenu;
   for(QStorageInfo vol: QStorageInfo::mountedVolumes()) {
-    std::cerr << "vol: " << vol.device().data() << ", path=" << vol.rootPath().toStdString() << ", " << vol.displayName().toStdString() << ", fs: " << vol.fileSystemType().toStdString() << std::endl;
+    auto item = volumes->addItem(
+      (boost::format("%s (%s)") 
+        % vol.displayName().toStdString()
+        % fs::path(vol.rootPath().toStdString()).filename().string()
+      ).str() );
+    item->triggered().connect([=](WMenuItem*, _n5){
+      d->scrollTo(vol.rootPath().toStdString(), WTreeView::PositionAtCenter);
+    });
   }
-  for(auto type: vector<QStandardPaths::StandardLocation>{QStandardPaths::HomeLocation, QStandardPaths::MusicLocation, QStandardPaths::MoviesLocation}) {
-    for(auto dir: QStandardPaths::standardLocations(type)) {
-      std::cerr << "location name: " << QStandardPaths::displayName(type).toStdString() << ", path: " << dir.toStdString() << std::endl;
+  if(!volumes->items().empty())
+    toolbar->addButton(WW<WPushButton>(WString::tr("button.volumes")).css("btn-volumes")
+    .setIcon(Settings::staticPath("/icons/actions/Disk2-20.png")).setMenu(volumes));
+  else
+    delete volumes;
+  list<pair<QStandardPaths::StandardLocation, string>> icons {
+    {QStandardPaths::HomeLocation, "home-20"},
+    {QStandardPaths::MoviesLocation, "video-20"},
+    {QStandardPaths::MusicLocation, "music-20"}
+  };
+  for(auto type: icons) {
+    for(auto dir: QStandardPaths::standardLocations(type.first)) {
+      toolbar->addButton(WW<WPushButton>(QStandardPaths::displayName(type.first).toStdString()).onClick([=](WMouseEvent){
+        d->scrollTo(dir.toStdString(), WTreeView::PositionAtCenter);
+      }).setIcon(Settings::staticPath((boost::format("/icons/actions/%s.png") % type.second).str() ) ) );
     }
   }
-#endif
+#else
+  toolbar->addButton(WW<WPushButton>(WString::tr("button.home")).setEnabled(getenv("HOME")).onClick([=](WMouseEvent){
+    d->scrollTo(getenv("HOME"), WTreeView::PositionAtCenter);
+  }).setIcon(Settings::staticPath("/icons/actions/home-20.png")) );
+  toolbar->addButton(WW<WPushButton>(WString::tr("button.root")).onClick([=](WMouseEvent){ 
+    d->scrollTo("/", WAbstractItemView::PositionAtCenter);
   
-  WToolBar *toolbar = WW<WToolBar>(WW<WContainerWidget>(container).addCss("center-block"))
-    .addButton(WW<WPushButton>(WString::tr("button.home")).css("btn-lg").setEnabled(getenv("HOME")).onClick([=](WMouseEvent){ d->scrollTo(getenv("HOME")); }).setIcon(Settings::staticPath("/icons/actions/home-20.png")) )
-    .addButton(WW<WPushButton>(WString::tr("button.root")).css("btn-lg").onClick([=](WMouseEvent){ d->scrollTo("/", WAbstractItemView::PositionAtCenter); }).setIcon(Settings::staticPath("/icons/actions/chevron-up-20.png")) )
-  ;
+  }).setIcon(Settings::staticPath("/icons/actions/chevron-up-20.png")) );
+#endif
   WTreeView *tree = WW<WTreeView>();
   container->addWidget(tree);
   d->tree = tree;

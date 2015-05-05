@@ -140,7 +140,6 @@ You can also enable OAuth authentication: [Google](http://www.webtoolkit.eu/wt/d
         http://pandorica_url/force-restart?pwd=<your-password>
 
 ## Credits ##
- * icons: [Humano2 icon theme](http://schollidesign.deviantart.com/art/Human-O2-Iconset-105344123)
  * Web framework: [Wt](http://www.webtoolkit.eu/wt)
  * CSS framework: [Twitter Bootstrap](http://twitter.github.io/bootstrap)
- * new icons: [GeomIcons](https://www.iconfinder.com/iconsets/geomicons)
+ * icons: [GeomIcons](https://www.iconfinder.com/iconsets/geomicons), [freecns-cumulus](https://www.iconfinder.com/iconsets/freecns-cumulus)

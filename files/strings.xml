@@ -330,6 +330,7 @@ An email message notifying the invitation was sent to {1}.</message>
 
 <message id="button.home">Home</message>
 <message id="button.root">Root</message>
+<message id="button.volumes">Volumes</message>
 
 
 <message id="wizard.begin">Welcome to Pandorica</message>
