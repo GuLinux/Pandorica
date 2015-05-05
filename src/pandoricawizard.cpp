@@ -206,7 +206,11 @@ void PandoricaWizard::Private::addAdminUserPage()
     auto registrationWidget = new Auth::RegistrationWidget();
     registrationWidget->setModel(model);
     model->addPasswordAuth(&session->passwordAuth());
+#if WT_SERIES >= 3 && WT_MAJOR >= 3 && WT_MINOR >= 4
     session->users().setNewUserStatus(Auth::User::Normal);
+#else
+  #warning "Wt < 3.3.4 detected, skipping user acl"
+#endif
     container->addWidget(registrationWidget);
     auto registrationWidgetDeleted = new WObjectScope([=]{
 //       session->flush();
@@ -286,7 +290,11 @@ PandoricaWizard::~PandoricaWizard()
     session.users().setIdentity(adminAuthUser, "pandorica", "Admin");
     AuthInfoPtr authInfo = session.users().find(adminAuthUser);
     UserPtr adminUser = session.add(new User());
+#if WT_SERIES >= 3 && WT_MAJOR >= 3 && WT_MINOR >= 4
     adminAuthUser.setStatus(Auth::User::Normal);
+#else
+  #warning "Wt < 3.3.4 detected, skipping user acl"
+#endif
     authInfo.modify()->setUser(adminUser);
     adminGroup.modify()->users.insert(adminUser);
     t.commit();
