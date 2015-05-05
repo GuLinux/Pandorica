@@ -69,7 +69,11 @@ void Session::configureAuth()
 //   myAuthService.setAuthTokensEnabled(true, "logincookie");
   bool emailVerificationMandatory = Settings::emailVerificationMandatory();
   myAuthService.setEmailVerificationEnabled(emailVerificationMandatory);
+#if WT_SERIES >= 3 && WT_MAJOR >= 3 && WT_MINOR >= 4
   myAuthService.setEmailVerificationRequired(emailVerificationMandatory);
+#else
+  #warning "Wt < 3.3.4 detected, skipping email verification"
+#endif
   myAuthService.setIdentityPolicy(Wt::Auth::LoginNameIdentity);
   Wt::Auth::PasswordVerifier *verifier = new Wt::Auth::PasswordVerifier();
   verifier->addHashFunction(new Wt::Auth::BCryptHashFunction(7));
