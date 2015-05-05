@@ -71,6 +71,7 @@ add_executable(${app_name} ${pandorica_SOURCES})
 if(Qt5Widgets_FOUND)
   qt5_use_modules(Pandorica Network Widgets)
   set(Pandorica_Qt_Libraries Qt5::Widgets Qt5::Network)
+  include_directories(${Qt5Widgets_INCLUDE_DIRS})
 endif(Qt5Widgets_FOUND)
 
 add_dependencies(${app_name} ffmpeg_libraries)
