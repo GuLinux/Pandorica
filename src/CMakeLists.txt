@@ -70,6 +70,7 @@ add_executable(${app_name} ${pandorica_SOURCES})
 
 if(Qt5Widgets_FOUND)
   qt5_use_modules(Pandorica Network Widgets)
+  set(Pandorica_Qt_Libraries Qt5::Widgets Qt5::Network)
 endif(Qt5Widgets_FOUND)
 
 add_dependencies(${app_name} ffmpeg_libraries)
@@ -79,6 +80,7 @@ target_link_libraries(${app_name}
   Wt_Commons_Library
   pandorica_libffmpegthumbnailer
   ${Wt_LIBRARIES}
+  ${Pandorica_Qt_Libraries}
   ${Wt_STATIC_DEPENDENCIES}
   ${Boost_LIBRARIES} 
   ${GraphicsMagick_LDFLAGS} 
