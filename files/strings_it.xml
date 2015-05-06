@@ -102,7 +102,7 @@
   <message id="menu.admin">Gestione</message>
   <message id="menu.groups">Gruppi</message>
   <message id="menu.viewas">Visualizza Come...</message>
-  <message id="menu.configure.app">Configura Sito</message>
+  <message id="menu.configure.app">Configura Collezione Media</message>
 
   <!-- media browser -->
   <message id="mediabrowser.play">Riproduci</message>

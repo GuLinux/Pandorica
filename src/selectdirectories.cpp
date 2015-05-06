@@ -68,6 +68,7 @@ SelectDirectories::SelectDirectories( vector< string > rootPaths, vector< string
   WToolBar *toolbar = WW<WToolBar>(WW<WContainerWidget>(container).addCss("center-block"));
   
 #ifdef HAVE_QT5
+#warning "Using Qt5 full volumes support"
   WPopupMenu *volumes = new WPopupMenu;
   for(QStorageInfo vol: QStorageInfo::mountedVolumes()) {
     auto item = volumes->addItem(
@@ -97,6 +98,7 @@ SelectDirectories::SelectDirectories( vector< string > rootPaths, vector< string
     }
   }
 #else
+#warning "Using Simple home/root buttons"
   toolbar->addButton(WW<WPushButton>(WString::tr("button.home")).setEnabled(getenv("HOME")).onClick([=](WMouseEvent){
     d->scrollTo(getenv("HOME"), WTreeView::PositionAtCenter);
   }).setIcon(Settings::staticPath("/icons/actions/home-20.png")) );
