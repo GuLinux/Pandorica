@@ -32,7 +32,7 @@ Setting::Session::Session()
 {
   connection.reset(new Dbo::backend::Sqlite3(Settings::sqlite3DatabasePath("Pandorica_Settings.sqlite")));
   connection->setProperty("show-queries", "false");
-  connection->executeSql("PRAGMA journal_mode=WAL;");
+//   connection->executeSql("PRAGMA journal_mode=WAL;");
   setConnection(*connection);
   mapClass<Setting>("settings");
   try {

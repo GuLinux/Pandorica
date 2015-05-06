@@ -170,6 +170,10 @@ void PandoricaWizard::Private::addAuthentication()
   WCheckBox *emailVerification = WW<WCheckBox>(WString::tr("wizard.authentication.emailverification")).setHidden(true);
   groupBox->addWidget(emailVerification);
 
+#ifndef WT_AUTH_NEWAPI
+  emailVerification->setEnabled(false);
+#endif
+  
   map<Settings::AuthenticationMode, WRadioButton*> buttons { {Settings::NoAuth, authNone}, {Settings::AuthenticateSimple, authBasic}, {Settings::AuthenticateACL, authACL} };
   
   buttonGroup->checkedChanged().connect([=](WRadioButton *b, _n5){

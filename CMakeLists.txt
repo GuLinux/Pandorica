@@ -49,6 +49,7 @@ endif(Boost_Optional_Linker_Fix)
 
 if( NOT Disable_Qt5 )
   FIND_PACKAGE(Qt5Widgets)
+  add_definitions(-DQT_NO_EMIT)
 endif( NOT Disable_Qt5 )
 
 add_definitions(-DBOOST_SIGNALS_NO_DEPRECATION_WARNING)

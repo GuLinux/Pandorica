@@ -109,7 +109,6 @@ Session::Session(bool full)
   mapClass<MediaProperties>("media_properties");
   mapClass<MediaAttachment>("media_attachment");
   mapClass<MediaRating>("media_rating");
-  mapClass<Setting>("settings");
   mapClass<CollectionItemProperty>("collection_item_property");
   int db_version=Setting::value(Setting::DatabaseVersion, 0);
   WServer::instance()->log("notice") << "Found database version " << db_version;
@@ -165,7 +164,7 @@ string Session::Private::psqlConnectionString() const {
     % dbName
     % username
   ).str();
-
+  
   return (boost::format("application_name=%s host=%s port=%d dbname=%s user=%s password=%s")
     % applicationName
     % hostname
@@ -178,7 +177,9 @@ string Session::Private::psqlConnectionString() const {
 void Session::Private::createConnection()
 {
 #ifdef HAVE_POSTGRES
-  static string psqlConnParameters = psqlConnectionString();
+  string psqlConnParameters = psqlConnectionString();
+  map<Settings::DatabaseType, string> dbTypes {{Settings::PostgreSQL, "postgresql"}, {Settings::Sqlite3, "sqlite3"}};
+  WServer::instance()->log("notice") << __PRETTY_FUNCTION__ << "creating connection: " << dbTypes[Settings::databaseType()];
   if(Settings::databaseType() == Settings::PostgreSQL && !psqlConnParameters.empty()) {
     connection.reset(new dbo::backend::Postgres(psqlConnParameters));
     return;
