@@ -83,6 +83,7 @@ Setting::~Setting()
 
 }
 
+#include <boost/algorithm/string.hpp>
 map<Setting::KeyName, vector<string>> Setting::values_cache {};
 
 vector< string > Setting::get_values(Setting::KeyName key)

@@ -66,8 +66,10 @@ using namespace Wt;
 
 void Session::configureAuth()
 {
-//   myAuthService.setAuthTokensEnabled(true, "logincookie");
+  myOAuthServices.clear();
+  myAuthService.setAuthTokensEnabled(true, "logincookie");
   bool emailVerificationMandatory = Settings::emailVerificationMandatory();
+  cerr << "email verification mandatory: " << emailVerificationMandatory << endl;
   myAuthService.setEmailVerificationEnabled(emailVerificationMandatory);
 #if WT_SERIES >= 3 && WT_MAJOR >= 3 && WT_MINOR >= 4
   myAuthService.setEmailVerificationRequired(emailVerificationMandatory);

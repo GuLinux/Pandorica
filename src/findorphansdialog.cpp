@@ -117,12 +117,11 @@ FindOrphansDialog::FindOrphansDialog( MediaCollection *mediaCollection, Session 
   view->setColumnWidth( 4, 95 );
   view->setColumnWidth( 5, 60 );
   footer()->addWidget( d->nextButton = WW<WPushButton>( wtr( "button.next" ) ).css( "btn-warning" ).disable() );
-  d->nextButton->clicked().connect( [ = ]( WMouseEvent & )
-  {
+  d->nextButton->clicked().connect( std::bind([ = ] {
     d->nextButton->disable();
     d->closeButton->disable();
-    WServer::instance()->ioService().post( boost::bind( &Private::applyMigrations, d.get(), wApp ) );
-  } );
+    WServer::instance()->ioService().post( [=] { d->applyMigrations(wApp); } );
+  }) );
   footer()->addWidget( d->closeButton = WW<WPushButton>( wtr( "button.close" ) ).css( "btn-danger" ).disable().onClick( [ = ]( WMouseEvent )
   {
     d->fixFilePaths();

@@ -46,7 +46,7 @@ QueueItem::QueueItem(Media media, std::list< QueueItem* >& queue, WContainerWidg
   QueueItem *queueItem = this;
   Dbo::Transaction t(*session);
   WAnchor *anchor = new WAnchor{this};
-  anchor->addWidget(WW<WText>(media.title(t)).css("link-hand").onClick([=](WMouseEvent&){ playSignal.emit(this); }));
+  anchor->addWidget(WW<WText>(media.title(t)).css("link-hand").onClick(bind([=]{ playSignal.emit(this); })));
   WContainerWidget *actionsContainer = WW<WContainerWidget>(anchor).css("pull-right");
   auto fixButtons = [=,&queue] {
     for(QueueItem *item: queue) {

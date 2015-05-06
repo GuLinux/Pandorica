@@ -257,7 +257,7 @@ void NavigationBar::Private::setupSearchBar()
   suggestionFilterModel->setSourceModel(suggestionsModel);
   suggestionFilterModel->setFilterRole(Wt::UserRole+1);
   WSuggestionPopup* suggestions = new WSuggestionPopup(jsMatcher, jsReplace, wApp->root());
-  suggestions->filterModel().connect([=](WString &filter, _n5) {
+  suggestions->filterModel().connect([=](const WString &filter, _n5) {
     WString filterRegex = WString(".*{1}.*").arg(filter);
     suggestionFilterModel->setFilterRegExp(filterRegex);
   });

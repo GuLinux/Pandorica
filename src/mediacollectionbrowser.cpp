@@ -325,7 +325,7 @@ void MediaCollectionBrowser::Private::setup(MediaInfoPanel *infoPanel)
         queueSignal.emit( media );
     }
   } );
-  infoRequested.connect([=](Media &media, _n5) { infoPanel->info(media);});
+  infoRequested.connect([=](const Media &m, _n5) { infoPanel->info(m);});
   resetPanel.connect([=](_n6) { infoPanel->reset(); });
 }
 

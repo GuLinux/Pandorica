@@ -30,7 +30,7 @@ class MediaInfoPanel : public Wt::WContainerWidget
 public:
     MediaInfoPanel(Session* session, Settings* settings, Wt::WContainerWidget* parent = 0);
     ~MediaInfoPanel();
-    void info(Media &media);
+    void info(const Media& media);
     void reset();
     Wt::Signal<Media> &play() const;
     Wt::Signal<Media> &queue() const;

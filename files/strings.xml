@@ -372,6 +372,7 @@ An email message notifying the invitation was sent to {1}.</message>
 
 <message id="wizard.admincreation">Create Administration Account</message>
 <message id="wizard.admincreation.registrationhint">Here you can create an account that will be automatically added to Pandorica Administrators. You may skip this step by clicking "next", but if you enabled groups ACL, you will not be able to log in!</message>
+<message id="wizard.admincreation.registered">Account correctly created. You will be able to use these credential to log.</message>
 
 
 <message id="wizard.finished">Finished</message>

@@ -91,14 +91,14 @@ class Settings
       widget->animateHide( animations[animationType].get() );
     }
 
-    enum DatabaseType { PostgreSQL, Sqlite3 };
-    enum PandoricaMode { Simple = 0x1, Advanced = 0x2 };
+    enum DatabaseType { PostgreSQL = 0, Sqlite3 = 1};
+    enum PandoricaMode { Simple = 0, Advanced = 1 };
     static DatabaseType databaseType();
     static void databaseType(DatabaseType type);
     static PandoricaMode pandoricaMode();
     static void pandoricaMode(PandoricaMode mode);
     
-    enum AuthenticationMode { NoAuth, AuthenticateSimple, AuthenticateACL };
+    enum AuthenticationMode { NoAuth = 0, AuthenticateSimple = 1, AuthenticateACL = 2 };
     
     static AuthenticationMode authenticationMode();
     static void authenticationMode(AuthenticationMode type);

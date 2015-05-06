@@ -176,10 +176,12 @@ void PandoricaWizard::Private::addAuthentication()
     emailVerification->setHidden(authMode == Settings::NoAuth);
     Settings::authenticationMode(authMode);
     emailVerification->setChecked(Settings::emailVerificationMandatory());
+    Session::configureAuth();
     displayPage(groupBox, DatabaseSetup, authMode == Settings::NoAuth ? CongratsPage : AdminUserCreation);
   });
   emailVerification->changed().connect([=](_n1){
     Setting::write(Setting::EmailVerificationMandatory, emailVerification->isChecked());
+    Session::configureAuth();
   });
   
   showPage[Authentication] = [=] {

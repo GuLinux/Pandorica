@@ -90,7 +90,7 @@ WPanel *MediaInfoPanel::Private::addFolderActions()
 
 
 
-void MediaInfoPanel::info( Media &media )
+void MediaInfoPanel::info( const Media &media )
 {
   clear();
   WContainerWidget *header = WW<WContainerWidget>().setContentAlignment( AlignCenter );
