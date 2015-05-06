@@ -73,6 +73,7 @@ public:
     void post(std::function<void(Pandorica *app)> f, bool includeMine = false);
     void pathChanged(const std::string &path) const;
     Wt::WDialog *rescanIndicator = 0;
+    void initAuthPage();
 private:
     void ratingFor(Media media, Wt::Dbo::Transaction t);
     Wt::WMenuItem* activeUsersMenuItem = 0;

@@ -66,6 +66,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "navigationbar.h"
 #include "settingspage.h"
 #include "usersmanagementpage.h"
+#include "pandoricawizard.h"
 #include <Wt/WConfig.h>
 #include <Wt/WStringListModel>
 #include <Wt/WComboBox>
@@ -142,13 +143,6 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
   auto theme = new WBootstrapTheme(this);
   theme->setVersion(WBootstrapTheme::Version3);
   setTheme(theme);
-  try {
-    d->session = new Session{true};
-  } catch(std::exception &e) {
-    root()->addWidget(new WText{string{"Database error: "} + e.what() + "<br />Please check your configuration and try again."});
-    return;
-  }  
-  
   enableUpdates(true);
   WMessageResourceBundle *xmlResourcesBundle = new WMessageResourceBundle;
   xmlResourcesBundle->use(Settings::sharedFilesDir("/strings"));
@@ -161,32 +155,54 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
   setTitle(wtr("site-title"));
 
   internalPathChanged().connect([=](const string &p, _n5) { d->pathChanged(p); });
-
-  d->authPage = new AuthPage(d->session);
-  root()->addWidget(d->authPage); 
-//  root()->addWidget(d->authPage = new AuthPage(d->session));
-  d->authPage->loginChanged().connect([=](Auth::LoginState state, _n5) {
-    log("notice") << "got login event: " << state;
-    if(state == Auth::WeakLogin || state == Auth::StrongLogin) {
-      authEvent();
-      return;
-    }
-    if(state == Auth::DisabledLogin || ! d->navigationBar)
-      return;
-    d->navigationBar->animateHide({WAnimation::Fade});
-    d->playlist->animateHide({WAnimation::Fade});
-    d->mediaCollectionBrowser->animateHide({WAnimation::Fade});
-    d->mainWidget->animateHide({WAnimation::Fade});
-    WTimer::singleShot(500, [=](WMouseEvent) {
-      delete d->mainWidget;
-      d->mainWidget = 0;
-      d->userId = -1;
+  
+  if(! Setting::value<bool>(Setting::PandoricaSetup, false)) {
+    WContainerWidget *wizardContainer = WW<WContainerWidget>(root()).css("container")
+      .add(WW<WText>(WString("<h1 style=\"text-align: center;\">{1}</h1>").arg(wtr("site-title"))));
+    auto wizard = new PandoricaWizard;
+    wizardContainer->addWidget(wizard);
+    wizard->finished().connect([=](_n6){
+      WServer::instance()->post(wApp->sessionId(), std::bind(&WContainerWidget::clear, root() ));
+      WServer::instance()->post(wApp->sessionId(), std::bind(&Pandorica::Private::initAuthPage, d.get()));
     });
-    d->navigationBar = nullptr;
-  });
-  d->authPage->initAuth();
+  }
+  else
+    d->initAuthPage();
 }
 
+
+void Pandorica::Private::initAuthPage() {
+  try {
+    session = new Session{true};
+  } catch(std::exception &e) {
+    q->root()->addWidget(new WText{string{"Database error: "} + e.what() + "<br />Please check your configuration and try again."});
+    return;
+  }  
+
+  authPage = new AuthPage(session);
+  q->root()->addWidget(authPage); 
+//  root()->addWidget(authPage = new AuthPage(session));
+  authPage->loginChanged().connect([=](Auth::LoginState state, _n5) {
+    wApp->log("notice") << "got login event: " << state;
+    if(state == Auth::WeakLogin || state == Auth::StrongLogin) {
+      q->authEvent();
+      return;
+    }
+    if(state == Auth::DisabledLogin || ! navigationBar)
+      return;
+    navigationBar->animateHide({WAnimation::Fade});
+    playlist->animateHide({WAnimation::Fade});
+    mediaCollectionBrowser->animateHide({WAnimation::Fade});
+    mainWidget->animateHide({WAnimation::Fade});
+    WTimer::singleShot(500, [=](WMouseEvent) {
+      delete mainWidget;
+      mainWidget = 0;
+      userId = -1;
+    });
+    navigationBar = nullptr;
+  });
+  authPage->initAuth();
+}
 
 void Pandorica::notify( const WString &text, Pandorica::NotificationType notificationType, int autocloseAfterSeconds )
 {

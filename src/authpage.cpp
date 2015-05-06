@@ -135,14 +135,8 @@ AuthPage::AuthPage(Session* session, WContainerWidget* parent)
   addStyleClass("container");
   addWidget(WW<WText>(WString("<h1 style=\"text-align: center;\">{1}</h1>").arg(wtr("site-title"))));
   addWidget(d->stack);
-  if(! Setting::value<bool>(Setting::PandoricaSetup, false)) {
-    auto wizard = new PandoricaWizard;
-    d->stack->addWidget(wizard);
-    d->stack->setCurrentWidget(wizard);
-    wizard->finished().connect(d.get(), &AuthPage::Private::setupLogin);
-  }
-  else
-    WServer::instance()->post(wApp->sessionId(), [=]{d->setupLogin();});
+
+  WServer::instance()->post(wApp->sessionId(), [=]{d->setupLogin();});
   addWidget(d->messagesContainer = new WContainerWidget());
 }
 
