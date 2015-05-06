@@ -43,6 +43,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/format.hpp>
 #include "utils/d_ptr_implementation.h"
 #define DATABASE_VERSION 1
+#include "versions_compat.h"
 
 namespace {
   class MyOAuth : public std::vector<const Wt::Auth::OAuthService *>
@@ -70,10 +71,8 @@ void Session::configureAuth()
   myAuthService.setAuthTokensEnabled(true, "logincookie");
   bool emailVerificationMandatory = Settings::emailVerificationMandatory();
   myAuthService.setEmailVerificationEnabled(emailVerificationMandatory);
-#if WT_SERIES >= 3 && WT_MAJOR >= 3 && WT_MINOR >= 4
+#ifdef WT_AUTH_NEWAPI
   myAuthService.setEmailVerificationRequired(emailVerificationMandatory);
-#else
-  #warning "Wt < 3.3.4 detected, skipping email verification"
 #endif
   myAuthService.setIdentityPolicy(Wt::Auth::LoginNameIdentity);
   Wt::Auth::PasswordVerifier *verifier = new Wt::Auth::PasswordVerifier();
@@ -126,11 +125,9 @@ Session::Session(bool full)
   if(!full)
     return;
   d->users = new UserDatabase(*this);
-#if WT_SERIES >= 3 && WT_MAJOR >= 3 && WT_MINOR >= 4
+#ifdef WT_AUTH_NEWAPI
   if(Settings::authenticationMode() == Settings::AuthenticateACL)
     d->users->setNewUserStatus(Auth::User::Disabled);
-#else
-  #warning "Wt < 3.3.4 detected, skipping user acl"
 #endif
 }
 

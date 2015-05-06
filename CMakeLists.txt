@@ -5,7 +5,9 @@ set(app_name Pandorica)
 project(${app_name})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 add_definitions(-DWT_NO_SLOT_MACROS)
-find_package(Wt 3.3.1 REQUIRED)
+find_package(Wt 3.3.3 REQUIRED)
+
+message("Found Wt version: ${Wt_VERSION}: ${Wt_VERSION_MAJOR}-${Wt-VERSION_MINOR}-${Wt-VERSION_PATCH}")
 
 set(HAVE_DBO_BACKEND FALSE)
 if(Wt_DBOPOSTGRES_LIBRARY)

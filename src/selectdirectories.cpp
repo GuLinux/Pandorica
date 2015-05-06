@@ -36,10 +36,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/filesystem.hpp>
 #include "Wt-Commons/wt_helpers.h"
 #include "utils/d_ptr_implementation.h"
+#include "versions_compat.h"
+
 #ifdef HAVE_QT5
-#include <QStorageInfo>
 #include <QStandardPaths>
 #endif
+
+#ifdef HAVE_QT_QSTORAGEINFO
+#include <QStorageInfo>
+#endif
+
 #include <boost/format.hpp>
 
 using namespace std;
@@ -67,7 +73,7 @@ SelectDirectories::SelectDirectories( vector< string > rootPaths, vector< string
   setImplementation(container);
   WToolBar *toolbar = WW<WToolBar>(WW<WContainerWidget>(container).addCss("center-block"));
   
-#ifdef HAVE_QT5
+#ifdef HAVE_QT_QSTORAGEINFO
 #warning "Using Qt5 full volumes support"
   WPopupMenu *volumes = new WPopupMenu;
   for(QStorageInfo vol: QStorageInfo::mountedVolumes()) {
@@ -85,6 +91,15 @@ SelectDirectories::SelectDirectories( vector< string > rootPaths, vector< string
     .setIcon(Settings::staticPath("/icons/actions/Disk2-20.png")).setMenu(volumes));
   else
     delete volumes;
+#else
+#warning No QStorageInfo present, using just root button
+    toolbar->addButton(WW<WPushButton>(WString::tr("button.root")).onClick([=](WMouseEvent){ 
+    d->scrollTo("/", WAbstractItemView::PositionAtCenter);
+  
+  }).setIcon(Settings::staticPath("/icons/actions/chevron-up-20.png")) );
+#endif
+    
+#ifdef HAVE_QT5
   list<pair<QStandardPaths::StandardLocation, string>> icons {
     {QStandardPaths::HomeLocation, "home-20"},
     {QStandardPaths::MoviesLocation, "video-20"},
@@ -102,11 +117,8 @@ SelectDirectories::SelectDirectories( vector< string > rootPaths, vector< string
   toolbar->addButton(WW<WPushButton>(WString::tr("button.home")).setEnabled(getenv("HOME")).onClick([=](WMouseEvent){
     d->scrollTo(getenv("HOME"), WTreeView::PositionAtCenter);
   }).setIcon(Settings::staticPath("/icons/actions/home-20.png")) );
-  toolbar->addButton(WW<WPushButton>(WString::tr("button.root")).onClick([=](WMouseEvent){ 
-    d->scrollTo("/", WAbstractItemView::PositionAtCenter);
-  
-  }).setIcon(Settings::staticPath("/icons/actions/chevron-up-20.png")) );
 #endif
+  
   WTreeView *tree = WW<WTreeView>();
   container->addWidget(tree);
   d->tree = tree;
