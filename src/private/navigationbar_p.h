@@ -73,7 +73,7 @@ class NavigationBar::Private
     void resetSelection( Wt::WMenu *menu );
     Wt::WMenu *mainMenu;
     Wt::WMenuItem *activeUsersMenuItem = 0;
-    int previousItemIndex, currentItemIndex = -1;
+    int previousItemIndex = -1, currentItemIndex = -1;
     Wt::WMenuItem *playerItem;
   private:
     class NavigationBar *const q;

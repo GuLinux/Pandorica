@@ -130,7 +130,7 @@ WMenuItem* NavigationBar::Private::createItem(WMenu* menu, WString text, WWidget
 
 void NavigationBar::Private::resetSelection(Wt::WMenu* menu)
 {
-  WTimer::singleShot(200, [=](WMouseEvent) {
+  WServer::instance()->post(wApp->sessionId(), [=] {
     menu->select(previousItemIndex);
     currentItemIndex = previousItemIndex;
   }); 
