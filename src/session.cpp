@@ -69,7 +69,6 @@ void Session::configureAuth()
   myOAuthServices.clear();
   myAuthService.setAuthTokensEnabled(true, "logincookie");
   bool emailVerificationMandatory = Settings::emailVerificationMandatory();
-  cerr << "email verification mandatory: " << emailVerificationMandatory << endl;
   myAuthService.setEmailVerificationEnabled(emailVerificationMandatory);
 #if WT_SERIES >= 3 && WT_MAJOR >= 3 && WT_MINOR >= 4
   myAuthService.setEmailVerificationRequired(emailVerificationMandatory);
@@ -237,10 +236,15 @@ UserDatabase& Session::users()
 
 dbo::ptr<User> Session::user()
 {
-  Dbo::Transaction t(*this);
   if (!d->login.loggedIn())
     return dbo::ptr<User>();
-  dbo::ptr<AuthInfo> authInfo = d->users->find(d->login.user());
+  return user(d->login.user());
+}
+
+dbo::ptr<User> Session::user(const Wt::Auth::User &authUser)
+{
+  Dbo::Transaction t(*this);
+  dbo::ptr<AuthInfo> authInfo = d->users->find(authUser);
   dbo::ptr<User> user = authInfo->user();
   dbo::ptr<User> invitedUser = find<User>().where("invited_email_address = ?").bind(authInfo->email().empty() ? authInfo->unverifiedEmail() : authInfo->email());
   

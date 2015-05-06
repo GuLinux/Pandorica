@@ -194,6 +194,25 @@ void PandoricaWizard::Private::addAuthentication()
 }
 
 
+class RegistrationWidget : public Auth::RegistrationWidget {
+public:
+  RegistrationWidget(Session *session, function<GroupPtr(Dbo::Transaction &)> getAdminGroup) : session(session), getAdminGroup(getAdminGroup) {}
+protected:
+  virtual void registerUserDetails (Auth::User &authUser);
+private:
+  Session *session;
+  function<GroupPtr(Dbo::Transaction &)> getAdminGroup;
+};
+
+void RegistrationWidget::registerUserDetails(Auth::User& authUser)
+{
+    if(!authUser.isValid())
+      return;
+    Dbo::Transaction t(*session);
+    auto user = session->user(authUser);
+    getAdminGroup(t).modify()->users.insert(user);
+}
+
 void PandoricaWizard::Private::addAdminUserPage()
 {
 
@@ -205,7 +224,7 @@ void PandoricaWizard::Private::addAdminUserPage()
     Session *session = new Session(true);
     WContainerWidget *container = new WContainerWidget(groupBox);
     Auth::RegistrationModel *model = new Auth::RegistrationModel(session->auth(), session->users(), session->login());
-    auto registrationWidget = new Auth::RegistrationWidget();
+    auto registrationWidget = new RegistrationWidget(session, [=](Dbo::Transaction &t) { return adminGroup(t); });
     registrationWidget->setModel(model);
     model->addPasswordAuth(&session->passwordAuth());
 #if WT_SERIES >= 3 && WT_MAJOR >= 3 && WT_MINOR >= 4
@@ -216,10 +235,11 @@ void PandoricaWizard::Private::addAdminUserPage()
     container->addWidget(registrationWidget);
     auto registrationWidgetDeleted = new WObjectScope([=]{
 //       session->flush();
+      cerr << "registered user id: " << model->login().user().id() << endl;
       if(model->login().loggedIn() && model->login().user().isValid()) {
         Dbo::Transaction t(*session);
         auto user = session->user();
-        wApp->log("notice") << "Registered user";
+        wApp->log("notice") << "Registered user: auth-id=" << model->login().user().id() << ", user-id=" << user.id();
         adminGroup(t).modify()->users.insert(user);
       }
       groupBox->clear();

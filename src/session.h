@@ -47,6 +47,7 @@ class Session : public dbo::Session
     ~Session();
 
     dbo::ptr<User> user();
+    dbo::ptr<User> user(const Wt::Auth::User& authUser);
 
     UserDatabase &users();
     Wt::Auth::Login &login();
