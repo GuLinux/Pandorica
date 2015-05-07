@@ -162,8 +162,10 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
     auto wizard = new PandoricaWizard;
     wizardContainer->addWidget(wizard);
     wizard->finished().connect([=](_n6){
-      WServer::instance()->post(wApp->sessionId(), std::bind(&WContainerWidget::clear, root() ));
-      WServer::instance()->post(wApp->sessionId(), std::bind(&Pandorica::Private::initAuthPage, d.get()));
+        redirect(url());
+        quit();
+      //WServer::instance()->post(wApp->sessionId(), std::bind(&WContainerWidget::clear, root() ));
+      //WServer::instance()->post(wApp->sessionId(), std::bind(&Pandorica::Private::initAuthPage, d.get()));
     });
   }
   else
