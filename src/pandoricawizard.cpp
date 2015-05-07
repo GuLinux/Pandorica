@@ -237,9 +237,9 @@ void PandoricaWizard::Private::addAdminUserPage()
     auto registrationWidget = new RegistrationWidget(session, [=](Dbo::Transaction &t) { return adminGroup(t); });
     registrationWidget->setModel(model);
     model->addPasswordAuth(&session->passwordAuth());
-#ifdef WT_AUTH_NEWAPI
-    session->users().setNewUserStatus(Auth::User::Normal);
-#endif
+// #ifdef WT_AUTH_NEWAPI
+//     session->users().setNewUserStatus(Auth::User::Normal);
+// #endif
     container->addWidget(registrationWidget);
     auto registrationWidgetDeleted = new WObjectScope([=]{
 //       session->flush();
@@ -320,9 +320,9 @@ PandoricaWizard::~PandoricaWizard()
     session.users().setIdentity(adminAuthUser, "pandorica", "Admin");
     AuthInfoPtr authInfo = session.users().find(adminAuthUser);
     UserPtr adminUser = session.add(new User());
-#ifdef WT_AUTH_NEWAPI
-    adminAuthUser.setStatus(Auth::User::Normal);
-#endif
+// #ifdef WT_AUTH_NEWAPI
+//     adminAuthUser.setStatus(Auth::User::Normal);
+// #endif
     authInfo.modify()->setUser(adminUser);
     adminGroup.modify()->addUser(adminUser, t);
     t.commit();

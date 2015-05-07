@@ -212,10 +212,6 @@ void NavigationBar::Private::setupAdminBar(Dbo::Transaction& transaction)
   adminMenuItem->setMenu(adminMenu);
   adminMenuItem->addStyleClass("hidden-xs menu-admin");
 
-  mediaCollection->scanned().connect([=](_n6){
-    if(mediaCollection->collection().empty())
-      pApp->notify(wtr("empty_media_collection_message"), Pandorica::NotificationType::Information);
-  });
 
   if(Settings::authenticationMode() == Settings::AuthenticateACL) {
     createItem(adminMenu, wtr("menu.groups"), 0, [=](WMenuItem*, _n5) { manageGroups.emit();}, "menu-groups");

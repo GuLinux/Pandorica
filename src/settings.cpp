@@ -56,7 +56,10 @@ Settings::Settings() : d(this) {}
 Settings::~Settings() {}
 
 vector< string > Settings::mediasDirectories() {
-  return Setting::values<string>(Setting::MediaDirectories);
+  auto directories = Setting::values<string>(Setting::MediaDirectories);
+  std::sort(begin(directories), end(directories));
+  directories.erase(std::unique(begin(directories), end(directories)), end(directories));
+  return directories;
 }
 
 const string PATH_SEP()

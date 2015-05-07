@@ -128,7 +128,7 @@
   <message id="group.is.admin">is admin</message>
   <message id="users.in.group.title">Users for "<b>{1}</b>"</message>
   <message id="groups.dialog.title">Groups</message>
-  <message id="directories.for.group.dialog.title">Allowed paths for "<b>{1}</b>"</message>
+  <message id="directories.for.group.dialog.title">Allowed paths for "{1}"</message>
 
   <!-- session dialog -->
   <message id="session.details.filename">File Name</message>
@@ -249,6 +249,7 @@ clicking on the following link or copying the URL into your browser:
 <message id="button.save">Save</message>
 <message id="configure.app.select_media_directories">Select Media Directories</message>
 <message id="empty_media_collection_message">It looks like your Media Collection is empty.<br />You can configure it by clicking the "Admin" menu, then choosing "<b>Configure App</b>".</message>
+<message id="empty_media_collection_message_user">It looks like your Media Collection is empty.<br />You should ask <strong>Pandorica</strong> administrator to add you to at least a group.</message>
 <message id="empty_media_collection_title">Empty Media Collection</message>
 <message id="create_thumbnails_no_image_checkbox">No Image</message>
 <message id="player_resize_small">Small</message>

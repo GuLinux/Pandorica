@@ -207,7 +207,7 @@
   <message id="group.is.admin">amministratore</message>
   <message id="users.in.group.title">Utenti per "{1}"</message>
   <message id="groups.dialog.title">Gruppi</message>
-  <message id="directories.for.group.dialog.title">Percorsi consentiti per "<b>{1}</b>"</message>
+  <message id="directories.for.group.dialog.title">Percorsi consentiti per "{1}"</message>
 
     <!-- session dialog -->
   <message id="session.details.filename">File</message>

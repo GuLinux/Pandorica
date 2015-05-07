@@ -19,6 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "Models/models.h"
+#include "versions_compat.h"
+#include <session.h>
 
 using namespace std;
 
@@ -47,6 +49,8 @@ void Group::removeUser(const dbo::ptr<User> &user, Wt::Dbo::Transaction &transac
 {
     _users.erase(user);
 }
+
+
 
 void Group::addPath(const GroupPathPtr& path)
 {

@@ -77,6 +77,7 @@ void CustomRegistrationWidget::registerUserDetails(Auth::User &authUser) {
     user.modify()->invitedEmailAddress.reset();
     authInfo.modify()->setUser(user);
     authInfo.flush();
+    session->flush();
   }
     wApp->log("notice") << "automatically created user: " << user.id();
 }
@@ -85,7 +86,7 @@ void CustomRegistrationWidget::registerUserDetails(Auth::User &authUser) {
 
 Wt::WWidget* CustomAuthWidget::createRegistrationView(const Wt::Auth::Identity& id)
 {
-  return Wt::Auth::AuthWidget::createRegistrationView(id);
+  //return Wt::Auth::AuthWidget::createRegistrationView(id);
   
   CustomRegistrationWidget *w = new CustomRegistrationWidget(session, this);
   Wt::Auth::RegistrationModel *model = createRegistrationModel();

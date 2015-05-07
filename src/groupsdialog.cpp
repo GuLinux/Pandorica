@@ -157,6 +157,8 @@ UsersInGroupDialog::UsersInGroupDialog(GroupPtr group, Session* session): WDialo
   setClosable(true);
   setResizable(true);
   setWindowTitle(wtr("users.in.group.title").arg(group->groupName()));
+  setMaximumSize(WLength::Auto, 450);
+  contents()->addStyleClass("overflow-y");
   WTable *usersTable = WW<WTable>().css("table table-striped table-bordered table-hover");
   
   WPushButton *addButton = WW<WPushButton>(wtr("button.add")).css("btn btn-sm btn-primary").setMargin(10, Side::Left);
@@ -196,6 +198,8 @@ UsersInGroupDialog::UsersInGroupDialog(GroupPtr group, Session* session): WDialo
     int row{0};
     for(UserPtr user: group->users()) {
       Dbo::ptr<AuthInfo> authInfo = session->find<AuthInfo>().where("user_id = ?").bind(user.id());
+      if(authInfo->identity("pandorica") == "Admin")
+          continue;
       usersTable->elementAt(row, 0)->addWidget(new WText{authInfo->identity("loginname")});
       usersTable->elementAt(row, 1)->addWidget(new WText{authInfo->email()});
       usersTable->elementAt(row, 2)->addWidget(WW<WPushButton>(wtr("button.remove")).css("btn btn-danger").onClick([=](WMouseEvent) {
@@ -254,7 +258,7 @@ GroupDirectoriesDialog::GroupDirectoriesDialog(Dbo::ptr< Group > group, Session*
     }
     , SelectDirectories::Multiple
   );
-  setHeight(400);
+  // setHeight(400);
   
   selectDirectories->setHeight(400);
   contents()->addWidget(selectDirectories);

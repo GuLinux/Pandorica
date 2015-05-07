@@ -198,7 +198,7 @@ bool initServer( int argc, char **argv, WServer &server, po::variables_map &vm )
   po::options_description pandorica_general_options( "General" );
   pandorica_general_options.add_options()
   ( "http-address", po::value<string>()->default_value( "0.0.0.0" ), "http address for listening" )
-  ( "http-port", po::value<int>()->default_value( 8080 ), "http port for listening" )
+  ( "http-port", po::value<int>()->default_value( 38000 ), "http port for listening" )
   ( "config,c", po::value<string>()->default_value( (boost::format( "%s/pandorica.xml" ) % SHARED_FILES_DIR ).str() ), "Pandorica XML Configuration file (wt_config.xml)" )
   ( "server-mode", po::value<string>()->default_value( "standalone" ), "Server run mode.\nAllowed modes are:\n\
   \t* standalone: Pandorica will run without an external http server.\n\

@@ -62,7 +62,7 @@ public:
     Wt::JSignal<std::string> queueSignal;
     Settings settings;
     MediaCollectionBrowser* mediaCollectionBrowser = nullptr;
-    MediaCollection mediaCollection;
+    MediaCollection *mediaCollection;
     long userId = -1;
     NavigationBar* navigationBar  = nullptr;
     Wt::WContainerWidget * playerPage;
@@ -74,6 +74,7 @@ public:
     void pathChanged(const std::string &path) const;
     Wt::WDialog *rescanIndicator = 0;
     void initAuthPage();
+    void setupMediaCollection();
 private:
     void ratingFor(Media media, Wt::Dbo::Transaction t);
     Wt::WMenuItem* activeUsersMenuItem = 0;

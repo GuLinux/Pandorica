@@ -124,10 +124,10 @@ Session::Session(bool full)
   if(!full)
     return;
   d->users = new UserDatabase(*this);
-#ifdef WT_AUTH_NEWAPI
-  if(Settings::authenticationMode() == Settings::AuthenticateACL)
-    d->users->setNewUserStatus(Auth::User::Disabled);
-#endif
+// #ifdef WT_AUTH_NEWAPI
+//   if(Settings::authenticationMode() == Settings::AuthenticateACL)
+//     d->users->setNewUserStatus(Auth::User::Disabled);
+// #endif
 }
 
 Wt::Dbo::SqlConnection *Session::connection() const

@@ -36,6 +36,7 @@ class Transaction;
 }
 
 class Session;
+class User;
 class MediaCollection : public Wt::WObject
 {
 public:
@@ -44,8 +45,8 @@ public:
     void rescan(const std::function<void()> &onFinish);
     std::map<std::string,Media> collection() const;
     Media media(std::string uid) const;
-    void setUserId(long long userId);
-    long long viewingAs() const;
+    void setUser(const Wt::Dbo::ptr<User> &user);
+    Wt::Dbo::ptr<User> viewingAs() const;
     std::vector<Media> sortedMediasList() const;
     bool isAllowed(const boost::filesystem::path &path) const;
     std::vector<std::shared_ptr<MediaDirectory>> rootDirectories() const;

@@ -96,28 +96,39 @@ typedef std::function<void(fs::path)> RunOnPath;
 
 
 Pandorica::Private::Private(Pandorica *q)
-  : q(q), playSignal(q, "playSignal"), queueSignal(q, "queueSignal"), mediaCollection(&settings, session, q)
+  : q(q), playSignal(q, "playSignal"), queueSignal(q, "queueSignal")
 {
-  playSignal.connect([=](string uid, _n5){
-    queueAndPlay(mediaCollection.media(uid));
-  });
-  queueSignal.connect([=](string uid, _n5){
-    queue(mediaCollection.media(uid));
-  });
-  mediaCollection.scanning().connect([=](_n6) {
-    rescanIndicator = new WDialog(wtr("mediacollection_rescanning_title"));
-    rescanIndicator->setClosable(false);
-    rescanIndicator->setModal(true);
-    rescanIndicator->contents()->addWidget(new WText{wtr("mediacollection_rescanning_message")});
-    rescanIndicator->show();
-  });
-  mediaCollection.scanned().connect([=](_n6) {
-    if(!rescanIndicator)
-      return;
-    rescanIndicator->hide();
-    delete rescanIndicator;
-    rescanIndicator = 0;
-  });
+}
+
+void Pandorica::Private::setupMediaCollection()
+{
+    mediaCollection = new MediaCollection(&settings, session, q);
+    playSignal.connect([=](string uid, _n5){
+      queueAndPlay(mediaCollection->media(uid));
+    });
+    queueSignal.connect([=](string uid, _n5){
+      queue(mediaCollection->media(uid));
+    });
+    mediaCollection->scanning().connect([=](_n6) {
+      rescanIndicator = new WDialog(wtr("mediacollection_rescanning_title"));
+      rescanIndicator->setClosable(false);
+      rescanIndicator->setModal(true);
+      rescanIndicator->contents()->addWidget(new WText{wtr("mediacollection_rescanning_message")});
+      rescanIndicator->show();
+    });
+    mediaCollection->scanned().connect([=](_n6) {
+      if(mediaCollection->collection().empty()) {
+          Dbo::Transaction t(*session);
+          pApp->notify(wtr(session->user()->isAdmin(t) ? "empty_media_collection_message" : "empty_media_collection_message_user"), Information);
+      }
+
+
+      if(!rescanIndicator)
+        return;
+      rescanIndicator->hide();
+      delete rescanIndicator;
+      rescanIndicator = 0;
+    });
 }
 
 
@@ -177,7 +188,8 @@ void Pandorica::Private::initAuthPage() {
   } catch(std::exception &e) {
     q->root()->addWidget(new WText{string{"Database error: "} + e.what() + "<br />Please check your configuration and try again."});
     return;
-  }  
+  }
+  setupMediaCollection();
 
   authPage = new AuthPage(session);
   q->root()->addWidget(authPage); 
@@ -187,6 +199,10 @@ void Pandorica::Private::initAuthPage() {
     if(state == Auth::WeakLogin || state == Auth::StrongLogin) {
       q->authEvent();
       return;
+    }
+    if(state == Auth::LoggedOut) {
+        q->redirect(q->url());
+        q->quit();
     }
     if(state == Auth::DisabledLogin || ! navigationBar)
       return;
@@ -233,8 +249,8 @@ void Pandorica::authEvent()
   log("notice") << "Clearing root and creating widgets";
   root()->addWidget(d->mainWidget = new WContainerWidget() );
   auto myUser = d->session->user();
-  d->mediaCollection.setUserId(myUser.id());
-  d->mainWidget->addWidget(d->navigationBar = new NavigationBar(d->session, &d->mediaCollection, &d->settings));
+  d->mediaCollection->setUser(myUser);
+  d->mainWidget->addWidget(d->navigationBar = new NavigationBar(d->session, d->mediaCollection, &d->settings));
   d->mainWidget->addWidget(d->notifications = WW<WContainerWidget>());
   d->widgetsStack = WW<WStackedWidget>().addCss("pandorica-content");
   d->widgetsStack->setTransitionAnimation({WAnimation::Fade});
@@ -268,9 +284,9 @@ Pandorica::~Pandorica() {
 
 void Pandorica::Private::adminActions()
 {
-  navigationBar->findOrphans().connect([=](_n6) { (new FindOrphansDialog(&mediaCollection, session, &settings))->run(); });
+  navigationBar->findOrphans().connect([=](_n6) { (new FindOrphansDialog(mediaCollection, session, &settings))->run(); });
   navigationBar->manageGroups().connect([=](_n6) {  (new GroupsDialog(session, &settings))->show(); });
-  navigationBar->configureApp().connect([=](_n6) { ServerSettingsPage::dialog(&settings, session, &mediaCollection); });
+  navigationBar->configureApp().connect([=](_n6) { ServerSettingsPage::dialog(&settings, session, mediaCollection); });
   navigationBar->usersManagement().connect([=](_n6) { UsersManagementPage::dialog(session); });
   navigationBar->viewAs().connect([=](_n6) {
     WDialog *dialog = new WDialog;
@@ -285,7 +301,7 @@ void Pandorica::Private::adminActions()
     for(Dbo::ptr<AuthInfo> userEntry: usersList) {
       model->addString(userEntry->identity("loginname") + " (" + userEntry->email() + ")");
       model->setData(model->rowCount() -1, 0, userEntry->user().id(), UserRole);
-      if(mediaCollection.viewingAs() == userEntry->user().id())
+      if(mediaCollection->viewingAs() == userEntry->user())
         combo->setCurrentIndex(model->rowCount());
     }
     dialog->show();
@@ -293,12 +309,13 @@ void Pandorica::Private::adminActions()
     dialog->footer()->addWidget(WW<WPushButton>(wtr("button.ok")).css("btn btn-primary").onClick([=](WMouseEvent) { dialog->accept(); }));
     dialog->finished().connect([=](WDialog::DialogCode code, _n5) {
       Dbo::Transaction t(*session);
-      long userId = session->user().id();
+      auto user = session->user();
       if(code == WDialog::Accepted) {
-        userId = boost::any_cast<long long>(model->data(model->index(combo->currentIndex(), 0), UserRole));
+        auto userId = boost::any_cast<long long>(model->data(model->index(combo->currentIndex(), 0), UserRole));
+        user = session->find<User>().where("id = ?").bind(userId);
       }
-      mediaCollection.setUserId(userId);
-      mediaCollection.rescan([]{});
+      mediaCollection->setUser(user);
+      mediaCollection->rescan([]{});
     });
   });
 }
@@ -314,7 +331,7 @@ void Pandorica::setupGui()
   d->playerPage->addWidget(WW<WContainerWidget>().add(d->playlist).setContentAlignment(AlignCenter));
   d->playerPage->addWidget(d->playerContainerWidget);
   
-  d->mediaCollectionBrowser = new MediaCollectionBrowser{&d->mediaCollection, &d->settings, d->session};
+  d->mediaCollectionBrowser = new MediaCollectionBrowser{d->mediaCollection, &d->settings, d->session};
   d->mediaCollectionBrowser->play().connect([=](Media media, _n5){
     d->queueAndPlay(media.path());
   });
@@ -343,7 +360,7 @@ void Pandorica::setupGui()
   string sessionId = wApp->sessionId();
   string initialInternalPath = internalPath();
   
-  d->mediaCollection.rescan([=]{
+  d->mediaCollection->rescan([=]{
     d->pathChanged(initialInternalPath);
     d->parseInitParameter();
   });
@@ -356,7 +373,7 @@ void Pandorica::Private::pathChanged( const std::string &path ) const
   q->log("notice") << __PRETTY_FUNCTION__ << ", path=" << path;
   if(!session->login().loggedIn() || ! mediaCollectionBrowser)
     return;
-  mediaCollectionBrowser->browse(mediaCollection.find(path));
+  mediaCollectionBrowser->browse(mediaCollection->find(path));
 }
 
 
@@ -364,13 +381,13 @@ void Pandorica::Private::parseInitParameter() {
   if(wApp->environment().getParameter("media")) {
     wApp->log("notice") << "Got parameter file: " << *wApp->environment().getParameter("media");
     string fileHash = * wApp->environment().getParameter("media");
-    queue(mediaCollection.media(fileHash).path());
+    queue(mediaCollection->media(fileHash).path());
   }
   if(wApp->environment().getParameter("dir")) {
     wApp->log("notice") << "Got parameter dir: " << *wApp->environment().getParameter("dir");
     string dirHash = * wApp->environment().getParameter("dir");
-    auto dir = mediaCollection.find(dirHash);
-    mediaCollectionBrowser->browse(mediaCollection.find(dirHash));
+    auto dir = mediaCollection->find(dirHash);
+    mediaCollectionBrowser->browse(mediaCollection->find(dirHash));
   }
 }
 

@@ -46,13 +46,11 @@ MediaCollection::MediaCollection( Settings *settings, Session *session, WApplica
 void MediaCollection::rescan( const function< void() >& onFinish )
 {
   log("notice") << __PRETTY_FUNCTION__ ;
+  Dbo::Transaction transaction(*d->session);
+  d->allowedPaths = d->user->allowedPaths();
   d->scanning.emit();
   boost::thread([=] {
     unique_lock<mutex> lock(d->rescanMutex);
-    Session threadSession;
-    Dbo::Transaction transaction(threadSession);
-    UserPtr user = transaction.session().find<User>().where( "id = ?" ).bind( d->userId );
-    d->allowedPaths = user->allowedPaths();
     d->collection.clear();
     d->mediaDirectories.clear();
     
@@ -128,14 +126,14 @@ bool MediaCollection::isAllowed( const fs::path &path ) const
   return d->isAllowed( path );
 }
 
-void MediaCollection::setUserId( long long int userId )
+void MediaCollection::setUser( const UserPtr &user)
 {
-  d->userId = userId;
+  d->user = user;
 }
 
-long long MediaCollection::viewingAs() const
+UserPtr MediaCollection::viewingAs() const
 {
-  return d->userId;
+  return d->user;
 }
 
 

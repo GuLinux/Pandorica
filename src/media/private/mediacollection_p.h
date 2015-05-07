@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "media/media.h"
 #include "media/mediacollection.h"
 #include "media/mediadirectory.h"
+#include "Models/models.h"
 
 class Settings;
 namespace Wt {
@@ -45,7 +46,7 @@ public:
   Session *session;
   std::list<std::string> allowedPaths;
   Wt::WApplication *app;
-  long long userId;
+  UserPtr user;
   typedef std::shared_ptr<MediaDirectory> MediaDirectoryPtr;
   std::vector<MediaDirectoryPtr> mediaDirectories;
   MediaDirectoryPtr findInSubDirectories(const std::shared_ptr<MediaDirectory> &directory, const std::string &hash);
