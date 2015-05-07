@@ -125,8 +125,8 @@ GroupsDialog::GroupsDialog(Session* session, Settings* settings): WDialog()
         if(WMessageBox::show(wtr("delete.group.title"), wtr("delete.group.text").arg(group->groupName()), Yes | No) != Yes) return;
         Dbo::Transaction t(*session);
         GroupPtr groupToDelete = session->find<Group>().where("id = ?").bind(group.id());
-        for(UserPtr user: groupToDelete->users)
-          groupToDelete.modify()->users.erase(user);
+        for(UserPtr user: groupToDelete->users())
+          groupToDelete.modify()->removeUser(user, t);
         groupToDelete.flush();
         groupToDelete.remove();
         t.commit();
@@ -185,7 +185,7 @@ UsersInGroupDialog::UsersInGroupDialog(GroupPtr group, Session* session): WDialo
     Dbo::Transaction t(*session);
     long userId = boost::any_cast<long>(model->data(usersSelect->currentIndex(), 1));
     UserPtr user = session->find<User>().where("id = ?").bind(userId);
-    group.modify()->users.insert(user);
+    group.modify()->addUser(user, t);
     t.commit();
     dataChanged.emit();
   });
@@ -194,7 +194,7 @@ UsersInGroupDialog::UsersInGroupDialog(GroupPtr group, Session* session): WDialo
     usersTable->clear();
     Dbo::Transaction t(*session);
     int row{0};
-    for(UserPtr user: group->users) {
+    for(UserPtr user: group->users()) {
       Dbo::ptr<AuthInfo> authInfo = session->find<AuthInfo>().where("user_id = ?").bind(user.id());
       usersTable->elementAt(row, 0)->addWidget(new WText{authInfo->identity("loginname")});
       usersTable->elementAt(row, 1)->addWidget(new WText{authInfo->email()});
@@ -204,7 +204,7 @@ UsersInGroupDialog::UsersInGroupDialog(GroupPtr group, Session* session): WDialo
         .arg(authInfo->identity("loginname")).arg(group->groupName()), Question, Yes | No};
         messageBox->button(StandardButton::Yes)->clicked().connect([=](WMouseEvent) {
           Dbo::Transaction t(*session);
-          group.modify()->users.erase(user);
+          group.modify()->removeUser(user, t);
           t.commit();
           dataChanged.emit();
           messageBox->accept();
@@ -237,16 +237,17 @@ GroupDirectoriesDialog::GroupDirectoriesDialog(Dbo::ptr< Group > group, Session*
   setWindowTitle(wtr("directories.for.group.dialog.title").arg(group->groupName()));
   vector<string> selectedGroupPaths;
   
-  transform(begin(group->groupPaths), end(group->groupPaths), back_inserter(selectedGroupPaths), [=](Dbo::ptr<GroupPath> g) { return g->path(); } );
+  transform(begin(group->groupPaths()), end(group->groupPaths()), back_inserter(selectedGroupPaths), [=](Dbo::ptr<GroupPath> g) { return g->path(); } );
   SelectDirectories* selectDirectories = new SelectDirectories(settings->mediasDirectories(), selectedGroupPaths, 
     [=](string path) {
       Dbo::Transaction t(*session);
-      group.modify()->groupPaths.insert(new GroupPath{path});
+      group.modify()->addPath(new GroupPath{path});
     },
     [=](string path) {
       Dbo::Transaction t(*session);
-      for(Dbo::ptr<GroupPath> groupPath: group->groupPaths) {
+      for(Dbo::ptr<GroupPath> groupPath: group->groupPaths() ) {
         if(groupPath->path() == path) {
+	  group.modify()->removePath(groupPath);
           groupPath.remove();
         }
       }

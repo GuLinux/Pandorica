@@ -242,16 +242,9 @@ dbo::ptr<User> Session::user()
 dbo::ptr<User> Session::user(const Wt::Auth::User &authUser)
 {
   Dbo::Transaction t(*this);
-  dbo::ptr<AuthInfo> authInfo = d->users->find(authUser);
-  dbo::ptr<User> user = authInfo->user();
-  dbo::ptr<User> invitedUser = find<User>().where("invited_email_address = ?").bind(authInfo->email().empty() ? authInfo->unverifiedEmail() : authInfo->email());
-  
-  if(!user) {
-    user = invitedUser ? invitedUser : add(new User());
-    user.modify()->invitedEmailAddress.reset();
-    authInfo.modify()->setUser(user);
-    authInfo.flush();
-  }    
+  auto authInfo = d->users->find(authUser);
+  if(!authInfo)
+    return {};
   return authInfo->user();
 }
 

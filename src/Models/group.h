@@ -44,6 +44,8 @@ private:
   dbo::ptr<Group> _group;
 };
 
+typedef dbo::ptr<GroupPath> GroupPathPtr;
+
 class Group
 {
 public:
@@ -51,19 +53,27 @@ public:
   Group(std::string groupName, bool isAdmin = false);
   template<class Action>
   void persist(Action& a) {
-    dbo::hasMany(a, users, dbo::ManyToMany, "groups_users");
+    dbo::hasMany(a, _users, dbo::ManyToMany, "groups_users");
     dbo::field(a, _groupName, "group_name");
     dbo::field(a, _isAdmin, "is_admin");
-    dbo::hasMany(a, groupPaths, dbo::ManyToOne, "group");
+    dbo::hasMany(a, _groupPaths, dbo::ManyToOne, "group");
   }
   inline std::string groupName() const { return _groupName; }
   inline void setGroupName(const std::string &groupName) { _groupName = groupName; }
   inline bool isAdmin() const { return _isAdmin; }
   std::list< std::string > allowedPaths() const;
-  
-  dbo::collection< dbo::ptr<User> > users;
-  dbo::collection< dbo::ptr<GroupPath> > groupPaths;
+  dbo::collection< dbo::ptr<User> > users() const { return _users; }
+  dbo::collection< dbo::ptr<GroupPath> > groupPaths() const { return _groupPaths; }
+
+  void addUser(const dbo::ptr<User> &user, dbo::Transaction &transaction);
+  void removeUser(const dbo::ptr<User> &user, dbo::Transaction &transaction);
+
+  void addPath(const GroupPathPtr &path);
+  void removePath(const GroupPathPtr &path);
+
 private:
+  dbo::collection< dbo::ptr<User> > _users;
+  dbo::collection< dbo::ptr<GroupPath> > _groupPaths;
   std::string _groupName;
   bool _isAdmin;
 };

@@ -30,11 +30,13 @@ class AuthPage;
 
 class CustomAuthWidget : public Wt::Auth::AuthWidget {
 public:
-  CustomAuthWidget(const Wt::Auth::AuthService& baseAuth, Wt::Auth::AbstractUserDatabase& users, Wt::Auth::Login& login, Wt::WStackedWidget *stack, Wt::WContainerWidget *parent = 0);
+  CustomAuthWidget(const Wt::Auth::AuthService& baseAuth, Wt::Auth::AbstractUserDatabase& users, Wt::Auth::Login& login, Wt::WStackedWidget *stack, Session *session, Wt::WContainerWidget *parent = 0);
   void recreateView();
   virtual void registerNewUser(const Wt::Auth::Identity& oauth);
+  virtual WWidget* createRegistrationView(const Wt::Auth::Identity& id);
 private:
   Wt::WStackedWidget *stack;
+  Session *session;
 };
 
 
@@ -53,7 +55,6 @@ public:
     void setupLogin();
 private:
     class AuthPage* const q;
-    bool seedIfNoAdmins(Wt::Dbo::Transaction& transaction, Wt::Auth::User& user);
 };
 
 

@@ -61,7 +61,7 @@ public:
     Wt::JSignal<std::string> playSignal;
     Wt::JSignal<std::string> queueSignal;
     Settings settings;
-    MediaCollectionBrowser* mediaCollectionBrowser;
+    MediaCollectionBrowser* mediaCollectionBrowser = nullptr;
     MediaCollection mediaCollection;
     long userId = -1;
     NavigationBar* navigationBar  = nullptr;

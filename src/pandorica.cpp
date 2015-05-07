@@ -164,8 +164,6 @@ Pandorica::Pandorica( const Wt::WEnvironment& environment) : WApplication(enviro
     wizard->finished().connect([=](_n6){
         redirect(url());
         quit();
-      //WServer::instance()->post(wApp->sessionId(), std::bind(&WContainerWidget::clear, root() ));
-      //WServer::instance()->post(wApp->sessionId(), std::bind(&Pandorica::Private::initAuthPage, d.get()));
     });
   }
   else
@@ -356,7 +354,7 @@ void Pandorica::setupGui()
 void Pandorica::Private::pathChanged( const std::string &path ) const
 {
   q->log("notice") << __PRETTY_FUNCTION__ << ", path=" << path;
-  if(!session->login().loggedIn())
+  if(!session->login().loggedIn() || ! mediaCollectionBrowser)
     return;
   mediaCollectionBrowser->browse(mediaCollection.find(path));
 }

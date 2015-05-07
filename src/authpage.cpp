@@ -37,6 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wt/WTimer>
 #include <Wt/WConfig.h>
 #include <Wt/WImage>
+#include <Wt/Auth/RegistrationWidget>
 
 #include "Models/models.h"
 #include "settings.h"
@@ -46,7 +47,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace std;
 using namespace Wt;
-using namespace Auth;
 using namespace WtCommons;
 
 namespace dbo = Wt::Dbo;
@@ -55,9 +55,51 @@ AuthPage::Private::Private(Session* session, AuthPage* q) : session(session), q(
 {
 }
 
+class CustomRegistrationWidget : public Auth::RegistrationWidget {
+public:
+  CustomRegistrationWidget(Session *session, Wt::Auth::AuthWidget *p) : Auth::RegistrationWidget(p), session(session) {}
+protected:
+  virtual void registerUserDetails (Auth::User &authUser);
+private:
+  Session *session;
+};
 
-CustomAuthWidget::CustomAuthWidget(const Auth::AuthService& baseAuth, Auth::AbstractUserDatabase& users, Auth::Login& login, WStackedWidget *stack, WContainerWidget* parent)
-  : Auth::AuthWidget(baseAuth, users, login, parent), stack(stack)
+void CustomRegistrationWidget::registerUserDetails(Auth::User &authUser) {
+  dbo::Transaction t(*session);
+  auto authInfo = session->users().find(authUser);
+  if(! authInfo)
+    return;
+  dbo::ptr<User> user = authInfo->user();
+  dbo::ptr<User> invitedUser = session->find<User>().where("invited_email_address = ?").bind(authInfo->email().empty() ? authInfo->unverifiedEmail() : authInfo->email()); // TODO: move inside authPage
+  
+  if(!user) {
+    user = invitedUser ? invitedUser : session->add(new User);
+    user.modify()->invitedEmailAddress.reset();
+    authInfo.modify()->setUser(user);
+    authInfo.flush();
+  }
+    wApp->log("notice") << "automatically created user: " << user.id();
+}
+
+
+
+Wt::WWidget* CustomAuthWidget::createRegistrationView(const Wt::Auth::Identity& id)
+{
+  return Wt::Auth::AuthWidget::createRegistrationView(id);
+  
+  CustomRegistrationWidget *w = new CustomRegistrationWidget(session, this);
+  Wt::Auth::RegistrationModel *model = createRegistrationModel();
+
+  if (id.isValid())
+    model->registerIdentified(id);
+
+  w->setModel(model);
+  return w;
+}
+
+
+CustomAuthWidget::CustomAuthWidget(const Auth::AuthService& baseAuth, Auth::AbstractUserDatabase& users, Auth::Login& login, WStackedWidget* stack, Session* session, WContainerWidget* parent)
+  : Auth::AuthWidget(baseAuth, users, login, parent), stack(stack), session(session)
 {
 
 }
@@ -147,7 +189,7 @@ void AuthPage::Private::setupLogin()
     wApp->log("notice") << "Simple login mode found: logging in admin user: " << session->login().loggedIn();
     return;
   }
-  authWidget = new CustomAuthWidget(Session::auth(), session->users(), session->login(), stack);
+  authWidget = new CustomAuthWidget(Session::auth(), session->users(), session->login(), stack, session);
   authWidget->model()->addPasswordAuth(&Session::passwordAuth());
   authWidget->model()->addOAuth(Session::oAuth());
   authWidget->setRegistrationEnabled(true);

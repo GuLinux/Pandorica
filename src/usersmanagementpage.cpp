@@ -165,9 +165,9 @@ void UsersManagementPage::Private::populate()
 
   for( auto authInfo : users )
   {
-    if(!authInfo->user())
-      continue;
     auto user = authInfo->user();
+    if( ! user || authInfo->identity("pandorica") == "Admin")
+      continue;
     addUserRow( authInfo, user, usersContainer , t );
   }
 }

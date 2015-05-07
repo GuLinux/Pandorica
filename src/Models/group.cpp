@@ -33,8 +33,27 @@ list<string> Group::allowedPaths() const
   if(isAdmin())
     return {"/"};
   list<string> paths;
-  for(auto path: groupPaths) {
+  for(auto path: _groupPaths) {
     paths.push_back(path->path());
   }
   return paths;
+}
+
+void Group::addUser(const dbo::ptr<User> &user, Wt::Dbo::Transaction &transaction) {
+    _users.insert(user);
+}
+
+void Group::removeUser(const dbo::ptr<User> &user, Wt::Dbo::Transaction &transaction)
+{
+    _users.erase(user);
+}
+
+void Group::addPath(const GroupPathPtr& path)
+{
+  _groupPaths.insert(path);
+}
+
+void Group::removePath(const GroupPathPtr& path)
+{
+  _groupPaths.erase(path);
 }

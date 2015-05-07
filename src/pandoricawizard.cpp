@@ -214,8 +214,13 @@ void RegistrationWidget::registerUserDetails(Auth::User& authUser)
     if(!authUser.isValid())
       return;
     Dbo::Transaction t(*session);
-    auto user = session->user(authUser);
-    getAdminGroup(t).modify()->users.insert(user);
+    auto user = session->add(new User);
+    auto authInfo = session->users().find(authUser);
+    if(!authInfo)
+      return;
+    authInfo.modify()->setUser(user);
+    wApp->log("notice") << "automatically created user: " << user.id();
+    getAdminGroup(t).modify()->addUser(user, t);
 }
 
 void PandoricaWizard::Private::addAdminUserPage()
@@ -243,7 +248,7 @@ void PandoricaWizard::Private::addAdminUserPage()
         Dbo::Transaction t(*session);
         auto user = session->user();
         wApp->log("notice") << "Registered user: auth-id=" << model->login().user().id() << ", user-id=" << user.id();
-        adminGroup(t).modify()->users.insert(user);
+        adminGroup(t).modify()->addUser(user, t);
       }
       groupBox->clear();
       groupBox->addWidget(new WText{WString::tr("wizard.admincreation.registered")});
@@ -319,7 +324,7 @@ PandoricaWizard::~PandoricaWizard()
     adminAuthUser.setStatus(Auth::User::Normal);
 #endif
     authInfo.modify()->setUser(adminUser);
-    adminGroup.modify()->users.insert(adminUser);
+    adminGroup.modify()->addUser(adminUser, t);
     t.commit();
   }
   Setting::write(Setting::PandoricaSetup, true);
