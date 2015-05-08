@@ -193,9 +193,10 @@ MediaPreviewWidget::MediaPreviewWidget(const Media& media, Session *session, WCo
   
   WToolBar *toolbar = WW<WToolBar>().css("inline-block");
   WPushButton *googlePickerButton = *googlePicker;
-  googlePickerButton->addStyleClass("btn-xs");
-  if(googlePickerButton)
+  if(googlePickerButton) {
     toolbar->addButton(googlePickerButton);
+    googlePickerButton->addStyleClass("btn-xs");
+  }
   toolbar->addButton(loadFromFile);
   toolbar->addButton(loadFromURL);
   
